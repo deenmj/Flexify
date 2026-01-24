@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Google Login</title>
+</head>
+<body>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+
+  if (token) {
+    localStorage.setItem("token", token);
+    alert("Google login successful!");
+    window.location.href = "index.html";
+  } else {
+    alert("Google login failed");
+    window.location.href = "auth.html";
+  }
+</script>
+</body>
+</html>

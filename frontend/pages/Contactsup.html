@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Rentify Contact Us</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        @layer base {
+            :root {
+                --primary-color: #1193D4;
+                --background-light: #F8FAFC;
+                --background-dark: #101C22;
+                --primary-hover: #0F83C0;
+            }
+        }
+    </style>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "var(--primary-color)",
+                        "background-light": "var(--background-light)",
+                        "background-dark": "var(--background-dark)",
+                        "primary-hover": "var(--primary-hover)"
+                    },
+                    fontFamily: {
+                        "display": ["Montserrat", "sans-serif"],
+                        "body": ["Manrope", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-body text-gray-700 dark:text-gray-300">
+<div class="min-h-screen">
+<section class="bg-primary/10 dark:bg-primary/5 py-12 md:py-16">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+<h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white font-display">Get in Touch</h1>
+<p class="mt-4 text-lg text-gray-600 dark:text-gray-400">We'd love to hear from you. Let us know how we can help.</p>
+</div>
+</section>
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+<div class="grid lg:grid-cols-2 gap-12">
+<div class="bg-white dark:bg-gray-800/50 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<h2 class="text-2xl font-bold font-display text-gray-900 dark:text-white mb-6">Send us a Message</h2>
+<form action="#" class="space-y-6">
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="name">Name</label>
+<input autocomplete="name" class="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-primary focus:border-primary shadow-sm" id="name" name="name" placeholder="Your Name" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="email">Email Address</label>
+<input autocomplete="email" class="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-primary focus:border-primary shadow-sm" id="email" name="email" placeholder="you@example.com" type="email"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="subject">Subject</label>
+<input class="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-primary focus:border-primary shadow-sm" id="subject" name="subject" placeholder="How can we help?" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="message">Message</label>
+<textarea class="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-primary focus:border-primary shadow-sm" id="message" name="message" placeholder="Your message..." rows="4"></textarea>
+</div>
+<div>
+<button class="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-primary-hover transition-colors text-lg" type="submit">
+                                Send Message
+                            </button>
+</div>
+</form>
+</div>
+<div class="space-y-8">
+<div class="bg-white dark:bg-gray-800/50 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<h2 class="text-2xl font-bold font-display text-gray-900 dark:text-white mb-6">Contact Information</h2>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="bg-primary/10 p-3 rounded-full">
+<span class="material-symbols-outlined text-primary">mail</span>
+</div>
+<div>
+<h3 class="font-semibold text-gray-900 dark:text-white">Email</h3>
+<a class="text-primary hover:underline" href="mailto:support@rentify.com">mohamed.hamdhan0047@gmail.com</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-primary/10 p-3 rounded-full">
+<span class="material-symbols-outlined text-primary">phone</span>
+</div>
+<div>
+<h3 class="font-semibold text-gray-900 dark:text-white">Phone</h3>
+<a class="text-primary hover:underline" href="tel:+94XXXXXXXXX">+94 763484825</a>
+</div>
+</div>
+</div>
+<div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+<h3 class="font-semibold text-gray-900 dark:text-white mb-4">Follow Us</h3>
+
+<div class="flex gap-4 mt-4">
+    <!-- Facebook -->
+    <a href="#" aria-label="Facebook">
+      <svg class="w-6 h-6 text-white-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M22 12.07C22 6.49 17.52 2 12 2S2 6.49 2 12.07c0 5.02 3.66 9.18 8.44 9.93v-7.03H7.9v-2.9h2.54V9.41c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.24.2 2.24.2v2.47h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.9h-2.34v7.03C18.34 21.25 22 17.09 22 12.07z"/>
+      </svg>
+    </a>
+  
+    <!-- Instagram -->
+    <a href="#" aria-label="Instagram">
+      <svg class="w-6 h-6 text-white-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm10 2c1.65 0 3 1.35 3 3v10c0 1.65-1.35 3-3 3H7c-1.65 0-3-1.35-3-3V7c0-1.65 1.35-3 3-3h10zm-5 3.5A4.5 4.5 0 1 0 16.5 12 4.5 4.5 0 0 0 12 7.5zm0 7.4A2.9 2.9 0 1 1 14.9 12 2.9 2.9 0 0 1 12 14.9zM17.5 6A1.5 1.5 0 1 1 16 7.5 1.5 1.5 0 0 1 17.5 6z"/>
+      </svg>
+    </a>
+  
+    <!-- WhatsApp -->
+    <a href="#" aria-label="WhatsApp">
+      <svg class="w-6 h-6 text-white-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20.52 3.48A11.84 11.84 0 0 0 12 0C5.37 0 0 5.37 0 12a11.9 11.9 0 0 0 1.64 6L0 24l6.2-1.63A11.93 11.93 0 0 0 12 24c6.63 0 12-5.37 12-12a11.84 11.84 0 0 0-3.48-8.52zM12 21.5a9.38 9.38 0 0 1-4.77-1.3l-.34-.2-3.69.97.99-3.6-.22-.37A9.47 9.47 0 0 1 2.5 12c0-5.23 4.27-9.5 9.5-9.5S21.5 6.77 21.5 12 17.23 21.5 12 21.5zm4.63-6.87c-.25-.12-1.47-.72-1.7-.8s-.4-.12-.57.12-.65.8-.8.97-.3.18-.55.06a7.67 7.67 0 0 1-2.26-1.4 8.43 8.43 0 0 1-1.55-1.93c-.16-.28 0-.43.12-.55.12-.12.28-.3.42-.45.14-.15.18-.25.28-.42s.05-.32 0-.45-.57-1.37-.78-1.88-.4-.42-.57-.43-.32 0-.5 0a.97.97 0 0 0-.7.33c-.24.24-.9.88-.9 2.15s.93 2.5 1.06 2.67c.12.17 1.83 2.8 4.43 3.93.62.27 1.1.43 1.47.55.62.2 1.18.17 1.63.1.5-.07 1.47-.6 1.68-1.18s.2-1.08.14-1.18-.23-.17-.48-.28z"/>
+      </svg>
+    </a>
+  
+    <!-- YouTube -->
+    <a href="#" aria-label="YouTube">
+      <svg class="w-6 h-6 text-white-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M21.8 8s-.2-1.5-.8-2.1a2.8 2.8 0 0 0-2-.8C16.1 5 12 5 12 5h-.1s-4.1 0-7 .1a2.8 2.8 0 0 0-2 .8C2.3 6.5 2 8 2 8S1.8 9.6 1.8 11.3v1.4C1.8 14.4 2 16 2 16s.2 1.5.8 2.1a2.8 2.8 0 0 0 2 .8c2.9.1 7 .1 7 .1s4.1 0 7-.1a2.8 2.8 0 0 0 2-.8c.6-.6.8-2.1.8-2.1s.2-1.6.2-3.3v-1.4c0-1.7-.2-3.3-.2-3.3zM9.75 14.5v-5l4.75 2.5-4.75 2.5z"/>
+      </svg>
+    </a>
+  
+    <!-- X / Twitter -->
+    <a href="#" aria-label="X">
+      <svg class="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M18.36 2H21l-6.34 7.25L22 22h-4.87l-4.18-6.21L8 22H3l6.81-7.83L2 2h5.08l3.81 5.69L18.36 2z"/>
+      </svg>
+    </a>
+  </div>
+</div>
+</div>
+<div class="bg-gray-200 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 aspect-video w-full flex items-center justify-center">
+<div class="text-center p-8">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-5xl">map</span>
+<p class="mt-2 font-semibold text-gray-600 dark:text-gray-300">Embedded Google Map</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

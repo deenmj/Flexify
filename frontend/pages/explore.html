@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flexify-Vehicles — Explore</title>
+
+  <!-- Fonts / icons / Tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Leaflet (maps) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "auth.html"; // redirect if not logged in
+    }
+    </script>
+    
+  <style>
+    :root{
+      --primary: #1173d4;
+      --bg-light: #f6f7f8;
+      --header-h: 64px; /* used to avoid overlap when header sticky */
+    }
+    html,body { height:100%; }
+    body { font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: var(--bg-light); margin:0; padding-top: calc(var(--header-h)); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+    /* small helpers */
+    .card-img { background-size:cover; background-position:center; height:180px; border-radius:.5rem; }
+    .active-tab { border-bottom-color:var(--primary) !important; color:var(--primary) !important; }
+    /* tiny notification style */
+    .notif { position: fixed; right: 1rem; top: 1rem; z-index: 60; }
+    /* map */
+    #map { height: 180px; border-radius: .5rem; border: 1px solid #e5e7eb; }
+    /* only show scroll when hovered */
+    .hover-scroll { overflow: hidden; }
+    .hover-scroll:hover { overflow-y: auto; }
+    /* small rotate helper */
+    .rotate-180 { transform: rotate(180deg); }
+    /* ensure header height is predictable */
+    header.app-header { height: var(--header-h); min-height: var(--header-h); }
+    /* container for filters/results independent max height */
+    .panel-maxheight { max-height: calc(100vh - var(--header-h) - 4rem); } /* leaves room for search + spacing */
+    /* make search visible on mobile top center */
+    #searchHost { width:100%; display:block; margin-bottom:1rem; }
+    @media(min-width:1024px) {
+      #searchHost { display:block; width:auto; margin-bottom:0; }
+    }
+  </style>
+</head>
+<body>
+
+   <!-- HEADER (REPLACEMENT) -->
+   <header class="fixed top-0 left-0 right-0 z-40 w-full border-b bg-white/90 backdrop-blur-sm" role="banner" style="--header-h:64px">
+    <div class="container max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+      <!-- left: logo + desktop nav -->
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="flex items-center gap-3">
+          <!-- keep your SVG or img here -->
+          <svg class="h-8 w-8 text-primary-color" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" opacity="0.5"/><path d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263Z" fill="currentColor"/></svg>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight">Flexify-Vehicles</h1>
+        </a>
+  
+        <!-- Desktop Nav -->
+        <nav class="hidden md:flex items-center gap-4 text-sm text-slate-700"> 
+          <div class="relative group" data-dd-trigger="vehicle">
+            <button class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-slate-100 transition-colors">Vehicle Collection
+              <span class="material-symbols-outlined text-sm">expand_more</span>
+            </button>
+            <div class="absolute left-0 mt-2 hidden group-hover:block bg-white rounded-md border shadow-sm dropdown-card z-3000">
+              <div class="p-3">
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Luxury Sedans</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Compact Cars</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">CUVs & Crossovers</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">SUVs & Family</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Vans & Minivans</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Electric & Hybrid</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Trucks & Light Commercial</a>
+              </div>
+            </div>
+          </div>
+
+  
+          <div class="relative group"   data-dd-trigger="services">
+            <button class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-slate-100 transition-colors">Services
+              <span class="material-symbols-outlined text-sm">expand_more</span>
+            </button>
+            <div class="absolute left-0 mt-2 hidden group-hover:block bg-white rounded-md border shadow-sm dropdown-card z-3000">
+              <div class="p-3">
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Self Drive Rental</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Tours / Chauffeur Driven</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Airport / City Transfers</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Weddings & Events</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Optional Equipment</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Sell a Vehicle</a>
+                <a class="block px-3 py-2 rounded hover:bg-slate-50" href="#">Buy a Vehicle</a>
+  
+              </div>
+            </div>
+          </div>
+          <a class="px-3 py-2 rounded-md hover:bg-slate-100" href="#">List your Vehicle</a>
+          <a class="px-3 py-2 rounded-md hover:bg-slate-100" href="#">Get Insurance</a>
+          <a class="px-3 py-2 rounded-md hover:bg-slate-100" href="#">Support</a>
+        </nav>
+      </div>
+  
+      <!-- center placeholder (keeps layout stable) -->
+      <div class="flex-1"></div>
+  
+      <!-- RIGHT: (grouped so icons stay next to menu on small screens) -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 md:order-none order-1" id="rightControls">
+          <!-- Notification button -->
+          <div class="relative">
+            <button id="notifBtn" class="rounded-full h-10 w-10 flex items-center justify-center text-gray-600 hover:bg-gray-100" type="button" aria-haspopup="true" aria-expanded="false">
+              <span class="material-symbols-outlined">notifications</span>
+              <span id="notifDot" class="absolute top-2 right-2 bg-red-500 h-2 w-2 rounded-full hidden"></span>
+            </button>
+            <div class="dropdown-panel hidden bg-white rounded-xl shadow-lg p-3 w-64" data-dd="notif">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold text-gray-700">Notifications</h3>
+                <button id="markReadBtn" class="text-xs text-blue-500 hover:underline">Mark as read</button>
+              </div>
+              <ul class="space-y-2 text-gray-700 text-sm">
+                <li>No new notifications</li>
+              </ul>
+            </div>
+          </div>
+  
+          <!-- language selector -->
+          <select id="langSelect" class="text-sm rounded-md border bg-white px-2 py-1" aria-label="Language">
+            <option>EN</option><option>ES</option><option>FR</option>
+          </select>
+  
+          <!-- profile button (desktop only) -->
+          <div class="relative hidden md:block">
+            <button id="profileBtn" class="rounded-full h-10 w-10 overflow-hidden items-center justify-center text-gray-600 hover:bg-gray-100" type="button" aria-haspopup="true" aria-expanded="false">
+              <img id="profilePic" src="a2.png" alt="Profile" class="h-10 w-10 object-cover rounded-full">
+            </button>
+            <div class="dropdown-panel hidden bg-white rounded-xl shadow-lg p-3 w-56" data-dd="profile">
+              <ul class="space-y-2 text-gray-700 text-sm">
+                <li><a href="/profile" class="block px-2 py-1 hover:bg-gray-100 rounded-md">My Profile</a></li>
+                <li><a href="/settings" class="block px-2 py-1 hover:bg-gray-100 rounded-md">Settings</a></li>
+                <li><a href="/payments" class="block px-2 py-1 hover:bg-gray-100 rounded-md">Manage Payment</a></li>
+                <li><a href="/switch" class="block px-2 py-1 hover:bg-gray-100 rounded-md">Switch Account</a></li>
+                <li><a href="/logout" class="block px-2 py-1 text-red-500 hover:bg-gray-100 rounded-md">Logout</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Mobile sidebar open (three-bar). keep it last so other rightControls are next to it -->
+        <button id="openSidebarBtn" class="md:hidden p-2 rounded-lg bg-white border order-2" aria-controls="sidebarDrawer" aria-expanded="false" type="button">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+    
+  </header>
+  
+ 
+  <!-- MAIN -->
+  <main class="flex-1 container max-w-7xl mx-auto px-4 py-8">
+    <!-- SEARCH HOST (desktop before filters, mobile top centered) -->
+    <div id="searchHost" class="mb-4 flex justify-center sm:justify-start">
+      <div id="searchBox" class="flex items-center bg-slate-100 rounded-lg px-3 h-9 w-full sm:w-96">
+        <span class="material-symbols-outlined text-slate-500">search</span>
+        <input id="masterSearch" type="text" placeholder="Search vehicles..." class="ml-2 w-full bg-transparent border-none focus:ring-0 text-sm text-slate-900"/>
+      </div>
+    </div>
+
+    <div class="lg:flex lg:gap-8">
+      <!-- DESKTOP FILTERS (left column on large screens) -->
+      <aside id="filtersPanel" class="hidden lg:block w-80 hover-scroll panel-maxheight">
+        <div id="filtersHost" class="p-4 bg-white border rounded-lg">
+          <!-- filters-content will exist here by default -->
+          <div id="filtersContent" class="filters-content">
+            <h2 class="text-2xl font-bold mb-4">Filters</h2>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-2">Price range (USD)</label>
+              <div class="flex gap-2 items-center">
+                <input id="minPrice" type="number" placeholder="Min" class="w-1/2 rounded-md border px-2 py-1" min="0"/>
+                <input id="maxPrice" type="number" placeholder="Max" class="w-1/2 rounded-md border px-2 py-1" min="0"/>
+              </div>
+              <input id="priceSlider" type="range" min="0" max="500" value="250" class="w-full mt-3" />
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-2">Location</label>
+              <input id="locationInput" list="locationExamples" placeholder="Country > State > City" class="w-full rounded-md border px-2 py-2 mb-2"/>
+              <datalist id="locationExamples">
+                <option value="USA > California > Los Angeles"></option>
+                <option value="USA > Texas > Dallas"></option>
+                <option value="India > Maharashtra > Mumbai"></option>
+                <option value="Sri Lanka > Western > Colombo"></option>
+              </datalist>
+              <div id="map" class="mb-1 z-10"></div>
+              <div class="text-xs text-slate-500">Click the map to pick a location</div>
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-2">Vehicle Type (Type > Variety)</label>
+              <input id="vehicleTypeInput" list="vehicleTypeExamples" placeholder="SUV > 7-seater" class="w-full rounded-md border px-2 py-2"/>
+              <datalist id="vehicleTypeExamples">
+                <option value="SUV > 7-seater"></option>
+                <option value="Sedan > Luxury"></option>
+                <option value="Hatchback > Compact"></option>
+                <option value="Truck > Light Commercial"></option>
+              </datalist>
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-2">Transmission</label>
+              <select id="transmissionSelect" class="w-full rounded-md border px-2 py-2">
+                <option value="">Any</option>
+                <option>Automatic</option>
+                <option>Manual</option>
+              </select>
+            </div>
+
+            <div class="mb-6">
+              <label class="block text-sm font-medium mb-2">Seating Capacity</label>
+              <select id="seatingSelect" class="w-full rounded-md border px-2 py-2">
+                <option value="">Any</option>
+                <option value="2">2 seats</option>
+                <option value="4">4 seats</option>
+                <option value="5">5 seats</option>
+                <option value="7">7+ seats</option>
+              </select>
+            </div>
+
+            <div class="flex gap-3">
+              <button id="filtersCancelBtn" class="flex-1 px-4 py-2 bg-gray-100 rounded-md">Cancel</button>
+              <button id="filtersOkBtn" class="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-md">OK</button>
+            </div>
+
+          </div>
+        </div>
+      </aside>
+
+            <!-- VEHICLES LISTING / GRID -->
+            <section class="flex-1 hover-scroll panel-maxheight">
+              <div class="mb-4 flex items-end justify-between">
+                <h1 class="text-3xl font-bold">Explore Vehicles</h1>
+                <div class="hidden md:flex gap-2 items-center">
+                  <button data-sort="price" class="sortTab py-2 px-3 text-sm border-b-2 border-transparent hover:border-b-primary">Price low-high</button>
+                  <button data-sort="popularity" class="sortTab active-tab py-2 px-3 text-sm">Popularity</button>
+                  <button data-sort="newest" class="sortTab py-2 px-3 text-sm border-b-2 border-transparent hover:border-b-primary">Newest</button>
+                </div>
+              </div>
+      
+              <!-- grid: 3 cards per row on xl / 2 on sm / 1 on xs -->
+              <div id="vehiclesGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 pb-6">
+                <!-- cards injected by JS -->
+              </div>
+            </section>
+      
+          </div>
+        </main>
+      
+        <!-- MOBILE RIGHT SIDEBAR / DRAWER (contains nav + filters + profile & close) -->
+        <div id="sidebarOverlay" class="fixed inset-0 z-50 hidden">
+          <div id="sidebarBackdrop" class="absolute inset-0 bg-black/40"></div>
+          <aside id="sidebarDrawer" class="absolute right-0 top-0 h-full w-[86%] max-w-xs bg-white p-4 overflow-auto">
+            <!-- header inside drawer -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <!-- profile appears here on mobile -->
+                <button id="mobileProfileBtn" class="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100">
+                  <span class="material-symbols-outlined">account_circle</span>
+                </button>
+                <div>
+                  <div class="text-sm font-semibold">My Account</div>
+                  <div class="text-xs text-slate-500">Signed in</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <!-- removed mobile "List your Vehicle" per request -->
+                <button id="closeSidebarBtn" class="p-2 rounded hover:bg-slate-100">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+      
+            <!-- mobile nav (expandable blocks) -->
+            <nav class="mb-4">
+              <button class="w-full flex justify-between items-center px-2 py-2 rounded hover:bg-slate-50 mobile-dropdown-btn">
+                Vehicle Collection <span class="material-symbols-outlined text-sm">expand_more</span>
+              </button>
+              <div class="mobile-dropdown-content hidden flex-col pl-3  mb-2">
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Luxury Sedans</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Compact Cars</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">CUVs & Crossovers</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">SUVs & Family</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Vans & Minivans</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Electric & Hybrid</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Trucks & Light Commercial</a>
+              </div>
+
+      
+              <button class="w-full flex justify-between items-center px-2 py-2 rounded hover:bg-slate-50 mobile-dropdown-btn">
+                Services <span class="material-symbols-outlined text-sm">expand_more</span>
+              </button>
+              <div class="mobile-dropdown-content hidden flex-col pl-3 mb-2">
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Self Drive Rental</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Tours / Chauffeur Driven</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Airport / City Transfers</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Weddings & Events</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Optional Equipment</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Sell a Vehicle</a>
+                <a class="block px-3 py-2 hover:text-[var(--primary)]" href="#">Buy a Vehicle</a>
+
+              </div>
+              <a class="block px-2 py-2 rounded hover:bg-slate-50" href="#">List your vehicle</a>
+              <a class="block px-2 py-2 rounded hover:bg-slate-50" href="#">Get insurence</a>
+              <a class="block px-2 py-2 rounded hover:bg-slate-50" href="#">Support</a>
+
+            </nav>
+      
+            <hr class="mb-4">
+      
+            <!-- Mobile filters area: we will move the same filtersContent node here when drawer opens -->
+            <div id="mobileFiltersHost" class="mb-6"></div>
+      
+            <div class="text-xs text-slate-500">Tip: tap a filter then press OK to apply</div>
+          </aside>
+        </div>
+      
+        <!-- small notification holder -->
+        <div id="notifications" class="notif"></div>
+      
+        <!-- FOOTER -->
+        <footer class="bg-gray-900 text-gray-100 mt-auto relative z-[10]">
+          <div class="px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 max-w-7xl mx-auto">
+              <div>
+                <h2 class="text-2xl font-bold text-white">Rentify</h2>
+                <p class="mt-3 text-sm text-gray-400 leading-relaxed">
+                  Your trusted platform for renting, selling, and discovering vehicles worldwide.
+                </p>
+              </div>
+        
+              <div>
+                <h3 class="text-white font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2 text-sm">
+                  <li><a href="indexVehicle.html" class="hover:text-white">Home</a></li>
+                  <li><a href="explore.html" class="hover:text-white">Explore</a></li>
+                  <li><a href="listing.html" class="hover:text-white">List your Vehicle</a></li>
+                  <li><a href="about us.html" class="hover:text-white">About Us</a></li>
+                </ul>
+              </div>
+        
+              <div>
+                <h3 class="text-white font-semibold mb-4">Support</h3>
+                <ul class="space-y-2 text-sm">
+                  <li><a href="help.html" class="hover:text-white">Help Center</a></li>
+                  <li><a href="FAQ.html" class="hover:text-white">FAQ</a></li>
+                  <li><a href="Contactsup.html" class="hover:text-white">Contact</a></li>
+                </ul>
+              </div>
+        
+              <div class="flex gap-4 mt-4">
+                <!-- Facebook -->
+                <a href="#" aria-label="Facebook">
+                  <svg class="w-6 h-6 text-white-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M22 12.07C22 6.49 17.52 2 12 2S2 6.49 2 12.07c0 5.02 3.66 9.18 8.44 9.93v-7.03H7.9v-2.9h2.54V9.41c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.24.2 2.24.2v2.47h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.9h-2.34v7.03C18.34 21.25 22 17.09 22 12.07z"/>
+                  </svg>
+                </a>
+              
+                <!-- Instagram -->
+                <a href="#" aria-label="Instagram">
+                  <svg class="w-6 h-6 text-white-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm10 2c1.65 0 3 1.35 3 3v10c0 1.65-1.35 3-3 3H7c-1.65 0-3-1.35-3-3V7c0-1.65 1.35-3 3-3h10zm-5 3.5A4.5 4.5 0 1 0 16.5 12 4.5 4.5 0 0 0 12 7.5zm0 7.4A2.9 2.9 0 1 1 14.9 12 2.9 2.9 0 0 1 12 14.9zM17.5 6A1.5 1.5 0 1 1 16 7.5 1.5 1.5 0 0 1 17.5 6z"/>
+                  </svg>
+                </a>
+              
+                <!-- WhatsApp -->
+                <a href="#" aria-label="WhatsApp">
+                  <svg class="w-6 h-6 text-white-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.52 3.48A11.84 11.84 0 0 0 12 0C5.37 0 0 5.37 0 12a11.9 11.9 0 0 0 1.64 6L0 24l6.2-1.63A11.93 11.93 0 0 0 12 24c6.63 0 12-5.37 12-12a11.84 11.84 0 0 0-3.48-8.52zM12 21.5a9.38 9.38 0 0 1-4.77-1.3l-.34-.2-3.69.97.99-3.6-.22-.37A9.47 9.47 0 0 1 2.5 12c0-5.23 4.27-9.5 9.5-9.5S21.5 6.77 21.5 12 17.23 21.5 12 21.5zm4.63-6.87c-.25-.12-1.47-.72-1.7-.8s-.4-.12-.57.12-.65.8-.8.97-.3.18-.55.06a7.67 7.67 0 0 1-2.26-1.4 8.43 8.43 0 0 1-1.55-1.93c-.16-.28 0-.43.12-.55.12-.12.28-.3.42-.45.14-.15.18-.25.28-.42s.05-.32 0-.45-.57-1.37-.78-1.88-.4-.42-.57-.43-.32 0-.5 0a.97.97 0 0 0-.7.33c-.24.24-.9.88-.9 2.15s.93 2.5 1.06 2.67c.12.17 1.83 2.8 4.43 3.93.62.27 1.1.43 1.47.55.62.2 1.18.17 1.63.1.5-.07 1.47-.6 1.68-1.18s.2-1.08.14-1.18-.23-.17-.48-.28z"/>
+                  </svg>
+                </a>
+              
+                <!-- YouTube -->
+                <a href="#" aria-label="YouTube">
+                  <svg class="w-6 h-6 text-white-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21.8 8s-.2-1.5-.8-2.1a2.8 2.8 0 0 0-2-.8C16.1 5 12 5 12 5h-.1s-4.1 0-7 .1a2.8 2.8 0 0 0-2 .8C2.3 6.5 2 8 2 8S1.8 9.6 1.8 11.3v1.4C1.8 14.4 2 16 2 16s.2 1.5.8 2.1a2.8 2.8 0 0 0 2 .8c2.9.1 7 .1 7 .1s4.1 0 7-.1a2.8 2.8 0 0 0 2-.8c.6-.6.8-2.1.8-2.1s.2-1.6.2-3.3v-1.4c0-1.7-.2-3.3-.2-3.3zM9.75 14.5v-5l4.75 2.5-4.75 2.5z"/>
+                  </svg>
+                </a>
+              
+                <!-- X / Twitter -->
+                <a href="#" aria-label="X">
+                  <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M18.36 2H21l-6.34 7.25L22 22h-4.87l-4.18-6.21L8 22H3l6.81-7.83L2 2h5.08l3.81 5.69L18.36 2z"/>
+                  </svg>
+                </a>
+              </div>
+              
+            </div>
+          </div>
+        
+          <div class="bg-gray-800 py-4 text-center">
+            <p class="text-sm text-gray-400 tracking-wide">
+              © 2025 Rentify All rights reserved.
+            </p>
+          </div>
+        </footer>
+        
+ <!-- Minimal CSS helpers (drop into your page's existing <style> area) -->
+  <style>
+    /* Ensure header is flush: body should not have top margin (keep this in your global CSS) */
+    /* body { margin: 0; padding-top: 64px; } -- keep your header spacing strategy if you use padding-top */
+  
+    /* dropdown panel base (we will move panels to body when opened) */
+    .dropdown-panel { position: absolute; display: none; }
+    .dropdown-panel.show { display: block; }
+  
+    /* small helper: when panels are appended to body they will get class .dd-fixed to be positioned fixed
+       **IMPORTANT**: removed forced left/top so JS can place clones under triggers (this fixes left-corner bug) */
+    .dd-fixed {
+      position: fixed !important;
+      transform: none !important;
+      margin: 0 !important;
+      z-index: 99999 !important;
+    }
+  
+    /* mobile sidebar dropdowns (if you keep sidebar content) - ensure vertical stacking */
+    .mobile-dropdown-content { display: none; flex-direction: column; gap: .25rem; }
+    .mobile-dropdown-content.show { display: flex; }
+  
+    /* white icon style that becomes colored on hover (example used for footer icons) */
+    .social-icon { color: #fff; transition: color .25s ease; }
+    .social-icon[data-platform="facebook"]:hover { color: #2e40b5; }
+    .social-icon[data-platform="instagram"]:hover { color: #e4405f; }
+    .social-icon[data-platform="whatsapp"]:hover { color: #25D366; }
+    .social-icon[data-platform="youtube"]:hover { color: #ff0000; }
+    .social-icon[data-platform="x"]:hover { color: #000000; }
+  </style>
+  
+ 
+  
+  <script>
+    
+    (function () {
+      // Utility: open dropdown panel directly below its trigger
+      function openPanel(triggerEl, panelEl) {
+        // close if already open
+        if (panelEl.dataset.open === '1') { closePanel(panelEl); return; }
+  
+        // get coordinates of trigger
+        const rect = triggerEl.getBoundingClientRect();
+        let clone = panelEl.__clone;
+        if (!clone) {
+          clone = panelEl.cloneNode(true);
+          clone.classList.add('dd-fixed');
+          clone.__original = panelEl;
+          // initially hide while we prepare positioning
+          clone.style.display = 'block';
+          clone.style.visibility = 'hidden';
+          document.body.appendChild(clone);
+          panelEl.__clone = clone;
+        } else {
+          clone.style.display = 'block';
+          clone.style.visibility = 'hidden';
+        }
+  
+        // ensure clone has width (match trigger min width) then position
+        clone.style.minWidth = rect.width + 'px';
+  
+        // If this is profile panel, align its right edge with trigger's right edge (appear slightly left)
+        const ddName = panelEl.getAttribute('data-dd');
+        if (ddName === 'profile') {
+          // allow browser to compute clone width
+          requestAnimationFrame(() => {
+            const leftPos = rect.right - clone.offsetWidth;
+            clone.style.left = (leftPos < 6 ? 6 : leftPos) + 'px'; // avoid going too far left
+            clone.style.top = (rect.bottom + 6) + 'px';
+            clone.style.visibility = 'visible';
+            clone.dataset.open = '1';
+            panelEl.dataset.open = '1';
+          });
+        } else {
+          // normal nav/notification dropdowns: align left edge with trigger left
+          requestAnimationFrame(() => {
+            clone.style.left = rect.left + 'px';
+            clone.style.top = (rect.bottom + 6) + 'px';
+            clone.style.visibility = 'visible';
+            clone.dataset.open = '1';
+            panelEl.dataset.open = '1';
+          });
+        }
+  
+        // make visible and close on outside click
+        setTimeout(() => {
+          const closeHandler = (ev) => {
+            if (!clone.contains(ev.target) && !triggerEl.contains(ev.target)) {
+              closePanel(panelEl);
+              document.removeEventListener('click', closeHandler);
+            }
+          };
+          document.addEventListener('click', closeHandler);
+        }, 0);
+      }
+  
+      function closePanel(panelEl) {
+        const clone = panelEl.__clone;
+        if (clone) clone.style.display = 'none';
+        panelEl.dataset.open = '0';
+        if (clone) clone.dataset.open = '0';
+      }
+  
+      // Attach dropdowns (Vehicle, Services)
+      document.querySelectorAll('[data-dd-trigger]').forEach(group => {
+        const key = group.getAttribute('data-dd-trigger');
+        const btn = group.querySelector('button');
+        const panel = group.querySelector('[data-dd="' + key + '"]');
+        if (!btn || !panel) return;
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          openPanel(btn, panel);
+        });
+      });
+  
+      // Notifications + Profile (desktop)
+      const notifBtn = document.getElementById('notifBtn');
+      const notifPanel = document.querySelector('[data-dd="notif"]');
+      if (notifBtn && notifPanel)
+        notifBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          openPanel(notifBtn, notifPanel);
+        });
+  
+      const profileBtn = document.getElementById('profileBtn');
+      const profilePanel = document.querySelector('[data-dd="profile"]');
+      if (profileBtn && profilePanel)
+        profileBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          openPanel(profileBtn, profilePanel);
+        });
+  
+      // Mobile sidebar behavior
+      const openSidebarBtn = document.getElementById('openSidebarBtn');
+      openSidebarBtn && openSidebarBtn.addEventListener('click', () => {
+        const sidebar = document.getElementById('sidebarDrawer');
+        if (!sidebar) return;
+        // slide in (assumes -translate-x-full is default)
+        sidebar.classList.remove('-translate-x-full');
+  
+        const overlay = document.getElementById('sidebarOverlay');
+        overlay && overlay.classList.remove('hidden');
+  
+        // Do NOT change cloning logic here; mobile profile inside sidebar uses mobile-dropdown-btn + mobile-dropdown-content
+        openSidebarBtn.setAttribute('aria-expanded', 'true');
+      });
+  
+      const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+      closeSidebarBtn && closeSidebarBtn.addEventListener('click', () => {
+        const sidebar = document.getElementById('sidebarDrawer');
+        if (!sidebar) return;
+        sidebar.classList.add('-translate-x-full');
+        const overlay = document.getElementById('sidebarOverlay');
+        overlay && overlay.classList.add('hidden');
+        openSidebarBtn.setAttribute('aria-expanded', 'false');
+      });
+  
+      // Sidebar dropdown toggles (for Vehicle/Services)
+      document.addEventListener('click', ev => {
+        const btn = ev.target.closest('.mobile-dropdown-btn');
+        if (!btn) return;
+        const next = btn.nextElementSibling;
+        if (next && next.classList.contains('mobile-dropdown-content'))
+          next.classList.toggle('show');
+      });
+  
+      // Reset all dropdowns on resize
+      window.addEventListener('resize', () => {
+        document.querySelectorAll('.dropdown-panel').forEach(p => closePanel(p));
+      });
+    })();
+  </script>
+  
+        <script>// Mobile Profile Dropdown Toggle
+          const mobileProfileToggle = document.getElementById('mobileProfileToggle');
+          const mobileProfileMenu = document.getElementById('mobileProfileMenu');
+          const mobileProfileArrow = document.getElementById('mobileProfileArrow');
+          
+          if (mobileProfileToggle) {
+            mobileProfileToggle.addEventListener('click', () => {
+              mobileProfileMenu.classList.toggle('hidden');
+              mobileProfileArrow.classList.toggle('rotate-180');
+            });
+          }
+          </script>
+          <!-- SCRIPTS -->
+  <script>
+    (function(){
+      /* ---------------------
+         Sample vehicle data (original sample preserved)
+         --------------------- */
+      const vehiclesData = [
+        { id:1, title:"2023 Luxury Sedan — Mercedes S-Class", price:200, popularity:95, date:"2024-11-01", type:"Sedan", variety:"Luxury", seating:5, transmission:"Automatic", img:"https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=800&q=60", location:"USA > California > Los Angeles" },
+        { id:2, title:"2022 Compact — Honda Civic", price:45, popularity:80, date:"2023-08-15", type:"Sedan", variety:"Compact", seating:5, transmission:"Manual", img:"https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60", location:"USA > Texas > Dallas" },
+        { id:3, title:"2023 SUV — Toyota Highlander", price:90, popularity:88, date:"2024-02-10", type:"SUV", variety:"Family", seating:7, transmission:"Automatic", img:"https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?auto=format&fit=crop&w=800&q=60", location:"India > Maharashtra > Mumbai" },
+        { id:4, title:"2021 Hatchback — Volkswagen", price:40, popularity:60, date:"2022-06-20", type:"Hatchback", variety:"Compact", seating:4, transmission:"Manual", img:"https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=800&q=60", location:"Sri Lanka > Western > Colombo" },
+        { id:5, title:"2024 EV — Tesla Model 3", price:120, popularity:98, date:"2024-05-05", type:"Electric", variety:"Sedan", seating:5, transmission:"Automatic", img:"https://images.unsplash.com/photo-1519638399535-1b036603ac77?auto=format&fit=crop&w=800&q=60", location:"USA > California > San Francisco" },
+        { id:6, title:"2019 Van — Ford Transit", price:80, popularity:55, date:"2021-09-30", type:"Van", variety:"Minivan", seating:12, transmission:"Manual", img:"https://images.unsplash.com/photo-1584036561584-b03c19da874c?auto=format&fit=crop&w=800&q=60", location:"USA > Texas > Austin" },
+        { id:7, title:"2022 Luxury CUV — BMW X3", price:150, popularity:85, date:"2023-12-12", type:"CUV", variety:"Luxury", seating:5, transmission:"Automatic", img:"https://images.unsplash.com/photo-1541446654331-45395d8ffc53?auto=format&fit=crop&w=800&q=60", location:"India > Karnataka > Bangalore" },
+        { id:8, title:"2018 Truck — Isuzu D-Max", price:70, popularity:40, date:"2020-03-02", type:"Truck", variety:"Light Commercial", seating:2, transmission:"Manual", img:"https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60", location:"USA > Florida > Miami" },
+        { id:9, title:"2020 Mini Van — Nissan", price:85, popularity:65, date:"2022-11-11", type:"Van", variety:"Group", seating:10, transmission:"Automatic", img:"https://images.unsplash.com/photo-1549921296-3f9a2a3f6f7c?auto=format&fit=crop&w=800&q=60", location:"UK > England > London" },
+      ];
+
+      /* ---------------------
+         DOM refs
+         --------------------- */
+      const vehiclesGrid = document.getElementById('vehiclesGrid');
+      const filtersContent = document.getElementById('filtersContent'); // single source of truth
+      const filtersPanel = document.getElementById('filtersPanel');
+      const filtersOkBtn = document.getElementById('filtersOkBtn');
+      const filtersCancelBtn = document.getElementById('filtersCancelBtn');
+
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+      const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+      const sidebarDrawer = document.getElementById('sidebarDrawer');
+      const openSidebarBtn = document.getElementById('openSidebarBtn');
+      const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+      const mobileFiltersHost = document.getElementById('mobileFiltersHost');
+
+      const mobileDropdownBtns = document.querySelectorAll('.mobile-dropdown-btn');
+
+      const notifBtn = document.getElementById('notifBtn');
+      const notifDropdown = document.getElementById('notifDropdown');
+      const notifDot = document.getElementById('notifDot');
+      const markReadBtn = document.getElementById('markReadBtn');
+      const notifList = document.getElementById('notifList');
+
+      const profileBtn = document.getElementById('profileBtn');
+      const profileDropdown = document.getElementById('profileDropdown');
+      const profileMenu = document.getElementById('profileMenu');
+      const themeToggle = document.getElementById('themeToggle');
+
+      let unread = true;
+      let currentUserType = "visitor"; // or "seller"
+
+      /* ---------------------
+         Helpers
+         --------------------- */
+      function showSmallNotification(msg){
+        const n = document.createElement('div');
+        n.className = 'bg-white border rounded-md px-4 py-2 shadow-md';
+        n.innerText = msg;
+        document.getElementById('notifications').appendChild(n);
+        setTimeout(()=> n.remove(), 4200);
+      }
+
+      /* ---------------------
+         Render vehicles into grid
+         --------------------- */
+      function renderVehicles(list){
+        vehiclesGrid.innerHTML = '';
+        list.forEach((v, idx)=>{
+          const card = document.createElement('div');
+          card.className = 'bg-white border rounded-lg p-3 shadow-sm';
+          card.dataset.price = v.price;
+          card.dataset.popularity = v.popularity;
+          card.dataset.date = v.date;
+          card.dataset.type = (v.type||'').toLowerCase();
+          card.dataset.variety = (v.variety||'').toLowerCase();
+
+          card.innerHTML = `
+            <div class="card-img mb-3 bg-gray-100 rounded-lg" style="background-image:url('a1.jpg')"></div>
+            <div class="flex justify-between items-start gap-2">
+              <div>
+                <h3 class="text-lg font-semibold">${v.title}</h3>
+                <div class="text-sm text-slate-500">${v.location}</div>
+                <div class="mt-2 text-sm text-slate-600">Seats: ${v.seating} · ${v.transmission} · ${v.type} / ${v.variety}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-lg font-bold">$${v.price}</div>
+                <div class="text-xs text-slate-500">/ day</div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex gap-2">
+              <button class="flex-1 rounded-full border px-3 py-2 text-sm viewBtn">View</button>
+              <button class="flex-1 rounded-full bg-[var(--primary)] text-white px-3 py-2 text-sm bookBtn" data-index="${idx}">Save</button>
+            </div>
+          `;
+          vehiclesGrid.appendChild(card);
+
+          // booking logic: push result into notification dropdown
+          const bookBtn = card.querySelector('.bookBtn');
+          bookBtn.addEventListener('click', async () => {
+            // disable & pending
+
+            // simulate approval (replace with real server/owner flow)
+            setTimeout(()=>{
+              const approved = Math.random() > 0.5; // demo random
+              const li = document.createElement('li');
+              li.className = 'p-2 rounded-md text-sm';
+              if(approved){
+                li.classList.add('bg-green-100','text-green-700');
+                li.innerText = `Booking Saved for "${v.title}" `;
+                bookBtn.innerText = 'Saved';
+                showSmallNotification('Saved ');
+              }
+              // insert at top of notif list and open dropdown
+              if(notifList.firstChild && notifList.firstChild.textContent === 'No new notifications'){
+                notifList.innerHTML = '';
+              }
+              notifList.insertBefore(li, notifList.firstChild);
+              notifDropdown.classList.remove('hidden');
+              notifDot.classList.remove('hidden');
+              unread = true;
+            }, 2200);
+          });
+        });
+      }
+
+      // initial render
+      renderVehicles(vehiclesData);
+
+      /* ---------------------
+         Sorting tabs
+         --------------------- */
+      function sortDisplayedBy(key){
+        const items = Array.from(vehiclesGrid.children);
+        items.sort((a,b)=>{
+          if(key === 'price') return Number(a.dataset.price) - Number(b.dataset.price);
+          if(key === 'popularity') return Number(b.dataset.popularity) - Number(a.dataset.popularity);
+          if(key === 'newest') return new Date(b.dataset.date) - new Date(a.dataset.date);
+          return 0;
+        });
+        items.forEach(i=>vehiclesGrid.appendChild(i));
+      }
+
+      document.querySelectorAll('.sortTab').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          document.querySelectorAll('.sortTab').forEach(x=>x.classList.remove('active-tab'));
+          btn.classList.add('active-tab');
+          sortDisplayedBy(btn.dataset.sort || (btn.textContent.toLowerCase().includes('price')?'price': btn.textContent.toLowerCase().includes('newest')?'newest':'popularity'));
+        });
+      });
+      sortDisplayedBy('popularity');
+
+      /* ---------------------
+         Filter helpers (work with current DOM inputs in filtersContent)
+         --------------------- */
+      function getField(selector){
+        return filtersContent.querySelector(selector);
+      }
+
+      function getFilters(){
+        const minPrice = Number(getField('#minPrice').value || 0);
+        const maxPrice = Number(getField('#maxPrice').value || 999999);
+        const location = (getField('#locationInput').value || '').trim().toLowerCase();
+        const vehicleTypeRaw = (getField('#vehicleTypeInput').value || '').trim().toLowerCase();
+        const transmission = (getField('#transmissionSelect').value || '').trim().toLowerCase();
+        const seating = (getField('#seatingSelect').value || '').trim();
+        return { minPrice, maxPrice, location, vehicleTypeRaw, transmission, seating };
+      }
+
+      function applyFilters(){
+        const f = getFilters();
+        let typePart = '', varietyPart = '';
+        if(f.vehicleTypeRaw){
+          const parts = f.vehicleTypeRaw.split('>').map(s=>s.trim());
+          typePart = (parts[0]||'').toLowerCase();
+          varietyPart = (parts[1]||'').toLowerCase();
+        }
+
+        const filtered = vehiclesData.filter(v=>{
+          if(Number(v.price) < f.minPrice) return false;
+          if(Number(v.price) > f.maxPrice) return false;
+          if(f.location && !(v.location || '').toLowerCase().includes(f.location)) return false;
+          if(typePart && !v.type.toLowerCase().includes(typePart) && !v.variety.toLowerCase().includes(typePart) && !v.title.toLowerCase().includes(typePart)) return false;
+          if(varietyPart && !v.variety.toLowerCase().includes(varietyPart) && !v.title.toLowerCase().includes(varietyPart)) return false;
+          if(f.transmission && v.transmission.toLowerCase() !== f.transmission) return false;
+          if(f.seating){
+            if(f.seating === '7') { if(Number(v.seating) < 7) return false; } 
+            else if(Number(v.seating) !== Number(f.seating)) return false;
+          }
+          return true;
+        });
+        renderVehicles(filtered);
+        const activeTab = document.querySelector('.sortTab.active-tab');
+        if(activeTab) sortDisplayedBy(activeTab.dataset.sort || 'popularity');
+      }
+
+      function resetFiltersToDefaults(){
+        getField('#minPrice').value = '';
+        getField('#maxPrice').value = '';
+        getField('#priceSlider').value = 250;
+        getField('#locationInput').value = '';
+        getField('#vehicleTypeInput').value = '';
+        getField('#transmissionSelect').value = '';
+        getField('#seatingSelect').value = '';
+        renderVehicles(vehiclesData);
+        const activeTab = document.querySelector('.sortTab.active-tab');
+        if(activeTab) sortDisplayedBy(activeTab.dataset.sort || 'popularity');
+      }
+
+      // wire desktop OK/Cancel buttons
+      filtersOkBtn.addEventListener('click', ()=>{
+        applyFilters();
+        closeSidebar();
+      });
+      filtersCancelBtn.addEventListener('click', ()=>{
+        resetFiltersToDefaults();
+        closeSidebar();
+      });
+
+      /* ---------------------
+         MOBILE SIDEBAR open / close AND move filters DOM node
+         We'll move the SINGLE filtersContent node into the mobileFiltersHost when opening,
+         and move back to filtersHost (desktop) when closing.
+         --------------------- */
+      const filtersHost = document.getElementById('filtersHost');
+
+      let backupFilters = null;
+      function backupCurrentFilters(){
+        backupFilters = getFilters();
+      }
+      function restoreBackupFilters(){
+        if(!backupFilters) return;
+        getField('#minPrice').value = backupFilters.minPrice || '';
+        getField('#maxPrice').value = (backupFilters.maxPrice && backupFilters.maxPrice !== 999999) ? backupFilters.maxPrice : '';
+        getField('#priceSlider').value = 250;
+        getField('#locationInput').value = backupFilters.location || '';
+        getField('#vehicleTypeInput').value = backupFilters.vehicleTypeRaw || '';
+        getField('#transmissionSelect').value = backupFilters.transmission || '';
+        getField('#seatingSelect').value = backupFilters.seating || '';
+        backupFilters = null;
+        renderVehicles(vehiclesData);
+      }
+
+      function openSidebar(){
+        // backup filters (so Cancel can restore)
+        backupCurrentFilters();
+        // move filtersContent into mobile host (DOM node moved not cloned)
+        mobileFiltersHost.appendChild(filtersContent);
+        sidebarOverlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeSidebar(){
+        // move filtersContent back to desktop host (if desktop present)
+        const dest = document.getElementById('filtersHost');
+        if(dest) dest.appendChild(filtersContent);
+        sidebarOverlay.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      openSidebarBtn.addEventListener('click', openSidebar);
+      closeSidebarBtn.addEventListener('click', ()=>{
+        restoreBackupFilters();
+        closeSidebar();
+      });
+      sidebarBackdrop.addEventListener('click', ()=>{
+        restoreBackupFilters();
+        closeSidebar();
+      });
+
+      // keyboard escape to close
+      document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && !sidebarOverlay.classList.contains('hidden')) { restoreBackupFilters(); closeSidebar(); } });
+
+      // toggle mobile dropdowns inside sidebar
+      document.querySelectorAll('.mobile-dropdown-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const content = btn.nextElementSibling;
+          if(!content) return;
+          content.classList.toggle('hidden');
+          const icon = btn.querySelector('.material-symbols-outlined');
+          if(icon) icon.classList.toggle('rotate-180');
+        });
+      });
+
+      /* ---------------------
+         Mobile search expand behavior (keeps masterSearch in top)
+         --------------------- */
+      const masterSearch = document.getElementById('masterSearch');
+      masterSearch.addEventListener('keydown', (ev)=>{
+        if(ev.key === 'Enter'){
+          // basic client-side search by title/location
+          const q = masterSearch.value.trim().toLowerCase();
+          if(!q) { renderVehicles(vehiclesData); return; }
+          const filtered = vehiclesData.filter(v=> (v.title+ ' ' + (v.location||'')).toLowerCase().includes(q));
+          renderVehicles(filtered);
+        }
+      });
+
+      /* ---------------------
+         Map initialization (Leaflet) - uses Nominatim reverse geocode when clicking map
+         --------------------- */
+      function initMap(){
+        try {
+          const map = L.map('map', { scrollWheelZoom: false }).setView([20,0], 2);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+          let marker = null;
+          map.on('click', async function(e){
+            const lat = e.latlng.lat, lon = e.latlng.lng;
+            if(marker) marker.setLatLng(e.latlng);
+            else marker = L.marker(e.latlng).addTo(map);
+            try {
+              const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+              if(resp.ok){
+                const data = await resp.json();
+                const display = (data.address) ? [
+                  data.address.country,
+                  data.address.state || data.address.county || '',
+                  data.address.city || data.address.town || data.address.village || data.address.hamlet || ''
+                ].filter(Boolean).join(' > ') : `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                getField('#locationInput').value = display;
+              } else {
+                getField('#locationInput').value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+              }
+            } catch(err){
+              getField('#locationInput').value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+            }
+          });
+        } catch(e){
+          const mapEl = document.getElementById('map');
+          if(mapEl) mapEl.innerHTML = '<div class="p-4 text-sm text-slate-600">Map failed to load. Type a location above.</div>';
+        }
+      }
+      document.addEventListener('DOMContentLoaded', initMap);
+
+      /* ---------------------
+         Filter slider bind + Enter to apply
+         --------------------- */
+      const priceSlider = document.getElementById('priceSlider');
+      const minPriceInput = document.getElementById('minPrice');
+      const maxPriceInput = document.getElementById('maxPrice');
+      priceSlider.addEventListener('input', (e)=> { maxPriceInput.value = e.target.value; });
+
+      // allow Enter inside filter inputs to apply quickly
+      ['#minPrice','#maxPrice','#locationInput','#vehicleTypeInput','#transmissionSelect','#seatingSelect'].forEach(sel=>{
+        const el = getField(sel);
+        if(el) el.addEventListener('keydown', (ev)=> { if(ev.key === 'Enter') applyFilters(); });
+      });
+
+      /* ---------------------
+         Improved wheel behaviour for hover-only scroll areas:
+         - If panel can scroll in the wheel direction, stop propagation (scroll inside)
+         - If at top and scrolling up (or bottom and scrolling down), allow event to bubble to page
+         This emulates native behavior and lets page scroll when inner is exhausted.
+         --------------------- */
+      function wheelHandlerFor(el){
+        el.addEventListener('wheel', function(e){
+          const delta = e.deltaY;
+          const up = delta < 0;
+          const scrollTop = el.scrollTop;
+          const scrollHeight = el.scrollHeight;
+          const clientHeight = el.clientHeight;
+
+          // if content not scrollable, let bubble
+          if(scrollHeight <= clientHeight) return; // do nothing -> bubble to page
+
+          // if scrolling up and already at top -> bubble
+          if(up && scrollTop === 0) return;
+
+          // if scrolling down and already at bottom -> bubble
+          if(!up && scrollTop + clientHeight >= scrollHeight - 1) return;
+
+          // otherwise prevent page scroll and scroll the panel
+          e.stopPropagation();
+          // allow default scrolling on the element
+        }, { passive: false });
+      }
+
+      // attach to both filters panel and results
+      const filtersContainer = document.getElementById('filtersPanel') || document.querySelector('#filtersHost');
+      const resultsContainer = document.querySelector('section.flex-1');
+      if(filtersContainer) wheelHandlerFor(filtersContainer);
+      if(resultsContainer) wheelHandlerFor(resultsContainer);
+
+      /* ---------------------
+         Notification & profile dropdowns behavior + theme toggle
+         --------------------- */
+      notifBtn.addEventListener('click', ()=>{
+        notifDropdown.classList.toggle('hidden');
+        if(unread) notifDot.classList.remove('hidden');
+      });
+
+      markReadBtn.addEventListener('click', ()=>{
+        notifDot.classList.add('hidden');
+        notifList.innerHTML = '<li class="text-gray-400 text-sm">All caught up!</li>';
+        unread = false;
+      });
+
+      profileBtn && profileBtn.addEventListener('click', ()=> profileDropdown.classList.toggle('hidden'));
+
+      function loadProfileMenu() {
+        if (currentUserType === 'seller') {
+          profileMenu.innerHTML = `
+            <li><a href="/profile" class="block px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">My Profile</a></li>
+            <li><a href="/dashboard" class="block px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Dashboard</a></li>
+            <li><a href="/payments" class="block px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Manage Payment</a></li>
+            <li><a href="/settings" class="block px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Settings</a></li>
+            <li><a href="/switch" class="block px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Switch/Add Account</a></li>
+            <li><button id="themeToggle" class="w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Toggle Theme</button></li>
+            <li><a href="/logout" class="block px-2 py-1 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Logout</a></li>
+          `;
+        }
+      }
+      loadProfileMenu();
+
+      // theme toggle
+      const setTheme = (theme) => {
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+        }
+      };
+      if (localStorage.getItem('theme') === 'dark') setTheme('dark');
+      document.addEventListener('click', (e)=>{
+        if (e.target === themeToggle || (e.target && e.target.closest && e.target.closest('#themeToggle'))) {
+          const isDark = document.documentElement.classList.contains('dark');
+          setTheme(isDark ? 'light' : 'dark');
+        }
+        // Close dropdowns when clicking outside
+        if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) notifDropdown.classList.add('hidden');
+        if (profileBtn && !profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.add('hidden');
+      });
+
+      /* ---------------------
+         Simple accessibility helpers / cleanup
+         --------------------- */
+      // Ensure clicking outside mobile expanded input collapses nothing weird (for future)
+      document.addEventListener('click', (ev)=>{
+        // Close mobile drawer when clicking outside (already handled via backdrop)
+      });
+
+      /* ---------------------
+         End IIFE
+         --------------------- */
+    })();
+  </script>
+</body>
+</html>

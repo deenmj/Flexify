@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Flex Marketplace — Vehicle View</title>
+
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&family=Plus+Jakarta+Sans:wght@400;500;700;800" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: "#1173d4",
+          "background-light": "#f6f7f8",
+          "background-dark": "#101922",
+        },
+        fontFamily: {
+          display: ["Plus Jakarta Sans"],
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  /* remove default select arrow for language selector */
+  #langSelect {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none;
+    padding-right: .5rem;
+  }
+  /* add a small custom caret at the side but subtle */
+  #langWrap {
+    position: relative;
+  }
+  #langWrap::after {
+    content: "";
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(100,100,100,0.6);
+    pointer-events: none;
+  }
+
+  /* ensure main gallery images cover and look larger */
+  .main-gallery-img { object-fit: cover; width:100%; height:100%; }
+
+  /* small helper for clickable date inputs (visual) */
+  .date-input { -webkit-appearance: none; appearance: none; }
+</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-200">
+
+<div class="relative flex min-h-screen flex-col">
+
+  <!-- HEADER -->
+  <header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 md:px-10 py-3 bg-white dark:bg-transparent">
+    <div class="flex items-center gap-6">
+      <a href="index.html" class="flex items-center gap-3">
+        <!-- keep your SVG or img here -->
+        <svg class="h-8 w-8 text-primary" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" opacity="0.5"/><path d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263Z" fill="currentColor"/></svg>
+        <h1 class="text-lg md:text-xl font-bold tracking-tight">Flexify-vehicles</h1>
+      </a>
+
+      <!-- nav -->
+      <nav class="hidden md:flex items-center gap-6">
+        <a class="text-sm font-medium hover:text-primary" href="#">Rent</a>
+
+        <a class="text-sm font-medium hover:text-primary" href="#">List your Vehicle</a>
+        <a class="text-sm font-medium hover:text-primary" href="#">Support</a>
+      </nav>
+    </div>
+
+    <div class="flex items-center gap-3 md:gap-4">
+      <!-- small notification icon -->
+      <button class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+
+      <!-- small search icon (not full search bar here, per your request remove full search) -->
+      <button id="miniSearchBtn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" title="Search">
+        <span class="material-symbols-outlined">search</span>
+      </button>
+
+      <!-- language -->
+      <div id="langWrap" class="relative">
+        <select id="langSelect" class="text-sm rounded-md border bg-white px-2 py-1">
+          <option>EN</option><option>ES</option><option>FR</option>
+        </select>
+      </div>
+
+      <!-- profile -->
+      <div class="bg-center bg-no-repeat bg-cover rounded-full h-10 w-10" 
+        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuArdtJC5uMqpera1KZ7lOCOh7D2eD00AVHmClr0y0rS_klSdL7AjcJlDzafx_4VJeDliX7L27fGUsIzWG3PRB0zPp-BHEbW30l-NETsadOUMlmKGz2AhOrpBbcsO4y9L8fDnwNlsmbTpbF1Bb2r5ncWiCt7ee9PfSZNQsfmSmh86NtiyGWSEZAJkizen-Dmb64fJA7nA7rq-I9dKE8JIchjteO9Gu6uO_raBFLt9t8MB9sYNOm5dRrrZyxz-SPI25GX7rOgWFyUMX8");'>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="px-4 md:px-10 lg:px-20 xl:px-40 py-8 w-full">
+    <div class="max-w-7xl mx-auto">
+
+      <!-- gallery & main details layout -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-xl overflow-hidden mb-8">
+
+        <!-- Left: gallery (bigger images) -->
+        <div class="flex flex-col gap-4 order-1">
+          <div class="w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900 aspect-[16/11]">
+            <!-- main hero image larger -->
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnCeOqrszN2-fD2SXmFYV6WyuSStWUrsY_YXtgNEQ3Ott1j8n4W_oI3Xd5GN9_AT1kdkUyqF2vh44GRG4BsnXg6ZowBXcbyJCL4in7poyMgFhiMoG7kfYUwIJix37eIDnGOyZ-MVsM4A94SxqKnGwGf4BxCvnLvsbm3wI-0S8ge4Y0VnyS-JesTc4SCXEsYevDTsO2S0Lm344bdjH3MPRxDF5QYS9NtqfRe3zumJV1S3c_x3OSb044h4YSTLEL_qQvDFQalQWIDJU" alt="Vehicle main" class="main-gallery-img w-full h-full" />
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <img class="w-full h-24 rounded-md object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7VhT2qYPFnUeFkHHWnCmnjT_JV7EtckCaqE61p1Rd3pyxElvPVvKzCWr9_jKAr44dUo5RxQEPXwAltsLK7iG99B1IpQenIRa_6VF7J285Y0xsWpfl3tX7ZQJd3IIbBxeLVaBfqf1imBHz51FXQJ5LXQ32Ujb0yMeLUvv8vvbpOCVG1JdSTPtEgD-xxwm3V4dIowMdp9gZFIh-W2rQtGC-9_6J-xgWwPtA0plTotn66zx2X6NC5EvpUNUlBSEjQtJQ1lWyngv5c6c" alt="thumb1"/>
+            <img class="w-full h-24 rounded-md object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ6tD0sL1U7i31t1NhruE9nsS4CpspDwbBIb7-9F3yca9sn_bF4K3US5-EkHjHOjj844tRujs0nCAl7gqr0sNDuq9NqSsnhmrgXn1Kevw7FMeaDpFUzlt2TGhBaXlgQXl3-bFshStmpc2exRNq1DAQx3G4cSm4mBSMXiB2PlgzYBrDqXIS4a9XG4qSpq2FfmEBo3vBcbPAJRy7CjzcXGsBWOS7qkzAHDWsO44fKNYVqXy9obUJvrjWfLkevI6g9RDS5YzkU5TLNSE" alt="thumb2"/>
+            <img class="w-full h-24 rounded-md object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7VhT2qYPFnUeFkHHWnCmnjT_JV7EtckCaqE61p1Rd3pyxElvPVvKzCWr9_jKAr44dUo5RxQEPXwAltsLK7iG99B1IpQenIRa_6VF7J285Y0xsWpfl3tX7ZQJd3IIbBxeLVaBfqf1imBHz51FXQJ5LXQ32Ujb0yMeLUvv8vvbpOCVG1JdSTPtEgD-xxwm3V4dIowMdp9gZFIh-W2rQtGC-9_6J-xgWwPtA0plTotn66zx2X6NC5EvpUNUlBSEjQtJQ1lWyngv5c6c" alt="thumb3"/>
+          </div>
+        </div>
+
+        <!-- Right: short summary (desktop) -->
+        <div class="order-2">
+          <h1 class="text-3xl font-bold text-slate-900 dark:text-white">2021 Sedan</h1>
+          <p class="text-slate-600 dark:text-slate-400 mt-2">Sedan, 2021, 25,000 miles</p>
+
+          <div class="border-t border-slate-200 dark:border-slate-800 my-6"></div>
+
+          <!-- Price + description (main details) -->
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">Price</h3>
+              <p id="perDayPrice" class="text-slate-600 dark:text-slate-400">$50 <span class="text-sm">/ day</span></p>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">Description</h3>
+              <p id="vehicleDescription" class="text-slate-700 dark:text-slate-300 mt-2">
+                Comfortable sedan with great fuel economy and modern features. Ideal for city and long drives. Recent servicing done. AC, Bluetooth, Cruise control included.
+              </p>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-200 dark:border-slate-800 my-8"></div>
+
+          <!-- AVAILABILITY CALENDAR (small visual) -->
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-3">Availability (overview)</h3>
+            <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-sm text-slate-600 dark:text-slate-400">
+              Visual calendar preview — select dates in booking to calculate total. (Availability demo only)
+            </div>
+          </div>
+
+          <div class="mt-6 space-y-4 lg:hidden">
+            <!-- Mobile-only booking (will show before reviews on small screens) -->
+            <div id="mobileBooking" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+              <div class="flex items-baseline gap-2">
+                <p class="text-2xl font-bold text-slate-900 dark:text-white">$50</p>
+                <p class="text-slate-500 dark:text-slate-400">/ day</p>
+              </div>
+
+              <div class="mt-3">
+                <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="mobile-start">Start Date</label>
+                <input id="mobile-start" class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-background-light dark:bg-background-dark focus:border-primary focus:ring-primary date-input px-3 py-2" type="date" />
+              </div>
+              <div class="mt-3">
+                <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="mobile-end">End Date</label>
+                <input id="mobile-end" class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-background-light dark:bg-background-dark focus:border-primary focus:ring-primary date-input px-3 py-2" type="date" />
+              </div>
+
+              <div class="mt-3 text-sm text-slate-700 dark:text-slate-300">
+                <div>Days: <span id="mobile-days">-</span></div>
+                <div class="mt-1 font-semibold">Total: <span id="mobile-total">$0</span></div>
+              </div>
+
+              <div class="mt-4">
+                <button id="mobileBookBtn" class="w-full rounded-lg bg-primary px-4 py-2 text-white font-bold">Book Now</button>
+              </div>
+              <div class="mt-2 text-xs text-center text-slate-500 dark:text-slate-400">You won't be charged yet</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- LARGER 3-column layout (main content, reviews, booking sidebar on desktop) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Main left column: full details + reviews -->
+        <div class="lg:col-span-2 space-y-8">
+
+          <!-- (repeating summary + availability are above). Add reviews and other details here -->
+          <div class="border-t border-slate-200 dark:border-slate-800 pt-6"></div>
+
+          <!-- Reviews -->
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Reviews</h3>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
+              <div class="flex flex-col items-center">
+                <p class="text-5xl font-black text-slate-900 dark:text-white">4.8</p>
+                <div class="flex gap-0.5 text-primary mt-1">
+                  <span class="material-symbols-outlined !text-lg">star</span>
+                  <span class="material-symbols-outlined !text-lg">star</span>
+                  <span class="material-symbols-outlined !text-lg">star</span>
+                  <span class="material-symbols-outlined !text-lg">star</span>
+                  <span class="material-symbols-outlined !text-lg text-slate-300 dark:text-slate-600">star</span>
+                </div>
+                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">120 reviews</p>
+              </div>
+
+              <!-- rating distribution -->
+              <div class="w-full sm:w-auto flex-1 grid grid-cols-[auto_1fr_auto] items-center gap-y-2 gap-x-3 text-sm">
+                <p class="text-slate-600 dark:text-slate-400">5</p>
+                <div class="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">
+                  <div class="h-full rounded-full bg-primary" style="width: 75%;"></div>
+                </div>
+                <p class="text-slate-500 dark:text-slate-400 text-right">75%</p>
+                <p class="text-slate-600 dark:text-slate-400">4</p>
+                <div class="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">
+                  <div class="h-full rounded-full bg-primary" style="width: 15%;"></div>
+                </div>
+                <p class="text-slate-500 dark:text-slate-400 text-right">15%</p>
+                <p class="text-slate-600 dark:text-slate-400">3</p>
+                <div class="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">
+                  <div class="h-full rounded-full bg-primary" style="width: 5%;"></div>
+                </div>
+                <p class="text-slate-500 dark:text-slate-400 text-right">5%</p>
+                <p class="text-slate-600 dark:text-slate-400">2</p>
+                <div class="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">
+                  <div class="h-full rounded-full bg-primary" style="width: 3%;"></div>
+                </div>
+                <p class="text-slate-500 dark:text-slate-400 text-right">3%</p>
+                <p class="text-slate-600 dark:text-slate-400">1</p>
+                <div class="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">
+                  <div class="h-full rounded-full bg-primary" style="width: 2%;"></div>
+                </div>
+                <p class="text-slate-500 dark:text-slate-400 text-right">2%</p>
+              </div>
+            </div>
+
+            <!-- sample review items -->
+            <div class="space-y-6">
+              <div class="space-y-2">
+                <div class="flex items-center gap-3">
+                  <div class="bg-center bg-no-repeat bg-cover rounded-full h-10 w-10" style="background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPmDefF0PcygpGGT7rDacwFVVg8fm7Cs8Te4djQt0oDcGs7gi1m_QV4ewdHnaiwsYfiqhXl7ia6ou_CDXcDYiQqvcDODlZJrfmG3FiGvxrZ3276UFyPJSdZAATSvD36G1VNk9Jd3V6I-flOIyXvTGzTLYMxc64jB2qm517oPBuOWJKgKocmTAlBUZtOgWuID-rbcgi3i1JlaaexMdnWzEU7UYTPzaHsEvkzrhLkytrBBgcAoPIhH1eC70hcq3yzjbJPpPQzvjSFSM');"></div>
+                  <div>
+                    <p class="font-medium text-slate-900 dark:text-white">Sophia Carter</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">June 15, 2024</p>
+                  </div>
+                </div>
+                <div class="flex gap-0.5 text-primary">
+                  <span class="material-symbols-outlined !text-base">star</span>
+                  <span class="material-symbols-outlined !text-base">star</span>
+                  <span class="material-symbols-outlined !text-base">star</span>
+                  <span class="material-symbols-outlined !text-base">star</span>
+                  <span class="material-symbols-outlined !text-base">star</span>
+                </div>
+                <p class="text-slate-700 dark:text-slate-300">The car was in excellent condition and drove smoothly. Highly recommend!</p>
+              </div>
+
+              <div class="space-y-2">
+                <div class="flex items-center gap-3">
+                  <div class="bg-center bg-no-repeat bg-cover rounded-full h-10 w-10" style="background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuBEUazyIJgnMfVUh-Godje9fIe64OOnY7qYQP4tkF5CQJp5z87PHyX6fLrLibYBvuXqsQTPVhaKemVXImHquF3I2BTJX3WZWzxT4uE-NEpHuXdzPxLHNxxIggvzUN5ouBd5rBHHtCAUBzrJhWsmN3I5m4uILYEYeKU8ZjPDsJfy0O0MVBa1nBh0OBxkmliyEZSXwaU_Mu2mlsWBFu-7VCT_30XdwMttu4Mnhbeqs5NVCTZqHiLplFtKm_oyKEil0v_fTJxJWTfEVSA');"></div>
+                  <div>
+                    <p class="font-medium text-slate-900 dark:text-white">Ethan Bennett</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">May 20, 2024</p>
+                  </div>
+                </div>
+                <div class="flex gap-0.5 text-primary">
+                  <span class="material-symbols-outlined !text-base">star</span>
+                  <span class="material-symbols-outlined !text-base">star</span>
+                  <span class="material-symbols-outlined !text-base">star</span>
+                  <span class="material-symbols-outlined !text-base">star</span>
+                  <span class="material-symbols-outlined !text-base text-slate-300 dark:text-slate-600">star</span>
+                </div>
+                <p class="text-slate-700 dark:text-slate-300">Overall, a good experience. The car was clean and comfortable.</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Booking Sidebar (desktop only) -->
+        <aside class="hidden lg:block lg:col-span-1">
+          <div class="sticky top-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-lg">
+            <div class="flex items-baseline gap-2">
+              <p class="text-2xl font-bold text-slate-900 dark:text-white">$50</p>
+              <p class="text-slate-500 dark:text-slate-400">/ day</p>
+            </div>
+
+            <div class="mt-4">
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="start-date">Start Date</label>
+              <input id="start-date" class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-background-light dark:bg-background-dark focus:border-primary focus:ring-primary date-input px-3 py-2" type="date" />
+            </div>
+
+            <div class="mt-4">
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="end-date">End Date</label>
+              <input id="end-date" class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-background-light dark:bg-background-dark focus:border-primary focus:ring-primary date-input px-3 py-2" type="date" />
+            </div>
+
+            <div class="mt-4 text-sm text-slate-700 dark:text-slate-300">
+              <div>Days: <span id="days">-</span></div>
+              <div class="mt-1 font-semibold">Total: <span id="total">$0</span></div>
+            </div>
+
+            <div class="mt-6">
+              <button id="bookBtn" class="w-full rounded-lg h-12 px-5 bg-primary text-white text-base font-bold hover:opacity-90">Book Now</button>
+            </div>
+
+            <div class="mt-4 text-sm text-center text-slate-500 dark:text-slate-400">You won't be charged yet</div>
+          </div>
+        </aside>
+<!-- Rent Giver Profile Section (place this UNDER Reviews Section) -->
+<div class="mt-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow">
+  <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Owner</h3>
+  <a href="rent-giver.html" class="flex items-center gap-3 cursor-pointer hover:opacity-90">
+    <img src="https://i.pravatar.cc/80?img=22" alt="Rent Giver Profile" class="h-14 w-14 rounded-full border border-gray-300 dark:border-gray-600"/>
+    <div>
+      <p class="font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+        John Doe
+        <span class="material-symbols-outlined text-primary text-sm" title="Verified">verified</span>
+      </p>
+      <p class="text-sm text-gray-600 dark:text-gray-400">Luxury Car Provider • 4.8★ (120 reviews)</p>
+    </div>
+  </a>
+</div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Per-day price (read from page). kept as number for calculations.
+  const perDayPrice = 50;
+
+  // Helpers to compute days (inclusive)
+  function calcDaysInclusive(start, end) {
+    if (!start || !end) return 0;
+    const s = new Date(start);
+    const e = new Date(end);
+    if (isNaN(s) || isNaN(e)) return 0;
+    const diff = e.getTime() - s.getTime();
+    if (diff < 0) return 0;
+    // inclusive count
+    return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+  }
+
+  // Update desktop booking card
+  const startInput = document.getElementById('start-date');
+  const endInput = document.getElementById('end-date');
+  const daysEl = document.getElementById('days');
+  const totalEl = document.getElementById('total');
+  const bookBtn = document.getElementById('bookBtn');
+
+  // Update mobile booking card
+  const mStart = document.getElementById('mobile-start');
+  const mEnd = document.getElementById('mobile-end');
+  const mDays = document.getElementById('mobile-days');
+  const mTotal = document.getElementById('mobile-total');
+  const mBookBtn = document.getElementById('mobileBookBtn');
+
+  function updateDesktopCalculation() {
+    const days = calcDaysInclusive(startInput.value, endInput.value);
+    daysEl.textContent = days || '-';
+    totalEl.textContent = '$' + (days ? (days * perDayPrice).toLocaleString() : '0');
+    // disable book if no days
+    bookBtn.disabled = days === 0;
+    bookBtn.classList.toggle('opacity-50', days === 0);
+  }
+
+  function updateMobileCalculation() {
+    const days = calcDaysInclusive(mStart.value, mEnd.value);
+    mDays.textContent = days || '-';
+    mTotal.textContent = '$' + (days ? (days * perDayPrice).toLocaleString() : '0');
+    mBookBtn.disabled = days === 0;
+    mBookBtn.classList.toggle('opacity-50', days === 0);
+  }
+
+  // Attach listeners
+  if (startInput && endInput) {
+    startInput.addEventListener('change', updateDesktopCalculation);
+    endInput.addEventListener('change', updateDesktopCalculation);
+  }
+  if (mStart && mEnd) {
+    mStart.addEventListener('change', updateMobileCalculation);
+    mEnd.addEventListener('change', updateMobileCalculation);
+  }
+
+  // Initialize with defaults if values present
+  updateDesktopCalculation();
+  updateMobileCalculation();
+
+  // Book button handlers (demo)
+  if (bookBtn) {
+    bookBtn.addEventListener('click', function () {
+      const days = calcDaysInclusive(startInput.value, endInput.value);
+      if (!days) {
+        alert('Please select start and end dates.');
+        return;
+      }
+      const total = days * perDayPrice;
+      alert(`Booking demo:\n${days} day(s)\nTotal: $${total.toLocaleString()}\n\n(Demo only — integrate with booking backend)`);
+    });
+  }
+  if (mBookBtn) {
+    mBookBtn.addEventListener('click', function () {
+      const days = calcDaysInclusive(mStart.value, mEnd.value);
+      if (!days) {
+        alert('Please select start and end dates.');
+        return;
+      }
+      const total = days * perDayPrice;
+      alert(`Booking demo:\n${days} day(s)\nTotal: $${total.toLocaleString()}\n\n(Demo only — integrate with booking backend)`);
+    });
+  }
+
+  // Mini search button (currently just reveals a small prompt — page-level search removed per request)
+  const miniSearchBtn = document.getElementById('miniSearchBtn');
+  if (miniSearchBtn) {
+    miniSearchBtn.addEventListener('click', () => {
+      const q = prompt('Quick search (demo): enter a keyword');
+      if (q) {
+        alert('Search demo: "' + q + '". Integrate with your search endpoint to filter results.');
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

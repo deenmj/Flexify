@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Rentify Help Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style type="text/tailwindcss">
+    @layer base {
+      :root {
+        --primary-color: #1193D4;
+        --background-light: #F8FAFC;
+        --background-dark: #101C22;
+        --primary-hover: #0F83C0;
+      }
+    }
+  </style>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "var(--primary-color)",
+            "background-light": "var(--background-light)",
+            "background-dark": "var(--background-dark)",
+            "primary-hover": "var(--primary-hover)"
+          },
+          fontFamily: {
+            "display": ["Montserrat", "sans-serif"],
+            "body": ["Manrope", "sans-serif"],
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "1rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-body text-gray-700 dark:text-gray-300">
+<div class="min-h-screen">
+<section class="bg-primary/10 dark:bg-primary/5 py-16 sm:py-24">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+<h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white font-display">How can we help?</h1>
+<p class="mt-4 text-lg text-gray-600 dark:text-gray-400">Find answers to your questions about Rentify.</p>
+<div class="mt-8 max-w-2xl mx-auto">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="w-full pl-12 pr-4 py-4 rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus:ring-primary focus:border-primary shadow-sm text-lg" placeholder="Search for articles..." type="search"/>
+</div>
+</div>
+</div>
+</section>
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-16" x-data="{ activeCategory: 'renting' }">
+<div class="flex flex-col lg:flex-row gap-12">
+<aside class="w-full lg:w-1/4">
+<div class="bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 sticky top-16">
+<h2 class="text-xl font-bold font-display text-gray-900 dark:text-white mb-6">Categories</h2>
+<nav class="space-y-2">
+<a :class="{ 'bg-primary/10 dark:bg-primary/20 text-primary font-bold': activeCategory === 'getting-started' }" @click.prevent="activeCategory = 'getting-started'" class="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-primary">rocket_launch</span>
+<span class="font-semibold">Getting Started</span>
+</a>
+<a :class="{ 'bg-primary/10 dark:bg-primary/20 text-primary font-bold': activeCategory === 'listing' }" @click.prevent="activeCategory = 'listing'" class="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-primary">directions_car</span>
+<span class="font-semibold">Listing a Vehicle</span>
+</a>
+<a :class="{ 'bg-primary/10 dark:bg-primary/20 text-primary font-bold': activeCategory === 'renting' }" @click.prevent="activeCategory = 'renting'" class="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-colors cursor-pointer">
+<span class="material-symbols-outlined">key</span>
+<span class="font-semibold">Renting a Vehicle</span>
+</a>
+<a :class="{ 'bg-primary/10 dark:bg-primary/20 text-primary font-bold': activeCategory === 'payment' }" @click.prevent="activeCategory = 'payment'" class="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-primary">payments</span>
+<span class="font-semibold">Payments &amp; Refunds</span>
+</a>
+<a :class="{ 'bg-primary/10 dark:bg-primary/20 text-primary font-bold': activeCategory === 'account' }" @click.prevent="activeCategory = 'account'" class="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-primary">manage_accounts</span>
+<span class="font-semibold">Account Management</span>
+</a>
+</nav>
+</div>
+</aside>
+<section class="w-full lg:w-3/4">
+<div x-show="activeCategory === 'getting-started'">
+<div class="mb-8">
+<h2 class="text-3xl font-extrabold text-gray-900 dark:text-white font-display">Getting Started</h2>
+</div>
+<div class="space-y-6">
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Creating Your Rentify Account</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Learn how to sign up and create your personal Rentify account in just a few simple steps. Get ready to start your journey with us.</p>
+</div>
+</details>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Navigating the Dashboard</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>A quick tour of your user dashboard. Find out where to manage your listings, bookings, messages, and account settings.</p>
+</div>
+</details>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Understanding User Roles</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Understand the difference between a vehicle owner (lister) and a renter. Learn about the features available for each role.</p>
+</div>
+</details>
+</div>
+</div>
+<div x-show="activeCategory === 'listing'">
+<div class="mb-8">
+<h2 class="text-3xl font-extrabold text-gray-900 dark:text-white font-display">Listing a Vehicle</h2>
+</div>
+<div class="space-y-6">
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Requirements for Listing</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Find out what you need to list your vehicle on Rentify, including vehicle age, condition, and required documentation.</p>
+</div>
+</details>
+<div class="bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 transition-shadow hover:shadow-xl">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white mb-2">Step-by-Step Vehicle Submission Guide</h3>
+<p class="text-gray-600 dark:text-gray-400 mb-4">Follow our detailed guide to create an attractive and effective listing for your vehicle, from taking great photos to writing a compelling description.</p><a class="font-semibold text-primary hover:text-primary-hover flex items-center gap-1" href="#"> Read more <span class="material-symbols-outlined">arrow_forward</span></a>
+</div>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Setting Your Rental Price</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Tips and tools to help you determine the optimal rental price for your vehicle based on its make, model, year, and location.</p>
+</div>
+</details>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Managing Your Vehicle Availability Calendar</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Learn how to use the availability calendar to block out dates when your vehicle is not available for rent, ensuring you only get requests for when you're ready.</p>
+</div>
+</details>
+</div>
+</div>
+<div x-show="activeCategory === 'renting'">
+<div class="mb-8">
+<h2 class="text-3xl font-extrabold text-gray-900 dark:text-white font-display">Renting a Vehicle</h2>
+</div>
+<div class="space-y-6">
+<div class="bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 transition-shadow hover:shadow-xl">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white mb-2">How to Find and Book a Vehicle</h3>
+<p class="text-gray-600 dark:text-gray-400 mb-4">A simple guide on searching for the perfect vehicle, filtering your options, and completing the booking process in just a few clicks.</p><a class="font-semibold text-primary hover:text-primary-hover flex items-center gap-1" href="#"> Read more <span class="material-symbols-outlined">arrow_forward</span></a>
+</div>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Understanding Rental Agreements</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Learn what's included in a standard rental agreement, including mileage limits, fuel policies, and your responsibilities as a renter.</p>
+</div>
+</details>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Picking Up Your Rental</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Everything you need to know about the vehicle pickup process, including what documents to bring and how to inspect the vehicle before you drive away.</p>
+</div>
+</details>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Returning Your Vehicle</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Follow our checklist for a smooth and hassle-free return process. Learn about cleaning, fuel levels, and the final inspection.</p>
+</div>
+</details>
+</div>
+</div>
+<div x-show="activeCategory === 'payment'">
+<div class="mb-8">
+<h2 class="text-3xl font-extrabold text-gray-900 dark:text-white font-display">Payment &amp; Refunds</h2>
+</div>
+<div class="space-y-6">
+<div class="bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 transition-shadow hover:shadow-xl">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white mb-2">Understanding Payment Methods</h3>
+<p class="text-gray-600 dark:text-gray-400 mb-4">Learn about the accepted payment methods on Rentify, including credit cards, debit cards, and other digital payment options.</p><a class="font-semibold text-primary hover:text-primary-hover flex items-center gap-1" href="#"> Read more <span class="material-symbols-outlined">arrow_forward</span></a>
+</div>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">How Rental Payments Work</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>An explanation of our secure payment process, including when you are charged, how security deposits work, and how owners get paid.</p>
+</div>
+</details>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Requesting a Refund</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Information on our refund policy and instructions on how to request a refund if your rental did not go as planned.</p>
+</div>
+</details>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Dispute Resolution Process</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Learn about the steps to take if you have a disagreement with a vehicle owner or renter. Our support team is here to help mediate and find a fair solution.</p>
+</div>
+</details>
+</div>
+</div>
+<div x-show="activeCategory === 'account'">
+<div class="mb-8">
+<h2 class="text-3xl font-extrabold text-gray-900 dark:text-white font-display">Account Management</h2>
+</div>
+<div class="space-y-6">
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Updating Your Profile Information</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Keep your profile up-to-date. This guide shows you how to edit your name, contact information, and profile picture.</p>
+</div>
+</details>
+<div class="bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 transition-shadow hover:shadow-xl">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white mb-2">Changing Your Password</h3>
+<p class="text-gray-600 dark:text-gray-400 mb-4">For security, it's a good idea to change your password periodically. Here's how to do it quickly and easily from your account settings.</p><a class="font-semibold text-primary hover:text-primary-hover flex items-center gap-1" href="#"> Read more <span class="material-symbols-outlined">arrow_forward</span></a>
+</div>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Managing Notifications</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Control how and when you receive notifications from Rentify. Customize your email and push notification preferences.</p>
+</div>
+</details>
+<details class="group bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-white">Account Deactivation/Deletion</h3><span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180">expand_more</span></summary>
+<div class="mt-4 text-gray-600 dark:text-gray-400">
+<p>Information on how to temporarily deactivate or permanently delete your Rentify account and what this means for your data.</p>
+</div>
+</details>
+</div>
+</div>
+</section>
+</div>
+</main>
+<footer class="bg-white dark:bg-gray-800/50 mt-16 border-t border-gray-200 dark:border-gray-700">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+<h2 class="text-2xl font-bold font-display text-gray-900 dark:text-white">Still Need Help?</h2>
+<p class="mt-2 text-gray-600 dark:text-gray-400">Our support team is here for you 24/7. Find more answers in our FAQ section.</p>
+<div class="mt-6 flex justify-center items-center gap-4">
+<a class="inline-block bg-primary text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-primary-hover transition-colors" href="#">
+                    Contact Support
+                </a>
+<a class="inline-block bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" href="FAQ.html">
+                    View FAQs
+                </a>
+</div>
+</div>
+</footer>
+</div>
+<script defer="" src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>
+
+</body></html>

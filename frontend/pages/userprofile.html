@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Rentify — User Profile</title>
+
+  <!-- Fonts & Tailwind -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+  
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "auth.html"; // redirect if not logged in
+    }
+    </script>
+    
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#1193D4",
+            "background-light": "#F8FAFC",
+            "background-dark": "#0F1724"
+          },
+          fontFamily: { display: ["Manrope", "system-ui", "sans-serif"] },
+          boxShadow: { soft: "0 6px 24px rgba(16,24,40,0.06)" }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .material-symbols-outlined { font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .18s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    /* drawer translate control */
+    .drawer-closed { transform: translateX(100%); }
+    .drawer-open { transform: translateX(0); }
+    /* small helpers */
+    .chat-bubble-me { background: rgba(17,147,212,0.08); color: #053A52; align-self:flex-end; }
+    .chat-bubble-owner { background:#F3F4F6; color:#0F1724; align-self:flex-start; }
+  </style>
+</head>
+<body class="font-display bg-background-light text-slate-900">
+
+<!-- Root -->
+<div class="min-h-screen flex flex-col">
+
+  <!-- ===========================
+       HEADER (kept your layout)
+       Left: logo + nav (desktop)
+       Right: notif bell, language, profile pic, hamburger (mobile)
+       On mobile: hamburger will contain nav links and tab links and profile menu
+       ============================ -->
+  <header class="sticky top-0 z-40 bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex items-center gap-6">
+        <!-- logo -->
+        <a href="index.html" class="flex items-center gap-3">
+          <!-- keep your SVG or img here -->
+          <svg class="h-8 w-8 text-primary" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" opacity="0.5"/><path d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263Z" fill="currentColor"/></svg>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight">Flexify-vehicles</h1>
+        </a>
+        <!-- desktop nav -->
+        <nav id="desktopNav" class="hidden md:flex items-center gap-4 text-sm text-slate-700">
+          <a href="#" class="px-3 py-2 rounded-md hover:bg-slate-100">Home</a>
+          <a href="#" class="px-3 py-2 rounded-md hover:bg-slate-100">Explore</a>
+          <a href="#" class="px-3 py-2 rounded-md hover:bg-slate-100">List your Vehicle</a>
+          <a href="#" class="px-3 py-2 rounded-md hover:bg-slate-100">About Us</a>
+          <a href="#" class="px-3 py-2 rounded-md hover:bg-slate-100">Support</a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- notification bell (visible on mobile per your instruction) -->
+        <div class="relative">
+          <button id="notifBtn" class="rounded-full h-10 w-10 flex items-center justify-center text-gray-600 hover:bg-gray-100" aria-label="Notifications">
+            <span class="material-symbols-outlined">notifications</span>
+            <span id="notifDot" class="absolute top-2 right-2 bg-red-500 h-2 w-2 rounded-full hidden"></span>
+          </button>
+          <div id="notifPanel" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg p-3 z-50">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-sm font-semibold">Notifications</h3>
+              <button id="markReadBtn" class="text-xs text-primary">Mark read</button>
+            </div>
+            <ul id="notifList" class="text-sm text-gray-700">
+              <li>No notifications yet.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- language selector (visible on mobile per your instruction) -->
+        <select id="langSelect" class="text-sm rounded-md border px-2 py-1 bg-white">
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+          <option value="fr">FR</option>
+        </select>
+
+        <!-- profile (desktop only) -->
+        <div class="relative hidden md:block">
+          <button id="profileBtn" class="rounded-full h-10 w-10 overflow-hidden" aria-label="Profile">
+            <img id="profilePic" src="a4.jpg" alt="Profile" class="h-10 w-10 object-cover rounded-full"/>
+          </button>
+          <div id="profilePanel" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg p-3 z-50">
+            <ul class="text-sm text-gray-700 space-y-2">
+              <li><a href="#profile" class="block px-2 py-1 rounded hover:bg-gray-50">My Profile</a></li>
+              <li><a href="#settings" class="block px-2 py-1 rounded hover:bg-gray-50">Settings</a></li>
+              <li><a href="#payments" class="block px-2 py-1 rounded hover:bg-gray-50">Manage Payment</a></li>
+              <li><a href="#" class="block px-2 py-1 rounded text-red-500 hover:bg-gray-50">Logout</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- hamburger: visible on mobile; this opens drawer that contains links + tabs + profile -->
+        <button id="hamburgerBtn" class="md:hidden p-2 rounded-lg bg-white border" aria-label="Open menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===========================
+       MOBILE DRAWER (right)
+       Contains nav links + user tabs + profile menu for mobile
+       ============================ -->
+  <aside id="mobileDrawer" class="fixed inset-y-0 right-0 w-80 bg-white shadow-xl z-50 drawer-closed transition-transform">
+    <div class="p-4 border-b flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img id="drawerProfilePic" class="h-10 w-10 rounded-full object-cover" src="a4.jpg" alt="pf"/>
+        <div>
+          <div id="drawerName" class="font-semibold text-sm">Hamdhan</div>
+          <div id="drawerHandle" class="text-xs text-gray-500">@Hamdhan</div>
+        </div>
+      </div>
+      <button id="drawerClose" class="p-2 rounded-md hover:bg-gray-100">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="p-4 space-y-3 overflow-auto h-full">
+      <!-- primary nav -->
+      <nav class="space-y-1">
+        <a class="block px-3 py-2 rounded hover:bg-gray-50" href="#">Home</a>
+        <a class="block px-3 py-2 rounded hover:bg-gray-50" href="#">Explore</a>
+        <a class="block px-3 py-2 rounded hover:bg-gray-50" href="#">List your Vehicle</a>
+        <a class="block px-3 py-2 rounded hover:bg-gray-50" href="#">About Us</a>
+        <a class="block px-3 py-2 rounded hover:bg-gray-50" href="#">Support</a>
+      </nav>
+
+      <div class="pt-3 border-t">
+        <div class="text-sm font-semibold text-gray-700 mb-2">Sections</div>
+        <button class="block w-full text-left px-3 py-2 rounded hover:bg-gray-50 mobile-tab" data-tab="overview">Overview</button>
+        <button class="block w-full text-left px-3 py-2 rounded hover:bg-gray-50 mobile-tab" data-tab="bookings">My Bookings</button>
+        <button class="block w-full text-left px-3 py-2 rounded hover:bg-gray-50 mobile-tab" data-tab="messages">Messages</button>
+        <button class="block w-full text-left px-3 py-2 rounded hover:bg-gray-50 mobile-tab" data-tab="saved">Saved</button>
+        <button class="block w-full text-left px-3 py-2 rounded hover:bg-gray-50 mobile-tab" data-tab="settings">Settings</button>
+      </div>
+
+      <div class="pt-3 border-t">
+        <div class="text-sm font-semibold mb-2">Account</div>
+        <a class="block px-3 py-2 rounded hover:bg-gray-50" href="#profile">My Profile</a>
+        <a class="block px-3 py-2 rounded hover:bg-gray-50" href="#payments">Manage Payment</a>
+        <button id="drawerLogout" class="block w-full text-left px-3 py-2 rounded text-red-500 hover:bg-gray-50">Logout</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===========================
+       MAIN CONTENT
+       Profile card, stats, tabs, contents
+       ============================ -->
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Profile Card -->
+      <div class="bg-white rounded-xl shadow-soft p-6 md:flex md:gap-6 md:items-center">
+        <div class="relative flex-shrink-0">
+          <div id="mainProfilePic" class="w-32 h-32 rounded-full bg-cover bg-center ring-4 ring-primary/20" style="background-image:url('a4.jpg')"></div>
+          
+        </div>
+
+        <div class="mt-4 md:mt-0 md:flex-1 text-center md:text-left">
+          <div class="flex items-center justify-center md:justify-start gap-4">
+            <div>
+              <h1 id="mainName" class="text-2xl font-bold">Hamdhan</h1>
+              <p id="mainHandle" class="text-sm text-gray-600">@Hamdhan • Joined 2021</p>
+              <p id="mainBio" class="text-sm text-gray-700 mt-2">Car enthusiast and frequent traveler.</p>
+            </div>
+          </div>
+
+          <div class="mt-4 flex justify-center md:justify-start gap-3 flex-wrap">
+            <button id="editProfileBtn" class="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90">Edit Profile</button>
+            <button id="chatNowBtn" class="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Chat Now</button>
+            <button id="badgeBtn" class="px-3 py-2 text-sm border rounded-lg text-gray-600 hidden">Badge</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 shadow-soft hover:shadow-md transition">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded bg-primary/10 text-primary"><span class="material-symbols-outlined">car_rental</span></div>
+            <div>
+              <div id="statRentals" class="text-2xl font-bold">12</div>
+              <div class="text-sm text-gray-600">Total Rentals</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow-soft hover:shadow-md transition">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded bg-primary/10 text-primary"><span class="material-symbols-outlined">payments</span></div>
+            <div>
+              <div id="statSpent" class="text-2xl font-bold">$2,500</div>
+              <div class="text-sm text-gray-600">Total Spent</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow-soft hover:shadow-md transition">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded bg-primary/10 text-primary"><span class="material-symbols-outlined">calendar_month</span></div>
+            <div>
+              <div id="statThisMonth" class="text-2xl font-bold">2</div>
+              <div class="text-sm text-gray-600">Trips This Month</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow-soft hover:shadow-md transition">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded bg-primary/10 text-primary"><span class="material-symbols-outlined">directions_car</span></div>
+            <div>
+              <div id="statActive" class="text-2xl font-bold">1</div>
+              <div class="text-sm text-gray-600">Active Bookings</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extra Stats (below main stats) -->
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl p-4 shadow-soft hover:shadow-md transition">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded bg-primary/10 text-primary"><span class="material-symbols-outlined">chat</span></div>
+            <div>
+              <div id="statMsgs" class="text-2xl font-bold">8</div>
+              <div class="text-sm text-gray-600">Total Messages</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow-soft hover:shadow-md transition">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded bg-primary/10 text-primary"><span class="material-symbols-outlined">credit_card</span></div>
+            <div>
+              <div id="statCards" class="text-2xl font-bold">2</div>
+              <div class="text-sm text-gray-600">Payment Methods Saved</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow-soft hover:shadow-md transition">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded bg-primary/10 text-primary"><span class="material-symbols-outlined">cancel</span></div>
+            <div>
+              <div id="statCancelled" class="text-2xl font-bold">1</div>
+              <div class="text-sm text-gray-600">Cancelled Trips</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs Navigation -->
+      <div class="mt-8 border-t pt-6">
+        <nav class="flex gap-6 overflow-auto -mb-px" id="tabsNav">
+          <button class="tab-btn border-b-2 border-primary pb-3 text-primary font-medium" data-tab="overview">Overview</button>
+          <button class="tab-btn border-b-2 border-transparent pb-3 text-gray-600 hover:text-primary" data-tab="bookings">My Bookings</button>
+          <button class="tab-btn border-b-2 border-transparent pb-3 text-gray-600 hover:text-primary" data-tab="messages">Messages</button>
+          <button class="tab-btn border-b-2 border-transparent pb-3 text-gray-600 hover:text-primary" data-tab="saved">Saved</button>
+          <button class="tab-btn border-b-2 border-transparent pb-3 text-gray-600 hover:text-primary" data-tab="settings">Settings</button>
+        </nav>
+
+        <div class="mt-6">
+          <!-- Overview Section -->
+          <section id="overview" class="tab-content active">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="lg:col-span-2 space-y-4">
+                <div class="bg-white rounded-xl p-4 shadow-soft">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-semibold">Recently Rented</h3>
+                    <a href="#" class="text-sm text-primary">See all</a>
+                  </div>
+                  <div id="recentList" class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- recently rented cards injected here -->
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-4 shadow-soft">
+                  <h3 class="font-semibold">Recent Messages</h3>
+                  <div id="overviewMsgs" class="mt-3 space-y-3 text-sm text-gray-700">
+                    <!-- preview messages -->
+                  </div>
+                </div>
+              </div>
+
+              <aside class="space-y-4">
+                <div class="bg-white rounded-xl p-4 shadow-soft">
+                  <h3 class="font-semibold">Notifications & Offers</h3>
+                  <ul id="overviewOffers" class="mt-3 text-sm text-gray-700 space-y-2">
+                    <li>No new offers</li>
+                  </ul>
+                </div>
+
+                <div class="bg-white rounded-xl p-4 shadow-soft">
+                  <h3 class="font-semibold">Quick Actions</h3>
+                  <div class="mt-3 flex flex-col gap-2">
+                    <a href="#" class="px-3 py-2 rounded bg-primary text-white text-sm text-center">Continue Exploring Vehicles</a>
+                    <a href="#bookings" class="px-3 py-2 rounded border text-sm text-center">View Bookings</a>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <!-- Bookings Section -->
+          <section id="bookings" class="tab-content">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold">My Bookings</h2>
+              <div class="flex gap-2 items-center">
+                <button class="filter-btn bg-primary text-white px-3 py-1 rounded text-sm" data-filter="all">All</button>
+                <button class="filter-btn border px-3 py-1 rounded text-sm" data-filter="active">Active</button>
+                <button class="filter-btn border px-3 py-1 rounded text-sm" data-filter="completed">Completed</button>
+                <button class="filter-btn border px-3 py-1 rounded text-sm" data-filter="cancelled">Cancelled</button>
+              </div>
+            </div>
+
+            <div id="bookingsWrap" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- booking cards injected here -->
+            </div>
+          </section>
+
+          <!-- Messages Section -->
+          <section id="messages" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="md:col-span-1 bg-white rounded-xl p-3 shadow-soft">
+                <h3 class="font-semibold mb-3">Conversations</h3>
+                <ul id="convoList" class="space-y-2 text-sm">
+                  <!-- conversation list injected -->
+                </ul>
+              </div>
+
+              <div class="md:col-span-2 bg-white rounded-xl p-3 shadow-soft flex flex-col">
+                <div id="chatWindow" class="flex-1 overflow-auto p-3 flex flex-col gap-3 bg-gray-50 rounded">
+                  <div class="text-sm text-gray-500">Select a conversation to chat.</div>
+                </div>
+
+                <div class="mt-3 flex gap-2 items-center">
+                  <input id="chatInput" class="flex-1 border rounded-full px-4 py-2 text-sm" placeholder="Start chatting with your vehicle owner." />
+                  <button id="sendMsgBtn" class="px-4 py-2 bg-primary text-white rounded-full text-sm">Send</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Saved Section -->
+          <section id="saved" class="tab-content">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold">Saved Vehicles</h2>
+              <div class="flex items-center gap-2">
+                <select id="savedSort" class="border rounded px-2 py-1 text-sm">
+                  <option value="date">Date Added</option>
+                  <option value="price">Price</option>
+                  <option value="model">Model Name</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="savedGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- saved cards injected here -->
+            </div>
+          </section>
+
+          <!-- Settings Section -->
+          <section id="settings" class="tab-content">
+            <h2 class="text-xl font-semibold mb-4">Settings</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Account settings -->
+              <div class="bg-white rounded-xl p-4 shadow-soft">
+                <h3 class="font-semibold mb-2">Account Settings</h3>
+                <label class="block text-sm">Full name</label>
+                <input id="acc_name" class="w-full border rounded px-3 py-2 mb-2" type="text" />
+                <label class="block text-sm">Email</label>
+                <input id="acc_email" class="w-full border rounded px-3 py-2 mb-2" type="email" />
+                <label class="block text-sm">Phone</label>
+                <input id="acc_phone" class="w-full border rounded px-3 py-2 mb-2" type="text" />
+                <label class="block text-sm">Password</label>
+                <input id="acc_pass" class="w-full border rounded px-3 py-2 mb-2" type="password" />
+                <div class="flex items-center gap-2 mt-2">
+                  <input id="toggleDark" type="checkbox" />
+                  <label class="text-sm">Enable Dark Mode</label>
+                </div>
+                <div class="mt-3 flex gap-2">
+                  <button id="saveAccountBtn" class="px-4 py-2 bg-primary text-white rounded">Save</button>
+                  <button id="resetAccountBtn" class="px-4 py-2 border rounded">Cancel</button>
+                </div>
+              </div>
+
+              <!-- Payment & Billing -->
+              <div class="bg-white rounded-xl p-4 shadow-soft">
+                <h3 class="font-semibold mb-2">Payment & Billing</h3>
+                <label class="block text-sm">Cardholder Name</label>
+                <input id="card_holder" class="w-full border rounded px-3 py-2 mb-2" type="text" />
+                <label class="block text-sm">Card Number</label>
+                <input id="card_number" class="w-full border rounded px-3 py-2 mb-2" type="text" maxlength="19" placeholder="1234 5678 9012 3456" />
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-sm">Expiry</label>
+                    <input id="card_exp" class="w-full border rounded px-3 py-2 mb-2" type="text" placeholder="MM/YY" />
+                  </div>
+                  <div>
+                    <label class="text-sm">CVV</label>
+                    <input id="card_cvv" class="w-full border rounded px-3 py-2 mb-2" type="text" maxlength="4" />
+                  </div>
+                </div>
+                <label class="block text-sm">Billing Address</label>
+                <input id="bill_addr" class="w-full border rounded px-3 py-2 mb-2" type="text" />
+                <div class="mt-3 flex gap-2">
+                  <button id="addCardBtn" class="px-4 py-2 bg-primary text-white rounded">Add Card</button>
+                </div>
+
+                <div class="mt-4">
+                  <h4 class="font-medium">Saved Cards</h4>
+                  <div id="cardsList" class="mt-2 space-y-2 text-sm text-gray-700">
+                    <div>No cards saved.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notifications -->
+              <div class="bg-white rounded-xl p-4 shadow-soft">
+                <h3 class="font-semibold mb-2">Notification Preferences</h3>
+                <div class="flex items-center justify-between py-2">
+                  <div>
+                    <p class="font-medium">Email</p>
+                    <p class="text-sm text-gray-500">Receive emails</p>
+                  </div>
+                  <input id="notif_email" type="checkbox" />
+                </div>
+
+                <div class="flex items-center justify-between py-2">
+                  <div>
+                    <p class="font-medium">SMS</p>
+                    <p class="text-sm text-gray-500">Receive SMS</p>
+                  </div>
+                  <input id="notif_sms" type="checkbox" />
+                </div>
+
+                <div class="flex items-center justify-between py-2">
+                  <div>
+                    <p class="font-medium">Push</p>
+                    <p class="text-sm text-gray-500">Push notifications</p>
+                  </div>
+                  <input id="notif_push" type="checkbox" />
+                </div>
+              </div>
+
+              <!-- Delete Account -->
+              <div class="bg-white rounded-xl p-4 shadow-soft md:col-span-2">
+                <h3 class="font-semibold mb-2">Delete Account</h3>
+                <p class="text-sm text-gray-600 mb-3">This action is irreversible. Deleting your account will remove all data.</p>
+                <button id="deleteAccountBtn" class="px-4 py-2 bg-red-500 text-white rounded">Delete My Account</button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Edit Profile Modal (reusable) -->
+<div id="editModal" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center">
+  <div class="bg-white rounded-xl w-full max-w-lg p-6 shadow-lg">
+    <h3 class="text-lg font-semibold mb-3">Edit Profile</h3>
+    <div class="space-y-3">
+      <label class="text-sm">Full name</label>
+      <input id="modal_name" type="text" class="w-full border rounded px-3 py-2" />
+
+      <label class="text-sm">Email</label>
+      <input id="modal_email" type="email" class="w-full border rounded px-3 py-2" />
+
+      <label class="text-sm">Phone</label>
+      <input id="modal_phone" type="text" class="w-full border rounded px-3 py-2" />
+
+      <label class="text-sm">Upload Profile Photo</label>
+      <input id="modal_photo" type="file" accept="image/*" class="w-full" />
+
+      <label class="text-sm">Short bio</label>
+      <textarea id="modal_bio" rows="3" class="w-full border rounded px-3 py-2"></textarea>
+    </div>
+
+    <div class="mt-4 flex justify-end gap-2">
+      <button id="modal_cancel" class="px-4 py-2 border rounded">Cancel</button>
+      <button id="modal_save" class="px-4 py-2 bg-primary text-white rounded">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm -->
+<div id="confirmDelete" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center">
+  <div class="bg-white rounded-xl p-6 max-w-md w-full">
+    <h3 class="font-semibold text-lg">Confirm account deletion</h3>
+    <p class="text-sm text-gray-600 mt-2">Are you sure you want to delete your account? This action cannot be undone.</p>
+    <div class="mt-4 flex justify-end gap-2">
+      <button id="del_cancel" class="px-4 py-2 border rounded">Cancel</button>
+      <button id="del_confirm" class="px-4 py-2 bg-red-500 text-white rounded">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Small inline scripts to power tabs and demo storage -->
+<script>
+  // Helpers
+  const $ = (s, ctx=document) => ctx.querySelector(s);
+  const $$ = (s, ctx=document) => Array.from((ctx||document).querySelectorAll(s));
+
+  // Drawer open/close
+  const drawer = $('#mobileDrawer');
+  $('#hamburgerBtn').addEventListener('click', () => {
+    drawer.classList.remove('drawer-closed');
+    drawer.classList.add('drawer-open');
+    document.body.style.overflow = 'hidden';
+  });
+  $('#drawerClose').addEventListener('click', () => {
+    drawer.classList.remove('drawer-open');
+    drawer.classList.add('drawer-closed');
+    document.body.style.overflow = '';
+  });
+
+  // Close drawer when clicking outside (mobile)
+  document.addEventListener('click', (e) => {
+    if (!drawer.contains(e.target) && !e.target.closest('#hamburgerBtn') && !drawer.classList.contains('drawer-closed')) {
+      drawer.classList.remove('drawer-open'); drawer.classList.add('drawer-closed'); document.body.style.overflow = '';
+    }
+  });
+
+  // Profile dropdown (desktop)
+  $('#profileBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    $('#profilePanel').classList.toggle('hidden');
+  });
+  // notification panel
+  $('#notifBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    $('#notifPanel').classList.toggle('hidden');
+  });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!$('#profilePanel')?.contains(e.target)) $('#profilePanel')?.classList.add('hidden');
+    if (!$('#notifPanel')?.contains(e.target)) $('#notifPanel')?.classList.add('hidden');
+  });
+
+  // Tabs switching
+  function showTab(id) {
+    $$('.tab-content').forEach(s => s.classList.remove('active'));
+    const sec = $('#' + id);
+    if (sec) sec.classList.add('active');
+
+    // update tab button visual state
+    $$('.tab-btn').forEach(b => {
+      b.classList.remove('border-primary','text-primary');
+      b.classList.add('border-transparent','text-gray-600');
+    });
+    const activeBtn = $(`.tab-btn[data-tab="${id}"]`);
+    if (activeBtn) {
+      activeBtn.classList.remove('border-transparent','text-gray-600');
+      activeBtn.classList.add('border-primary','text-primary');
+    }
+  }
+
+  $$('.tab-btn').forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
+
+  // Mobile drawer tabs
+  $$('.mobile-tab').forEach(bt => bt.addEventListener('click', (e) => {
+    const t = e.currentTarget.dataset.tab;
+    showTab(t);
+    // close drawer
+    drawer.classList.remove('drawer-open'); drawer.classList.add('drawer-closed'); document.body.style.overflow = '';
+  }));
+
+  // Modal open/close
+  $('#editProfileBtn').addEventListener('click', () => {
+    // load current values into modal
+    $('#modal_name').value = $('#mainName').textContent.trim();
+    $('#modal_email').value = $('#mainHandle').dataset.email || '';
+    $('#modal_phone').value = $('#mainHandle').dataset.phone || '';
+    $('#modal_bio').value = $('#mainBio').textContent.trim();
+    $('#editModal').classList.remove('hidden');
+  });
+  $('#modal_cancel').addEventListener('click', () => $('#editModal').classList.add('hidden'));
+
+  // Save profile (store in localStorage for demo)
+  const PROFILE_KEY = 'rentify_demo_profile_v2';
+  function seedProfile() {
+    if (!localStorage.getItem(PROFILE_KEY)) {
+      const p = {
+        name: 'Hamdhan',
+        handle: 'Hamdhan',
+        email: 'mohamed.hamdhan0047@gmail.com',
+        phone: '+1 555 1234',
+        bio: 'Car enthusiast and frequent traveler.',
+        avatar: 'https://i.pravatar.cc/300?img=47'
+      };
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+    }
+  }
+  function loadProfileToUI() {
+    const p = JSON.parse(localStorage.getItem(PROFILE_KEY));
+    if (!p) return;
+    $('#mainName').textContent = p.name;
+    $('#mainHandle').textContent = '@' + p.handle;
+    $('#mainHandle').dataset.email = p.email || '';
+    $('#mainHandle').dataset.phone = p.phone || '';
+    $('#mainBio').textContent = p.bio || '';
+    $('#mainProfilePic').style.backgroundImage = `url('a4.jpg')`;
+    $('#drawerProfilePic').src = p.avatar;
+    $('#drawerName').textContent = p.name;
+    $('#drawerHandle').textContent = '@' + p.handle;
+  }
+
+  $('#modal_save').addEventListener('click', () => {
+    const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+    p.name = $('#modal_name').value || p.name;
+    p.email = $('#modal_email').value || p.email;
+    p.phone = $('#modal_phone').value || p.phone;
+    p.bio = $('#modal_bio').value || p.bio;
+    const file = $('#modal_photo').files && $('#modal_photo').files[0];
+    if (file) {
+      const r = new FileReader();
+      r.onload = (ev) => {
+        p.avatar = ev.target.result;
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+        loadProfileToUI();
+        $('#editModal').classList.add('hidden');
+      };
+      r.readAsDataURL(file);
+    } else {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+      loadProfileToUI();
+      $('#editModal').classList.add('hidden');
+    }
+  });
+
+  // Seed demo data
+  const BOOKINGS_KEY = 'rentify_demo_bookings_v1';
+  const CONVOS_KEY = 'rentify_demo_convos_v1';
+  const SAVED_KEY = 'rentify_demo_saved_v2';
+  const CARDS_KEY = 'rentify_demo_cards_v1';
+
+  function seedDemo() {
+    seedProfile();
+    if (!localStorage.getItem(BOOKINGS_KEY)) {
+      const bookings = [
+        { id:'bk1', img:'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?w=800&q=60', title:'2024 EV — Tesla Model 3', location:'USA > California > San Francisco', seats:5, transmission:'Automatic', type:'Electric / Sedan', price:120, start:'2025-08-01', end:'2025-08-05', status:'active' },
+        { id:'bk2', img:'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=800&q=60', title:'2019 Family SUV — Toyota', location:'USA > California > Los Angeles', seats:7, transmission:'Automatic', type:'Gas / SUV', price:45, start:'2024-06-10', end:'2024-06-12', status:'completed' },
+        { id:'bk3', img:'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=800&q=60', title:'2021 Compact — VW Polo', location:'USA > Texas > Austin', seats:4, transmission:'Manual', type:'Gas / Hatchback', price:60, start:'2024-09-01', end:'2024-09-02', status:'cancelled' }
+      ];
+      localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+    }
+
+    if (!localStorage.getItem(CONVOS_KEY)) {
+      const convos = [
+        { id:'c1', owner:'potter', vehicle:'Tesla Model 3', msgs: [{from:'owner', text:'Hello — the car is cleaned and ready.' ,ts:Date.now()-3600000}, {from:'me', text:'Great, see you then!', ts:Date.now()-3500000}] }
+      ];
+      localStorage.setItem(CONVOS_KEY, JSON.stringify(convos));
+    }
+
+    if (!localStorage.getItem(SAVED_KEY)) {
+      const saved = [
+        { id:'s1', img:'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?w=800&q=60', title:'2024 EV — Tesla Model 3', location:'USA > California > San Francisco', seats:5, transmission:'Automatic', type:'Electric / Sedan', price:120, added: Date.now() - 86400000 },
+        { id:'s2', img:'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=800&q=60', title:'Luxury Sedan', location:'USA > New York > Manhattan', seats:5, transmission:'Automatic', type:'Gas / Sedan', price:120, added: Date.now() - 3600000 }
+      ];
+      localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
+    }
+
+    if (!localStorage.getItem(CARDS_KEY)) {
+      const cards = [{name:'Visa • potter', masked:'**** **** **** 4242', id:'card1'}];
+      localStorage.setItem(CARDS_KEY, JSON.stringify(cards));
+    }
+  }
+
+  // Render bookings
+  function renderBookings(filter='all') {
+    const list = JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]');
+    const wrap = $('#bookingsWrap');
+    wrap.innerHTML = '';
+    const toShow = filter==='all' ? list : list.filter(b => b.status === filter);
+    if (!toShow.length) { wrap.innerHTML = '<div class="bg-white p-4 rounded-xl">No bookings found.</div>'; return; }
+
+    toShow.forEach(b => {
+      const card = document.createElement('article');
+      card.className = 'bg-white rounded-xl p-3 shadow-soft flex flex-col';
+      card.innerHTML = `
+        <div class="flex gap-3">
+          <div class="w-32 h-20 bg-cover bg-center rounded" style="background-image:url('${b.img}')"></div>
+          <div class="flex-1">
+            <div class="font-semibold">${b.title}</div>
+            <div class="text-sm text-gray-600">${b.location}</div>
+            <div class="text-sm text-gray-600 mt-1">Seats: ${b.seats} · ${b.transmission} · ${b.type}</div>
+            <div class="text-sm font-medium mt-2">$${b.price} / day</div>
+            <div class="text-xs text-gray-500 mt-1">${b.start} → ${b.end}</div>
+          </div>
+          <div class="flex flex-col items-end gap-2">
+            <div class="text-xs px-2 py-1 rounded ${b.status==='active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">${b.status}</div>
+            <button data-id="${b.id}" class="viewDetailsBtn px-3 py-1 border rounded text-sm">View Details</button>
+          </div>
+        </div>
+        <div class="mt-3 flex gap-2">
+          <button data-id="${b.id}" class="cancelBookingBtn px-3 py-1 border rounded text-sm ${b.status!=='active' ? 'opacity-50 pointer-events-none' : ''}">Cancel Booking</button>
+          <button data-id="${b.id}" class="rateOwnerBtn px-3 py-1 border rounded text-sm">Rate Owner</button>
+        </div>
+      `;
+      wrap.appendChild(card);
+    });
+
+    // attach events
+    $$('.cancelBookingBtn').forEach(btn => btn.addEventListener('click', (e) => {
+      const id = e.currentTarget.dataset.id;
+      const all = JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]');
+      const idx = all.findIndex(x=>x.id===id);
+      if (idx>-1) { all[idx].status='cancelled'; localStorage.setItem(BOOKINGS_KEY, JSON.stringify(all)); renderBookings(filter); }
+    }));
+    $$('.rateOwnerBtn').forEach(btn => btn.addEventListener('click', (e) => {
+      alert('Rate owner dialog (demo) - will implement later.');
+    }));
+    $$('.viewDetailsBtn').forEach(btn => btn.addEventListener('click', (e) => {
+      alert('Booking details (demo).');
+    }));
+  }
+
+  // Booking filters
+  $$('.filter-btn').forEach(btn => btn.addEventListener('click', (e) => {
+    $$('.filter-btn').forEach(b => b.classList.remove('bg-primary','text-white'));
+    e.currentTarget.classList.add('bg-primary','text-white');
+    const f = e.currentTarget.dataset.filter;
+    renderBookings(f);
+  }));
+
+  // Render recent rented area (overview)
+  function renderRecent() {
+    const list = JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]');
+    const recentWrap = $('#recentList');
+    recentWrap.innerHTML = '';
+    list.slice(0,4).forEach(b => {
+      const c = document.createElement('div');
+      c.className = 'rounded-lg border p-3 flex gap-3 items-center';
+      c.innerHTML = `<div class="w-20 h-12 bg-cover bg-center rounded" style="background-image:url('${b.img}')"></div>
+                     <div class="flex-1">
+                       <div class="font-medium">${b.title}</div>
+                       <div class="text-xs text-gray-600">${b.location}</div>
+                       <div class="text-sm text-gray-700 font-semibold mt-1">$${b.price}/day</div>
+                     </div>`;
+      recentWrap.appendChild(c);
+    });
+  }
+
+  // Conversations & chat
+  function renderConvos() {
+    const convos = JSON.parse(localStorage.getItem(CONVOS_KEY) || '[]');
+    const list = $('#convoList');
+    list.innerHTML = '';
+    if (!convos.length) { list.innerHTML = '<div class="text-sm text-gray-500">No conversations</div>'; return; }
+    convos.forEach(c => {
+      const li = document.createElement('li');
+      li.className = 'p-2 rounded hover:bg-gray-50 cursor-pointer';
+      li.innerHTML = `<div class="font-medium">${c.owner}</div><div class="text-xs text-gray-500">${c.vehicle}</div>`;
+      li.addEventListener('click', () => openConversation(c.id));
+      list.appendChild(li);
+    });
+  }
+
+  let currentConvoId = null;
+  function openConversation(id) {
+    const convos = JSON.parse(localStorage.getItem(CONVOS_KEY) || '[]');
+    const convo = convos.find(x=>x.id===id);
+    if (!convo) return;
+    currentConvoId = id;
+    const win = $('#chatWindow');
+    win.innerHTML = '';
+    convo.msgs.forEach(m => {
+      const d = document.createElement('div');
+      d.className = m.from === 'me' ? 'self-end chat-bubble-me p-2 rounded-lg max-w-[80%]' : 'self-start chat-bubble-owner p-2 rounded-lg max-w-[80%]';
+      d.innerHTML = `<div class="text-sm">${m.text}</div><div class="text-xs text-gray-400 mt-1">${new Date(m.ts).toLocaleString()}</div>`;
+      win.appendChild(d);
+    });
+    win.scrollTop = win.scrollHeight;
+  }
+
+  // Send message
+  $('#sendMsgBtn').addEventListener('click', () => {
+    const txt = $('#chatInput').value.trim();
+    if (!txt) return;
+    const convos = JSON.parse(localStorage.getItem(CONVOS_KEY) || '[]');
+    if (!currentConvoId) {
+      const id = 'c' + Date.now();
+      convos.push({ id, owner:'Owner (demo)', vehicle:'Vehicle (demo)', msgs:[{from:'me',text:txt,ts:Date.now()}]});
+      localStorage.setItem(CONVOS_KEY, JSON.stringify(convos));
+      renderConvos();
+      $('#chatInput').value = '';
+      return;
+    }
+    const convo = convos.find(x=>x.id===currentConvoId);
+    if (convo) {
+      convo.msgs.push({from:'me', text:txt, ts:Date.now()});
+      localStorage.setItem(CONVOS_KEY, JSON.stringify(convos));
+      openConversation(currentConvoId);
+      $('#chatInput').value = '';
+    }
+  });
+
+  // Render saved list
+  function renderSaved(sort='date') {
+    const list = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+    const grid = $('#savedGrid');
+    grid.innerHTML = '';
+    let arr = [...list];
+    if (sort === 'price') arr.sort((a,b)=>a.price-b.price);
+    if (sort === 'model') arr.sort((a,b)=> a.title.localeCompare(b.title));
+    if (sort === 'date') arr.sort((a,b)=> b.added - a.added);
+    if (!arr.length) { grid.innerHTML = '<div class="bg-white p-4 rounded-xl">No saved vehicles.</div>'; return; }
+    arr.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-xl p-3 shadow-soft flex flex-col';
+      card.innerHTML = `
+        <div class="h-40 bg-cover bg-center rounded" style="background-image:url('${s.img}')"></div>
+        <div class="mt-3 flex-1">
+          <div class="font-semibold">${s.title}</div>
+          <div class="text-xs text-gray-600">${s.location}</div>
+          <div class="text-sm text-gray-700 mt-1">Seats: ${s.seats} · ${s.transmission}</div>
+          <div class="text-sm font-medium mt-2">$${s.price}/day</div>
+        </div>
+        <div class="mt-3 flex gap-2">
+          <button data-id="${s.id}" class="rentNowBtn px-3 py-1 bg-primary text-white rounded text-sm">Rent Now</button>
+          <button data-id="${s.id}" class="removeSavedBtn px-3 py-1 border rounded text-sm">Remove</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    $$('.removeSavedBtn').forEach(b => b.addEventListener('click', (e) => {
+      const id = e.currentTarget.dataset.id;
+      const all = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+      const rest = all.filter(x=>x.id!==id);
+      localStorage.setItem(SAVED_KEY, JSON.stringify(rest));
+      renderSaved($('#savedSort').value);
+    }));
+    $$('.rentNowBtn').forEach(b => b.addEventListener('click', () => alert('Rent flow (demo).')));
+  }
+
+  $('#savedSort').addEventListener('change', (e) => renderSaved(e.target.value));
+
+  // Cards list rendering and add card
+  function renderCards() {
+    const cards = JSON.parse(localStorage.getItem(CARDS_KEY) || '[]');
+    const wrap = $('#cardsList');
+    wrap.innerHTML = '';
+    if (!cards.length) { wrap.innerHTML = '<div class="text-sm text-gray-500">No cards saved.</div>'; return; }
+    cards.forEach((c, idx) => {
+      const el = document.createElement('div');
+      el.className = 'flex items-center justify-between p-2 rounded border';
+      el.innerHTML = `<div><div class="font-medium">${c.name}</div><div class="text-xs text-gray-500">${c.masked}</div></div>
+                      <div class="flex gap-2">
+                        <button data-idx="${idx}" class="setDefaultCard px-2 py-1 border rounded text-xs">Set Default</button>
+                        <button data-idx="${idx}" class="removeCard px-2 py-1 border rounded text-xs text-red-500">Remove</button>
+                      </div>`;
+      wrap.appendChild(el);
+    });
+
+    $$('.removeCard').forEach(btn => btn.addEventListener('click', (e) => {
+      const idx = Number(e.currentTarget.dataset.idx);
+      const arr = JSON.parse(localStorage.getItem(CARDS_KEY) || '[]');
+      arr.splice(idx,1);
+      localStorage.setItem(CARDS_KEY, JSON.stringify(arr));
+      renderCards();
+    }));
+    $$('.setDefaultCard').forEach(btn => btn.addEventListener('click', ()=> alert('Set default card (demo).')));
+  }
+
+  $('#addCardBtn')?.addEventListener('click', () => {
+    const name = $('#card_holder').value.trim();
+    const num = $('#card_number').value.replace(/\s+/g,'');
+    if (!name || !num) return alert('Enter cardholder and number (demo).');
+    const masked = '**** **** **** ' + num.slice(-4);
+    const arr = JSON.parse(localStorage.getItem(CARDS_KEY) || '[]');
+    arr.push({ name, masked });
+    localStorage.setItem(CARDS_KEY, JSON.stringify(arr));
+    renderCards();
+    $('#card_holder').value = ''; $('#card_number').value = ''; $('#card_exp').value = ''; $('#card_cvv').value = ''; $('#bill_addr').value = '';
+    $('#statCards').textContent = arr.length;
+  });
+
+  // Account save
+  $('#saveAccountBtn')?.addEventListener('click', () => {
+    const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+    p.name = $('#acc_name').value || p.name;
+    p.email = $('#acc_email').value || p.email;
+    p.phone = $('#acc_phone').value || p.phone;
+    p.password = $('#acc_pass').value || p.password;
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+    loadProfileToUI();
+    alert('Account saved (demo).');
+  });
+
+  // Delete account flow
+  $('#deleteAccountBtn')?.addEventListener('click', () => $('#confirmDelete').classList.remove('hidden'));
+  $('#del_cancel')?.addEventListener('click', () => $('#confirmDelete').classList.add('hidden'));
+  $('#del_confirm')?.addEventListener('click', () => {
+    // demo: clear keys and reload
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(BOOKINGS_KEY);
+    localStorage.removeItem(CONVOS_KEY);
+    localStorage.removeItem(SAVED_KEY);
+    localStorage.removeItem(CARDS_KEY);
+    alert('Account deleted (demo). Page will reload.');
+    location.reload();
+  });
+
+  // Chat Now
+  $('#chatNowBtn')?.addEventListener('click', () => {
+    showTab('messages');
+    setTimeout(()=> $('#chatInput').focus(), 250);
+  });
+
+  // Seed and initial render
+  seedDemo();
+  loadProfileToUI();
+  renderBookings();
+  renderRecent();
+  renderConvos();
+  renderSaved();
+  renderCards();
+
+  // keyboard ESC to close modals/drawer
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      $('#editModal').classList.add('hidden');
+      $('#confirmDelete').classList.add('hidden');
+      drawer.classList.remove('drawer-open'); drawer.classList.add('drawer-closed'); document.body.style.overflow = '';
+    }
+  });
+</script>
+</body>
+</html>
