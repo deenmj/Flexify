@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Shield, Calendar } from 'lucide-react';
+import { User, Mail, Shield, Calendar, ArrowLeft } from 'lucide-react';
 import './Profile.css';
 
 export default function Profile() {
@@ -18,7 +18,14 @@ export default function Profile() {
   return (
     <div className="profile-page">
       <div className="profile-hero">
-        <div className="container">
+        <div className="container" style={{ position: 'relative' }}>
+          <button 
+            onClick={() => window.history.back()} 
+            className="btn btn-ghost" 
+            style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px', color: 'white' }}
+          >
+            <ArrowLeft size={18} /> Back
+          </button>
           <div className="profile-hero-content">
             <img
               src={user.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=2563eb&color=fff&size=200'}

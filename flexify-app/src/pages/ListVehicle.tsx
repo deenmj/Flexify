@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi } from '../api';
-import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool } from 'lucide-react';
+import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool, ArrowLeft } from 'lucide-react';
 import './ListVehicle.css';
 
 export default function ListVehicle() {
@@ -82,7 +82,14 @@ export default function ListVehicle() {
   return (
     <div className="list-vehicle-page">
       <section className="static-hero">
-        <div className="container">
+        <div className="container" style={{ position: 'relative' }}>
+          <button 
+            onClick={() => window.history.back()} 
+            className="btn btn-ghost" 
+            style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            <ArrowLeft size={18} /> Back
+          </button>
           <h1>List Your Vehicle</h1>
           <p>Start earning by sharing your vehicle with renters</p>
         </div>

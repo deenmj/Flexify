@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, vehicleApi, type AdminStats, type Vehicle, type User } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, XCircle, Shield, Eye } from 'lucide-react';
+import { Users, Car, Calendar, DollarSign, CheckCircle, XCircle, Shield, Eye, ArrowLeft } from 'lucide-react';
 import './Dashboard.css';
 
 export default function AdminDashboard() {
@@ -61,7 +61,14 @@ export default function AdminDashboard() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-header" style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
-        <div className="container">
+        <div className="container" style={{ position: 'relative' }}>
+          <button 
+            onClick={() => window.history.back()} 
+            className="btn btn-ghost" 
+            style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px', color: 'white' }}
+          >
+            <ArrowLeft size={18} /> Back
+          </button>
           <h1>Admin Dashboard</h1>
           <p>Manage the platform, users, vehicles, and verifications.</p>
         </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, bookingApi, type Vehicle, type Booking } from '../api';
-import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, ArrowLeft } from 'lucide-react';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -64,7 +64,14 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-header">
-        <div className="container">
+        <div className="container" style={{ position: 'relative' }}>
+          <button 
+            onClick={() => window.history.back()} 
+            className="btn btn-ghost" 
+            style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            <ArrowLeft size={18} /> Back
+          </button>
           <h1>Owner Dashboard</h1>
           <p>Welcome, {user.name}! Manage your vehicles and bookings.</p>
         </div>

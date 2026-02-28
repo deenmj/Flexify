@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, Filter, MapPin, Verified, X, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, MapPin, Verified, X, SlidersHorizontal, ArrowLeft, Star } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
 import './Explore.css';
 
@@ -14,6 +14,10 @@ export default function Explore() {
     minPrice: '',
     maxPrice: '',
     seats: '',
+    vehicleType: '',
+    lat: '',
+    lng: '',
+    radius: '',
     sort: 'newest',
   });
   const [showFilters, setShowFilters] = useState(false);
@@ -27,7 +31,11 @@ export default function Explore() {
       if (filters.minPrice) params.minPrice = filters.minPrice;
       if (filters.maxPrice) params.maxPrice = filters.maxPrice;
       if (filters.seats) params.seats = filters.seats;
-      if (filters.sort) params.sort = filters.sort === 'price_low' ? 'price_low' : filters.sort === 'price_high' ? 'price_high' : filters.sort === 'popular' ? 'popular' : '';
+      if (filters.vehicleType) params.vehicleType = filters.vehicleType;
+      if (filters.lat) params.lat = filters.lat;
+      if (filters.lng) params.lng = filters.lng;
+      if (filters.radius) params.radius = filters.radius;
+      if (filters.sort) params.sort = filters.sort;
 
       const data = await vehicleApi.getAll(params);
       setVehicles(data);
@@ -49,7 +57,7 @@ export default function Explore() {
   };
 
   const clearFilters = () => {
-    setFilters({ transmission: '', minPrice: '', maxPrice: '', seats: '', sort: 'newest' });
+    setFilters({ transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', lat: '', lng: '', radius: '', sort: 'newest' });
     setQuery('');
   };
 
@@ -57,7 +65,14 @@ export default function Explore() {
     <div className="explore-page">
       {/* Search Header */}
       <section className="explore-header">
-        <div className="container">
+        <div className="container" style={{ position: 'relative' }}>
+          <button 
+            onClick={() => window.history.back()} 
+            className="btn btn-ghost" 
+            style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            <ArrowLeft size={18} /> Back
+          </button>
           <h1 className="explore-title">Explore Vehicles</h1>
           <p className="explore-subtitle">Find the perfect vehicle for your journey</p>
           <form onSubmit={handleSearch} className="explore-search">
@@ -93,9 +108,32 @@ export default function Explore() {
                   onChange={(e) => setFilters({ ...filters, transmission: e.target.value })}
                 >
                   <option value="">All</option>
-                  <option value="Auto">Automatic</option>
+                  <option value="Automatic">Automatic</option>
                   <option value="Manual">Manual</option>
                 </select>
+              </div>
+              <div className="input-group">
+                <label>Vehicle Type</label>
+                <select
+                  className="input-field"
+                  value={filters.vehicleType}
+                  onChange={(e) => setFilters({ ...filters, vehicleType: e.target.value })}
+                >
+                  <option value="">All Types</option>
+                  <option value="Car">Car</option>
+                  <option value="SUV">SUV</option>
+                  <option value="Van">Van</option>
+                  <option value="Bike">Bike</option>
+                  <option value="Truck">Truck</option>
+                </select>
+              </div>
+              <div className="input-group">
+                <label>Location Radius Set</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input type="number" step="any" className="input-field" placeholder="Lat" value={filters.lat} onChange={(e) => setFilters({ ...filters, lat: e.target.value })} />
+                  <input type="number" step="any" className="input-field" placeholder="Lng" value={filters.lng} onChange={(e) => setFilters({ ...filters, lng: e.target.value })} />
+                  <input type="number" className="input-field" placeholder="Radius(km)" value={filters.radius} onChange={(e) => setFilters({ ...filters, radius: e.target.value })} style={{ width: '100px' }} />
+                </div>
               </div>
               <div className="input-group">
                 <label>Min Price ($/day)</label>
@@ -207,7 +245,12 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
         </div>
       </div>
       <div className="explore-vehicle-body">
-        <h3 className="explore-vehicle-title">{vehicle.title}</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <h3 className="explore-vehicle-title">{vehicle.title}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600, color: '#f59e0b' }}>
+            <Star size={14} fill="currentColor" /> 4.8 <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>(24)</span>
+          </div>
+        </div>
         <p className="explore-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
         <div className="explore-vehicle-specs">
           {vehicle.seats && <span>🪑 {vehicle.seats} seats</span>}

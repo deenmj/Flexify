@@ -11,23 +11,73 @@ const router = express.Router();
  */
 router.get("/", async (req, res) => {
   try {
-    const q = req.query.q ? { 
-      $or: [
-        { make: new RegExp(req.query.q, "i") },
-        { model: new RegExp(req.query.q, "i") },
-        { title: new RegExp(req.query.q, "i") }
-      ]
-    } : {};
-    
+    const { q, transmission, minPrice, maxPrice, seats, vehicleType, lat, lng, radius, sort } = req.query;
+
     let filter = {
       approved: true, // Assuming admin approval needed
       isActive: true,
       subscribedUntil: { $gte: new Date() }, // Subscription must be active
-      ...q
     };
 
+    if (q) {
+      filter.$or = [
+        { make: new RegExp(q, "i") },
+        { model: new RegExp(q, "i") },
+        { title: new RegExp(q, "i") }
+      ];
+    }
+
+    if (transmission) filter.transmission = transmission;
+    if (seats) filter.seats = { $gte: parseInt(seats) };
+    if (minPrice || maxPrice) {
+      filter.pricePerDay = {};
+      if (minPrice) filter.pricePerDay.$gte = parseFloat(minPrice);
+      if (maxPrice) filter.pricePerDay.$lte = parseFloat(maxPrice);
+    }
+
+    // Search for Vehicle Type in title/make/description
+    if (vehicleType) {
+      const typeRegex = new RegExp(vehicleType, "i");
+      const typeCondition = { 
+        $or: [
+          { title: typeRegex },
+          { description: typeRegex },
+          { make: typeRegex },
+          { model: typeRegex },
+          { serviceType: typeRegex }
+        ] 
+      };
+      
+      if (filter.$or) {
+        filter.$and = [ { $or: filter.$or }, typeCondition ];
+        delete filter.$or;
+      } else {
+        filter.$or = typeCondition.$or;
+      }
+    }
+
+    // Geolocation filter
+    if (lat && lng && radius) {
+      const radiusInMeters = parseFloat(radius) * 1000;
+      filter.location = {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)]
+          },
+          $maxDistance: radiusInMeters
+        }
+      };
+    }
+
+    // Sort order
+    let sortCondition = { createdAt: -1 };
+    if (sort === 'price_low') sortCondition = { pricePerDay: 1 };
+    else if (sort === 'price_high') sortCondition = { pricePerDay: -1 };
+    else if (sort === 'popular' || sort === 'rating') sortCondition = { timesRented: -1 };
+
     const vehicles = await Vehicle.find(filter)
-      .sort({ createdAt: -1 })
+      .sort(sortCondition)
       .populate("owner", "name email verified profilePic");
 
     res.json(vehicles);
