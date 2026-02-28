@@ -1,0 +1,244 @@
+/* ============================================
+   STATIC PAGES SHARED STYLES
+   ============================================ */
+
+.static-page {
+  min-height: 100vh;
+}
+
+.static-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  padding: 4rem 0 3rem;
+  text-align: center;
+  color: white;
+}
+
+.static-hero h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.static-hero p {
+  font-size: var(--font-size-lg);
+  opacity: 0.8;
+}
+
+.static-content {
+  padding: 3rem 0 5rem;
+}
+
+/* About */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+@media (max-width: 480px) {
+  .static-hero h1 { font-size: 2rem; }
+  .static-hero p { font-size: var(--font-size-base); }
+  .about-values { grid-template-columns: 1fr; }
+  .static-content { padding: 2rem 0 3rem; }
+  .about-text h2 { font-size: 1.75rem; }
+}
+
+.about-text h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.about-text p {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.about-values {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.about-value-card {
+  padding: 1.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-fast);
+}
+
+.about-value-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.about-value-icon {
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+}
+
+.about-value-card h3 {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  margin-bottom: 0.375rem;
+}
+
+.about-value-card p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* FAQ */
+.faq-list {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.faq-item {
+  padding: 0;
+  transition: all var(--transition-fast);
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.faq-arrow {
+  transition: transform var(--transition-fast);
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.faq-arrow-open {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  padding: 0 1.5rem 1.25rem;
+}
+
+.faq-answer p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-size: var(--font-size-sm);
+}
+
+/* Contact */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .contact-grid { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+@media (max-width: 480px) {
+  .contact-form { padding: 1.25rem; }
+  .faq-question { padding: 1rem; font-size: var(--font-size-sm); }
+  .faq-answer { padding: 0 1rem 1rem; }
+}
+
+.contact-info h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+}
+
+.contact-info > p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.7;
+}
+
+.contact-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.contact-detail-item {
+  display: flex;
+  gap: 1rem;
+}
+
+.contact-detail-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.contact-detail-item h4 {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.contact-detail-item p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.contact-form {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Help */
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.help-card {
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.help-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-xl);
+  background: var(--color-primary-50);
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+}
+
+.help-card h3 {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  margin-bottom: 0.375rem;
+}
+
+.help-card p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}

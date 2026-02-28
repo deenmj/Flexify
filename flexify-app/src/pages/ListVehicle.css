@@ -1,0 +1,39 @@
+.list-vehicle-page {
+  min-height: 100vh;
+}
+
+.list-vehicle-content {
+  padding: 2rem 0 4rem;
+  max-width: 800px;
+}
+
+.list-vehicle-card {
+  padding: 2.5rem;
+}
+
+.list-vehicle-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .form-row { grid-template-columns: 1fr; }
+  .list-vehicle-card { padding: 1.5rem; }
+}
+
+@media (max-width: 480px) {
+  .list-vehicle-card { padding: 1rem; }
+}
+
+.input-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

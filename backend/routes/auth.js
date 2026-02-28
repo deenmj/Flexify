@@ -161,7 +161,8 @@ router.get("/verify-email/:token", async (req, res) => {
 
   await user.save();
 
-  res.redirect("http://127.0.0.1:5500/frontend/pages/auth.html");
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  res.redirect(`${frontendUrl}/auth`);
 });
 
 // CURRENT USER
@@ -184,17 +185,17 @@ router.get(
 // Google callback
 router.get(
   "/google/callback",
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: "http://127.0.0.1:5500/frontend/pages/auth.html",
-  }),
+  (req, res, next) => {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    passport.authenticate("google", {
+      session: false,
+      failureRedirect: `${frontendUrl}/auth`,
+    })(req, res, next);
+  },
   (req, res) => {
     const token = generateToken(req.user._id);
-
-    res.redirect(
-  `http://localhost:5500/frontend/pages/google-success.html?token=${token}`
-);
-
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    res.redirect(`${frontendUrl}/google-success?token=${token}`);
   }
 );
 
@@ -224,7 +225,8 @@ router.post("/forgot-password", async (req, res) => {
     user.passwordResetExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
     await user.save();
 
-    const resetUrl = `http://127.0.0.1:5500/frontend/pages/reset-password.html?token=${resetToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     await sendEmail({
       to: user.email,

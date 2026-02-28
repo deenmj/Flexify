@@ -20,13 +20,10 @@ app.use(cors());
 app.use(express.json());
 app.use(passport.initialize());
 
-app.use(express.static(path.join(process.cwd(), "frontend")));
+app.use(express.static(path.join(process.cwd(), "..", "..", "flexify-app", "dist")));
 
 // Static uploads
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-
-// 🔥 SERVE FRONTEND PAGES (auth.html, google-success.html)
-app.use(express.static(path.join(process.cwd(), "frontend/pages")));
 
 // Routes
 import authRoutes from "./routes/auth.js";
@@ -50,6 +47,11 @@ app.use("/api/bookings", protect, bookingRoutes);
 app.use("/api/admin", protect, adminRoutes);
 app.use("/api/verify", verificationRoutes);
 app.use("/api/owners", ownerRoutes);
+
+// Catch-all to serve React app
+app.get("*", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "..", "..", "flexify-app", "dist", "index.html"));
+});
 
 // Start server
 const PORT = process.env.PORT || 5000;
