@@ -11,7 +11,6 @@ const isOverlapping = (startA, endA, startB, endB) => {
   return (startA <= endB) && (startB <= endA);
 };
 
-// Create booking request (user -> owner). Status PENDING
 export const createBooking = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -19,21 +18,22 @@ export const createBooking = async (req, res) => {
     if (!vehicleId || !startDate || !endDate) return res.status(400).json({ message: "Missing fields" });
 
     const vehicle = await Vehicle.findById(vehicleId).populate("owner");
-    if (!vehicle || !vehicle.approved) return res.status(404).json({ message: "Vehicle not available" });
+    if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
 
     const s = new Date(startDate);
     const e = new Date(endDate);
-    if (isNaN(s) || isNaN(e) || s > e) return res.status(400).json({ message: "Invalid dates" });
-    const days = Math.ceil((e - s) / (1000*60*60*24)) + 1;
+    if (isNaN(s.getTime()) || isNaN(e.getTime()) || s > e) return res.status(400).json({ message: "Invalid dates" });
+    const days = Math.ceil((e - s) / (1000*60*60*24)) || 1;
 
-    // Check existing CONFIRMED bookings overlap (owner or admin might approve requests)
+    // Check existing CONFIRMED bookings overlap
     const overlapping = await Booking.findOne({
       vehicle: vehicleId,
-      status: { $in: ["PAID","CONFIRMED"] },
+      status: { $in: ["PAID", "CONFIRMED"] },
       $or: [
         { startDate: { $lte: e }, endDate: { $gte: s } }
       ]
     });
+    
     if (overlapping) return res.status(409).json({ message: "Vehicle not available for selected dates" });
 
     const totalAmount = (vehicle.pricePerDay || 0) * days;
@@ -49,7 +49,6 @@ export const createBooking = async (req, res) => {
       status: "PENDING"
     });
 
-    // optionally: notify owner via notifications (not implemented)
     return res.status(201).json(booking);
   } catch (err) {
     return res.status(500).json({ message: err.message });

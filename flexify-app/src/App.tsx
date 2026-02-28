@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import Auth from './pages/Auth';
 import GoogleSuccess from './pages/GoogleSuccess';
 import Explore from './pages/Explore';
+import VehicleDetail from './pages/VehicleDetail';
 import ListVehicle from './pages/ListVehicle';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
@@ -48,6 +49,7 @@ export default function App() {
           {/* Public pages */}
           <Route path="/" element={<AppLayout><Home /></AppLayout>} />
           <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
+          <Route path="/vehicles/:id" element={<AppLayout><VehicleDetail /></AppLayout>} />
           <Route path="/about" element={<AppLayout><About /></AppLayout>} />
           <Route path="/faq" element={<AppLayout><FAQ /></AppLayout>} />
           <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />

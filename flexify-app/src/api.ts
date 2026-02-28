@@ -166,6 +166,8 @@ export const vehicleApi = {
     return apiFetch<Vehicle[]>(`/vehicles${query}`);
   },
 
+  getById: (id: string) => apiFetch<Vehicle>(`/vehicles/${id}`),
+
   getMy: () => apiFetch<Vehicle[]>('/vehicles/my'),
 
   create: (data: Partial<Vehicle>) =>
