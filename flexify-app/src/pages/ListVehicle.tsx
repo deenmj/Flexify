@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi } from '../api';
-import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight } from 'lucide-react';
+import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool } from 'lucide-react';
 import './ListVehicle.css';
 
 export default function ListVehicle() {
@@ -9,19 +9,24 @@ export default function ListVehicle() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     title: '',
-    makeModel: '',
+    make: '',
+    model: '',
     year: '',
     pricePerDay: '',
-    location: '',
-    transmission: 'Auto',
+    transmission: 'Automatic',
+    fuelType: 'Petrol',
     seats: '4',
     description: '',
-    serviceType: 'Self Drive',
-    images: '' as string,
+    address: '',
+    lat: '',
+    lng: ''
   });
+
+  const [photos, setPhotos] = useState<File[]>([]);
 
   if (!user) {
     return (
@@ -39,29 +44,36 @@ export default function ListVehicle() {
     );
   }
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setPhotos(Array.from(e.target.files));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
+    
     try {
-      const images = form.images.split(',').map(s => s.trim()).filter(Boolean);
-      await vehicleApi.create({
-        title: form.title,
-        makeModel: form.makeModel,
-        year: form.year ? Number(form.year) : undefined,
-        pricePerDay: Number(form.pricePerDay),
-        location: { text: form.location },
-        transmission: form.transmission,
-        seats: Number(form.seats),
-        description: form.description,
-        serviceType: [form.serviceType],
-        images,
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, value]) => {
+        formData.append(key, value);
       });
-      setSuccess('Vehicle submitted for admin approval!');
-      setForm({ title: '', makeModel: '', year: '', pricePerDay: '', location: '', transmission: 'Auto', seats: '4', description: '', serviceType: 'Self Drive', images: '' });
+      
+      photos.forEach(photo => {
+        formData.append('photos', photo);
+      });
+
+      await vehicleApi.createWithPhotos(formData);
+      
+      setSuccess('Vehicle submitted successfully!');
+      setForm({ title: '', make: '', model: '', year: '', pricePerDay: '', transmission: 'Automatic', fuelType: 'Petrol', seats: '4', description: '', address: '', lat: '', lng: '' });
+      setPhotos([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error uploading vehicle');
     } finally {
       setLoading(false);
     }
@@ -83,48 +95,50 @@ export default function ListVehicle() {
             <div className="form-row">
               <div className="input-group">
                 <label><Car size={14} /> Vehicle Title</label>
-                <input className="input-field" placeholder="e.g. Family SUV" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+                <input className="input-field" placeholder="e.g. Spacious Family SUV" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="input-group">
+                <label><Settings size={14} /> Make</label>
+                <input className="input-field" placeholder="e.g. Toyota" value={form.make} onChange={(e) => setForm({ ...form, make: e.target.value })} required />
               </div>
               <div className="input-group">
-                <label><Settings size={14} /> Make & Model</label>
-                <input className="input-field" placeholder="e.g. Toyota RAV4 2023" value={form.makeModel} onChange={(e) => setForm({ ...form, makeModel: e.target.value })} required />
+                <label><PenTool size={14} /> Model</label>
+                <input className="input-field" placeholder="e.g. RAV4" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} required />
               </div>
             </div>
             <div className="form-row">
               <div className="input-group">
                 <label>Year</label>
-                <input type="number" className="input-field" placeholder="2023" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
+                <input type="number" className="input-field" placeholder="2023" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required />
               </div>
               <div className="input-group">
                 <label><DollarSign size={14} /> Price per Day ($)</label>
                 <input type="number" className="input-field" placeholder="45" value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })} required />
               </div>
             </div>
-            <div className="form-row">
-              <div className="input-group">
-                <label><MapPin size={14} /> Location</label>
-                <input className="input-field" placeholder="e.g. Colombo, Sri Lanka" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-              </div>
-              <div className="input-group">
-                <label>Service Type</label>
-                <select className="input-field" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })}>
-                  <option value="Self Drive">Self Drive</option>
-                  <option value="Chauffeur">Chauffeur</option>
-                  <option value="Transfer">Transfer</option>
-                </select>
-              </div>
-            </div>
+            
             <div className="form-row">
               <div className="input-group">
                 <label>Transmission</label>
-                <select className="input-field" value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })}>
-                  <option value="Auto">Automatic</option>
+                <select className="input-field" value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })} required>
+                  <option value="Automatic">Automatic</option>
                   <option value="Manual">Manual</option>
                 </select>
               </div>
               <div className="input-group">
+                <label>Fuel Type</label>
+                <select className="input-field" value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })} required>
+                  <option value="Petrol">Petrol</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Electric">Electric</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
+              </div>
+              <div className="input-group">
                 <label><Users size={14} /> Seats</label>
-                <select className="input-field" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })}>
+                <select className="input-field" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })} required>
                   <option value="2">2</option>
                   <option value="4">4</option>
                   <option value="5">5</option>
@@ -133,16 +147,35 @@ export default function ListVehicle() {
                 </select>
               </div>
             </div>
+
+            <div className="form-row">
+              <div className="input-group">
+                <label><MapPin size={14} /> Address / Location</label>
+                <input className="input-field" placeholder="e.g. Colombo, Sri Lanka" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="input-group">
+                <label><Locate size={14} /> Latitude</label>
+                <input type="number" step="any" className="input-field" placeholder="6.9271" value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} />
+              </div>
+              <div className="input-group">
+                <label><Locate size={14} /> Longitude</label>
+                <input type="number" step="any" className="input-field" placeholder="79.8612" value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} />
+              </div>
+            </div>
+
             <div className="input-group">
               <label><FileText size={14} /> Description</label>
               <textarea className="input-field" rows={4} placeholder="Describe your vehicle..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
             <div className="input-group">
-              <label><Image size={14} /> Image URLs (comma-separated)</label>
-              <input className="input-field" placeholder="https://example.com/car1.jpg, https://example.com/car2.jpg" value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} />
+              <label><Image size={14} /> Vehicle Photos (Upload files)</label>
+              <input type="file" multiple accept="image/*" className="input-field" onChange={handlePhotoChange} ref={fileInputRef} />
+              {photos.length > 0 && <span style={{fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px'}}>Selected {photos.length} files</span>}
             </div>
             <button type="submit" className="btn btn-primary btn-lg btn-full" disabled={loading}>
-              {loading ? <span className="spinner" /> : <> Submit for Approval <ArrowRight size={18} /></>}
+              {loading ? <span className="spinner" /> : <> Create Listing <ArrowRight size={18} /></>}
             </button>
           </form>
         </div>

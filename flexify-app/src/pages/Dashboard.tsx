@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, bookingApi, type Vehicle, type Booking } from '../api';
-import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff } from 'lucide-react';
+import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2 } from 'lucide-react';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -21,12 +21,23 @@ export default function Dashboard() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const handlePublish = async (id: string, publish: boolean) => {
+  const handleToggleStatus = async (id: string) => {
     try {
-      await vehicleApi.publish(id, publish);
-      setVehicles(prev => prev.map(v => v._id === id ? { ...v, published: publish } : v));
+      await vehicleApi.toggleStatus(id);
+      setVehicles(prev => prev.map(v => v._id === id ? { ...v, isActive: !v.isActive } : v));
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteVehicle = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this vehicle?")) return;
+    try {
+      await vehicleApi.delete(id);
+      setVehicles(prev => prev.filter(v => v._id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete vehicle");
     }
   };
 
@@ -128,17 +139,20 @@ export default function Dashboard() {
                       <td>
                         <div className="table-vehicle">
                           <strong>{v.title}</strong>
-                          <span>{v.makeModel}</span>
+                          <span>{v.make} {v.model}</span>
                         </div>
                       </td>
                       <td>${v.pricePerDay}</td>
                       <td>
                         {v.approved ? <span className="badge badge-success">Approved</span> : <span className="badge badge-warning">Pending</span>}
-                        {v.published ? <span className="badge badge-primary" style={{ marginLeft: 4 }}>Live</span> : <span className="badge badge-error" style={{ marginLeft: 4 }}>Hidden</span>}
+                        {v.isActive ? <span className="badge badge-primary" style={{ marginLeft: 4 }}>Active</span> : <span className="badge badge-error" style={{ marginLeft: 4 }}>Hidden</span>}
                       </td>
                       <td>
-                        <button className="btn btn-ghost btn-sm" onClick={() => handlePublish(v._id, !v.published)} title={v.published ? 'Unpublish' : 'Publish'}>
-                          {v.published ? <EyeOff size={14} /> : <Eye size={14} />}
+                        <button className="btn btn-ghost btn-sm" onClick={() => handleToggleStatus(v._id)} title={v.isActive ? 'Hide' : 'Show'}>
+                          {v.isActive ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                        <button className="btn btn-ghost btn-sm text-error" onClick={() => handleDeleteVehicle(v._id)} title="Delete Vehicle">
+                          <Trash2 size={14} />
                         </button>
                       </td>
                     </tr>

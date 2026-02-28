@@ -196,7 +196,7 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
     <div className="explore-vehicle-card card">
       <div className="explore-vehicle-img-wrap">
         <img
-          src={vehicle.images?.[0] || 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'}
+          src={vehicle.photos?.[0] || vehicle.images?.[0] || 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'}
           alt={vehicle.title}
           className="explore-vehicle-img"
           onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'; }}
@@ -208,11 +208,15 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
       </div>
       <div className="explore-vehicle-body">
         <h3 className="explore-vehicle-title">{vehicle.title}</h3>
-        <p className="explore-vehicle-model">{vehicle.makeModel} {vehicle.year && `· ${vehicle.year}`}</p>
+        <p className="explore-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
         <div className="explore-vehicle-specs">
           {vehicle.seats && <span>🪑 {vehicle.seats} seats</span>}
-          {vehicle.location?.text && <span><MapPin size={12} /> {vehicle.location.text}</span>}
-          {vehicle.serviceType?.[0] && <span>📋 {vehicle.serviceType[0]}</span>}
+          {vehicle.location?.address ? (
+            <span><MapPin size={12} /> {vehicle.location.address}</span>
+          ) : vehicle.location?.text ? (
+            <span><MapPin size={12} /> {vehicle.location.text}</span>
+          ) : null}
+          {vehicle.transmission && <span>🕹️ {vehicle.transmission}</span>}
         </div>
         <div className="explore-vehicle-footer">
           <div className="explore-vehicle-price">

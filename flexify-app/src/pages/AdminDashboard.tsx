@@ -136,7 +136,7 @@ export default function AdminDashboard() {
                     const owner = typeof v.owner === 'object' ? v.owner : null;
                     return (
                       <tr key={v._id}>
-                        <td><div className="table-vehicle"><strong>{v.title}</strong><span>{v.makeModel}</span></div></td>
+                        <td><div className="table-vehicle"><strong>{v.title}</strong><span>{v.make} {v.model}</span></div></td>
                         <td>{owner ? owner.name : 'Unknown'}<br /><span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)' }}>{owner?.email}</span></td>
                         <td>${v.pricePerDay}</td>
                         <td className="table-actions">

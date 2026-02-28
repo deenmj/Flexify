@@ -42,7 +42,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", protect, userRoutes);
-app.use("/api/vehicles", protect, vehicleRoutes);
+app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/bookings", protect, bookingRoutes);
 app.use("/api/admin", protect, adminRoutes);
 app.use("/api/verify", verificationRoutes);

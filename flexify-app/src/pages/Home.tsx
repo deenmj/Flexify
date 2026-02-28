@@ -233,7 +233,7 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
     <div className="vehicle-card card">
       <div className="vehicle-img-wrap">
         <img
-          src={vehicle.images?.[0] || 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'}
+          src={vehicle.photos?.[0] || vehicle.images?.[0] || 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'}
           alt={vehicle.title}
           className="vehicle-img"
           onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'; }}
@@ -244,7 +244,7 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
       </div>
       <div className="vehicle-info">
         <h3 className="vehicle-title">{vehicle.title}</h3>
-        <p className="vehicle-model">{vehicle.makeModel}</p>
+        <p className="vehicle-model">{vehicle.make} {vehicle.model}</p>
         <div className="vehicle-specs">
           {vehicle.seats && <span>Seats {vehicle.seats}</span>}
           {vehicle.location?.text && <span><MapPin size={12} /> {vehicle.location.text}</span>}

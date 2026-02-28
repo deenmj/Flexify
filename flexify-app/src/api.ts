@@ -46,22 +46,29 @@ export interface Vehicle {
   _id: string;
   owner: User | string;
   title: string;
-  makeModel: string;
-  year?: number;
+  make: string;
+  model: string;
+  year: number;
   pricePerDay: number;
   location?: {
     text?: string;
     lat?: number;
     lng?: number;
+    address?: string;
+    coordinates?: number[];
   };
   serviceType?: string[];
-  transmission?: string;
-  seats?: number;
+  transmission: string;
+  fuelType: string;
+  seats: number;
   description?: string;
-  images: string[];
+  photos: string[];
+  images?: string[]; // backwards compatibility
   approved: boolean;
   dashboardRequested?: boolean;
-  published: boolean;
+  published?: boolean;
+  isActive: boolean;
+  subscribedUntil?: string;
   timesRented?: number;
   createdAt?: string;
 }
@@ -167,10 +174,29 @@ export const vehicleApi = {
       body: JSON.stringify(data),
     }),
 
+  createWithPhotos: (formData: FormData) =>
+    fetch(`${API_BASE_URL}/vehicles`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      body: formData,
+    }).then(res => res.json()),
+
   update: (id: string, data: Partial<Vehicle>) =>
     apiFetch<{ message: string; vehicle: Vehicle }>(`/vehicles/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
+    }),
+
+  updateWithPhotos: (id: string, formData: FormData) =>
+    fetch(`${API_BASE_URL}/vehicles/${id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      body: formData,
+    }).then(res => res.json()),
+
+  delete: (id: string) =>
+    apiFetch<{ message: string }>(`/vehicles/${id}`, {
+      method: 'DELETE',
     }),
 
   approve: (id: string) =>
@@ -183,10 +209,9 @@ export const vehicleApi = {
       method: 'PUT',
     }),
 
-  publish: (id: string, published: boolean) =>
-    apiFetch<{ message: string; vehicle: Vehicle }>(`/vehicles/${id}/publish`, {
-      method: 'PUT',
-      body: JSON.stringify({ published }),
+  toggleStatus: (id: string) =>
+    apiFetch<{ message: string; vehicle: Vehicle }>(`/vehicles/${id}/status`, {
+      method: 'PATCH',
     }),
 };
 

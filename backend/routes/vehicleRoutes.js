@@ -1,157 +1,117 @@
 import express from "express";
+import { protect } from "../middleware/authMiddleware.js";
+import { upload } from "../utils/upload.js";
 import Vehicle from "../models/Vehicle.js";
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 /**
- * USER / OWNER: Create a new vehicle listing
- * goes to admin approval queue (approved = false)
+ * PUBLIC: List vehicles (explore)
+ * Check max subscription, active, approved
  */
-// FILE: backend/routes/vehicleRoutes.js
-// ----------------------
-// Ensure these handlers exist (replace current ones with the below code blocks)
+router.get("/", async (req, res) => {
+  try {
+    const q = req.query.q ? { 
+      $or: [
+        { make: new RegExp(req.query.q, "i") },
+        { model: new RegExp(req.query.q, "i") },
+        { title: new RegExp(req.query.q, "i") }
+      ]
+    } : {};
+    
+    let filter = {
+      approved: true, // Assuming admin approval needed
+      isActive: true,
+      subscribedUntil: { $gte: new Date() }, // Subscription must be active
+      ...q
+    };
 
-// --- Create new vehicle (user listing) ---
-router.post("/", protect, async (req, res) => {
+    const vehicles = await Vehicle.find(filter)
+      .sort({ createdAt: -1 })
+      .populate("owner", "name email verified profilePic");
+
+    res.json(vehicles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/**
+ * OWNER: Get my vehicles
+ */
+router.get("/my", protect, async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find({ owner: req.user._id }).sort({ createdAt: -1 });
+    res.json(vehicles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/**
+ * PUBLIC: Get single vehicle
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const vehicle = await Vehicle.findById(req.params.id).populate("owner", "name email profilePic verified");
+    if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
+    res.json(vehicle);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/**
+ * OWNER: Create new vehicle
+ */
+router.post("/", protect, upload.array("photos", 10), async (req, res) => {
   try {
     const {
-      title,
-      makeModel,
-      year,
-      pricePerDay,
-      description,
-      images,
-      location,
-      transmission,
-      seats,
-      serviceType,
-      dashboardRequested
+      title, make, model, year, pricePerDay, transmission, fuelType,
+      seats, description, lat, lng, address
     } = req.body;
 
-    if (!title || !makeModel || !pricePerDay) {
-      return res.status(400).json({ message: "Title, makeModel and pricePerDay are required" });
+    // Default to giving them 1 month free subscription trial
+    const subscriptionEndDate = new Date();
+    subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1);
+
+    const photos = [];
+    if (req.files) {
+      req.files.forEach(f => photos.push(`/uploads/vehicles/${f.filename}`));
     }
 
     const vehicle = await Vehicle.create({
       owner: req.user._id,
       title,
-      makeModel,
-      year,
-      pricePerDay,
+      make,
+      model,
+      year: parseInt(year),
+      photos,
+      location: {
+        type: "Point",
+        coordinates: [parseFloat(lng) || 0, parseFloat(lat) || 0],
+        address: address || ""
+      },
+      pricePerDay: parseFloat(pricePerDay),
+      transmission,
+      fuelType,
+      seats: parseInt(seats),
       description,
-      images: images || [],
-      location: location || { text: "" },
-      transmission: transmission || "Auto",
-      seats: seats || 4,
-      serviceType: serviceType || "Self Drive",
-      dashboardRequested: !!dashboardRequested,
-      approved: false,    // pending admin approval
-      published: false
+      isActive: true,
+      approved: false, // Default to requiring admin approval
+      subscribedUntil: subscriptionEndDate
     });
 
-    // (Optional) Do NOT auto-upgrade to owner here — admin handles verification separately.
-    // But if you want listing to also assign owner role, you can set role here.
-    // Keep minimal: let admin approve the verification; listing remains pending.
-
-    return res.status(201).json({ message: "Vehicle submitted for admin approval", vehicle });
-  } catch (err) {
-    console.error("vehicle create error:", err);
-    return res.status(500).json({ message: err.message || "Server error" });
-  }
-});
-
-// --- Admin approve vehicle ---
-router.put("/approve/:id", protect, adminOnly, async (req, res) => {
-  try {
-    const vehicle = await Vehicle.findById(req.params.id);
-    if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
-
-    vehicle.approved = true;
-    vehicle.published = true;
-    await vehicle.save();
-
-    return res.json({ message: "Vehicle approved and published", vehicle });
-  } catch (err) {
-    console.error("vehicle approve error:", err);
-    return res.status(500).json({ message: err.message || "Server error" });
-  }
-});
-
-// --- Admin reject vehicle ---
-router.put("/reject/:id", protect, adminOnly, async (req, res) => {
-  try {
-    const vehicle = await Vehicle.findById(req.params.id);
-    if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
-
-    vehicle.approved = false;
-    vehicle.published = false;
-    await vehicle.save();
-
-    return res.json({ message: "Vehicle rejected", vehicle });
-  } catch (err) {
-    console.error("vehicle reject error:", err);
-    return res.status(500).json({ message: err.message || "Server error" });
-  }
-});
-
-
-/**
- * PUBLIC: Get all approved + published vehicles (Explore/Home)
- * Includes optional filters: ?q=&minPrice=&maxPrice=&type=&transmission=&seats=&sort=
- */
-router.get("/", async (req, res) => {
-  try {
-    const q = req.query.q ? { makeModel: new RegExp(req.query.q, "i") } : {};
-    const minPrice = parseFloat(req.query.minPrice) || 0;
-    const maxPrice = parseFloat(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
-    const serviceType = req.query.serviceType;
-    const transmission = req.query.transmission;
-    const seats = req.query.seats ? parseInt(req.query.seats) : null;
-
-    let filter = {
-      approved: true,
-      published: true,
-      pricePerDay: { $gte: minPrice, $lte: maxPrice },
-      ...q
-    };
-
-    if (serviceType) filter.serviceType = serviceType;
-    if (transmission) filter.transmission = transmission;
-    if (seats) filter.seats = seats;
-
-    // sorting
-    let sort = { createdAt: -1 };
-    if (req.query.sort === "price_low") sort = { pricePerDay: 1 };
-    if (req.query.sort === "price_high") sort = { pricePerDay: -1 };
-    if (req.query.sort === "popular") sort = { timesRented: -1 };
-
-    const vehicles = await Vehicle.find(filter)
-      .sort(sort)
-      .populate("owner", "name email verified");
-
-    res.json(vehicles);
+    res.status(201).json(vehicle);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 /**
- * OWNER: Get my vehicles (Dashboard)
+ * OWNER: Update vehicle (details & replace photos)
  */
-router.get("/my", protect, async (req, res) => {
-  try {
-    const vehicles = await Vehicle.find({ owner: req.user._id });
-    res.json(vehicles);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-/**
- * OWNER: Update vehicle details
- */
-router.put("/:id", protect, async (req, res) => {
+router.put("/:id", protect, upload.array("photos", 10), async (req, res) => {
   try {
     const vehicle = await Vehicle.findById(req.params.id);
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
@@ -159,43 +119,72 @@ router.put("/:id", protect, async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    const updates = req.body;
+    const {
+      title, make, model, year, pricePerDay, transmission, fuelType,
+      seats, description, lat, lng, address
+    } = req.body;
+
+    const updates = { title, make, model, year, pricePerDay, transmission, fuelType, seats, description };
+    
+    if (lat && lng) {
+      updates.location = {
+        type: "Point",
+        coordinates: [parseFloat(lng), parseFloat(lat)],
+        address: address || vehicle.location.address
+      };
+    }
+
+    // append/replace photos
+    if (req.files && req.files.length > 0) {
+      // For simplicity, replacing existing photos or you can prepend to existing:
+      // updates.photos = vehicle.photos.concat(req.files.map(f => `/uploads/vehicles/${f.filename}`));
+      updates.photos = req.files.map(f => `/uploads/vehicles/${f.filename}`);
+    }
+
     Object.assign(vehicle, updates);
-
-    // reapproval needed
-    vehicle.approved = false;
-    vehicle.published = false;
-
     await vehicle.save();
-    res.json({ message: "Vehicle updated, pending admin review", vehicle });
+    res.json(vehicle);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 /**
- * OWNER: Publish / Unpublish vehicle
+ * OWNER: Delete vehicle
  */
-router.put("/:id/publish", protect, async (req, res) => {
+router.delete("/:id", protect, async (req, res) => {
   try {
-    const { published } = req.body;
     const vehicle = await Vehicle.findById(req.params.id);
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
     if (vehicle.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    vehicle.published = !!published;
-    await vehicle.save();
-
-    res.json({
-      message: published ? "Vehicle published" : "Vehicle unpublished",
-      vehicle
-    });
+    await vehicle.deleteOne();
+    res.json({ message: "Vehicle deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+/**
+ * OWNER: Toggle availability (isActive)
+ */
+router.patch("/:id/status", protect, async (req, res) => {
+  try {
+    const vehicle = await Vehicle.findById(req.params.id);
+    if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
+    if (vehicle.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    vehicle.isActive = !vehicle.isActive;
+    await vehicle.save();
+    
+    res.json({ message: `Vehicle is now ${vehicle.isActive ? 'active' : 'inactive'}`, vehicle });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 export default router;
