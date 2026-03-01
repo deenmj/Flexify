@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -59,6 +59,7 @@ export default function App() {
           <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
           <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute><ListVehicle /></ProtectedRoute></AppLayout>} />
           <Route path="/dashboard" element={<AppLayout><ProtectedRoute><Dashboard /></ProtectedRoute></AppLayout>} />
+          <Route path="/dashboard-verified" element={<Navigate to="/dashboard" replace />} />
           <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
         </Routes>
       </AuthProvider>

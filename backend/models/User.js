@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema(
       lowercase: true
     },
 
+    phone: {
+      type: String,
+      default: ""
+    },
+
     password: {
       type: String,
       required: false

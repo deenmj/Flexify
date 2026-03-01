@@ -3,6 +3,7 @@ import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
 import Earning from "../models/Earning.js";
 import mongoose from "mongoose";
+import sendEmail from "../utils/sendEmail.js";
 
 /**
  * Helper to check overlapping dates
@@ -45,11 +46,51 @@ export const createBooking = async (req, res) => {
       startDate: s,
       endDate: e,
       days,
-      totalAmount,
+      totalAmount: totalAmount,
       status: "PENDING"
     });
 
-    return res.status(201).json(booking);
+    // Notify Owner (Console Log for now)
+    console.log(`----------------------------------------------------------------`);
+    console.log(`🔔 NEW BOOKING NOTIFICATION`);
+    console.log(`----------------------------------------------------------------`);
+    console.log(`To: ${vehicle.owner.name} (${vehicle.owner.email})`);
+    console.log(`Message: A new booking for ${vehicle.title} has been created!`);
+    console.log(`Dates: ${s.toDateString()} - ${e.toDateString()}`);
+    console.log(`Total: $${totalAmount}`);
+    console.log(`Owner Phone for Reveal: ${vehicle.owner.phone || "Not provided"}`);
+    console.log(`----------------------------------------------------------------`);
+
+    // Notify Owner via Email (Proper implementation)
+    try {
+      await sendEmail({
+        to: vehicle.owner.email,
+        subject: "🔔 New Booking Request - Flexify",
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
+            <h2 style="color: #2563eb;">New Booking Request</h2>
+            <p>Hi <strong>${vehicle.owner.name}</strong>,</p>
+            <p>You have received a new booking request for your vehicle: <strong>${vehicle.title}</strong>.</p>
+            <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <p style="margin: 0;"><strong>Dates:</strong> ${s.toDateString()} - ${e.toDateString()}</p>
+              <p style="margin: 5px 0 0;"><strong>Total Amount:</strong> $${totalAmount}</p>
+            </div>
+            <p>Please log in to your dashboard to Approve or Cancel this request.</p>
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" style="display: inline-block; background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Go to Dashboard</a>
+            <p style="margin-top: 20px; color: #6b7280; font-size: 12px;">This is an automated message from Flexify.</p>
+          </div>
+        `
+      });
+      console.log(`Email notification sent to ${vehicle.owner.email}`);
+    } catch (emailErr) {
+      console.error("Failed to send email notification:", emailErr.message);
+      // Don't fail the request if email fails (common practice)
+    }
+
+    // Return the booking and we need the owner details (especially phone) for the front-end reveal
+    const responseData = await Booking.findById(booking._id).populate("owner vehicle");
+    
+    return res.status(201).json(responseData);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

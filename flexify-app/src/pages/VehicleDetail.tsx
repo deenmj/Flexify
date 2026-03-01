@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { vehicleApi, bookingApi, type Vehicle } from '../api';
-import { ArrowLeft, Users, CheckCircle, Star, ShieldCheck, DollarSign, Calendar } from 'lucide-react';
+import { ArrowLeft, Users, CheckCircle, Star, ShieldCheck, DollarSign, Calendar, ArrowRight, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './VehicleDetail.css';
 
@@ -21,6 +21,7 @@ export default function VehicleDetail() {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
+  const [createdBooking, setCreatedBooking] = useState<any>(null);
 
   // active carousel image
   const [activeImage, setActiveImage] = useState(0);
@@ -55,11 +56,9 @@ export default function VehicleDetail() {
     setBookingError('');
 
     try {
-      await bookingApi.create(id!, startDate.toISOString(), endDate.toISOString());
-      setShowBookingModal(false);
-      // Optional: Maybe show a success message or navigate to dashboard bookings tab
-      alert('Booking request submitted successfully! Pending owner approval.');
-      navigate('/dashboard');
+      const resp = await bookingApi.create(id!, startDate.toISOString(), endDate.toISOString());
+      setCreatedBooking(resp);
+      // Removed automatic alert and navigate to show success state in modal
     } catch (err: any) {
       setBookingError(err.message || 'Failed to submit booking');
     } finally {
@@ -233,67 +232,102 @@ export default function VehicleDetail() {
       {showBookingModal && (
         <div className="modal-overlay" onClick={() => setShowBookingModal(false)}>
           <div className="modal-content booking-modal" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowBookingModal(false)}>&times;</button>
-            <h2 style={{ marginBottom: '0.5rem' }}>Complete Your Booking</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-              {vehicle.title} • ${vehicle.pricePerDay}/day
-            </p>
+            <button className="modal-close" onClick={() => { setShowBookingModal(false); setCreatedBooking(null); }}>&times;</button>
+            
+            {createdBooking ? (
+              <div className="booking-success-view animate-fade-in" style={{ textAlign: 'center', padding: '1rem 0' }}>
+                <div style={{ background: '#f0fdf4', color: '#16a34a', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                  <CheckCircle size={32} />
+                </div>
+                <h2 style={{ marginBottom: '1rem' }}>Booking Requested!</h2>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+                  Your request has been sent to the owner. You can contact them directly to speed up the process.
+                </p>
 
-            {bookingError && <div className="auth-message error">{bookingError}</div>}
-
-            <div className="booking-date-pickers" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div className="input-group">
-                <label><Calendar size={16} style={{ verticalAlign: 'text-bottom', marginRight: '6px' }}/> Pickup Date</label>
-                <DatePicker 
-                  selected={startDate} 
-                  onChange={(date: Date | null) => setStartDate(date)} 
-                  selectsStart 
-                  startDate={startDate} 
-                  endDate={endDate} 
-                  minDate={new Date()}
-                  className="input-field"
-                  placeholderText="Select pickup date"
-                  wrapperClassName="datepicker-wrapper"
-                />
-              </div>
-              <div className="input-group">
-                <label><Calendar size={16} style={{ verticalAlign: 'text-bottom', marginRight: '6px' }}/> Return Date</label>
-                <DatePicker 
-                  selected={endDate} 
-                  onChange={(date: Date | null) => setEndDate(date)} 
-                  selectsEnd 
-                  startDate={startDate} 
-                  endDate={endDate} 
-                  minDate={startDate || new Date()}
-                  className="input-field"
-                  placeholderText="Select return date"
-                  wrapperClassName="datepicker-wrapper"
-                />
-              </div>
-              
-              {startDate && endDate && (
-                <div className="booking-summary box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginTop: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-                    <span>${vehicle.pricePerDay} x {Math.ceil((endDate.getTime() - startDate.getTime()) / (1000*60*60*24)) || 1} days</span>
-                    <span>${vehicle.pricePerDay * (Math.ceil((endDate.getTime() - startDate.getTime()) / (1000*60*60*24)) || 1)}</span>
-                  </div>
-                  <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1rem 0' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1.1rem' }}>
-                    <span>Total Amount</span>
-                    <span>${vehicle.pricePerDay * (Math.ceil((endDate.getTime() - startDate.getTime()) / (1000*60*60*24)) || 1)}</span>
+                <div className="owner-contact-card box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left' }}>
+                  <img 
+                     src={typeof createdBooking.owner === 'object' ? createdBooking.owner.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(createdBooking.owner.name) : ''} 
+                     alt="" 
+                     style={{ width: '50px', height: '50px', borderRadius: '50%' }} 
+                  />
+                  <div>
+                    <div style={{ fontWeight: '600' }}>{typeof createdBooking.owner === 'object' ? createdBooking.owner.name : 'Owner'}</div>
+                    <div style={{ color: 'var(--primary-color)', fontWeight: '700', fontSize: '1.25rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Phone size={18} /> {typeof createdBooking.owner === 'object' ? createdBooking.owner.phone || 'No phone provided' : ''}
+                    </div>
                   </div>
                 </div>
-              )}
 
-              <button 
-                className="btn btn-primary btn-lg btn-full"
-                onClick={handleBookNow}
-                disabled={bookingLoading}
-                style={{ marginTop: '0.5rem' }}
-              >
-                {bookingLoading ? <span className="spinner"></span> : 'Submit Booking Request'}
-              </button>
-            </div>
+                <button className="btn btn-primary btn-full" onClick={() => navigate('/dashboard')}>
+                   Go to My Dashboard <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 style={{ marginBottom: '0.5rem' }}>Complete Your Booking</h2>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+                  {vehicle.title} • ${vehicle.pricePerDay}/day
+                </p>
+                
+                {bookingError && <div className="auth-message error" style={{ marginBottom: '1rem' }}>{bookingError}</div>}
+
+                <div className="booking-form-content">
+                  <div className="booking-date-pickers" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div className="input-group">
+                      <label><Calendar size={16} style={{ verticalAlign: 'text-bottom', marginRight: '6px' }}/> Pickup Date</label>
+                      <DatePicker 
+                        selected={startDate} 
+                        onChange={(date: Date | null) => setStartDate(date)} 
+                        selectsStart 
+                        startDate={startDate} 
+                        endDate={endDate} 
+                        minDate={new Date()}
+                        className="input-field"
+                        placeholderText="Select pickup date"
+                        wrapperClassName="datepicker-wrapper"
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label><Calendar size={16} style={{ verticalAlign: 'text-bottom', marginRight: '6px' }}/> Return Date</label>
+                      <DatePicker 
+                        selected={endDate} 
+                        onChange={(date: Date | null) => setEndDate(date)} 
+                        selectsEnd 
+                        startDate={startDate} 
+                        endDate={endDate} 
+                        minDate={startDate || new Date()}
+                        className="input-field"
+                        placeholderText="Select return date"
+                        wrapperClassName="datepicker-wrapper"
+                      />
+                    </div>
+                    
+                    {startDate && endDate && (
+                      <div className="booking-summary box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginTop: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                          <span>${vehicle.pricePerDay} x {Math.ceil((endDate.getTime() - startDate.getTime()) / (1000*60*60*24)) || 1} days</span>
+                          <span>${vehicle.pricePerDay * (Math.ceil((endDate.getTime() - startDate.getTime()) / (1000*60*60*24)) || 1)}</span>
+                        </div>
+                        <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1rem 0' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1.1rem' }}>
+                          <span>Total Amount</span>
+                          <span>${vehicle.pricePerDay * (Math.ceil((endDate.getTime() - startDate.getTime()) / (1000*60*60*24)) || 1)}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <button 
+                      className="btn btn-primary btn-lg btn-full"
+                      onClick={handleBookNow}
+                      disabled={bookingLoading}
+                      style={{ marginTop: '0.5rem' }}
+                    >
+                      {bookingLoading ? <span className="spinner"></span> : 'Submit Booking Request'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, bookingApi, type Vehicle, type Booking } from '../api';
-import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, ArrowLeft } from 'lucide-react';
+import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, ArrowLeft, Phone } from 'lucide-react';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -214,6 +214,16 @@ export default function Dashboard() {
                           <span className={`badge ${b.status === 'CONFIRMED' ? 'badge-success' : b.status === 'CANCELLED' ? 'badge-error' : b.status === 'APPROVED' ? 'badge-primary' : 'badge-warning'}`}>
                             {b.status}
                           </span>
+                          {b.status === 'CONFIRMED' && user?.role === 'user' && typeof b.owner === 'object' && (
+                            <>
+                              <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                                {b.owner.name}
+                              </div>
+                              <div style={{ fontSize: '12px', color: 'var(--primary-color)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Phone size={12} /> {b.owner.phone}
+                              </div>
+                            </>
+                          )}
                         </td>
                         <td className="table-actions">
                           {b.status === 'PENDING' && user?.role === 'owner' && (

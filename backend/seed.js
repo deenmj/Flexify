@@ -38,6 +38,7 @@ const seedDatabase = async () => {
     const owner1 = await User.create({
       name: "Luxury Motors",
       email: "luxury@flexify.com",
+      phone: "+94 77 123 4567",
       password: "password123",
       role: "verifiedOwner",
       verified: true,
@@ -49,6 +50,7 @@ const seedDatabase = async () => {
     const owner2 = await User.create({
       name: "Budget Rides",
       email: "budget@flexify.com",
+      phone: "+94 71 987 6543",
       password: "password123",
       role: "owner",
       verified: true,
