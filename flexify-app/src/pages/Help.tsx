@@ -1,4 +1,4 @@
-import { Search, BookOpen, MessageCircle, Shield, CreditCard, Car } from 'lucide-react';
+import { Search, BookOpen, MessageCircle, Shield, CreditCard, Car, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './StaticPages.css';
 
@@ -15,8 +15,12 @@ export default function Help() {
   return (
     <div className="static-page">
       <section className="static-hero">
-        <div className="container">
-          <h1>Help Center</h1>
+        <div className="container" style={{ textAlign: 'left' }}>
+          <Link to="/" className="premium-back-btn" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>
+            <ArrowLeft size={18} />
+            <span>Back to Home</span>
+          </Link>
+          <h1 style={{ marginTop: '1rem' }}>Help Center</h1>
           <p>How can we help you today?</p>
         </div>
       </section>

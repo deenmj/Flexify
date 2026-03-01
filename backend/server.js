@@ -20,7 +20,7 @@ app.use(cors());
 app.use(express.json());
 app.use(passport.initialize());
 
-app.use(express.static(path.join(process.cwd(), "..", "..", "flexify-app", "dist")));
+app.use(express.static(path.join(process.cwd(), "..", "flexify-app", "dist")));
 
 // Static uploads
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
@@ -50,7 +50,7 @@ app.use("/api/owners", ownerRoutes);
 
 // Catch-all to serve React app
 app.get("*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "..", "..", "flexify-app", "dist", "index.html"));
+  res.sendFile(path.join(process.cwd(), "..", "flexify-app", "dist", "index.html"));
 });
 
 // Start server

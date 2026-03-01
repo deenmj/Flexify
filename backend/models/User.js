@@ -9,7 +9,11 @@ const verificationRequestSchema = new mongoose.Schema({
   address: String,
   years: Number,
   description: String,
-  idFile: String,
+  // New fields for specific verification
+  idFront: String,
+  idBack: String,
+  userPhoto: String,
+  idFile: String, // Keep for backward compatibility if any
   status: {
     type: String,
     enum: ["pending", "approved", "rejected"],
@@ -47,6 +51,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: ""
     },
+    address: {
+      type: String,
+      default: ""
+    },
 
     password: {
       type: String,
@@ -61,7 +69,7 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["user", "owner", "verifiedOwner", "admin"],
+      enum: ["user", "owner", "verifiedOwner", "admin", "staff"],
       default: "user"
     },
 

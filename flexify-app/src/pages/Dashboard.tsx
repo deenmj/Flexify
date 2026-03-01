@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 import { vehicleApi, bookingApi, type Vehicle, type Booking } from '../api';
-import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, ArrowLeft, Phone } from 'lucide-react';
+import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, ArrowLeft, Phone, Shield } from 'lucide-react';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -72,19 +73,36 @@ export default function Dashboard() {
   if (!user) return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Please sign in</h2></div>;
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page page-wrapper bg-secondary">
+      <div className="container" style={{ paddingTop: '2rem' }}>
+        <Link to="/explore" className="premium-back-btn">
+          <ArrowLeft size={18} />
+          <span>Back to Explore</span>
+        </Link>
+      </div>
+
       <div className="dashboard-header">
         <div className="container" style={{ position: 'relative' }}>
-          <button 
-            onClick={() => window.history.back()} 
-            className="btn btn-ghost" 
-            style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-          >
-            <ArrowLeft size={18} /> Back
-          </button>
           <h1>My Dashboard</h1>
           <p>Welcome, {user.name}! Manage your {user.role === 'user' ? 'rentals' : 'vehicles and bookings'}.</p>
         </div>
+      </div>
+
+      <div className="container" style={{ marginTop: '2rem' }}>
+        {!user.verified && (
+          <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+               <div style={{ background: '#ff7e33', color: 'white', padding: '10px', borderRadius: '12px' }}>
+                  <Shield size={24} />
+               </div>
+               <div>
+                  <h3 style={{ color: '#9a3412', marginBottom: '4px' }}>Verify Your Account</h3>
+                  <p style={{ color: '#c2410c' }}>You need to verify your account before you can book vehicles or list your own.</p>
+               </div>
+            </div>
+            <a href="/verify" className="btn btn-primary">Start Verification Now</a>
+          </div>
+        )}
       </div>
 
       <div className="container dashboard-content">

@@ -11,6 +11,8 @@ export default function AdminDashboard() {
   const [pendingVerifications, setPendingVerifications] = useState<User[]>([]);
   const [tab, setTab] = useState<'overview' | 'vehicles' | 'verifications'>('overview');
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   useEffect(() => {
     if (user?.role !== 'admin') return;
@@ -177,6 +179,9 @@ export default function AdminDashboard() {
                       <td><span className="badge badge-primary">{u.verificationRequest?.type || 'Normal'}</span></td>
                       <td className="table-dates">{u.verificationRequest?.submittedAt ? new Date(u.verificationRequest.submittedAt).toLocaleDateString() : '-'}</td>
                       <td className="table-actions">
+                        <button className="btn btn-sm btn-ghost" onClick={() => { setSelectedUser(u); setShowVerificationModal(true); }}>
+                          <Eye size={14} /> View
+                        </button>
                         <button className="btn btn-sm btn-primary" onClick={() => handleApproveOwner((u.id || u._id)!)}>
                           <CheckCircle size={14} /> Approve
                         </button>
@@ -192,6 +197,48 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {showVerificationModal && selectedUser && (
+        <div className="modal-overlay" onClick={() => setShowVerificationModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px', width: '90%' }}>
+             <button className="modal-close" onClick={() => setShowVerificationModal(false)}>&times;</button>
+             <h2>Verification Details</h2>
+             <div className="verification-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 1fr', gap: '2rem', marginTop: '1.5rem', maxHeight: '70vh', overflowY: 'auto', paddingRight: '10px' }}>
+                <div className="detail-info">
+                   <div style={{ marginBottom: '1rem' }}><label style={{ fontWeight: 600, display: 'block' }}>Full Name</label><p>{selectedUser.verificationRequest?.fullName || selectedUser.name}</p></div>
+                   <div style={{ marginBottom: '1rem' }}><label style={{ fontWeight: 600, display: 'block' }}>Email</label><p>{selectedUser.email}</p></div>
+                   <div style={{ marginBottom: '1rem' }}><label style={{ fontWeight: 600, display: 'block' }}>Phone</label><p>{selectedUser.verificationRequest?.phone || 'No phone'}</p></div>
+                   <div style={{ marginBottom: '1rem' }}><label style={{ fontWeight: 600, display: 'block' }}>Address</label><p>{selectedUser.verificationRequest?.address || 'No address'}</p></div>
+                   <div style={{ marginBottom: '1rem' }}><label style={{ fontWeight: 600, display: 'block' }}>Type</label><span className="badge badge-primary">{selectedUser.verificationRequest?.type}</span></div>
+                </div>
+                <div className="detail-photos" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                   {selectedUser.verificationRequest?.userPhoto && (
+                     <div style={{ border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+                       <div style={{ padding: '8px', background: 'var(--bg-secondary)', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>User Selfie</div>
+                       <img src={selectedUser.verificationRequest.userPhoto} alt="User" style={{ width: '100%', display: 'block' }} />
+                     </div>
+                   )}
+                   {selectedUser.verificationRequest?.idFront && (
+                     <div style={{ border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+                       <div style={{ padding: '8px', background: 'var(--bg-secondary)', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>ID Card Front</div>
+                       <img src={selectedUser.verificationRequest.idFront} alt="ID Front" style={{ width: '100%', display: 'block' }} />
+                     </div>
+                   )}
+                   {selectedUser.verificationRequest?.idBack && (
+                     <div style={{ border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+                       <div style={{ padding: '8px', background: 'var(--bg-secondary)', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>ID Card Back</div>
+                       <img src={selectedUser.verificationRequest.idBack} alt="ID Back" style={{ width: '100%', display: 'block' }} />
+                     </div>
+                   )}
+                </div>
+             </div>
+             <div className="modal-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+                <button className="btn btn-primary btn-full btn-lg" onClick={() => { handleApproveOwner((selectedUser.id || selectedUser._id)!); setShowVerificationModal(false); }}>Approve Verification</button>
+                <button className="btn btn-danger btn-full btn-lg" onClick={() => { handleRejectOwner((selectedUser.id || selectedUser._id)!); setShowVerificationModal(false); }}>Reject Verification</button>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

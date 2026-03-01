@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 interface Props {
   children: React.ReactNode;
   roles?: string[];
+  excludeRoles?: string[];
 }
 
-export default function ProtectedRoute({ children, roles }: Props) {
+export default function ProtectedRoute({ children, roles, excludeRoles }: Props) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -20,6 +21,14 @@ export default function ProtectedRoute({ children, roles }: Props) {
   if (!user) return <Navigate to="/auth" replace />;
 
   if (roles && !roles.includes(user.role)) {
+    if (user.role === 'staff') return <Navigate to="/staff" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
+    return <Navigate to="/" replace />;
+  }
+
+  if (excludeRoles && excludeRoles.includes(user.role)) {
+    if (user.role === 'staff') return <Navigate to="/staff" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
     return <Navigate to="/" replace />;
   }
 

@@ -58,6 +58,24 @@ const seedDatabase = async () => {
       profilePic: "https://ui-avatars.com/api/?name=Budget+Rides&background=F59E0B&color=fff",
       dashboardCreated: true
     });
+
+    const staff1 = await User.create({
+      name: "Staff Member One",
+      email: "staff1@flexify.com",
+      password: "password123",
+      role: "staff",
+      status: "active",
+      verified: true
+    });
+
+    const staff2 = await User.create({
+      name: "Staff Member Two",
+      email: "staff2@flexify.com",
+      password: "password123",
+      role: "staff",
+      status: "active",
+      verified: true
+    });
     
     // User
     const user1 = await User.create({

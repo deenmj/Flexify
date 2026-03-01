@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './StaticPages.css';
 
 export default function Contact() {
@@ -14,9 +15,13 @@ export default function Contact() {
   return (
     <div className="static-page">
       <section className="static-hero">
-        <div className="container">
-          <h1>Contact Us</h1>
-          <p>Get in touch with our support team</p>
+        <div className="container" style={{ textAlign: 'left' }}>
+          <Link to="/profile" className="premium-back-btn" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>
+            <ArrowLeft size={18} />
+            <span>Back to Profile</span>
+          </Link>
+          <h1 style={{ marginTop: '1rem' }}>Contact & Support</h1>
+          <p>We're here to help you with anything you need</p>
         </div>
       </section>
       <section className="static-content container">

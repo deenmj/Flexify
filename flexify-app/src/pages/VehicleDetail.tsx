@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { vehicleApi, bookingApi, type Vehicle } from '../api';
-import { ArrowLeft, Users, CheckCircle, Star, ShieldCheck, DollarSign, Calendar, ArrowRight, Phone } from 'lucide-react';
+import { ArrowLeft, Users, CheckCircle, Star, ShieldCheck, DollarSign, Calendar, ArrowRight, Phone, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './VehicleDetail.css';
 
@@ -44,6 +44,11 @@ export default function VehicleDetail() {
   const handleBookNow = async () => {
     if (!user) {
       navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
+      return;
+    }
+
+    if (!user.verified) {
+      navigate('/verify');
       return;
     }
     
@@ -179,9 +184,30 @@ export default function VehicleDetail() {
                 <span>/ day</span>
               </div>
               
+              {!user?.verified && (
+                <div className="verification-alert box-highlight" style={{ background: '#fff7ed', border: '1px solid #fdba74', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
+                   <Shield size={20} style={{ color: '#ea580c', flexShrink: 0 }} />
+                   <div style={{ fontSize: '0.875rem' }}>
+                      <p style={{ fontWeight: 600, color: '#9a3412', marginBottom: '4px' }}>Verification Required</p>
+                      <p style={{ color: '#c2410c' }}>You must verify your identity before you can book this vehicle.</p>
+                      <Link to="/verify" style={{ color: 'var(--primary-color)', fontWeight: 600, marginTop: '8px', display: 'inline-block' }}>Verify Now &rarr;</Link>
+                   </div>
+                </div>
+              )}
+              
               <button 
                 className="btn btn-primary btn-lg btn-full"
-                onClick={() => setShowBookingModal(true)}
+                onClick={() => {
+                  if (!user) {
+                    navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
+                    return;
+                  }
+                  if (!user.verified) {
+                    navigate('/verify');
+                    return;
+                  }
+                  setShowBookingModal(true);
+                }}
                 style={{ marginTop: '1.5rem', height: '54px', fontSize: '1.1rem' }}
               >
                 Book Now

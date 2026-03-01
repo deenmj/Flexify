@@ -13,6 +13,7 @@ export default function GoogleSuccess() {
       setUserFromToken(token).then(() => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (user.role === 'admin') navigate('/admin');
+        else if (user.role === 'staff') navigate('/staff');
         else if (user.role === 'owner') navigate('/dashboard');
         else if (user.role === 'verifiedOwner') navigate('/dashboard-verified');
         else navigate('/');

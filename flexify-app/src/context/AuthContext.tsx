@@ -28,14 +28,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const saveAuth = useCallback((userData: User, tokenStr: string) => {
     const normalized: User = {
+      ...userData,
       id: userData.id || userData._id || '',
-      name: userData.name || '',
-      email: userData.email || '',
-      role: userData.role || 'user',
       verified: userData.verified || false,
-      profilePic: userData.profilePic || '',
-      provider: userData.provider,
-      status: userData.status,
     };
     setUser(normalized);
     setToken(tokenStr);

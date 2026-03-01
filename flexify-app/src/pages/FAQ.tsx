@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './StaticPages.css';
 
 const faqs = [
@@ -18,8 +19,12 @@ export default function FAQ() {
   return (
     <div className="static-page">
       <section className="static-hero">
-        <div className="container">
-          <h1>Frequently Asked Questions</h1>
+        <div className="container" style={{ textAlign: 'left' }}>
+          <Link to="/" className="premium-back-btn" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>
+            <ArrowLeft size={18} />
+            <span>Back to Home</span>
+          </Link>
+          <h1 style={{ marginTop: '1rem' }}>Frequently Asked Questions</h1>
           <p>Find answers to common questions about Flexify</p>
         </div>
       </section>

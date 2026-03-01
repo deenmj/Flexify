@@ -6,7 +6,8 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
-  role: 'user' | 'owner' | 'verifiedOwner' | 'admin';
+  address?: string;
+  role: 'user' | 'owner' | 'verifiedOwner' | 'admin' | 'staff';
   verified: boolean;
   profilePic: string;
   provider?: string;
@@ -24,6 +25,9 @@ export interface VerificationRequest {
   address?: string;
   years?: number;
   description?: string;
+  idFront?: string;
+  idBack?: string;
+  userPhoto?: string;
   idFile?: string;
   status: 'pending' | 'approved' | 'rejected';
   type?: string;
@@ -285,3 +289,21 @@ export const ownerApi = {
       body: formData,
     }).then(r => r.json()),
 };
+
+// =================== USERS ===================
+export const userApi = {
+  submitVerification: (formData: FormData) =>
+    fetch(`${API_BASE_URL}/users/verify`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      body: formData,
+    }).then(r => r.json()),
+
+  updateProfile: (formData: FormData) =>
+    fetch(`${API_BASE_URL}/users/update-profile`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      body: formData,
+    }).then(r => r.json()),
+};
+

@@ -90,14 +90,23 @@ export const approveOwnerVerification = async (req, res) => {
       user.verificationRequest.approvedAt = new Date();
     }
 
-    // Distinguish verified-business (business) vs normal owner
+    // Sync top-level fields
+    user.verified = true;
+    if (user.verificationRequest?.fullName) {
+      // name is not editable after verification
+      user.name = user.verificationRequest.fullName;
+    }
+    if (user.verificationRequest?.phone) user.phone = user.verificationRequest.phone;
+    if (user.verificationRequest?.address) user.address = user.verificationRequest.address;
+    if (user.verificationRequest?.userPhoto) user.profilePic = user.verificationRequest.userPhoto;
+
+    // Distinguish types for roles
     if (user.verificationRequest?.type === "verified-business") {
-      user.role = "verifiedOwner";    // exact enum
-      user.verified = true;           // verified business -> verified = true
-    } else {
-      // normal owner verification: make them owner but keep verified = false
+      user.role = "verifiedOwner";
+    } else if (user.verificationRequest?.type === "normal-owner") {
       user.role = "owner";
-      user.verified = false;
+    } else {
+      // user-verification keeps existing role (likely 'user' or 'owner')
     }
 
     // mark dashboard created
@@ -136,7 +145,7 @@ export const rejectOwnerVerification = async (req, res) => {
     user.verificationRequest.rejectedAt = new Date();
     await user.save();
 
-    res.json({ message: "Verification request rejected", user });
+    res.json({ message: "Verification request rejected. User status moved to enquiry.", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

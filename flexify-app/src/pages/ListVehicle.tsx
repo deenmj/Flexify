@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi } from '../api';
 import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool, ArrowLeft } from 'lucide-react';
@@ -133,6 +134,34 @@ export default function ListVehicle() {
         </section>
         <div className="container" style={{ textAlign: 'center', padding: '3rem' }}>
           <a href="/auth" className="btn btn-primary btn-lg">Sign In to Continue</a>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user.verified) {
+    return (
+      <div className="static-page">
+        <section className="static-hero">
+          <div className="container">
+            <h1>Verification Required</h1>
+            <p>You must verify your identity before listing a vehicle</p>
+          </div>
+        </section>
+        <div className="container" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
+          <div className="card" style={{ maxWidth: '600px', margin: '0 auto', padding: '3rem' }}>
+            <div style={{ color: 'var(--primary-color)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+              <Settings size={48} />
+            </div>
+            <h2>Account Verification Needed</h2>
+            <p style={{ color: 'var(--text-secondary)', marginTop: '1rem', marginBottom: '2rem' }}>
+              To ensure the safety of our community, all vehicle owners must be verified by our staff. 
+              Please provide your identification documents to get started.
+            </p>
+            <Link to="/verify" className="btn btn-primary btn-full btn-lg">
+              Start Verification
+            </Link>
+          </div>
         </div>
       </div>
     );

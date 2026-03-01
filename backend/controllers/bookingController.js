@@ -16,6 +16,18 @@ export const createBooking = async (req, res) => {
   try {
     const userId = req.user._id;
     const { vehicleId, startDate, endDate } = req.body;
+
+    // Check if user is verified
+    if (!req.user.verified) {
+      // Check if they have a pending request or rejection
+      const status = req.user.verificationRequest?.status || "unverified";
+      return res.status(403).json({ 
+        message: "You must be verified to book a vehicle.",
+        status: status,
+        verificationNeeded: true
+      });
+    }
+
     if (!vehicleId || !startDate || !endDate) return res.status(400).json({ message: "Missing fields" });
 
     const vehicle = await Vehicle.findById(vehicleId).populate("owner");

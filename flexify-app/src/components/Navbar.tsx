@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -31,7 +31,8 @@ export default function Navbar() {
   const getDashboardLink = () => {
     if (!user) return null;
     if (user.role === 'admin') return '/admin';
-    return '/dashboard'; // Everyone use same dash now
+    if (user.role === 'staff') return '/staff';
+    return '/dashboard'; 
   };
 
   const handleLogout = () => {
@@ -56,40 +57,46 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="navbar-links">
-            <NavDropdown
-              label="Vehicle Collection"
-              items={[
-                { label: 'Luxury Sedans', href: '/explore?type=luxury' },
-                { label: 'Compact Cars', href: '/explore?type=compact' },
-                { label: 'SUVs & Family', href: '/explore?type=suv' },
-                { label: 'Vans & Minivans', href: '/explore?type=van' },
-                { label: 'Electric & Hybrid', href: '/explore?type=electric' },
-              ]}
-            />
-            <NavDropdown
-              label="Services"
-              items={[
-                { label: 'Self Drive Rental', href: '/explore?service=self-drive' },
-                { label: 'Tours / Chauffeur', href: '/explore?service=chauffeur' },
-                { label: 'Airport Transfers', href: '/explore?service=transfer' },
-                { label: 'Weddings & Events', href: '/explore?service=events' },
-              ]}
-            />
-            <Link to="/list-vehicle" className="nav-link">List your Vehicle</Link>
-            <Link to="/about" className="nav-link">About</Link>
-          </div>
+          {user?.role !== 'staff' && (
+            <div className="navbar-links">
+              <NavDropdown
+                label="Vehicle Collection"
+                items={[
+                  { label: 'Luxury Sedans', href: '/explore?type=luxury' },
+                  { label: 'Compact Cars', href: '/explore?type=compact' },
+                  { label: 'SUVs & Family', href: '/explore?type=suv' },
+                  { label: 'Vans & Minivans', href: '/explore?type=van' },
+                  { label: 'Electric & Hybrid', href: '/explore?type=electric' },
+                ]}
+              />
+              <NavDropdown
+                label="Services"
+                items={[
+                  { label: 'Self Drive Rental', href: '/explore?service=self-drive' },
+                  { label: 'Tours / Chauffeur', href: '/explore?service=chauffeur' },
+                  { label: 'Airport Transfers', href: '/explore?service=transfer' },
+                  { label: 'Weddings & Events', href: '/explore?service=events' },
+                ]}
+              />
+              <Link to="/list-vehicle" className="nav-link">List your Vehicle</Link>
+              <Link to="/about" className="nav-link">About</Link>
+            </div>
+          )}
 
           {/* Right side */}
           <div className="navbar-actions">
-            <Link to="/explore" className="nav-action-btn" title="Search">
-              <Search size={20} />
-            </Link>
+            {user?.role !== 'staff' && (
+              <>
+                <Link to="/explore" className="nav-action-btn" title="Search">
+                  <Search size={20} />
+                </Link>
 
-            <button className="nav-action-btn notification-btn" title="Notifications">
-              <Bell size={20} />
-              <span className="notification-dot" />
-            </button>
+                <button className="nav-action-btn notification-btn" title="Notifications">
+                  <Bell size={20} />
+                  <span className="notification-dot" />
+                </button>
+              </>
+            )}
 
             {/* Profile */}
             <div className="profile-wrapper" ref={profileRef}>
@@ -121,23 +128,34 @@ export default function Navbar() {
                       onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=2563eb&color=fff'; }}
                     />
                     <div>
-                      <p className="dropdown-name">{user.name}</p>
+                      <p className="dropdown-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {user.name} 
+                        {user.verified && <span style={{ background: 'var(--color-primary)', color: 'white', fontSize: '8px', padding: '1px 4px', borderRadius: '4px', fontWeight: 900 }}>PRO</span>}
+                      </p>
                       <p className="dropdown-email">{user.email}</p>
                     </div>
                   </div>
                   <div className="profile-dropdown-divider" />
-                  <Link to="/profile" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                    <User size={16} /> My Profile
-                  </Link>
-                  {getDashboardLink() && (
-                    <Link to={getDashboardLink()!} className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                      <LayoutDashboard size={16} /> Dashboard
+                  {user.role !== 'staff' && (
+                    <>
+                      <Link to="/profile" className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                        <User size={16} /> My Profile
+                      </Link>
+                      {getDashboardLink() && (
+                        <Link to={getDashboardLink()!} className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                          <LayoutDashboard size={16} /> Dashboard
+                        </Link>
+                      )}
+                      <Link to="/list-vehicle" className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                        <Car size={16} /> List Vehicle
+                      </Link>
+                    </>
+                  )}
+                  {user && !user.verified && user.role !== 'staff' && (
+                    <Link to="/verify" className="dropdown-item" onClick={() => setProfileOpen(false)} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                      <Shield size={16} /> Verify Identity
                     </Link>
                   )}
-                  <Link to="/list-vehicle" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                    <Car size={16} /> List Vehicle
-                  </Link>
-                  <div className="profile-dropdown-divider" />
                   <button className="dropdown-item dropdown-item-danger" onClick={handleLogout}>
                     <LogOut size={16} /> Logout
                   </button>
@@ -177,19 +195,35 @@ export default function Navbar() {
                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=2563eb&color=fff'; }}
                   />
                   <div>
-                    <p className="mobile-user-name">{user.name}</p>
+                    <p className="mobile-user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {user.name}
+                      {user.verified && <span style={{ background: 'var(--color-primary)', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: 900 }}>PRO</span>}
+                    </p>
                     <p className="mobile-user-role">{user.role}</p>
                   </div>
                 </div>
               )}
-              <Link to="/" className="mobile-link" onClick={() => setMobileOpen(false)}>Home</Link>
-              <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}>Explore Vehicles</Link>
-              <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}>List your Vehicle</Link>
-              <Link to="/about" className="mobile-link" onClick={() => setMobileOpen(false)}>About Us</Link>
-              <Link to="/faq" className="mobile-link" onClick={() => setMobileOpen(false)}>FAQ</Link>
-              <Link to="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}>Contact</Link>
-              {user && getDashboardLink() && (
-                <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+              {user?.role !== 'staff' ? (
+                <>
+                  <Link to="/" className="mobile-link" onClick={() => setMobileOpen(false)}>Home</Link>
+                  <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}>Explore Vehicles</Link>
+                  <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}>List your Vehicle</Link>
+                  <Link to="/about" className="mobile-link" onClick={() => setMobileOpen(false)}>About Us</Link>
+                  <Link to="/faq" className="mobile-link" onClick={() => setMobileOpen(false)}>FAQ</Link>
+                  <Link to="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}>Contact</Link>
+                  {user && getDashboardLink() && (
+                    <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                  )}
+                  {user && !user.verified && (
+                    <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                      <Shield size={18} /> Verify Identity
+                    </Link>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Link to="/staff" className="mobile-link" onClick={() => setMobileOpen(false)}>Identity Verification Portal</Link>
+                </>
               )}
               {user ? (
                 <button className="mobile-link mobile-logout" onClick={() => { handleLogout(); setMobileOpen(false); }}>

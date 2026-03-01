@@ -35,7 +35,7 @@ passport.use(
             email,
             password: "google-oauth",
             role: "user",
-            verified: true,
+            verified: false,
             status: "active",
             profilePic: profile.photos?.[0]?.value || null,
           });

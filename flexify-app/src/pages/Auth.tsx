@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -14,8 +14,16 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const { login, signup } = useAuth();
+  const { user, login, signup } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') navigate('/admin');
+      else if (user.role === 'staff') navigate('/staff');
+      else navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +37,7 @@ export default function Auth() {
         // Redirect based on role
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (user.role === 'admin') navigate('/admin');
+        else if (user.role === 'staff') navigate('/staff');
         else if (user.role === 'owner') navigate('/dashboard');
         else if (user.role === 'verifiedOwner') navigate('/dashboard-verified');
         else navigate('/');

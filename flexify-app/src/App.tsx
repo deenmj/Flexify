@@ -20,6 +20,8 @@ import About from './pages/About';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
 import Help from './pages/Help';
+import VerifyUser from './pages/VerifyUser';
+import StaffDashboard from './pages/StaffDashboard';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -47,20 +49,22 @@ export default function App() {
           <Route path="/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
 
           {/* Public pages */}
-          <Route path="/" element={<AppLayout><Home /></AppLayout>} />
-          <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
-          <Route path="/vehicles/:id" element={<AppLayout><VehicleDetail /></AppLayout>} />
-          <Route path="/about" element={<AppLayout><About /></AppLayout>} />
-          <Route path="/faq" element={<AppLayout><FAQ /></AppLayout>} />
-          <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
-          <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
+          <Route path="/" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Home /></ProtectedRoute></AppLayout>} />
+          <Route path="/explore" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Explore /></ProtectedRoute></AppLayout>} />
+          <Route path="/vehicles/:id" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><VehicleDetail /></ProtectedRoute></AppLayout>} />
+          <Route path="/about" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><About /></ProtectedRoute></AppLayout>} />
+          <Route path="/faq" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><FAQ /></ProtectedRoute></AppLayout>} />
+          <Route path="/contact" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Contact /></ProtectedRoute></AppLayout>} />
+          <Route path="/help" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Help /></ProtectedRoute></AppLayout>} />
 
           {/* Protected pages */}
-          <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
-          <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute><ListVehicle /></ProtectedRoute></AppLayout>} />
-          <Route path="/dashboard" element={<AppLayout><ProtectedRoute><Dashboard /></ProtectedRoute></AppLayout>} />
+          <Route path="/profile" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Profile /></ProtectedRoute></AppLayout>} />
+          <Route path="/verify" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><VerifyUser /></ProtectedRoute></AppLayout>} />
+          <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><ListVehicle /></ProtectedRoute></AppLayout>} />
+           <Route path="/dashboard" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Dashboard /></ProtectedRoute></AppLayout>} />
           <Route path="/dashboard-verified" element={<Navigate to="/dashboard" replace />} />
           <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
+          <Route path="/staff" element={<AppLayout><ProtectedRoute roles={['staff']}><StaffDashboard /></ProtectedRoute></AppLayout>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
