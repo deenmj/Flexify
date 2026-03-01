@@ -9,7 +9,7 @@ export default function Dashboard() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'vehicles' | 'bookings'>('vehicles');
+  const [tab, setTab] = useState<'vehicles' | 'bookings'>(user?.role === 'user' ? 'bookings' : 'vehicles');
 
   useEffect(() => {
     Promise.all([
@@ -59,6 +59,16 @@ export default function Dashboard() {
     }
   };
 
+  const handlePayBooking = async (id: string) => {
+    try {
+      await bookingApi.pay(id);
+      setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CONFIRMED' } : bk));
+      alert("Payment successful! Booking confirmed.");
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   if (!user) return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Please sign in</h2></div>;
 
   return (
@@ -72,15 +82,16 @@ export default function Dashboard() {
           >
             <ArrowLeft size={18} /> Back
           </button>
-          <h1>Owner Dashboard</h1>
-          <p>Welcome, {user.name}! Manage your vehicles and bookings.</p>
+          <h1>My Dashboard</h1>
+          <p>Welcome, {user.name}! Manage your {user.role === 'user' ? 'rentals' : 'vehicles and bookings'}.</p>
         </div>
       </div>
 
       <div className="container dashboard-content">
         {/* Stats */}
-        <div className="dashboard-stats">
-          <div className="stat-card card">
+        {user?.role !== 'user' && (
+          <div className="dashboard-stats">
+            <div className="stat-card card">
             <div className="stat-icon" style={{ background: '#eff6ff', color: '#2563eb' }}><Car size={24} /></div>
             <div className="stat-info">
               <span className="stat-number">{vehicles.length}</span>
@@ -109,14 +120,17 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Tabs */}
         <div className="dashboard-tabs">
-          <button className={`dashboard-tab ${tab === 'vehicles' ? 'active' : ''}`} onClick={() => setTab('vehicles')}>
-            <Car size={16} /> My Vehicles
-          </button>
+          {(user.role === 'owner' || user.role === 'verifiedOwner' || user.role === 'admin') && (
+            <button className={`dashboard-tab ${tab === 'vehicles' ? 'active' : ''}`} onClick={() => setTab('vehicles')}>
+              <Car size={16} /> My Vehicles
+            </button>
+          )}
           <button className={`dashboard-tab ${tab === 'bookings' ? 'active' : ''}`} onClick={() => setTab('bookings')}>
-            <Calendar size={16} /> Bookings
+            <Calendar size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
           </button>
         </div>
 
@@ -202,7 +216,7 @@ export default function Dashboard() {
                           </span>
                         </td>
                         <td className="table-actions">
-                          {b.status === 'PENDING' && (
+                          {b.status === 'PENDING' && user?.role === 'owner' && (
                             <>
                               <button className="btn btn-sm btn-primary" onClick={() => handleApproveBooking(b._id)}>
                                 <CheckCircle size={14} /> Approve
@@ -211,6 +225,16 @@ export default function Dashboard() {
                                 <XCircle size={14} /> Cancel
                               </button>
                             </>
+                          )}
+                          {b.status === 'APPROVED' && user?.role !== 'owner' && (
+                            <button className="btn btn-sm btn-success" onClick={() => handlePayBooking(b._id)}>
+                              <DollarSign size={14} /> Pay Now
+                            </button>
+                          )}
+                          {(b.status === 'PENDING' || b.status === 'APPROVED') && user?.role !== 'owner' && (
+                            <button className="btn btn-sm btn-danger" onClick={() => handleCancelBooking(b._id)}>
+                              <XCircle size={14} /> Cancel
+                            </button>
                           )}
                         </td>
                       </tr>

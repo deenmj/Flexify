@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, Filter, MapPin, Verified, X, SlidersHorizontal, ArrowLeft, Star } from 'lucide-react';
+import { Search, Filter, MapPin, Verified, X, SlidersHorizontal, ArrowLeft, Star, Locate } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
 import './Explore.css';
+
+const SRI_LANKA_DISTRICTS = [
+  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Galle', 'Matara', 'Kurunegala', 'Jaffna', 'Other'
+];
 
 export default function Explore() {
   const [searchParams] = useSearchParams();
@@ -17,8 +21,9 @@ export default function Explore() {
     vehicleType: '',
     lat: '',
     lng: '',
-    radius: '',
+    radius: '10', // default radius 10km
     sort: 'newest',
+    district: '',
   });
   const [showFilters, setShowFilters] = useState(false);
 
@@ -57,8 +62,18 @@ export default function Explore() {
   };
 
   const clearFilters = () => {
-    setFilters({ transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', lat: '', lng: '', radius: '', sort: 'newest' });
+    setFilters({ transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', lat: '', lng: '', radius: '10', sort: 'newest', district: '' });
     setQuery('');
+  };
+
+  const handleLocateMe = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setFilters({ ...filters, lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString(), district: '' });
+      }, () => {
+        alert("Failed to get location. Please enable location permissions.");
+      });
+    }
   };
 
   return (
@@ -128,12 +143,28 @@ export default function Explore() {
                 </select>
               </div>
               <div className="input-group">
-                <label>Location Radius Set</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input type="number" step="any" className="input-field" placeholder="Lat" value={filters.lat} onChange={(e) => setFilters({ ...filters, lat: e.target.value })} />
-                  <input type="number" step="any" className="input-field" placeholder="Lng" value={filters.lng} onChange={(e) => setFilters({ ...filters, lng: e.target.value })} />
+                <label>Distance Search</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={handleLocateMe} style={{ flex: '1 0 auto' }}>
+                    <Locate size={14} /> My Location
+                  </button>
                   <input type="number" className="input-field" placeholder="Radius(km)" value={filters.radius} onChange={(e) => setFilters({ ...filters, radius: e.target.value })} style={{ width: '100px' }} />
+                  {(filters.lat || filters.lng) && <span style={{fontSize: '10px', color: 'var(--text-tertiary)'}}>📌 {parseFloat(filters.lat).toFixed(2)}, {parseFloat(filters.lng).toFixed(2)}</span>}
                 </div>
+              </div>
+              <div className="input-group">
+                <label>District</label>
+                <select
+                  className="input-field"
+                  value={filters.district}
+                  onChange={(e) => {
+                    setFilters({ ...filters, district: e.target.value, lat: '', lng: '' });
+                    if (e.target.value) setQuery(e.target.value); // Use query for district if lat/lng not used
+                  }}
+                >
+                  <option value="">Anywhere</option>
+                  {SRI_LANKA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
               </div>
               <div className="input-group">
                 <label>Min Price ($/day)</label>
@@ -266,7 +297,7 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
             <span className="price-amount">${vehicle.pricePerDay}</span>
             <span className="price-unit">/day</span>
           </div>
-          <Link to={`/explore?vehicle=${vehicle._id}`} className="btn btn-primary btn-sm">
+          <Link to={`/vehicles/${vehicle._id}`} className="btn btn-primary btn-sm">
             Rent Now
           </Link>
         </div>

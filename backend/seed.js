@@ -73,6 +73,7 @@ const seedDatabase = async () => {
     activeSub.setMonth(activeSub.getMonth() + 1);
 
     // Create Vehicles
+    // Create Vehicles
     await Vehicle.insertMany([
       {
         owner: owner1._id,
@@ -83,14 +84,14 @@ const seedDatabase = async () => {
         photos: ["https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&q=80&w=800"],
         location: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749], // San Francisco
-          address: "San Francisco, CA"
+          coordinates: [79.8612, 6.9271], // Colombo
+          address: "Colombo, Sri Lanka"
         },
         pricePerDay: 250,
         transmission: "Automatic",
         fuelType: "Electric",
         seats: 5,
-        description: "Experience the pinnacle of electric performance with the Tesla Model S Plaid. 0-60 in under 2 seconds.",
+        description: "Experience the pinnacle of electric performance with the Tesla Model S Plaid in the heart of Colombo.",
         isActive: true,
         approved: true,
         subscribedUntil: activeSub,
@@ -105,14 +106,14 @@ const seedDatabase = async () => {
         photos: ["https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&q=80&w=800"],
         location: {
           type: "Point",
-          coordinates: [-118.2437, 34.0522], // Los Angeles
-          address: "Los Angeles, CA"
+          coordinates: [80.6337, 7.2906], // Kandy
+          address: "Kandy, Sri Lanka"
         },
         pricePerDay: 300,
         transmission: "Automatic",
         fuelType: "Petrol",
         seats: 4,
-        description: "Ultimate luxury and comfort. Perfect for executives, special events, or just cruising in total elegance.",
+        description: "Ultimate luxury and comfort for your journey through the scenic hills of Kandy.",
         isActive: true,
         approved: true,
         subscribedUntil: activeSub,
@@ -127,14 +128,14 @@ const seedDatabase = async () => {
         photos: ["https://images.unsplash.com/photo-1621007947382-bb3c3994e3fd?auto=format&fit=crop&q=80&w=800"],
         location: {
           type: "Point",
-          coordinates: [-74.0060, 40.7128], // New York
-          address: "New York, NY"
+          coordinates: [80.2210, 6.0535], // Galle
+          address: "Galle, Sri Lanka"
         },
         pricePerDay: 45,
         transmission: "Automatic",
         fuelType: "Hybrid",
         seats: 5,
-        description: "Extremely reliable and fuel-efficient. Great for city commuting or long road trips.",
+        description: "Reliable and fuel-efficient, perfect for coastal drives in Galle.",
         isActive: true,
         approved: true,
         subscribedUntil: activeSub,
@@ -149,14 +150,14 @@ const seedDatabase = async () => {
         photos: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=800"],
         location: {
           type: "Point",
-          coordinates: [-87.6298, 41.8781], // Chicago
-          address: "Chicago, IL"
+          coordinates: [79.8358, 7.2104], // Negombo
+          address: "Negombo, Sri Lanka"
         },
         pricePerDay: 90,
-        transmission: "Automatic",
+        transmission: "Manual",
         fuelType: "Diesel",
         seats: 2,
-        description: "Perfect for moving day or transporting large loads. Lots of cargo space.",
+        description: "Perfect for moving day or transporting large loads in Negombo.",
         isActive: true,
         approved: true,
         subscribedUntil: activeSub,
@@ -171,14 +172,14 @@ const seedDatabase = async () => {
         photos: ["https://images.unsplash.com/photo-1566367576585-051280dd0ec0?auto=format&fit=crop&q=80&w=800"],
         location: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749], // SF
-          address: "San Francisco, CA"
+          coordinates: [80.0100, 9.6615], // Jaffna
+          address: "Jaffna, Sri Lanka"
         },
         pricePerDay: 65,
         transmission: "Automatic",
         fuelType: "Petrol",
         seats: 5,
-        description: "Compact SUV with great cargo space and visibility. A top choice for families.",
+        description: "Compact SUV with great cargo space, ideal for exploring Jaffna.",
         isActive: true,
         approved: true,
         subscribedUntil: activeSub,

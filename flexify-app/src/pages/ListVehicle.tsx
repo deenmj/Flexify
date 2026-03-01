@@ -31,6 +31,18 @@ const CAR_BRANDS: Record<string, string[]> = {
   Other: [] // Used to show custom input
 };
 
+const SRI_LANKA_DISTRICTS: Record<string, string[]> = {
+  Colombo: ['Colombo', 'Dehiwala', 'Mount Lavinia', 'Moratuwa', 'Maharagama', 'Nugegoda', 'Battaramulla', 'Malabe', 'Kottawa', 'Homagama'],
+  Gampaha: ['Gampaha', 'Negombo', 'Kelaniya', 'Wattala', 'Kadawatha', 'Minuwangoda', 'Nittambuwa', 'Katunayake', 'Ragama', 'Ja-Ela'],
+  Kalutara: ['Kalutara', 'Panadura', 'Horana', 'Matugama', 'Beruwala', 'Aluthgama', 'Bandaragama'],
+  Kandy: ['Kandy', 'Peradeniya', 'Gampola', 'Nawalapitiya', 'Kadugannawa', 'Katugastota'],
+  Galle: ['Galle', 'Hikkaduwa', 'Ambalangoda', 'Elpitiya', 'Karapitiya', 'Unawatuna'],
+  Matara: ['Matara', 'Weligama', 'Dikwella', 'Akuressa', 'Deniyaya'],
+  Kurunegala: ['Kurunegala', 'Kuliyapitiya', 'Narammala', 'Pannala', 'Mawathagama'],
+  Jaffna: ['Jaffna', 'Chavakachcheri', 'Point Pedro', 'Nallur', 'Kopay'],
+  Other: []
+};
+
 function LocationMarker({ position, setPosition }: any) {
   useMapEvents({
     click(e) {
@@ -71,10 +83,14 @@ export default function ListVehicle() {
   const [selectedModel, setSelectedModel] = useState('');
   const [customModel, setCustomModel] = useState('');
 
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [selectedPlace, setSelectedPlace] = useState('');
+  const [customPlace, setCustomPlace] = useState('');
+
   const [photos, setPhotos] = useState<File[]>([]);
   
-  // Map State
-  const [position, setPosition] = useState({ lat: 40.7128, lng: -74.0060 }); // Default to NY or user can locate later
+  // Map State defaults to Sri Lanka center
+  const [position, setPosition] = useState({ lat: 7.8731, lng: 80.7718 });
 
   // Sync internal Make/Model states to form output dynamically
   useEffect(() => {
@@ -82,6 +98,12 @@ export default function ListVehicle() {
     let finalModel = selectedModel === 'Other' ? customModel : selectedModel;
     setForm(prev => ({ ...prev, make: finalMake, model: finalModel }));
   }, [selectedMake, customMake, selectedModel, customModel]);
+
+  useEffect(() => {
+    let finalPlace = selectedPlace === 'Other' ? customPlace : selectedPlace;
+    let finalAddress = [finalPlace, selectedDistrict, 'Sri Lanka'].filter(Boolean).join(', ');
+    setForm(prev => ({ ...prev, address: finalAddress }));
+  }, [selectedDistrict, selectedPlace, customPlace]);
 
   // Sync position to lat/lng logically
   useEffect(() => {
@@ -155,6 +177,9 @@ export default function ListVehicle() {
       setCustomMake('');
       setSelectedModel('');
       setCustomModel('');
+      setSelectedDistrict('');
+      setSelectedPlace('');
+      setCustomPlace('');
       setPhotos([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
       window.scrollTo(0, 0);
@@ -292,23 +317,78 @@ export default function ListVehicle() {
               </div>
             </div>
 
-            <div className="form-row" style={{ display: 'block', marginBottom: '1.5rem' }}>
-              <div className="input-group" style={{ marginBottom: '1rem' }}>
-                <label><MapPin size={14} /> Address Overview</label>
-                <input className="input-field" placeholder="e.g. New York, NY" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-                <button type="button" className="btn btn-ghost btn-sm" onClick={handleGetLocation} style={{ marginTop: '0.75rem', color: 'var(--primary-color)', alignSelf: 'flex-start' }}>
-                  <Locate size={14} style={{ marginRight: '4px' }}/> Auto-Detect Location Pin
-                </button>
+            <div className="form-row" style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div className="input-group" style={{ flex: 1 }}>
+                <label><MapPin size={14} /> District</label>
+                <select 
+                  className="input-field" 
+                  value={selectedDistrict} 
+                  onChange={(e) => {
+                    setSelectedDistrict(e.target.value);
+                    setSelectedPlace('');
+                  }} 
+                  required
+                >
+                  <option value="">Select District</option>
+                  {Object.keys(SRI_LANKA_DISTRICTS).map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
               </div>
               
-              <div className="input-group" style={{ position: 'relative' }}>
-                <label style={{ marginBottom: '0.5rem' }}>Pinpoint Location <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>(Tap map to drop pin)</span></label>
-                <div style={{ height: '350px', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative', zIndex: 0 }}>
-                  <MapContainer key={`${position.lat}-${position.lng}`} center={[position.lat, position.lng]} zoom={11} style={{ height: '100%', width: '100%' }}>
-                    <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
-                    <LocationMarker position={position} setPosition={setPosition} />
-                  </MapContainer>
-                </div>
+              <div className="input-group" style={{ flex: 1 }}>
+                <label><Locate size={14} /> City / Place</label>
+                <select 
+                  className="input-field" 
+                  value={selectedPlace} 
+                  onChange={(e) => setSelectedPlace(e.target.value)} 
+                  required={selectedDistrict !== 'Other'}
+                  disabled={!selectedDistrict || selectedDistrict === 'Other'}
+                >
+                  <option value="">Select Place</option>
+                  {selectedDistrict && selectedDistrict !== 'Other' && SRI_LANKA_DISTRICTS[selectedDistrict].map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                  <option value="Other">Add Place / Other</option>
+                </select>
+                {(selectedPlace === 'Other' || selectedDistrict === 'Other') && (
+                  <input 
+                    className="input-field animate-fade-in" 
+                    placeholder="Enter custom place..." 
+                    value={customPlace} 
+                    onChange={(e) => setCustomPlace(e.target.value)} 
+                    style={{ marginTop: '0.5rem' }} 
+                    required 
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="input-group" style={{ marginBottom: '1.5rem', position: 'relative' }}>
+              <label style={{ marginBottom: '0.5rem' }}>Pinpoint EXACT Location (Sri Lanka ONLY)  <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>(Tap map to drop pin)</span></label>
+               
+              <div style={{ height: '350px', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative', zIndex: 0 }}>
+                {/* PickMe Style Float Button */}
+                <button 
+                  type="button" 
+                  onClick={handleGetLocation} 
+                  style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000, background: '#fff', border: 'none', borderRadius: '8px', padding: '10px 15px', boxShadow: '0 2px 10px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600, color: 'var(--primary-color)' }}
+                >
+                  <Locate size={16} /> Locate Me
+                </button>
+              
+                <MapContainer 
+                  key={`${position.lat === 7.8731 ? 'init' : 'located'}`} 
+                  center={[position.lat, position.lng]} 
+                  zoom={position.lat === 7.8731 ? 7 : 14} 
+                  style={{ height: '100%', width: '100%' }}
+                  maxBounds={[[5.9, 79.5], [9.9, 81.9]]}
+                  maxBoundsViscosity={1.0}
+                  minZoom={7}
+                >
+                  <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
+                  <LocationMarker position={position} setPosition={setPosition} />
+                </MapContainer>
               </div>
             </div>
 

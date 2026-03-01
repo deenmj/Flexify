@@ -30,12 +30,8 @@ export default function Navbar() {
 
   const getDashboardLink = () => {
     if (!user) return null;
-    switch (user.role) {
-      case 'admin': return '/admin';
-      case 'verifiedOwner': return '/dashboard-verified';
-      case 'owner': return '/dashboard';
-      default: return null;
-    }
+    if (user.role === 'admin') return '/admin';
+    return '/dashboard'; // Everyone use same dash now
   };
 
   const handleLogout = () => {

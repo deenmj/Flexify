@@ -1,39 +1,82 @@
 .list-vehicle-page {
   min-height: 100vh;
+  background-color: var(--bg-color);
 }
 
 .list-vehicle-content {
   padding: 2rem 0 4rem;
-  max-width: 800px;
+  max-width: 850px;
 }
 
 .list-vehicle-card {
-  padding: 2.5rem;
+  padding: 3rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
 }
 
 .list-vehicle-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 640px) {
-  .form-row { grid-template-columns: 1fr; }
-  .list-vehicle-card { padding: 1.5rem; }
-}
-
-@media (max-width: 480px) {
-  .list-vehicle-card { padding: 1rem; }
-}
-
-.input-group label {
   display: flex;
+  gap: 1.5rem;
+}
+
+.form-row > .input-group {
+  flex: 1;
+}
+
+.photo-upload-zone {
+  transition: all 0.3s ease;
+}
+
+.photo-upload-zone:hover {
+  border-color: var(--primary-color) !important;
+  background-color: #f8fafc !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
 }
+
+.badge-primary {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #dbeafe;
+}
+
+@media (max-width: 640px) {
+  .form-row { 
+    flex-direction: column;
+    gap: 1.5rem; 
+  }
+  .list-vehicle-card { padding: 1.5rem; }
+}
+
+/* Leaflet Overrides */
+.leaflet-container {
+  font-family: inherit;
+}
+
+.leaflet-bar a {
+  background-color: #fff !important;
+  color: #1f2937 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.leaflet-control-zoom {
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+

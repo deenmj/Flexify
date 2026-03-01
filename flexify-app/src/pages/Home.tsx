@@ -45,11 +45,11 @@ export default function Home() {
             <Star size={14} /> Trusted by 10,000+ renters
           </div>
           <h1 className="hero-title animate-fade-in-up">
-            Find Your Perfect <br />
-            <span className="hero-highlight">Ride Today</span>
+            Rent Your Perfect <br />
+            <span className="hero-highlight">Ride in Sri Lanka</span>
           </h1>
           <p className="hero-subtitle animate-fade-in-up">
-            Explore premium vehicles — self-drive, chauffeur, city transfers and more.
+            Explore premium vehicles across the island — self-drive, chauffeur, or city tours.
           </p>
           <div className="hero-search animate-fade-in-up">
             <div className="hero-search-inner">
@@ -68,18 +68,18 @@ export default function Home() {
           </div>
           <div className="hero-stats animate-fade-in-up">
             <div className="hero-stat">
-              <span className="hero-stat-number">500+</span>
+              <span className="hero-stat-number">150+</span>
               <span className="hero-stat-label">Vehicles</span>
             </div>
             <div className="hero-stat-divider" />
             <div className="hero-stat">
-              <span className="hero-stat-number">100+</span>
+              <span className="hero-stat-number">50+</span>
               <span className="hero-stat-label">Verified Owners</span>
             </div>
             <div className="hero-stat-divider" />
             <div className="hero-stat">
-              <span className="hero-stat-number">50+</span>
-              <span className="hero-stat-label">Cities</span>
+              <span className="hero-stat-number">25+</span>
+              <span className="hero-stat-label">Districts</span>
             </div>
           </div>
         </div>

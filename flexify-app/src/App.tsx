@@ -58,8 +58,7 @@ export default function App() {
           {/* Protected pages */}
           <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
           <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute><ListVehicle /></ProtectedRoute></AppLayout>} />
-          <Route path="/dashboard" element={<AppLayout><ProtectedRoute roles={['owner', 'verifiedOwner']}><Dashboard /></ProtectedRoute></AppLayout>} />
-          <Route path="/dashboard-verified" element={<AppLayout><ProtectedRoute roles={['verifiedOwner']}><Dashboard /></ProtectedRoute></AppLayout>} />
+          <Route path="/dashboard" element={<AppLayout><ProtectedRoute><Dashboard /></ProtectedRoute></AppLayout>} />
           <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
         </Routes>
       </AuthProvider>
