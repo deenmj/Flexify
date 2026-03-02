@@ -1,6 +1,6 @@
 // backend/server.js
 import dotenv from "dotenv";
-dotenv.config(); // ✅ MUST BE FIRST
+dotenv.config();
 
 import express from "express";
 import path from "path";
@@ -8,9 +8,8 @@ import cors from "cors";
 import passport from "passport";
 
 import connectDB from "./config/db.js";
-import "./config/passport.js"; // now env vars exist
+import "./config/passport.js";
 
-// Connect DB
 connectDB();
 
 const app = express();
@@ -31,8 +30,7 @@ import userRoutes from "./routes/userRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-import verificationRoutes from "./routes/verificationRoutes.js";
-import ownerRoutes from "./routes/ownerRoutes.js";
+import subadminRoutes from "./routes/subadminRoutes.js";
 
 import { protect } from "./middleware/authMiddleware.js";
 
@@ -44,15 +42,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", protect, userRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/bookings", protect, bookingRoutes);
-app.use("/api/admin", protect, adminRoutes);
-app.use("/api/verify", verificationRoutes);
-app.use("/api/owners", ownerRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/subadmin", subadminRoutes);
 
 // Catch-all to serve React app
 app.get("*", (req, res) => {
   res.sendFile(path.join(process.cwd(), "..", "flexify-app", "dist", "index.html"));
 });
 
-// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

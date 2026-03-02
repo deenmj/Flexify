@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified } from 'lucide-react';
-import { vehicleApi, ownerApi, type Vehicle, type User } from '../api';
+import { vehicleApi, type Vehicle, type User } from '../api';
 import './Home.css';
 
 export default function Home() {
@@ -13,7 +13,7 @@ export default function Home() {
 
   useEffect(() => {
     vehicleApi.getAll().then(setVehicles).catch(console.error);
-    ownerApi.getVerifiedOwners().then(setOwners).catch(console.error);
+    // owners section handled by API data
   }, []);
 
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, dir: 'left' | 'right') => {
@@ -113,7 +113,7 @@ export default function Home() {
                 </h3>
                 <p className="owner-location">
                   <MapPin size={14} />
-                  {(owner.verifiedBusiness as any)?.address || 'Location available'}
+                  {(owner as any).address || 'Sri Lanka'}
                 </p>
                 <Link to={`/explore?owner=${owner.id || owner._id}`} className="btn btn-secondary btn-sm btn-full">
                   View Vehicles
@@ -233,7 +233,7 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
     <div className="vehicle-card card">
       <div className="vehicle-img-wrap">
         <img
-          src={vehicle.photos?.[0] || vehicle.images?.[0] || 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'}
+          src={vehicle.photos?.[0] || 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'}
           alt={vehicle.title}
           className="vehicle-img"
           onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'; }}
@@ -251,12 +251,12 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         </div>
         <div className="vehicle-footer">
           <div className="vehicle-price">
-            <span className="price-amount">${vehicle.pricePerDay}</span>
+            <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
             <span className="price-unit">/day</span>
           </div>
           {ownerData && (
             <span className="vehicle-owner-badge">
-              {ownerData.verified && <Verified size={12} />}
+              {ownerData.ownerType === 'VERIFIED' && <Verified size={12} />}
               {ownerData.name?.split(' ')[0]}
             </span>
           )}
@@ -280,7 +280,7 @@ function VehiclePlaceholder({ title, specs, price, img }: { title: string; specs
         <div className="vehicle-specs"><span>{specs}</span></div>
         <div className="vehicle-footer">
           <div className="vehicle-price">
-            <span className="price-amount">${price}</span>
+            <span className="price-amount">LKR {price.toLocaleString()}</span>
             <span className="price-unit">/day</span>
           </div>
         </div>

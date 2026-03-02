@@ -1,48 +1,45 @@
 // backend/controllers/adminController.js
+// SUPERADMIN controller — full platform management
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/Booking.js";
 import User from "../models/User.js";
-import Earning from "../models/Earning.js";
+
 
 /**
- * Admin: Dashboard stats
+ * Dashboard stats
  */
 export const getAdminStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
+    const totalOwners = await User.countDocuments({ role: "owner" });
     const totalVehicles = await Vehicle.countDocuments();
-    const pendingVehicles = await Vehicle.countDocuments({ approved: false });
-    const totalBookings =
-      (await Booking?.countDocuments({ status: "CONFIRMED" })) || 0;
+    const pendingVehicles = await Vehicle.countDocuments({ status: "pending" });
+    const activeVehicles = await Vehicle.countDocuments({ status: "active" });
+    const totalBookings = await Booking.countDocuments();
+    const confirmedBookings = await Booking.countDocuments({ status: "CONFIRMED" });
+    const pendingKyc = await User.countDocuments({ verificationStatus: "pending" });
 
     let totalEarnings = 0;
-    let commissionCollected = 0;
-
     try {
-      const earningData = await Earning.aggregate([
-        {
-          $group: {
-            _id: null,
-            total: { $sum: "$amount" },
-            commission: { $sum: "$commission" },
-          },
-        },
+      const earningData = await Booking.aggregate([
+        { $match: { status: "CONFIRMED" } },
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
       ]);
-      if (earningData.length) {
-        totalEarnings = earningData[0].total;
-        commissionCollected = earningData[0].commission;
-      }
+      if (earningData.length) totalEarnings = earningData[0].total;
     } catch {
-      console.warn("Earning model optional – skipping aggregate");
+      // Earnings aggregation optional
     }
 
     res.json({
       totalUsers,
+      totalOwners,
       totalVehicles,
       pendingVehicles,
+      activeVehicles,
       totalBookings,
+      confirmedBookings,
+      pendingKyc,
       totalEarnings,
-      commissionCollected,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -50,113 +47,13 @@ export const getAdminStats = async (req, res) => {
 };
 
 /**
- * List pending vehicle approvals
+ * Get ALL users (superadmin)
  */
-export const listPendingVehicles = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
-    const vehicles = await Vehicle.find({ approved: false }).populate(
-      "owner",
-      "name email role"
-    );
-    res.json(vehicles);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-/**
- * Approve owner verification (normal or verified-business)
- * Sets user.verified = true, role = owner, dashboardCreated = true
- * Also mark verificationRequest status and mark verifiedBusiness.approvedBy/approvedAt if exists
- */
-/**
- * ✅ Approve owner verification (normal or verified-business)
- */
-/**
- * ✅ Approve owner verification (normal or verified-business)
- * - Normal owners: verified = false, role = "owner"
- * - Verified businesses: verified = true, role = "verifiedOwner"
- */
-// REPLACE the approveOwnerVerification function in backend/controllers/adminController.js
-
-export const approveOwnerVerification = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: "User not found for approval" });
-
-    // Mark verificationRequest as approved
-    if (user.verificationRequest) {
-      user.verificationRequest.status = "approved";
-      user.verificationRequest.approvedAt = new Date();
-    }
-
-    // Sync top-level fields
-    user.verified = true;
-    if (user.verificationRequest?.fullName) {
-      // name is not editable after verification
-      user.name = user.verificationRequest.fullName;
-    }
-    if (user.verificationRequest?.phone) user.phone = user.verificationRequest.phone;
-    if (user.verificationRequest?.address) user.address = user.verificationRequest.address;
-    if (user.verificationRequest?.userPhoto) user.profilePic = user.verificationRequest.userPhoto;
-
-    // Distinguish types for roles
-    if (user.verificationRequest?.type === "verified-business") {
-      user.role = "verifiedOwner";
-    } else if (user.verificationRequest?.type === "normal-owner") {
-      user.role = "owner";
-    } else {
-      // user-verification keeps existing role (likely 'user' or 'owner')
-    }
-
-    // mark dashboard created
-    user.dashboardCreated = true;
-
-    // if verifiedBusiness exists, stamp approval
-    if (user.verifiedBusiness) {
-      user.verifiedBusiness.approvedBy = req.user._id; // admin id
-      user.verifiedBusiness.approvedAt = new Date();
-    }
-
-    await user.save();
-
-    // Return the updated user (so frontend can update localStorage if needed)
-    return res.json({ message: "✅ Verification approved and role updated", user });
-  } catch (err) {
-    console.error("approveOwnerVerification error:", err);
-    return res.status(500).json({ message: err.message });
-  }
-};
-
-
-/**
- * Reject owner verification
- */
-export const rejectOwnerVerification = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: "User not found for rejection" });
-
-    if (!user.verificationRequest) {
-      return res.status(400).json({ message: "No verification request found for this user" });
-    }
-
-    user.verificationRequest.status = "rejected";
-    user.verificationRequest.rejectedAt = new Date();
-    await user.save();
-
-    res.json({ message: "Verification request rejected. User status moved to enquiry.", user });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-/**
- * List pending owner verifications
- */
-export const listPendingVerifications = async (req, res) => {
-  try {
-    const users = await User.find({ "verificationRequest.status": "pending" }).select("name email verificationRequest");
+    const users = await User.find()
+      .select("-password")
+      .sort({ createdAt: -1 });
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -164,32 +61,90 @@ export const listPendingVerifications = async (req, res) => {
 };
 
 /**
- * Get single verification request (popup)
+ * Update user role (superadmin promotes/demotes)
  */
-export const getVerificationRequest = async (req, res) => {
+export const updateUserRole = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).select("name email verificationRequest verifiedBusiness");
+    const { role, ownerType } = req.body;
+    const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+
+    // Prevent superadmin from demoting themselves
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: "Cannot change your own role" });
+    }
+
+    const validRoles = ["user", "owner", "subadmin", "superadmin"];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    user.role = role;
+
+    // Set ownerType if promoting to owner
+    if (role === "owner") {
+      user.ownerType = ownerType === "VERIFIED" ? "VERIFIED" : "UNVERIFIED";
+    } else {
+      user.ownerType = null;
+    }
+
+    // Subadmins and superadmins are auto KYC verified
+    if (role === "subadmin" || role === "superadmin") {
+      user.isKycVerified = true;
+      user.verificationStatus = "approved";
+    }
+
+    await user.save();
+    res.json({ message: `User role updated to ${role}`, user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
 /**
- * Combined admin requests (pending vehicles + pending verifications + archived verifications)
+ * Delete user (superadmin)
  */
-export const getAdminRequests = async (req, res) => {
+export const deleteUser = async (req, res) => {
   try {
-    const pendingVehicles = await Vehicle.find({ approved: false }).populate("owner", "name email");
-    const pendingVerifications = await User.find({ "verificationRequest.status": "pending" }).select("name email verificationRequest verifiedBusiness");
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Archived verification requests (approved or rejected)
-    const archived = await User.find({
-      "verificationRequest.status": { $in: ["approved", "rejected"] }
-    }).select("name email verificationRequest verifiedBusiness");
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: "Cannot delete yourself" });
+    }
 
-    res.json({ pendingVehicles, pendingVerifications, archived });
+    await user.deleteOne();
+    res.json({ message: "User deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Get ALL vehicles (superadmin)
+ */
+export const getAllVehicles = async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find()
+      .populate("owner", "name email role ownerType")
+      .sort({ createdAt: -1 });
+    res.json(vehicles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Get ALL bookings (superadmin)
+ */
+export const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate("user", "name email")
+      .populate("owner", "name email phone")
+      .populate("vehicle", "title make model")
+      .sort({ createdAt: -1 });
+    res.json(bookings);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

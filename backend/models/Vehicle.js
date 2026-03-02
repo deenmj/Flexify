@@ -8,14 +8,14 @@ const vehicleSchema = new mongoose.Schema(
     make: { type: String, required: true },
     model: { type: String, required: true },
     year: { type: Number, required: true },
-    
+
     photos: [{ type: String }],
-    
+
     // GeoJSON location
     location: {
       type: { type: String, enum: ["Point"], required: true, default: "Point" },
       coordinates: { type: [Number], required: true }, // [longitude, latitude]
-      address: { type: String } // optional readable text
+      address: { type: String },
     },
 
     pricePerDay: { type: Number, required: true },
@@ -24,13 +24,16 @@ const vehicleSchema = new mongoose.Schema(
     seats: { type: Number, required: true },
     description: { type: String },
 
-    isActive: { type: Boolean, default: true },
-    subscribedUntil: { type: Date },
+    // Vehicle listing status (replaces approved/published booleans)
+    status: {
+      type: String,
+      enum: ["pending", "active", "rejected"],
+      default: "pending",
+    },
 
-    // For backwards compatibility / admin logic
-    approved: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
     timesRented: { type: Number, default: 0 },
-    serviceType: { type: [String], default: [] }
+    serviceType: { type: [String], default: [] },
   },
   { timestamps: true }
 );

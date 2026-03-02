@@ -2,39 +2,13 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
-const verificationRequestSchema = new mongoose.Schema({
-  fullName: String,
-  email: String,
-  phone: String,
-  address: String,
-  years: Number,
-  description: String,
-  // New fields for specific verification
-  idFront: String,
-  idBack: String,
-  userPhoto: String,
-  idFile: String, // Keep for backward compatibility if any
-  status: {
-    type: String,
-    enum: ["pending", "approved", "rejected"],
-    default: "pending",
-  },
-  type: { type: String, default: "normal" },
-  submittedAt: { type: Date, default: Date.now },
-  approvedAt: Date,
-  rejectedAt: Date,
-});
-
-const verifiedBusinessSchema = new mongoose.Schema({
-  businessName: String,
-  contactEmail: String,
-  phone: String,
-  address: String,
-  registrationNo: String,
-  documents: [String],
-  verifiedAt: Date,
-  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-});
+const documentsSchema = new mongoose.Schema({
+  nicFront: { type: String, default: "" },
+  nicBack: { type: String, default: "" },
+  license: { type: String, default: "" },
+  selfie: { type: String, default: "" },
+  address: { type: String, default: "" },
+}, { _id: false });
 
 const userSchema = new mongoose.Schema(
   {
@@ -44,63 +18,69 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      lowercase: true
+      lowercase: true,
     },
 
-    phone: {
-      type: String,
-      default: ""
-    },
-    address: {
-      type: String,
-      default: ""
-    },
+    phone: { type: String, default: "" },
+    address: { type: String, default: "" },
 
-    password: {
-      type: String,
-      required: false
-    },
+    password: { type: String, required: false },
 
     provider: {
       type: String,
       enum: ["local", "google"],
-      default: "local"
+      default: "local",
     },
 
+    // Core role: user | owner | subadmin | superadmin
     role: {
       type: String,
-      enum: ["user", "owner", "verifiedOwner", "admin", "staff"],
-      default: "user"
+      enum: ["user", "owner", "subadmin", "superadmin"],
+      default: "user",
     },
 
+    // Owner sub-type (only relevant when role === "owner")
+    ownerType: {
+      type: String,
+      enum: ["VERIFIED", "UNVERIFIED"],
+      default: null,
+    },
+
+    // Account status
     status: {
       type: String,
       enum: ["active", "blocked", "deleted"],
-      default: "active"
+      default: "active",
     },
 
+    // Email verified (set true after email link click)
     verified: { type: Boolean, default: false },
 
-    // ✅ EMAIL VERIFICATION FIELDS
+    // KYC verification for renters / owners
+    isKycVerified: { type: Boolean, default: false },
+    verificationStatus: {
+      type: String,
+      enum: ["not_submitted", "pending", "approved", "rejected"],
+      default: "not_submitted",
+    },
+
+    // KYC documents (file paths)
+    documents: { type: documentsSchema, default: () => ({}) },
+
+    // Email verification
     emailVerificationToken: { type: String },
     emailVerifiedAt: { type: Date },
 
-    // 🔐 PASSWORD RESET FIELDS
+    // Password reset
     passwordResetToken: { type: String },
     passwordResetExpires: { type: Date },
 
-
     profilePic: { type: String, default: "" },
-    dashboardCreated: { type: Boolean, default: false },
-
-    verificationRequest: verificationRequestSchema,
-    verifiedBusiness: verifiedBusinessSchema,
   },
   { timestamps: true }
 );
 
-
-// 🔒 Hash password ONLY if it exists & is modified
+// Hash password before save
 userSchema.pre("save", async function (next) {
   if (!this.password || !this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
@@ -108,7 +88,7 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// 🔍 Compare password (local users only)
+// Compare password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   if (!this.password) return false;
   return bcrypt.compare(enteredPassword, this.password);

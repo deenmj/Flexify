@@ -81,9 +81,9 @@ export default function Explore() {
       {/* Search Header */}
       <section className="explore-header">
         <div className="container" style={{ position: 'relative' }}>
-          <button 
-            onClick={() => window.history.back()} 
-            className="btn btn-ghost" 
+          <button
+            onClick={() => window.history.back()}
+            className="btn btn-ghost"
             style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
             <ArrowLeft size={18} /> Back
@@ -149,7 +149,7 @@ export default function Explore() {
                     <Locate size={14} /> My Location
                   </button>
                   <input type="number" className="input-field" placeholder="Radius(km)" value={filters.radius} onChange={(e) => setFilters({ ...filters, radius: e.target.value })} style={{ width: '100px' }} />
-                  {(filters.lat || filters.lng) && <span style={{fontSize: '10px', color: 'var(--text-tertiary)'}}>📌 {parseFloat(filters.lat).toFixed(2)}, {parseFloat(filters.lng).toFixed(2)}</span>}
+                  {(filters.lat || filters.lng) && <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>📌 {parseFloat(filters.lat).toFixed(2)}, {parseFloat(filters.lng).toFixed(2)}</span>}
                 </div>
               </div>
               <div className="input-group">
@@ -167,7 +167,7 @@ export default function Explore() {
                 </select>
               </div>
               <div className="input-group">
-                <label>Min Price ($/day)</label>
+                <label>Min Price (LKR/day)</label>
                 <input
                   type="number"
                   className="input-field"
@@ -177,7 +177,7 @@ export default function Explore() {
                 />
               </div>
               <div className="input-group">
-                <label>Max Price ($/day)</label>
+                <label>Max Price (LKR/day)</label>
                 <input
                   type="number"
                   className="input-field"
@@ -265,14 +265,14 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
     <div className="explore-vehicle-card card">
       <div className="explore-vehicle-img-wrap">
         <img
-          src={vehicle.photos?.[0] || vehicle.images?.[0] || 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'}
+          src={vehicle.photos?.[0] || 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'}
           alt={vehicle.title}
           className="explore-vehicle-img"
           onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'; }}
         />
         <div className="explore-vehicle-badges">
           {vehicle.transmission && <span className="badge badge-primary">{vehicle.transmission}</span>}
-          {ownerData?.verified && <span className="badge badge-success"><Verified size={12} /> Verified</span>}
+          {ownerData?.ownerType === 'VERIFIED' && <span className="badge badge-success"><Verified size={12} /> Verified</span>}
         </div>
       </div>
       <div className="explore-vehicle-body">
@@ -294,7 +294,7 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
         </div>
         <div className="explore-vehicle-footer">
           <div className="explore-vehicle-price">
-            <span className="price-amount">${vehicle.pricePerDay}</span>
+            <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
             <span className="price-unit">/day</span>
           </div>
           <Link to={`/vehicles/${vehicle._id}`} className="btn btn-primary btn-sm">

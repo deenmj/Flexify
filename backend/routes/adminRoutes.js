@@ -1,25 +1,22 @@
-// backend/routes/adminRoutes.js
+// backend/routes/adminRoutes.js — SUPERADMIN routes
 import express from "express";
 import {
   getAdminStats,
-  listPendingVehicles,
-  listPendingVerifications,
-  getVerificationRequest,
-  rejectOwnerVerification,
-  approveOwnerVerification,
-  getAdminRequests,
+  getAllUsers,
+  updateUserRole,
+  deleteUser,
+  getAllVehicles,
+  getAllBookings,
 } from "../controllers/adminController.js";
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import { protect, requireSuperAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ========== ADMIN ROUTES ==========
-router.get("/stats", protect, adminOnly, getAdminStats);
-router.get("/pending-vehicles", protect, adminOnly, listPendingVehicles);
-router.get("/pending-verifications", protect, adminOnly, listPendingVerifications);
-router.get("/verification/:userId", protect, adminOnly, getVerificationRequest);
-router.put("/reject-owner/:userId", protect, adminOnly, rejectOwnerVerification);
-router.put("/verify-owner/:userId", protect, adminOnly, approveOwnerVerification);
-router.get("/requests", protect, adminOnly, getAdminRequests);
+router.get("/stats", protect, requireSuperAdmin, getAdminStats);
+router.get("/users", protect, requireSuperAdmin, getAllUsers);
+router.patch("/users/:id/role", protect, requireSuperAdmin, updateUserRole);
+router.delete("/users/:id", protect, requireSuperAdmin, deleteUser);
+router.get("/vehicles", protect, requireSuperAdmin, getAllVehicles);
+router.get("/bookings", protect, requireSuperAdmin, getAllBookings);
 
 export default router;

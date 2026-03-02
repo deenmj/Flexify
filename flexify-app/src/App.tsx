@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -16,12 +16,12 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import SubAdminDashboard from './pages/SubAdminDashboard';
 import About from './pages/About';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
 import Help from './pages/Help';
 import VerifyUser from './pages/VerifyUser';
-import StaffDashboard from './pages/StaffDashboard';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -49,22 +49,23 @@ export default function App() {
           <Route path="/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
 
           {/* Public pages */}
-          <Route path="/" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Home /></ProtectedRoute></AppLayout>} />
-          <Route path="/explore" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Explore /></ProtectedRoute></AppLayout>} />
-          <Route path="/vehicles/:id" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><VehicleDetail /></ProtectedRoute></AppLayout>} />
-          <Route path="/about" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><About /></ProtectedRoute></AppLayout>} />
-          <Route path="/faq" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><FAQ /></ProtectedRoute></AppLayout>} />
-          <Route path="/contact" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Contact /></ProtectedRoute></AppLayout>} />
-          <Route path="/help" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Help /></ProtectedRoute></AppLayout>} />
+          <Route path="/" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Home /></ProtectedRoute></AppLayout>} />
+          <Route path="/explore" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Explore /></ProtectedRoute></AppLayout>} />
+          <Route path="/vehicles/:id" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><VehicleDetail /></ProtectedRoute></AppLayout>} />
+          <Route path="/about" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><About /></ProtectedRoute></AppLayout>} />
+          <Route path="/faq" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><FAQ /></ProtectedRoute></AppLayout>} />
+          <Route path="/contact" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Contact /></ProtectedRoute></AppLayout>} />
+          <Route path="/help" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Help /></ProtectedRoute></AppLayout>} />
 
           {/* Protected pages */}
-          <Route path="/profile" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Profile /></ProtectedRoute></AppLayout>} />
-          <Route path="/verify" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><VerifyUser /></ProtectedRoute></AppLayout>} />
-          <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><ListVehicle /></ProtectedRoute></AppLayout>} />
-           <Route path="/dashboard" element={<AppLayout><ProtectedRoute excludeRoles={['staff']}><Dashboard /></ProtectedRoute></AppLayout>} />
-          <Route path="/dashboard-verified" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
-          <Route path="/staff" element={<AppLayout><ProtectedRoute roles={['staff']}><StaffDashboard /></ProtectedRoute></AppLayout>} />
+          <Route path="/profile" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Profile /></ProtectedRoute></AppLayout>} />
+          <Route path="/verify" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><VerifyUser /></ProtectedRoute></AppLayout>} />
+          <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><ListVehicle /></ProtectedRoute></AppLayout>} />
+          <Route path="/dashboard" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Dashboard /></ProtectedRoute></AppLayout>} />
+
+          {/* Admin dashboards */}
+          <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
+          <Route path="/subadmin" element={<AppLayout><ProtectedRoute roles={['subadmin', 'superadmin']}><SubAdminDashboard /></ProtectedRoute></AppLayout>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

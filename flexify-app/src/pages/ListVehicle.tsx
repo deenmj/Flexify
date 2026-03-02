@@ -89,7 +89,7 @@ export default function ListVehicle() {
   const [customPlace, setCustomPlace] = useState('');
 
   const [photos, setPhotos] = useState<File[]>([]);
-  
+
   // Map State defaults to Sri Lanka center
   const [position, setPosition] = useState({ lat: 7.8731, lng: 80.7718 });
 
@@ -139,7 +139,7 @@ export default function ListVehicle() {
     );
   }
 
-  if (!user.verified) {
+  if (!user.isKycVerified) {
     return (
       <div className="static-page">
         <section className="static-hero">
@@ -155,7 +155,7 @@ export default function ListVehicle() {
             </div>
             <h2>Account Verification Needed</h2>
             <p style={{ color: 'var(--text-secondary)', marginTop: '1rem', marginBottom: '2rem' }}>
-              To ensure the safety of our community, all vehicle owners must be verified by our staff. 
+              To ensure the safety of our community, all vehicle owners must be verified by our staff.
               Please provide your identification documents to get started.
             </p>
             <Link to="/verify" className="btn btn-primary btn-full btn-lg">
@@ -178,7 +178,7 @@ export default function ListVehicle() {
     setLoading(true);
     setError('');
     setSuccess('');
-    
+
     // Quick validation
     if (!form.make || !form.model) {
       setError("Make and Model are required.");
@@ -191,15 +191,15 @@ export default function ListVehicle() {
       Object.entries(form).forEach(([key, value]) => {
         formData.append(key, value);
       });
-      
+
       photos.forEach(photo => {
         formData.append('photos', photo);
       });
 
       await vehicleApi.createWithPhotos(formData);
-      
-      setSuccess('Vehicle submitted successfully! Added to your dashboard as inactive (pending review).');
-      
+
+      setSuccess('Vehicle submitted successfully! ' + (user.ownerType === 'VERIFIED' ? 'Your listing is now active.' : 'It will be reviewed by our team before going live.'));
+
       // Reset form
       setForm({ title: '', make: '', model: '', year: '', pricePerDay: '', transmission: 'Automatic', fuelType: 'Petrol', seats: '4', description: '', address: '', lat: '', lng: '' });
       setSelectedMake('');
@@ -226,9 +226,9 @@ export default function ListVehicle() {
     <div className="list-vehicle-page">
       <section className="static-hero">
         <div className="container" style={{ position: 'relative' }}>
-          <button 
-            onClick={() => window.history.back()} 
-            className="btn btn-ghost" 
+          <button
+            onClick={() => window.history.back()}
+            className="btn btn-ghost"
             style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
             <ArrowLeft size={18} /> Back
@@ -248,18 +248,18 @@ export default function ListVehicle() {
                 <input className="input-field" placeholder="e.g. Spacious Family SUV" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
               </div>
             </div>
-            
+
             {/* MAKE AND MODEL OVERHAUL */}
             <div className="form-row">
               <div className="input-group">
                 <label><Settings size={14} /> Make</label>
-                <select 
-                  className="input-field" 
-                  value={selectedMake} 
+                <select
+                  className="input-field"
+                  value={selectedMake}
                   onChange={(e) => {
                     setSelectedMake(e.target.value);
                     setSelectedModel(''); // Reset model when make changes
-                  }} 
+                  }}
                   required
                 >
                   <option value="">Select Brand</option>
@@ -268,22 +268,22 @@ export default function ListVehicle() {
                   ))}
                 </select>
                 {selectedMake === 'Other' && (
-                  <input 
-                    className="input-field animate-fade-in" 
-                    placeholder="Enter custom Make..." 
-                    value={customMake} 
-                    onChange={(e) => setCustomMake(e.target.value)} 
-                    style={{ marginTop: '0.5rem' }} 
-                    required 
+                  <input
+                    className="input-field animate-fade-in"
+                    placeholder="Enter custom Make..."
+                    value={customMake}
+                    onChange={(e) => setCustomMake(e.target.value)}
+                    style={{ marginTop: '0.5rem' }}
+                    required
                   />
                 )}
               </div>
               <div className="input-group">
                 <label><PenTool size={14} /> Model</label>
-                <select 
-                  className="input-field" 
-                  value={selectedModel} 
-                  onChange={(e) => setSelectedModel(e.target.value)} 
+                <select
+                  className="input-field"
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
                   required={selectedMake !== 'Other'}
                   disabled={!selectedMake || selectedMake === 'Other'}
                 >
@@ -294,13 +294,13 @@ export default function ListVehicle() {
                   <option value="Other">Add Model / Other</option>
                 </select>
                 {(selectedModel === 'Other' || selectedMake === 'Other') && (
-                  <input 
-                    className="input-field animate-fade-in" 
-                    placeholder="Enter custom Model..." 
-                    value={customModel} 
-                    onChange={(e) => setCustomModel(e.target.value)} 
-                    style={{ marginTop: '0.5rem' }} 
-                    required 
+                  <input
+                    className="input-field animate-fade-in"
+                    placeholder="Enter custom Model..."
+                    value={customModel}
+                    onChange={(e) => setCustomModel(e.target.value)}
+                    style={{ marginTop: '0.5rem' }}
+                    required
                   />
                 )}
               </div>
@@ -312,11 +312,11 @@ export default function ListVehicle() {
                 <input type="number" className="input-field" placeholder="2023" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required />
               </div>
               <div className="input-group">
-                <label><DollarSign size={14} /> Price per Day ($)</label>
+                <label><DollarSign size={14} /> Price per Day (LKR)</label>
                 <input type="number" className="input-field" placeholder="45" value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })} required />
               </div>
             </div>
-            
+
             <div className="form-row">
               <div className="input-group">
                 <label>Transmission</label>
@@ -349,13 +349,13 @@ export default function ListVehicle() {
             <div className="form-row" style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div className="input-group" style={{ flex: 1 }}>
                 <label><MapPin size={14} /> District</label>
-                <select 
-                  className="input-field" 
-                  value={selectedDistrict} 
+                <select
+                  className="input-field"
+                  value={selectedDistrict}
                   onChange={(e) => {
                     setSelectedDistrict(e.target.value);
                     setSelectedPlace('');
-                  }} 
+                  }}
                   required
                 >
                   <option value="">Select District</option>
@@ -364,13 +364,13 @@ export default function ListVehicle() {
                   ))}
                 </select>
               </div>
-              
+
               <div className="input-group" style={{ flex: 1 }}>
                 <label><Locate size={14} /> City / Place</label>
-                <select 
-                  className="input-field" 
-                  value={selectedPlace} 
-                  onChange={(e) => setSelectedPlace(e.target.value)} 
+                <select
+                  className="input-field"
+                  value={selectedPlace}
+                  onChange={(e) => setSelectedPlace(e.target.value)}
                   required={selectedDistrict !== 'Other'}
                   disabled={!selectedDistrict || selectedDistrict === 'Other'}
                 >
@@ -381,13 +381,13 @@ export default function ListVehicle() {
                   <option value="Other">Add Place / Other</option>
                 </select>
                 {(selectedPlace === 'Other' || selectedDistrict === 'Other') && (
-                  <input 
-                    className="input-field animate-fade-in" 
-                    placeholder="Enter custom place..." 
-                    value={customPlace} 
-                    onChange={(e) => setCustomPlace(e.target.value)} 
-                    style={{ marginTop: '0.5rem' }} 
-                    required 
+                  <input
+                    className="input-field animate-fade-in"
+                    placeholder="Enter custom place..."
+                    value={customPlace}
+                    onChange={(e) => setCustomPlace(e.target.value)}
+                    style={{ marginTop: '0.5rem' }}
+                    required
                   />
                 )}
               </div>
@@ -395,21 +395,21 @@ export default function ListVehicle() {
 
             <div className="input-group" style={{ marginBottom: '1.5rem', position: 'relative' }}>
               <label style={{ marginBottom: '0.5rem' }}>Pinpoint EXACT Location (Sri Lanka ONLY)  <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>(Tap map to drop pin)</span></label>
-               
+
               <div style={{ height: '350px', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative', zIndex: 0 }}>
                 {/* PickMe Style Float Button */}
-                <button 
-                  type="button" 
-                  onClick={handleGetLocation} 
+                <button
+                  type="button"
+                  onClick={handleGetLocation}
                   style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000, background: '#fff', border: 'none', borderRadius: '8px', padding: '10px 15px', boxShadow: '0 2px 10px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600, color: 'var(--primary-color)' }}
                 >
                   <Locate size={16} /> Locate Me
                 </button>
-              
-                <MapContainer 
-                  key={`${position.lat === 7.8731 ? 'init' : 'located'}`} 
-                  center={[position.lat, position.lng]} 
-                  zoom={position.lat === 7.8731 ? 7 : 14} 
+
+                <MapContainer
+                  key={`${position.lat === 7.8731 ? 'init' : 'located'}`}
+                  center={[position.lat, position.lng]}
+                  zoom={position.lat === 7.8731 ? 7 : 14}
                   style={{ height: '100%', width: '100%' }}
                   maxBounds={[[5.9, 79.5], [9.9, 81.9]]}
                   maxBoundsViscosity={1.0}
@@ -425,10 +425,10 @@ export default function ListVehicle() {
               <label><FileText size={14} /> Description</label>
               <textarea className="input-field" rows={4} placeholder="Describe your vehicle..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
-            
+
             <div className="input-group">
               <label><Image size={14} /> Vehicle Photos</label>
-              <div 
+              <div
                 onClick={() => fileInputRef.current?.click()}
                 style={{
                   border: '2px dashed var(--border-color)',
@@ -446,13 +446,13 @@ export default function ListVehicle() {
                   <p style={{ fontWeight: '500', marginBottom: '4px' }}>Click to upload vehicle photos</p>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', margin: '0' }}>PNG, JPG, JPEG up to 10MB</p>
                 </div>
-                <input 
-                  type="file" 
-                  multiple 
-                  accept="image/*" 
-                  style={{ display: 'none' }} 
-                  onChange={handlePhotoChange} 
-                  ref={fileInputRef} 
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handlePhotoChange}
+                  ref={fileInputRef}
                   required={photos.length === 0}
                 />
               </div>

@@ -30,9 +30,18 @@ export default function Navbar() {
 
   const getDashboardLink = () => {
     if (!user) return null;
-    if (user.role === 'admin') return '/admin';
-    if (user.role === 'staff') return '/staff';
-    return '/dashboard'; 
+    if (user.role === 'superadmin') return '/admin';
+    if (user.role === 'subadmin') return '/subadmin';
+    return '/dashboard';
+  };
+
+  const getRoleBadge = () => {
+    if (!user) return null;
+    if (user.role === 'superadmin') return { text: 'ADMIN', color: '#7c3aed' };
+    if (user.role === 'subadmin') return { text: 'STAFF', color: '#0d9488' };
+    if (user.role === 'owner' && user.ownerType === 'VERIFIED') return { text: 'PRO', color: '#1890ff' };
+    if (user.isKycVerified) return { text: 'KYC', color: '#16a34a' };
+    return null;
   };
 
   const handleLogout = () => {
@@ -41,23 +50,25 @@ export default function Navbar() {
     navigate('/auth');
   };
 
+  const badge = getRoleBadge();
+  const isAdminRole = user?.role === 'subadmin' || user?.role === 'superadmin';
+
   return (
     <>
       <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
         <div className="navbar-inner container">
-          {/* Logo */}
-          <Link to="/" className="navbar-logo">
+          <Link to={isAdminRole ? getDashboardLink()! : '/'} className="navbar-logo">
             <div className="logo-icon">
               <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" opacity="0.5"/>
-                <path d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263Z" fill="currentColor"/>
+                <path d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" opacity="0.5" />
+                <path d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263Z" fill="currentColor" />
               </svg>
             </div>
             <span className="logo-text">Flexify</span>
           </Link>
 
-          {/* Desktop Nav */}
-          {user?.role !== 'staff' && (
+          {/* Desktop Nav — hide for subadmin (they only see their portal) */}
+          {!isAdminRole && (
             <div className="navbar-links">
               <NavDropdown
                 label="Vehicle Collection"
@@ -85,12 +96,11 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="navbar-actions">
-            {user?.role !== 'staff' && (
+            {!isAdminRole && (
               <>
                 <Link to="/explore" className="nav-action-btn" title="Search">
                   <Search size={20} />
                 </Link>
-
                 <button className="nav-action-btn notification-btn" title="Notifications">
                   <Bell size={20} />
                   <span className="notification-dot" />
@@ -109,7 +119,7 @@ export default function Navbar() {
                     src={user.profilePic || '/default-avatar.png'}
                     alt={user.name}
                     className="profile-avatar"
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=2563eb&color=fff'; }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=1890ff&color=fff'; }}
                   />
                 ) : (
                   <div className="profile-avatar-placeholder">
@@ -125,18 +135,18 @@ export default function Navbar() {
                       src={user.profilePic || '/default-avatar.png'}
                       alt={user.name}
                       className="dropdown-avatar"
-                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=2563eb&color=fff'; }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=1890ff&color=fff'; }}
                     />
                     <div>
                       <p className="dropdown-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {user.name} 
-                        {user.verified && <span style={{ background: 'var(--color-primary)', color: 'white', fontSize: '8px', padding: '1px 4px', borderRadius: '4px', fontWeight: 900 }}>PRO</span>}
+                        {user.name}
+                        {badge && <span style={{ background: badge.color, color: 'white', fontSize: '8px', padding: '1px 4px', borderRadius: '4px', fontWeight: 900 }}>{badge.text}</span>}
                       </p>
                       <p className="dropdown-email">{user.email}</p>
                     </div>
                   </div>
                   <div className="profile-dropdown-divider" />
-                  {user.role !== 'staff' && (
+                  {!isAdminRole && (
                     <>
                       <Link to="/profile" className="dropdown-item" onClick={() => setProfileOpen(false)}>
                         <User size={16} /> My Profile
@@ -151,8 +161,13 @@ export default function Navbar() {
                       </Link>
                     </>
                   )}
-                  {user && !user.verified && user.role !== 'staff' && (
-                    <Link to="/verify" className="dropdown-item" onClick={() => setProfileOpen(false)} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                  {isAdminRole && (
+                    <Link to={getDashboardLink()!} className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                      <LayoutDashboard size={16} /> Dashboard
+                    </Link>
+                  )}
+                  {user && !user.isKycVerified && !isAdminRole && (
+                    <Link to="/verify" className="dropdown-item" onClick={() => setProfileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
                       <Shield size={16} /> Verify Identity
                     </Link>
                   )}
@@ -169,7 +184,6 @@ export default function Navbar() {
               </Link>
             )}
 
-            {/* Mobile menu button */}
             <button className="mobile-menu-btn" onClick={() => setMobileOpen(true)}>
               <Menu size={24} />
             </button>
@@ -192,18 +206,18 @@ export default function Navbar() {
                     src={user.profilePic || '/default-avatar.png'}
                     alt={user.name}
                     className="mobile-avatar"
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=2563eb&color=fff'; }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=1890ff&color=fff'; }}
                   />
                   <div>
                     <p className="mobile-user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {user.name}
-                      {user.verified && <span style={{ background: 'var(--color-primary)', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: 900 }}>PRO</span>}
+                      {badge && <span style={{ background: badge.color, color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: 900 }}>{badge.text}</span>}
                     </p>
-                    <p className="mobile-user-role">{user.role}</p>
+                    <p className="mobile-user-role">{user.role}{user.ownerType ? ` (${user.ownerType})` : ''}</p>
                   </div>
                 </div>
               )}
-              {user?.role !== 'staff' ? (
+              {!isAdminRole ? (
                 <>
                   <Link to="/" className="mobile-link" onClick={() => setMobileOpen(false)}>Home</Link>
                   <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}>Explore Vehicles</Link>
@@ -214,15 +228,17 @@ export default function Navbar() {
                   {user && getDashboardLink() && (
                     <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>Dashboard</Link>
                   )}
-                  {user && !user.verified && (
-                    <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                  {user && !user.isKycVerified && (
+                    <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
                       <Shield size={18} /> Verify Identity
                     </Link>
                   )}
                 </>
               ) : (
                 <>
-                  <Link to="/staff" className="mobile-link" onClick={() => setMobileOpen(false)}>Identity Verification Portal</Link>
+                  <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>
+                    {user?.role === 'superadmin' ? 'Admin Dashboard' : 'Verification Portal'}
+                  </Link>
                 </>
               )}
               {user ? (

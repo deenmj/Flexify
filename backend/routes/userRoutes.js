@@ -1,3 +1,4 @@
+// backend/routes/userRoutes.js
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -18,54 +19,75 @@ const storage = multer.diskStorage({
     cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
   },
 });
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) cb(null, true);
+    else cb(new Error("Only image files are allowed"), false);
+  },
+});
 
-// Verification submission route
+/**
+ * KYC verification submission
+ * Upload: nicFront, nicBack, license, selfie + text: address
+ */
 router.post(
   "/verify",
   protect,
   upload.fields([
-    { name: "idFront", maxCount: 1 },
-    { name: "idBack", maxCount: 1 },
-    { name: "userPhoto", maxCount: 1 },
+    { name: "nicFront", maxCount: 1 },
+    { name: "nicBack", maxCount: 1 },
+    { name: "license", maxCount: 1 },
+    { name: "selfie", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
       const user = await User.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
+      // Check if already approved
+      if (user.verificationStatus === "approved") {
+        return res.status(400).json({ message: "Your KYC is already verified" });
+      }
+
       const files = req.files || {};
-      
-      user.verificationRequest = {
-        fullName: req.body.fullName || user.name,
-        address: req.body.address || "",
-        phone: req.body.phone || user.phone,
-        idFront: files.idFront ? `/uploads/verification/${files.idFront[0].filename}` : null,
-        idBack: files.idBack ? `/uploads/verification/${files.idBack[0].filename}` : null,
-        userPhoto: files.userPhoto ? `/uploads/verification/${files.userPhoto[0].filename}` : null,
-        status: "pending",
-        type: "user-verification",
-        submittedAt: new Date(),
+
+      user.documents = {
+        nicFront: files.nicFront ? `/uploads/verification/${files.nicFront[0].filename}` : user.documents?.nicFront || "",
+        nicBack: files.nicBack ? `/uploads/verification/${files.nicBack[0].filename}` : user.documents?.nicBack || "",
+        license: files.license ? `/uploads/verification/${files.license[0].filename}` : user.documents?.license || "",
+        selfie: files.selfie ? `/uploads/verification/${files.selfie[0].filename}` : user.documents?.selfie || "",
+        address: req.body.address || user.documents?.address || "",
       };
 
-      // Also update user profile basic info if provided
+      user.verificationStatus = "pending";
+
+      // Update profile info
       if (req.body.fullName) user.name = req.body.fullName;
       if (req.body.phone) user.phone = req.body.phone;
+
+      // Set profilePic from selfie
+      if (files.selfie) {
+        user.profilePic = `/uploads/verification/${files.selfie[0].filename}`;
+      }
 
       await user.save();
 
       res.json({
-        message: "Verification request submitted successfully. Please wait for staff approval.",
+        message: "KYC documents submitted successfully. Please wait for admin approval.",
         user,
       });
     } catch (err) {
-      console.error("User verification error:", err);
-      res.status(500).json({ message: "Error submitting verification request" });
+      console.error("KYC submission error:", err);
+      res.status(500).json({ message: "Error submitting verification" });
     }
   }
 );
 
-// Profile update route
+/**
+ * Profile update
+ */
 router.put(
   "/update-profile",
   protect,
@@ -76,36 +98,48 @@ router.put(
       if (!user) return res.status(404).json({ message: "User not found" });
 
       const files = req.files || {};
-      
-      // Basic info update
-      // Important: don't let verified users change their name (NIC verified)
-      if (req.body.name && !user.verified) {
-        user.name = req.body.name;
-      }
-      
+
+      if (req.body.name && !user.isKycVerified) user.name = req.body.name;
       if (req.body.phone) user.phone = req.body.phone;
       if (req.body.address) user.address = req.body.address;
-      
+
       if (files.profilePic) {
         user.profilePic = `/uploads/verification/${files.profilePic[0].filename}`;
       }
 
       await user.save();
-
-      res.json({
-        message: "Profile updated successfully!",
-        user,
-      });
+      res.json({ message: "Profile updated successfully!", user });
     } catch (err) {
       console.error("Profile update error:", err);
-      res.status(500).json({ message: "Error updating profile details" });
+      res.status(500).json({ message: "Error updating profile" });
     }
   }
 );
 
-// test route
-router.get("/test", (req, res) => {
-  res.json({ message: "User route working!" });
+/**
+ * Register as owner (switch role to owner)
+ */
+router.post("/become-owner", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.role === "owner") {
+      return res.status(400).json({ message: "You are already registered as an owner" });
+    }
+
+    if (user.role !== "user") {
+      return res.status(400).json({ message: "Only regular users can become owners" });
+    }
+
+    user.role = "owner";
+    user.ownerType = "UNVERIFIED";
+    await user.save();
+
+    res.json({ message: "You are now registered as an owner! Submit KYC to get verified.", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 export default router;

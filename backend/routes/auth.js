@@ -15,42 +15,25 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-console.log("✅ auth.js loaded");
-
 /* =========================================================
-   TEST ROUTE (VERY IMPORTANT)
-========================================================= */
-router.get("/test", (req, res) => {
-  res.send("AUTH ROUTE WORKING");
-});
-
-/* =========================================================
-   MULTER SETUP
+   MULTER SETUP (avatars)
 ========================================================= */
 const avatarsDir = path.join(process.cwd(), "uploads", "avatars");
 if (!fs.existsSync(avatarsDir)) fs.mkdirSync(avatarsDir, { recursive: true });
 
 const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, avatarsDir);
-  },
+  destination(req, file, cb) { cb(null, avatarsDir); },
   filename(req, file, cb) {
     const ext = path.extname(file.originalname);
     const base = path.basename(file.originalname, ext).replace(/\s+/g, "_");
     cb(null, `${base}-${Date.now()}${ext}`);
-  }
+  },
 });
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }
-});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 /* =========================================================
-   AUTH ROUTES
+   SIGNUP
 ========================================================= */
-
-// SIGNUP
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -65,37 +48,40 @@ router.post("/signup", async (req, res) => {
     const user = await User.create({
       name,
       email: email.toLowerCase(),
-      password,              // ✅ plain password
+      password,
       provider: "local",
       verified: false,
-      emailVerificationToken: token
+      emailVerificationToken: token,
     });
 
-    const verifyUrl = `http://localhost:5000/api/auth/verify-email/${token}`;
+    const verifyUrl = `${process.env.BACKEND_URL || "http://localhost:5000"}/api/auth/verify-email/${token}`;
 
-    await sendEmail({
-      to: user.email,
-      subject: "Verify your Flexify account",
-      html: `
-        <h2>Welcome to Flexify 🚗</h2>
-        <p>Please verify your email to activate your account:</p>
-        <a href="${verifyUrl}">Verify Email</a>
-      `
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Verify your Flexify account",
+        html: `
+          <h2>Welcome to Flexify 🚗</h2>
+          <p>Please verify your email to activate your account:</p>
+          <a href="${verifyUrl}" style="display:inline-block;background:#1890ff;color:white;padding:10px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email</a>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("Email send failed:", emailErr.message);
+    }
 
     res.status(201).json({
-      message: "Verification email sent. Please check your inbox."
+      message: "Account created! Please check your email to verify your account.",
     });
-
   } catch (err) {
     console.error("Signup error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-
-
-// LOGIN
+/* =========================================================
+   LOGIN
+========================================================= */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -105,27 +91,23 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // 🚫 Google users must login via Google
     if (user.provider === "google") {
       return res.status(400).json({
-        message: "This account uses Google login. Please continue with Google."
+        message: "This account uses Google login. Please continue with Google.",
       });
     }
 
-    // 🚫 Email not verified
     if (!user.verified) {
       return res.status(403).json({
-        message: "Please verify your email before logging in"
+        message: "Please verify your email before logging in",
       });
     }
 
-    // 🔐 Password check
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // ✅ Success
     res.json({
       token: generateToken(user._id),
       user: {
@@ -133,23 +115,25 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        ownerType: user.ownerType,
         verified: user.verified,
+        isKycVerified: user.isKycVerified,
+        verificationStatus: user.verificationStatus,
         profilePic: user.profilePic,
-        provider: user.provider
-      }
+        phone: user.phone,
+        provider: user.provider,
+      },
     });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-
-//Verify email
+/* =========================================================
+   VERIFY EMAIL
+========================================================= */
 router.get("/verify-email/:token", async (req, res) => {
-  const user = await User.findOne({
-    emailVerificationToken: req.params.token,
-  });
+  const user = await User.findOne({ emailVerificationToken: req.params.token });
 
   if (!user) {
     return res.status(400).send("Invalid or expired verification link");
@@ -158,31 +142,28 @@ router.get("/verify-email/:token", async (req, res) => {
   user.verified = true;
   user.emailVerifiedAt = new Date();
   user.emailVerificationToken = undefined;
-
   await user.save();
 
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
   res.redirect(`${frontendUrl}/auth`);
 });
 
-// CURRENT USER
+/* =========================================================
+   CURRENT USER
+========================================================= */
 router.get("/me", protect, async (req, res) => {
-  res.json(req.user);
+  const user = await User.findById(req.user._id).select("-password");
+  res.json(user);
 });
 
 /* =========================================================
    GOOGLE AUTH
 ========================================================= */
-
-// Redirect to Google
 router.get(
   "/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-  })
+  passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-// Google callback
 router.get(
   "/google/callback",
   (req, res, next) => {
@@ -199,30 +180,21 @@ router.get(
   }
 );
 
-// ===============================
-// FORGOT PASSWORD
-// ===============================
+/* =========================================================
+   FORGOT PASSWORD
+========================================================= */
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
-
   try {
     const user = await User.findOne({ email: email.toLowerCase() });
-
-    if (!user) {
-      return res.status(404).json({ message: "No account with this email" });
-    }
-
-    // 🚫 Google users cannot reset password
+    if (!user) return res.status(404).json({ message: "No account with this email" });
     if (user.provider === "google") {
-      return res.status(400).json({
-        message: "This account uses Google login. Please sign in with Google."
-      });
+      return res.status(400).json({ message: "This account uses Google login." });
     }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
-
     user.passwordResetToken = resetToken;
-    user.passwordResetExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+    user.passwordResetExpires = Date.now() + 15 * 60 * 1000;
     await user.save();
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -236,45 +208,38 @@ router.post("/forgot-password", async (req, res) => {
         <p>Click the link below to reset your password:</p>
         <a href="${resetUrl}">Reset Password</a>
         <p>This link expires in 15 minutes.</p>
-      `
+      `,
     });
 
     res.json({ message: "Password reset link sent to your email" });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// ===============================
-// RESET PASSWORD
-// ===============================
+/* =========================================================
+   RESET PASSWORD
+========================================================= */
 router.post("/reset-password/:token", async (req, res) => {
   const { password } = req.body;
-
   try {
     const user = await User.findOne({
       passwordResetToken: req.params.token,
       passwordResetExpires: { $gt: Date.now() },
     });
 
-    if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
-    user.password = password; // 🔐 hashed by pre-save hook
+    user.password = password;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-
     await user.save();
 
     res.json({ message: "Password reset successful. You can now login." });
-
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 export default router;

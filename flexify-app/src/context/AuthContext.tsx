@@ -31,6 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...userData,
       id: userData.id || userData._id || '',
       verified: userData.verified || false,
+      isKycVerified: userData.isKycVerified || false,
+      verificationStatus: userData.verificationStatus || 'not_submitted',
     };
     setUser(normalized);
     setToken(tokenStr);

@@ -1,5 +1,7 @@
 const API_BASE_URL = '/api';
 
+// =================== TYPES ===================
+
 export interface User {
   id: string;
   _id?: string;
@@ -7,44 +9,22 @@ export interface User {
   email: string;
   phone?: string;
   address?: string;
-  role: 'user' | 'owner' | 'verifiedOwner' | 'admin' | 'staff';
+  role: 'user' | 'owner' | 'subadmin' | 'superadmin';
+  ownerType?: 'VERIFIED' | 'UNVERIFIED' | null;
   verified: boolean;
+  isKycVerified: boolean;
+  verificationStatus: 'not_submitted' | 'pending' | 'approved' | 'rejected';
+  documents?: {
+    nicFront?: string;
+    nicBack?: string;
+    license?: string;
+    selfie?: string;
+    address?: string;
+  };
   profilePic: string;
   provider?: string;
   status?: string;
-  dashboardCreated?: boolean;
-  verificationRequest?: VerificationRequest;
-  verifiedBusiness?: VerifiedBusiness;
   createdAt?: string;
-}
-
-export interface VerificationRequest {
-  fullName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  years?: number;
-  description?: string;
-  idFront?: string;
-  idBack?: string;
-  userPhoto?: string;
-  idFile?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  type?: string;
-  submittedAt?: string;
-  approvedAt?: string;
-  rejectedAt?: string;
-}
-
-export interface VerifiedBusiness {
-  businessName?: string;
-  contactEmail?: string;
-  phone?: string;
-  address?: string;
-  registrationNo?: string;
-  documents?: string[];
-  verifiedAt?: string;
-  approvedBy?: string;
 }
 
 export interface Vehicle {
@@ -56,11 +36,9 @@ export interface Vehicle {
   year: number;
   pricePerDay: number;
   location?: {
-    text?: string;
-    lat?: number;
-    lng?: number;
-    address?: string;
+    type?: string;
     coordinates?: number[];
+    address?: string;
   };
   serviceType?: string[];
   transmission: string;
@@ -68,12 +46,8 @@ export interface Vehicle {
   seats: number;
   description?: string;
   photos: string[];
-  images?: string[]; // backwards compatibility
-  approved: boolean;
-  dashboardRequested?: boolean;
-  published?: boolean;
+  status: 'pending' | 'active' | 'rejected';
   isActive: boolean;
-  subscribedUntil?: string;
   timesRented?: number;
   createdAt?: string;
 }
@@ -87,7 +61,7 @@ export interface Booking {
   endDate: string;
   days: number;
   totalAmount: number;
-  status: 'PENDING' | 'APPROVED' | 'PAID' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED';
   createdAt?: string;
 }
 
@@ -99,14 +73,25 @@ export interface AuthResponse {
 
 export interface AdminStats {
   totalUsers: number;
+  totalOwners: number;
   totalVehicles: number;
   pendingVehicles: number;
+  activeVehicles: number;
   totalBookings: number;
+  confirmedBookings: number;
+  pendingKyc: number;
   totalEarnings: number;
-  commissionCollected: number;
 }
 
-// Helper to get auth headers
+export interface SubadminStats {
+  pendingUsers: number;
+  pendingVehicles: number;
+  approvedUsers: number;
+  totalVehicles: number;
+}
+
+// =================== HELPERS ===================
+
 function authHeaders(): Record<string, string> {
   const token = localStorage.getItem('token');
   return token
@@ -114,7 +99,11 @@ function authHeaders(): Record<string, string> {
     : { 'Content-Type': 'application/json' };
 }
 
-// Generic fetch wrapper
+function authHeadersOnly(): Record<string, string> {
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${url}`, {
     ...options,
@@ -175,46 +164,30 @@ export const vehicleApi = {
 
   getMy: () => apiFetch<Vehicle[]>('/vehicles/my'),
 
-  create: (data: Partial<Vehicle>) =>
-    apiFetch<{ message: string; vehicle: Vehicle }>('/vehicles', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-
   createWithPhotos: (formData: FormData) =>
     fetch(`${API_BASE_URL}/vehicles`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      headers: authHeadersOnly(),
       body: formData,
-    }).then(res => res.json()),
-
-  update: (id: string, data: Partial<Vehicle>) =>
-    apiFetch<{ message: string; vehicle: Vehicle }>(`/vehicles/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to create vehicle');
+      return data as Vehicle;
     }),
 
   updateWithPhotos: (id: string, formData: FormData) =>
     fetch(`${API_BASE_URL}/vehicles/${id}`, {
       method: 'PUT',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      headers: authHeadersOnly(),
       body: formData,
-    }).then(res => res.json()),
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update vehicle');
+      return data as Vehicle;
+    }),
 
   delete: (id: string) =>
-    apiFetch<{ message: string }>(`/vehicles/${id}`, {
-      method: 'DELETE',
-    }),
-
-  approve: (id: string) =>
-    apiFetch<{ message: string; vehicle: Vehicle }>(`/vehicles/approve/${id}`, {
-      method: 'PUT',
-    }),
-
-  reject: (id: string) =>
-    apiFetch<{ message: string; vehicle: Vehicle }>(`/vehicles/reject/${id}`, {
-      method: 'PUT',
-    }),
+    apiFetch<{ message: string }>(`/vehicles/${id}`, { method: 'DELETE' }),
 
   toggleStatus: (id: string) =>
     apiFetch<{ message: string; vehicle: Vehicle }>(`/vehicles/${id}/status`, {
@@ -232,78 +205,93 @@ export const bookingApi = {
 
   getMy: () => apiFetch<Booking[]>('/bookings/my'),
 
-  approve: (id: string) =>
-    apiFetch<Booking>(`/bookings/approve/${id}`, { method: 'PUT' }),
+  accept: (id: string) =>
+    apiFetch<Booking>(`/bookings/accept/${id}`, { method: 'PUT' }),
 
-  pay: (id: string) =>
-    apiFetch<{ booking: Booking }>(`/bookings/pay/${id}`, { method: 'PUT' }),
+  reject: (id: string) =>
+    apiFetch<{ message: string }>(`/bookings/reject/${id}`, { method: 'PUT' }),
 
   cancel: (id: string) =>
     apiFetch<{ message: string }>(`/bookings/cancel/${id}`, { method: 'PUT' }),
 };
 
-// =================== ADMIN ===================
+// =================== ADMIN (SUPERADMIN) ===================
 export const adminApi = {
   getStats: () => apiFetch<AdminStats>('/admin/stats'),
 
-  getPendingVehicles: () => apiFetch<Vehicle[]>('/admin/pending-vehicles'),
+  getAllUsers: () => apiFetch<User[]>('/admin/users'),
 
-  getPendingVerifications: () => apiFetch<User[]>('/admin/pending-verifications'),
-
-  getVerificationRequest: (userId: string) => apiFetch<User>(`/admin/verification/${userId}`),
-
-  approveOwner: (userId: string) =>
-    apiFetch<{ message: string; user: User }>(`/admin/verify-owner/${userId}`, {
-      method: 'PUT',
+  updateUserRole: (userId: string, role: string, ownerType?: string) =>
+    apiFetch<{ message: string; user: User }>(`/admin/users/${userId}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role, ownerType }),
     }),
 
-  rejectOwner: (userId: string) =>
-    apiFetch<{ message: string; user: User }>(`/admin/reject-owner/${userId}`, {
-      method: 'PUT',
+  deleteUser: (userId: string) =>
+    apiFetch<{ message: string }>(`/admin/users/${userId}`, { method: 'DELETE' }),
+
+  getAllVehicles: () => apiFetch<Vehicle[]>('/admin/vehicles'),
+
+  getAllBookings: () => apiFetch<Booking[]>('/admin/bookings'),
+};
+
+// =================== SUBADMIN ===================
+export const subadminApi = {
+  getStats: () => apiFetch<SubadminStats>('/subadmin/stats'),
+
+  getPendingUsers: () => apiFetch<User[]>('/subadmin/pending-users'),
+
+  getUserKycDetails: (userId: string) => apiFetch<User>(`/subadmin/user/${userId}`),
+
+  approveUser: (userId: string) =>
+    apiFetch<{ message: string; user: User }>(`/subadmin/approve-user/${userId}`, {
+      method: 'PATCH',
     }),
 
-  getRequests: () =>
-    apiFetch<{
-      pendingVehicles: Vehicle[];
-      pendingVerifications: User[];
-      archived: User[];
-    }>('/admin/requests'),
+  rejectUser: (userId: string) =>
+    apiFetch<{ message: string; user: User }>(`/subadmin/reject-user/${userId}`, {
+      method: 'PATCH',
+    }),
+
+  getPendingVehicles: () => apiFetch<Vehicle[]>('/subadmin/pending-vehicles'),
+
+  approveVehicle: (vehicleId: string) =>
+    apiFetch<{ message: string; vehicle: Vehicle }>(`/subadmin/approve-vehicle/${vehicleId}`, {
+      method: 'PATCH',
+    }),
+
+  rejectVehicle: (vehicleId: string) =>
+    apiFetch<{ message: string; vehicle: Vehicle }>(`/subadmin/reject-vehicle/${vehicleId}`, {
+      method: 'PATCH',
+    }),
 };
 
-// =================== OWNERS ===================
-export const ownerApi = {
-  getVerifiedOwners: () =>
-    fetch(`${API_BASE_URL}/owners/verified-owners`).then(r => r.json()) as Promise<User[]>,
-
-  submitVerification: (formData: FormData) =>
-    fetch(`${API_BASE_URL}/owners/verify`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      body: formData,
-    }).then(r => r.json()),
-
-  submitBusinessVerification: (formData: FormData) =>
-    fetch(`${API_BASE_URL}/owners/verify-business`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      body: formData,
-    }).then(r => r.json()),
-};
-
-// =================== USERS ===================
+// =================== USER ===================
 export const userApi = {
-  submitVerification: (formData: FormData) =>
+  submitKyc: (formData: FormData) =>
     fetch(`${API_BASE_URL}/users/verify`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      headers: authHeadersOnly(),
       body: formData,
-    }).then(r => r.json()),
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'KYC submission failed');
+      return data;
+    }),
 
   updateProfile: (formData: FormData) =>
     fetch(`${API_BASE_URL}/users/update-profile`, {
       method: 'PUT',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      headers: authHeadersOnly(),
       body: formData,
-    }).then(r => r.json()),
-};
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Profile update failed');
+      return data;
+    }),
 
+  becomeOwner: () =>
+    apiFetch<{ message: string; user: User }>('/users/become-owner', {
+      method: 'POST',
+    }),
+};
