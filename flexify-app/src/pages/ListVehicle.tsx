@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi } from '../api';
-import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool, ArrowLeft } from 'lucide-react';
+import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -72,6 +72,7 @@ export default function ListVehicle() {
     transmission: 'Automatic',
     fuelType: 'Petrol',
     seats: '4',
+    serviceType: '',
     description: '',
     address: '',
     lat: '',
@@ -201,7 +202,7 @@ export default function ListVehicle() {
       setSuccess('Vehicle submitted successfully! ' + (user.ownerType === 'VERIFIED' ? 'Your listing is now active.' : 'It will be reviewed by our team before going live.'));
 
       // Reset form
-      setForm({ title: '', make: '', model: '', year: '', pricePerDay: '', transmission: 'Automatic', fuelType: 'Petrol', seats: '4', description: '', address: '', lat: '', lng: '' });
+      setForm({ title: '', make: '', model: '', year: '', pricePerDay: '', transmission: 'Automatic', fuelType: 'Petrol', seats: '4', serviceType: '', description: '', address: '', lat: '', lng: '' });
       setSelectedMake('');
       setCustomMake('');
       setSelectedModel('');
@@ -226,13 +227,7 @@ export default function ListVehicle() {
     <div className="list-vehicle-page">
       <section className="static-hero">
         <div className="container" style={{ position: 'relative' }}>
-          <button
-            onClick={() => window.history.back()}
-            className="btn btn-ghost"
-            style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-          >
-            <ArrowLeft size={18} /> Back
-          </button>
+          {/* Custom back button removed */}
           <h1>List Your Vehicle</h1>
           <p>Start earning by sharing your vehicle with renters</p>
         </div>
@@ -319,12 +314,26 @@ export default function ListVehicle() {
 
             <div className="form-row">
               <div className="input-group">
+                <label>Vehicle Category</label>
+                <select className="input-field" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })} required>
+                  <option value="">Select Category</option>
+                  <option value="Car">Car</option>
+                  <option value="SUV">SUV</option>
+                  <option value="Van">Van</option>
+                  <option value="Bike">Bike</option>
+                  <option value="Truck">Truck</option>
+                </select>
+              </div>
+              <div className="input-group">
                 <label>Transmission</label>
                 <select className="input-field" value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })} required>
                   <option value="Automatic">Automatic</option>
                   <option value="Manual">Manual</option>
                 </select>
               </div>
+            </div>
+
+            <div className="form-row">
               <div className="input-group">
                 <label>Fuel Type</label>
                 <select className="input-field" value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })} required>

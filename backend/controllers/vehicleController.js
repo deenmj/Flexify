@@ -141,6 +141,7 @@ export const listVehicles = async (req, res) => {
         { make: new RegExp(q, "i") },
         { model: new RegExp(q, "i") },
         { title: new RegExp(q, "i") },
+        { "location.address": new RegExp(q, "i") },
       ];
     }
 
@@ -153,23 +154,7 @@ export const listVehicles = async (req, res) => {
     }
 
     if (vehicleType) {
-      const typeRegex = new RegExp(vehicleType, "i");
-      const typeCondition = {
-        $or: [
-          { title: typeRegex },
-          { description: typeRegex },
-          { make: typeRegex },
-          { model: typeRegex },
-          { serviceType: typeRegex },
-        ],
-      };
-
-      if (filter.$or) {
-        filter.$and = [{ $or: filter.$or }, typeCondition];
-        delete filter.$or;
-      } else {
-        filter.$or = typeCondition.$or;
-      }
+      filter.serviceType = vehicleType;
     }
 
     // Geolocation filter

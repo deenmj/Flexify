@@ -1,16 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { vehicleApi, bookingApi, type Vehicle, type Booking } from '../api';
-import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, ArrowLeft, Phone, Shield, AlertTriangle } from 'lucide-react';
+import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, X } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 import './Dashboard.css';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'vehicles' | 'bookings'>(user?.role === 'user' ? 'bookings' : 'vehicles');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  
+  // Booking Modal State
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [bookingLoading, setBookingLoading] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -58,6 +69,32 @@ export default function Dashboard() {
     } catch (err: any) { alert(err.message); }
   };
 
+  const handleOpenBooking = (v: Vehicle) => {
+    if (!user?.isKycVerified) {
+      alert("Please verify your account first");
+      return;
+    }
+    setSelectedVehicle(v);
+    setShowBookingModal(true);
+  };
+
+  const submitBooking = async () => {
+    if (!selectedVehicle || !startDate || !endDate) return;
+    setBookingLoading(true);
+    try {
+      const resp = await bookingApi.create(selectedVehicle._id, startDate.toISOString(), endDate.toISOString());
+      setBookings(prev => [resp, ...prev]);
+      setShowBookingModal(false);
+      setStartDate(null);
+      setEndDate(null);
+      alert("Booking request submitted!");
+    } catch (err: any) {
+      alert(err.message || "Failed to book");
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
   if (!user) return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Please sign in</h2></div>;
 
   const isOwner = user.role === 'owner';
@@ -79,13 +116,13 @@ export default function Dashboard() {
     return <span className={`badge ${s.cls}`}>{status}</span>;
   };
 
+  const filteredVehicles = selectedCategory === 'All' 
+    ? vehicles 
+    : vehicles.filter(v => v.serviceType && v.serviceType.includes(selectedCategory));
+
   return (
     <div className="dashboard-page page-wrapper bg-secondary">
-      <div className="container" style={{ paddingTop: '2rem' }}>
-        <Link to="/explore" className="premium-back-btn">
-          <ArrowLeft size={18} /><span>Back to Explore</span>
-        </Link>
-      </div>
+      {/* Removed custom back button for mobile swipe support */}
 
       <div className="dashboard-header">
         <div className="container" style={{ position: 'relative' }}>
@@ -168,19 +205,40 @@ export default function Dashboard() {
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>Loading...</div>
         ) : tab === 'vehicles' ? (
           <div className="dashboard-table-wrap card">
-            {vehicles.length === 0 ? (
-              <div className="dashboard-empty">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem', padding: '1.5rem 1.5rem 0' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>My Vehicles</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Category:</label>
+                <select 
+                  className="input-field" 
+                  style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.875rem', height: 'auto' }}
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="All">All Categories</option>
+                  <option value="Car">Car</option>
+                  <option value="SUV">SUV</option>
+                  <option value="Van">Van</option>
+                  <option value="Bike">Bike</option>
+                  <option value="Truck">Truck</option>
+                </select>
+              </div>
+            </div>
+            
+            {filteredVehicles.length === 0 ? (
+              <div className="dashboard-empty" style={{ paddingTop: '2rem' }}>
                 <Car size={40} strokeWidth={1} />
-                <p>No vehicles listed yet</p>
-                <Link to="/list-vehicle" className="btn btn-primary btn-sm">List a Vehicle</Link>
+                <p>{vehicles.length === 0 ? "No vehicles listed yet" : `No ${selectedCategory}s found`}</p>
+                {vehicles.length === 0 && <Link to="/list-vehicle" className="btn btn-primary btn-sm">List a Vehicle</Link>}
               </div>
             ) : (
-              <table className="dashboard-table">
-                <thead><tr><th>Vehicle</th><th>Price/day</th><th>Status</th><th>Actions</th></tr></thead>
+              <table className="dashboard-table" style={{ borderTop: '1px solid var(--border-color)' }}>
+                <thead><tr><th>Vehicle</th><th>Category</th><th>Price/day</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
-                  {vehicles.map(v => (
+                  {filteredVehicles.map(v => (
                     <tr key={v._id}>
                       <td><div className="table-vehicle"><strong>{v.title}</strong><span>{v.make} {v.model}</span></div></td>
+                      <td>{v.serviceType && v.serviceType.length > 0 ? <span className="badge" style={{ background: 'var(--bg-secondary)' }}>{v.serviceType[0]}</span> : '-'}</td>
                       <td>LKR {v.pricePerDay.toLocaleString()}</td>
                       <td>
                         {statusBadge(v.status)}
@@ -206,7 +264,17 @@ export default function Dashboard() {
               <div className="dashboard-empty">
                 <Calendar size={40} strokeWidth={1} />
                 <p>No bookings yet</p>
-                {user.role === 'user' && <Link to="/explore" className="btn btn-primary btn-sm">Browse Vehicles</Link>}
+                {user.role === 'user' && (
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={() => { 
+                      vehicleApi.getAll({ status: 'active' }).then(v => {
+                        if (v.length > 0) handleOpenBooking(v[0]); // Demo: book first one for quick test
+                        else navigate('/explore');
+                      });
+                    }} className="btn btn-primary btn-sm">Quick Book Now</button>
+                    <Link to="/explore" className="btn btn-secondary btn-sm">Explore All</Link>
+                  </div>
+                )}
               </div>
             ) : (
               <table className="dashboard-table">
@@ -266,6 +334,64 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Booking Modal */}
+      {showBookingModal && selectedVehicle && (
+        <div className="modal-overlay" onClick={() => setShowBookingModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <button className="modal-close" onClick={() => setShowBookingModal(false)}><X size={20} /></button>
+            <h2 style={{ marginBottom: '0.5rem' }}>Book {selectedVehicle.title}</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>LKR {selectedVehicle.pricePerDay.toLocaleString()} / day</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="input-group">
+                <label>Pickup Date</label>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date: Date | null) => setStartDate(date)}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={new Date()}
+                  className="input-field"
+                  placeholderText="Select date"
+                />
+              </div>
+              <div className="input-group">
+                <label>Return Date</label>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date: Date | null) => setEndDate(date)}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate || new Date()}
+                  className="input-field"
+                  placeholderText="Select date"
+                />
+              </div>
+
+              {startDate && endDate && (
+                <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px', marginTop: '0.5rem' }}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                     <span>Total Amount</span>
+                     <span>LKR {(selectedVehicle.pricePerDay * Math.ceil((endDate.getTime() - startDate.getTime()) / (1000*60*60*24))).toLocaleString()}</span>
+                   </div>
+                </div>
+              )}
+
+              <button 
+                className="btn btn-primary btn-full" 
+                onClick={submitBooking}
+                disabled={bookingLoading || !startDate || !endDate}
+                style={{ marginTop: '1rem' }}
+              >
+                {bookingLoading ? 'Processing...' : 'Confirm Booking Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

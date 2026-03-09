@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, Filter, MapPin, Verified, X, SlidersHorizontal, ArrowLeft, Star, Locate } from 'lucide-react';
+import { Search, Filter, MapPin, Verified, X, SlidersHorizontal, Star, Locate } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
 import './Explore.css';
 
@@ -18,25 +18,28 @@ export default function Explore() {
     minPrice: '',
     maxPrice: '',
     seats: '',
-    vehicleType: '',
+    vehicleType: searchParams.get('type') || searchParams.get('vehicleType') || '',
     lat: '',
     lng: '',
     radius: '10', // default radius 10km
     sort: 'newest',
     district: '',
   });
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(!!(searchParams.get('type') || searchParams.get('vehicleType')));
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = async (overrideQuery?: string, overrideType?: string) => {
     setLoading(true);
     try {
       const params: Record<string, string> = {};
-      if (query) params.q = query;
+      const activeQuery = overrideQuery !== undefined ? overrideQuery : query;
+      const activeType = overrideType !== undefined ? overrideType : filters.vehicleType;
+
+      if (activeQuery) params.q = activeQuery;
       if (filters.transmission) params.transmission = filters.transmission;
       if (filters.minPrice) params.minPrice = filters.minPrice;
       if (filters.maxPrice) params.maxPrice = filters.maxPrice;
       if (filters.seats) params.seats = filters.seats;
-      if (filters.vehicleType) params.vehicleType = filters.vehicleType;
+      if (activeType) params.vehicleType = activeType;
       if (filters.lat) params.lat = filters.lat;
       if (filters.lng) params.lng = filters.lng;
       if (filters.radius) params.radius = filters.radius;
@@ -52,9 +55,17 @@ export default function Explore() {
   };
 
   useEffect(() => {
-    fetchVehicles();
+    const urlType = searchParams.get('type') || searchParams.get('vehicleType') || '';
+    const urlQuery = searchParams.get('q') || '';
+    
+    setQuery(urlQuery);
+    setFilters(prev => ({ ...prev, vehicleType: urlType }));
+    
+    if (urlType) setShowFilters(true);
+
+    fetchVehicles(urlQuery, urlType);
     // eslint-disable-next-line
-  }, []);
+  }, [searchParams]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,13 +92,7 @@ export default function Explore() {
       {/* Search Header */}
       <section className="explore-header">
         <div className="container" style={{ position: 'relative' }}>
-          <button
-            onClick={() => window.history.back()}
-            className="btn btn-ghost"
-            style={{ position: 'absolute', left: '0', top: '-1rem', padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-          >
-            <ArrowLeft size={18} /> Back
-          </button>
+          {/* Custom back button removed */}
           <h1 className="explore-title">Explore Vehicles</h1>
           <p className="explore-subtitle">Find the perfect vehicle for your journey</p>
           <form onSubmit={handleSearch} className="explore-search">
@@ -216,7 +221,7 @@ export default function Explore() {
             </div>
             <div className="filters-actions">
               <button className="btn btn-ghost btn-sm" onClick={clearFilters}><X size={14} /> Clear All</button>
-              <button className="btn btn-primary btn-sm" onClick={fetchVehicles}><Filter size={14} /> Apply Filters</button>
+              <button className="btn btn-primary btn-sm" onClick={() => fetchVehicles()}><Filter size={14} /> Apply Filters</button>
             </div>
           </div>
         </div>
@@ -285,11 +290,9 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <p className="explore-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
         <div className="explore-vehicle-specs">
           {vehicle.seats && <span>🪑 {vehicle.seats} seats</span>}
-          {vehicle.location?.address ? (
+          {vehicle.location?.address && (
             <span><MapPin size={12} /> {vehicle.location.address}</span>
-          ) : vehicle.location?.text ? (
-            <span><MapPin size={12} /> {vehicle.location.text}</span>
-          ) : null}
+          )}
           {vehicle.transmission && <span>🕹️ {vehicle.transmission}</span>}
         </div>
         <div className="explore-vehicle-footer">
@@ -298,7 +301,7 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
             <span className="price-unit">/day</span>
           </div>
           <Link to={`/vehicles/${vehicle._id}`} className="btn btn-primary btn-sm">
-            Rent Now
+            View Now
           </Link>
         </div>
       </div>

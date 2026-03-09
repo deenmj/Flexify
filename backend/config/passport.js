@@ -37,7 +37,6 @@ passport.use(
             role: "user",
             isKycVerified: false,
             verificationStatus: "not_submitted",
-            ownerType: "NONE",
             status: "active",
             profilePic: profile.photos?.[0]?.value || null,
           });

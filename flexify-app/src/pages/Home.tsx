@@ -6,16 +6,16 @@ import './Home.css';
 
 export default function Home() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [owners, setOwners] = useState<User[]>([]);
+  const [owners] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  
   const vehicleScrollRef = useRef<HTMLDivElement>(null);
   const ownerScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     vehicleApi.getAll().then(setVehicles).catch(console.error);
-    // owners section handled by API data
   }, []);
-
+  
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, dir: 'left' | 'right') => {
     if (ref.current) {
       const amount = 340;
@@ -24,12 +24,11 @@ export default function Home() {
   };
 
   const categories = [
-    { name: 'Luxury Cars', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60', link: '/explore?type=luxury' },
-    { name: 'SUVs', img: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=800&q=60', link: '/explore?type=suv' },
-    { name: 'Vans', img: 'https://images.unsplash.com/photo-1518600506278-4e8ef466b810?auto=format&fit=crop&w=800&q=60', link: '/explore?type=van' },
-    { name: 'Electric', img: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=60', link: '/explore?type=electric' },
-    { name: 'Trucks', img: 'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?auto=format&fit=crop&w=800&q=60', link: '/explore?type=truck' },
-    { name: 'Chauffeur', img: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=60', link: '/explore?service=chauffeur' },
+    { name: 'Cars', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Car' },
+    { name: 'SUVs', img: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=800&q=60', link: '/explore?type=SUV' },
+    { name: 'Vans', img: 'https://images.unsplash.com/photo-1518600506278-4e8ef466b810?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Van' },
+    { name: 'Trucks', img: 'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Truck' },
+    { name: 'Bikes', img: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Bike' },
   ];
 
   return (
@@ -247,7 +246,7 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <p className="vehicle-model">{vehicle.make} {vehicle.model}</p>
         <div className="vehicle-specs">
           {vehicle.seats && <span>Seats {vehicle.seats}</span>}
-          {vehicle.location?.text && <span><MapPin size={12} /> {vehicle.location.text}</span>}
+          {vehicle.location?.address && <span><MapPin size={12} /> {vehicle.location.address}</span>}
         </div>
         <div className="vehicle-footer">
           <div className="vehicle-price">
@@ -261,8 +260,8 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             </span>
           )}
         </div>
-        <Link to={`/explore?vehicle=${vehicle._id}`} className="btn btn-primary btn-sm btn-full">
-          Rent Now
+        <Link to={`/vehicles/${vehicle._id}`} className="btn btn-primary btn-sm btn-full">
+          View Now
         </Link>
       </div>
     </div>
@@ -285,7 +284,7 @@ function VehiclePlaceholder({ title, specs, price, img }: { title: string; specs
           </div>
         </div>
         <Link to="/explore" className="btn btn-secondary btn-sm btn-full">
-          Rent Now
+          View Now
         </Link>
       </div>
     </div>

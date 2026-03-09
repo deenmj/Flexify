@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { vehicleApi, bookingApi, type Vehicle } from '../api';
-import { ArrowLeft, Users, CheckCircle, Star, ShieldCheck, DollarSign, Calendar, ArrowRight, Phone, Shield } from 'lucide-react';
+import { Users, CheckCircle, Star, ShieldCheck, Calendar, ArrowRight, Phone, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './VehicleDetail.css';
 
@@ -80,7 +80,7 @@ export default function VehicleDetail() {
       <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
         <h2>Vehicle not found</h2>
         <p>{error}</p>
-        <button className="btn btn-primary" onClick={() => navigate('/explore')} style={{ marginTop: '1rem' }}>
+        <button className="btn btn-primary" onClick={() => navigate('/explore', { replace: true })} style={{ marginTop: '1rem' }}>
           Back to Explore
         </button>
       </div>
@@ -93,13 +93,7 @@ export default function VehicleDetail() {
   return (
     <div className="vehicle-detail-page">
       <div className="container" style={{ position: 'relative', paddingTop: '1.5rem', paddingBottom: '3rem' }}>
-        <button
-          onClick={() => navigate('/explore')}
-          className="btn btn-ghost"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', color: 'var(--text-secondary)' }}
-        >
-          <ArrowLeft size={18} /> Back to Search
-        </button>
+        {/* Custom back button removed */}
 
         <div className="detail-grid">
           {/* LEFT: Image Carousel & Overview */}
@@ -164,7 +158,7 @@ export default function VehicleDetail() {
                 <div className="spec-item">
                   <span className="spec-label">Location Area</span>
                   <span className="spec-value">
-                    {vehicle.location?.address || vehicle.location?.text || 'Not specified'}
+                    {vehicle.location?.address || 'Not specified'}
                   </span>
                 </div>
                 <div className="spec-item">
