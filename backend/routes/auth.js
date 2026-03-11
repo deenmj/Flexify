@@ -7,6 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import rateLimit from "express-rate-limit";
 
 import sendEmail from "../utils/sendEmail.js";
 import User from "../models/User.js";
@@ -14,6 +15,44 @@ import generateToken from "../utils/generateToken.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+/* =========================================================
+   RATE LIMITERS
+========================================================= */
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,                    // 5 attempts per window
+  message: { message: "Too many login attempts. Please try again after 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  message: { message: "Too many password reset requests. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/* =========================================================
+   PASSWORD VALIDATION HELPER
+========================================================= */
+function validatePassword(password) {
+  if (!password || password.length < 8) {
+    return "Password must be at least 8 characters long.";
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "Password must contain at least one uppercase letter.";
+  }
+  if (!/[a-z]/.test(password)) {
+    return "Password must contain at least one lowercase letter.";
+  }
+  if (!/[0-9]/.test(password)) {
+    return "Password must contain at least one number.";
+  }
+  return null; // valid
+}
 
 /* =========================================================
    MULTER SETUP (avatars)
@@ -36,6 +75,12 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 ========================================================= */
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
+
+  // Server-side password validation
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    return res.status(400).json({ message: passwordError });
+  }
 
   try {
     const existing = await User.findOne({ email: email.toLowerCase() });
@@ -82,7 +127,7 @@ router.post("/signup", async (req, res) => {
 /* =========================================================
    LOGIN
 ========================================================= */
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -183,7 +228,7 @@ router.get(
 /* =========================================================
    FORGOT PASSWORD
 ========================================================= */
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -193,10 +238,13 @@ router.post("/forgot-password", async (req, res) => {
     }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
-    user.passwordResetToken = resetToken;
+    // Hash the token before storing (so a DB leak won't expose usable tokens)
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    user.passwordResetToken = hashedToken;
     user.passwordResetExpires = Date.now() + 15 * 60 * 1000;
     await user.save();
 
+    // Send the UNHASHED token to the user via email (they need it to reset)
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
     const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
@@ -223,9 +271,18 @@ router.post("/forgot-password", async (req, res) => {
 ========================================================= */
 router.post("/reset-password/:token", async (req, res) => {
   const { password } = req.body;
+
+  // Server-side password validation on reset too
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    return res.status(400).json({ message: passwordError });
+  }
+
   try {
+    // Hash the incoming token to compare with the stored hashed version
+    const hashedToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
     const user = await User.findOne({
-      passwordResetToken: req.params.token,
+      passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
     });
 

@@ -10,6 +10,9 @@ export default function GoogleSuccess() {
   useEffect(() => {
     const token = searchParams.get('token');
     if (token) {
+      // Immediately clear the token from the URL to prevent it from persisting in browser history
+      window.history.replaceState({}, document.title, '/google-success');
+
       setUserFromToken(token).then(() => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (user.role === 'admin') navigate('/admin');

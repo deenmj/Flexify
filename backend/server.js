@@ -5,6 +5,8 @@ dotenv.config();
 import express from "express";
 import path from "path";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import passport from "passport";
 
 import connectDB from "./config/db.js";
@@ -14,8 +16,34 @@ connectDB();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Security headers
+app.use(helmet());
+
+// CORS — restrict to your frontend origin only
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:3000",
+  "http://localhost:5173", // Vite dev server
+];
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.) in dev
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+}));
+
+// Global rate limiter — max 100 requests per 15 minutes per IP
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: "Too many requests, please try again later." },
+});
+app.use(globalLimiter);
+
 app.use(express.json());
 app.use(passport.initialize());
 
