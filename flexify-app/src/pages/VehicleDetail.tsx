@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
-import { vehicleApi, bookingApi, type Vehicle } from '../api';
-import { Users, CheckCircle, Star, ShieldCheck, Calendar, ArrowRight, Phone, Shield } from 'lucide-react';
+import dayjs, { type Dayjs } from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
+import { Calendar, DatePicker, Tooltip, Modal, message } from 'antd';
+import { vehicleApi, bookingApi, type Vehicle, type BookedRange } from '../api';
+import { Users, CheckCircle, Star, ShieldCheck, Calendar as CalIcon, ArrowRight, Phone, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './VehicleDetail.css';
+
+dayjs.extend(isBetween);
+const { RangePicker } = DatePicker;
 
 export default function VehicleDetail() {
   const { id } = useParams<{ id: string }>();
@@ -16,11 +20,14 @@ export default function VehicleDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Availability
+  const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
+  const [availLoading, setAvailLoading] = useState(false);
+
+  // Booking modal
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [bookingError, setBookingError] = useState('');
   const [createdBooking, setCreatedBooking] = useState<any>(null);
 
   // active carousel image
@@ -41,6 +48,59 @@ export default function VehicleDetail() {
     fetchVehicle();
   }, [id]);
 
+  // Fetch availability
+  useEffect(() => {
+    if (!id) return;
+    setAvailLoading(true);
+    vehicleApi.getAvailability(id)
+      .then((data) => setBookedRanges(data.bookedRanges))
+      .catch(() => { /* silently fail — calendar just won't show booked dates */ })
+      .finally(() => setAvailLoading(false));
+  }, [id]);
+
+  // Helper: is a date within a booked range?
+  const isDateBooked = useCallback((date: Dayjs, statusFilter?: string) => {
+    return bookedRanges.some((r) => {
+      if (statusFilter && r.status !== statusFilter) return false;
+      const start = dayjs(r.start).startOf('day');
+      const end = dayjs(r.end).endOf('day');
+      return date.isBetween(start, end, 'day', '[]');
+    });
+  }, [bookedRanges]);
+
+  // Helper: is a date within a CONFIRMED range? (used for disabling in picker)
+  const isDateConfirmed = useCallback((date: Dayjs) => {
+    return isDateBooked(date, 'CONFIRMED');
+  }, [isDateBooked]);
+
+  // Disable dates in the RangePicker (past + confirmed ranges)
+  const disabledDate = useCallback((current: Dayjs) => {
+    if (current.isBefore(dayjs(), 'day')) return true;
+    return isDateConfirmed(current);
+  }, [isDateConfirmed]);
+
+  // Calendar cell renderer for the availability calendar
+  const dateCellRender = useCallback((date: Dayjs) => {
+    const confirmed = isDateBooked(date, 'CONFIRMED');
+    const pending = isDateBooked(date, 'PENDING');
+
+    if (confirmed) {
+      return (
+        <Tooltip title="Booked (Confirmed)">
+          <div className="avail-cell avail-confirmed">Booked</div>
+        </Tooltip>
+      );
+    }
+    if (pending) {
+      return (
+        <Tooltip title="Booking Pending">
+          <div className="avail-cell avail-pending">Pending</div>
+        </Tooltip>
+      );
+    }
+    return null;
+  }, [isDateBooked]);
+
   const handleBookNow = async () => {
     if (!user) {
       navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
@@ -52,20 +112,27 @@ export default function VehicleDetail() {
       return;
     }
 
-    if (!startDate || !endDate) {
-      setBookingError('Please select pickup and return dates');
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      message.error('Please select pickup and return dates');
       return;
     }
 
     setBookingLoading(true);
-    setBookingError('');
 
     try {
-      const resp = await bookingApi.create(id!, startDate.toISOString(), endDate.toISOString());
+      const resp = await bookingApi.create(
+        id!,
+        dateRange[0].toISOString(),
+        dateRange[1].toISOString()
+      );
       setCreatedBooking(resp);
-      // Removed automatic alert and navigate to show success state in modal
+      message.success('Booking request submitted!');
+      // Refresh availability
+      vehicleApi.getAvailability(id!)
+        .then((data) => setBookedRanges(data.bookedRanges))
+        .catch(() => {});
     } catch (err: any) {
-      setBookingError(err.message || 'Failed to submit booking');
+      message.error(err.message || 'Failed to submit booking');
     } finally {
       setBookingLoading(false);
     }
@@ -90,10 +157,15 @@ export default function VehicleDetail() {
   const displayImages = (vehicle.photos && vehicle.photos.length > 0) ? vehicle.photos : ['https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'];
   const owner = typeof vehicle.owner === 'object' ? vehicle.owner : null;
 
+  // Calculate days & total from RangePicker
+  const days = dateRange && dateRange[0] && dateRange[1]
+    ? dateRange[1].diff(dateRange[0], 'day') || 1
+    : 0;
+  const totalAmount = days * vehicle.pricePerDay;
+
   return (
     <div className="vehicle-detail-page">
       <div className="container" style={{ position: 'relative', paddingTop: '1.5rem', paddingBottom: '3rem' }}>
-        {/* Custom back button removed */}
 
         <div className="detail-grid">
           {/* LEFT: Image Carousel & Overview */}
@@ -166,6 +238,35 @@ export default function VehicleDetail() {
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard Rental'}</span>
                 </div>
               </div>
+            </div>
+
+            {/* AVAILABILITY CALENDAR */}
+            <div className="detail-availability card" style={{ marginTop: '2rem', padding: '2rem' }}>
+              <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CalIcon size={20} /> Availability Calendar
+              </h3>
+              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                View booked and available dates for this vehicle.
+              </p>
+              <div className="avail-legend" style={{ display: 'flex', gap: '1.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+                  <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
+                  Booked (Confirmed)
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+                  <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
+                  Pending
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+                  <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
+                  Available
+                </span>
+              </div>
+              {availLoading ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)' }}>Loading availability...</div>
+              ) : (
+                <Calendar fullscreen={false} cellRender={(date) => dateCellRender(date as Dayjs)} />
+              )}
             </div>
           </div>
 
@@ -248,108 +349,93 @@ export default function VehicleDetail() {
       </div>
 
       {/* BOOKING MODAL */}
-      {showBookingModal && (
-        <div className="modal-overlay" onClick={() => setShowBookingModal(false)}>
-          <div className="modal-content booking-modal" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => { setShowBookingModal(false); setCreatedBooking(null); }}>&times;</button>
+      <Modal
+        open={showBookingModal}
+        onCancel={() => { setShowBookingModal(false); setCreatedBooking(null); setDateRange(null); }}
+        footer={null}
+        centered
+        width={520}
+        destroyOnClose
+      >
+        {createdBooking ? (
+          <div className="booking-success-view animate-fade-in" style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <div style={{ background: '#f0fdf4', color: '#16a34a', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <CheckCircle size={32} />
+            </div>
+            <h2 style={{ marginBottom: '1rem' }}>Booking Requested!</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+              Your request has been sent to the owner. You can contact them directly to speed up the process.
+            </p>
 
-            {createdBooking ? (
-              <div className="booking-success-view animate-fade-in" style={{ textAlign: 'center', padding: '1rem 0' }}>
-                <div style={{ background: '#f0fdf4', color: '#16a34a', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                  <CheckCircle size={32} />
+            <div className="owner-contact-card box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left' }}>
+              <img
+                src={typeof createdBooking.owner === 'object' ? createdBooking.owner.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(createdBooking.owner.name) : ''}
+                alt=""
+                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+              />
+              <div>
+                <div style={{ fontWeight: '600' }}>{typeof createdBooking.owner === 'object' ? createdBooking.owner.name : 'Owner'}</div>
+                <div style={{ color: 'var(--primary-color)', fontWeight: '700', fontSize: '1.25rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Phone size={18} /> {typeof createdBooking.owner === 'object' ? createdBooking.owner.phone || 'No phone provided' : ''}
                 </div>
-                <h2 style={{ marginBottom: '1rem' }}>Booking Requested!</h2>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-                  Your request has been sent to the owner. You can contact them directly to speed up the process.
-                </p>
+              </div>
+            </div>
 
-                <div className="owner-contact-card box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left' }}>
-                  <img
-                    src={typeof createdBooking.owner === 'object' ? createdBooking.owner.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(createdBooking.owner.name) : ''}
-                    alt=""
-                    style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+            <button className="btn btn-primary btn-full" onClick={() => navigate('/dashboard')}>
+              Go to My Dashboard <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <h2 style={{ marginBottom: '0.5rem' }}>Complete Your Booking</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+              {vehicle.title} • LKR {vehicle.pricePerDay.toLocaleString()}/day
+            </p>
+
+            <div className="booking-form-content">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div className="input-group">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                    <CalIcon size={16} /> Select Dates
+                  </label>
+                  <RangePicker
+                    value={dateRange}
+                    onChange={(dates) => setDateRange(dates)}
+                    disabledDate={disabledDate}
+                    format="YYYY-MM-DD"
+                    style={{ width: '100%', height: '44px' }}
+                    placeholder={['Pickup Date', 'Return Date']}
+                    size="large"
                   />
-                  <div>
-                    <div style={{ fontWeight: '600' }}>{typeof createdBooking.owner === 'object' ? createdBooking.owner.name : 'Owner'}</div>
-                    <div style={{ color: 'var(--primary-color)', fontWeight: '700', fontSize: '1.25rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Phone size={18} /> {typeof createdBooking.owner === 'object' ? createdBooking.owner.phone || 'No phone provided' : ''}
+                </div>
+
+                {days > 0 && (
+                  <div className="booking-summary box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                      <span>LKR {vehicle.pricePerDay.toLocaleString()} x {days} day{days > 1 ? 's' : ''}</span>
+                      <span>LKR {totalAmount.toLocaleString()}</span>
+                    </div>
+                    <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1rem 0' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1.1rem' }}>
+                      <span>Total Amount</span>
+                      <span>LKR {totalAmount.toLocaleString()}</span>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <button className="btn btn-primary btn-full" onClick={() => navigate('/dashboard')}>
-                  Go to My Dashboard <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+                <button
+                  className="btn btn-primary btn-lg btn-full"
+                  onClick={handleBookNow}
+                  disabled={bookingLoading}
+                  style={{ marginTop: '0.5rem' }}
+                >
+                  {bookingLoading ? <span className="spinner"></span> : 'Submit Booking Request'}
                 </button>
               </div>
-            ) : (
-              <>
-                <h2 style={{ marginBottom: '0.5rem' }}>Complete Your Booking</h2>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-                  {vehicle.title} • LKR {vehicle.pricePerDay.toLocaleString()}/day
-                </p>
-
-                {bookingError && <div className="auth-message error" style={{ marginBottom: '1rem' }}>{bookingError}</div>}
-
-                <div className="booking-form-content">
-                  <div className="booking-date-pickers" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    <div className="input-group">
-                      <label><Calendar size={16} style={{ verticalAlign: 'text-bottom', marginRight: '6px' }} /> Pickup Date</label>
-                      <DatePicker
-                        selected={startDate}
-                        onChange={(date: Date | null) => setStartDate(date)}
-                        selectsStart
-                        startDate={startDate}
-                        endDate={endDate}
-                        minDate={new Date()}
-                        className="input-field"
-                        placeholderText="Select pickup date"
-                        wrapperClassName="datepicker-wrapper"
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label><Calendar size={16} style={{ verticalAlign: 'text-bottom', marginRight: '6px' }} /> Return Date</label>
-                      <DatePicker
-                        selected={endDate}
-                        onChange={(date: Date | null) => setEndDate(date)}
-                        selectsEnd
-                        startDate={startDate}
-                        endDate={endDate}
-                        minDate={startDate || new Date()}
-                        className="input-field"
-                        placeholderText="Select return date"
-                        wrapperClassName="datepicker-wrapper"
-                      />
-                    </div>
-
-                    {startDate && endDate && (
-                      <div className="booking-summary box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginTop: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-                          <span>LKR {vehicle.pricePerDay.toLocaleString()} x {Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) || 1} days</span>
-                          <span>LKR {(vehicle.pricePerDay * (Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) || 1)).toLocaleString()}</span>
-                        </div>
-                        <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1rem 0' }} />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1.1rem' }}>
-                          <span>Total Amount</span>
-                          <span>LKR {(vehicle.pricePerDay * (Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) || 1)).toLocaleString()}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <button
-                      className="btn btn-primary btn-lg btn-full"
-                      onClick={handleBookNow}
-                      disabled={bookingLoading}
-                      style={{ marginTop: '0.5rem' }}
-                    >
-                      {bookingLoading ? <span className="spinner"></span> : 'Submit Booking Request'}
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+            </div>
+          </>
+        )}
+      </Modal>
     </div>
   );
 }

@@ -19,5 +19,8 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index for fast availability / overlap queries
+bookingSchema.index({ vehicle: 1, status: 1, startDate: 1, endDate: 1 });
+
 const Booking = mongoose.model("Booking", bookingSchema);
 export default Booking;

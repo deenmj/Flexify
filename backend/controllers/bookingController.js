@@ -131,6 +131,66 @@ export const acceptBooking = async (req, res) => {
     // Increment timesRented
     await Vehicle.findByIdAndUpdate(booking.vehicle._id, { $inc: { timesRented: 1 } });
 
+    // Send confirmation email to RENTER
+    try {
+      const renter = booking.user;
+      const ownerUser = booking.owner;
+      const vehicleTitle = booking.vehicle.title || "Vehicle";
+      const sDate = new Date(booking.startDate).toDateString();
+      const eDate = new Date(booking.endDate).toDateString();
+
+      await sendEmail({
+        to: renter.email,
+        subject: "✅ Booking Confirmed - Flexify",
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
+            <h2 style="color: #16a34a;">Booking Confirmed!</h2>
+            <p>Hi <strong>${renter.name}</strong>,</p>
+            <p>Great news! Your booking for <strong>${vehicleTitle}</strong> has been confirmed.</p>
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <p><strong>Dates:</strong> ${sDate} - ${eDate}</p>
+              <p><strong>Total:</strong> LKR ${booking.totalAmount.toLocaleString()}</p>
+              <p><strong>Owner:</strong> ${ownerUser.name}</p>
+              ${ownerUser.phone ? `<p><strong>Owner Phone:</strong> ${ownerUser.phone}</p>` : ""}
+            </div>
+            <p>You can view your booking details in your <a href="${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard" style="color: #1890ff;">dashboard</a>.</p>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("Renter confirmation email failed:", emailErr.message);
+    }
+
+    // Send confirmation email to OWNER
+    try {
+      const renter = booking.user;
+      const ownerUser = booking.owner;
+      const vehicleTitle = booking.vehicle.title || "Vehicle";
+      const sDate = new Date(booking.startDate).toDateString();
+      const eDate = new Date(booking.endDate).toDateString();
+
+      await sendEmail({
+        to: ownerUser.email,
+        subject: "✅ Booking Accepted - Flexify",
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
+            <h2 style="color: #16a34a;">You Accepted a Booking</h2>
+            <p>Hi <strong>${ownerUser.name}</strong>,</p>
+            <p>You've confirmed the booking for <strong>${vehicleTitle}</strong>.</p>
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <p><strong>Dates:</strong> ${sDate} - ${eDate}</p>
+              <p><strong>Total:</strong> LKR ${booking.totalAmount.toLocaleString()}</p>
+              <p><strong>Renter:</strong> ${renter.name}</p>
+              ${renter.phone ? `<p><strong>Renter Phone:</strong> ${renter.phone}</p>` : ""}
+            </div>
+            <p>Manage your bookings in your <a href="${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard" style="color: #1890ff;">dashboard</a>.</p>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("Owner confirmation email failed:", emailErr.message);
+    }
+
     // Return with owner phone revealed
     const result = await Booking.findById(booking._id)
       .populate("vehicle")

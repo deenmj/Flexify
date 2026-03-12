@@ -196,3 +196,48 @@
 .datepicker-wrapper {
   width: 100%;
 }
+
+/* ===== Availability Calendar ===== */
+.detail-availability .ant-picker-calendar {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.avail-cell {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.avail-confirmed {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.avail-pending {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fcd34d;
+}
+
+/* Antd RangePicker override to match theme */
+.ant-picker {
+  border-radius: 10px !important;
+  border-color: var(--border-color) !important;
+}
+
+.ant-picker:hover,
+.ant-picker-focused {
+  border-color: var(--primary-color) !important;
+}
+
+.ant-modal .ant-modal-content {
+  border-radius: 16px;
+  padding: 2rem;
+}
+

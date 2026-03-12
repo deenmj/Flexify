@@ -10,6 +10,7 @@ import {
   updateVehicle,
   deleteVehicle,
   toggleVehicleStatus,
+  getVehicleAvailability,
 } from "../controllers/vehicleController.js";
 
 const router = express.Router();
@@ -17,6 +18,7 @@ const router = express.Router();
 // Public
 router.get("/", listVehicles);
 router.get("/my", protect, getMyVehicles);
+router.get("/:id/availability", getVehicleAvailability);
 router.get("/:id", getVehicleById);
 
 // Owner CRUD

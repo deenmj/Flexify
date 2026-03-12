@@ -1,5 +1,6 @@
 // backend/controllers/vehicleController.js
 import Vehicle from "../models/Vehicle.js";
+import Booking from "../models/Booking.js";
 import User from "../models/User.js";
 
 /**
@@ -227,3 +228,37 @@ export const toggleVehicleStatus = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+/**
+ * Public: get booked date ranges for a vehicle (calendar availability)
+ * Returns CONFIRMED + PENDING bookings (future only), no user data exposed.
+ */
+export const getVehicleAvailability = async (req, res) => {
+  try {
+    const vehicle = await Vehicle.findById(req.params.id);
+    if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const bookings = await Booking.find({
+      vehicle: req.params.id,
+      status: { $in: ["CONFIRMED", "PENDING"] },
+      endDate: { $gte: now }, // only future/current bookings
+    })
+      .select("startDate endDate status")
+      .sort({ startDate: 1 })
+      .lean();
+
+    const bookedRanges = bookings.map((b) => ({
+      start: b.startDate,
+      end: b.endDate,
+      status: b.status,
+    }));
+
+    res.json({ bookedRanges });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+

@@ -65,6 +65,12 @@ export interface Booking {
   createdAt?: string;
 }
 
+export interface BookedRange {
+  start: string;
+  end: string;
+  status: 'CONFIRMED' | 'PENDING';
+}
+
 export interface AuthResponse {
   token: string;
   user: User;
@@ -193,6 +199,9 @@ export const vehicleApi = {
     apiFetch<{ message: string; vehicle: Vehicle }>(`/vehicles/${id}/status`, {
       method: 'PATCH',
     }),
+
+  getAvailability: (id: string) =>
+    apiFetch<{ bookedRanges: BookedRange[] }>(`/vehicles/${id}/availability`),
 };
 
 // =================== BOOKINGS ===================

@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { vehicleApi, bookingApi, type Vehicle, type Booking } from '../api';
-import { Car, Calendar, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, X } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
+import dayjs, { type Dayjs } from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
+import { Calendar, Modal, message, Select, Tag, Badge } from 'antd';
+import { vehicleApi, bookingApi, type Vehicle, type Booking, type BookedRange } from '../api';
+import { Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle } from 'lucide-react';
 import './Dashboard.css';
+
+dayjs.extend(isBetween);
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -13,15 +16,13 @@ export default function Dashboard() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'vehicles' | 'bookings'>(user?.role === 'user' ? 'bookings' : 'vehicles');
+  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar'>(user?.role === 'user' ? 'bookings' : 'vehicles');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   
-  // Booking Modal State
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [bookingLoading, setBookingLoading] = useState(false);
+  // Calendar tab state (owner only)
+  const [calendarVehicleId, setCalendarVehicleId] = useState<string>('');
+  const [calendarRanges, setCalendarRanges] = useState<BookedRange[]>([]);
+  const [calendarLoading, setCalendarLoading] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -30,70 +31,117 @@ export default function Dashboard() {
     ]).then(([v, b]) => {
       setVehicles(v);
       setBookings(b);
+      // Set default calendar vehicle
+      if (v.length > 0) setCalendarVehicleId(v[0]._id);
     }).finally(() => setLoading(false));
   }, []);
+
+  // Fetch calendar availability when vehicle changes
+  useEffect(() => {
+    if (!calendarVehicleId) return;
+    setCalendarLoading(true);
+    vehicleApi.getAvailability(calendarVehicleId)
+      .then((data) => setCalendarRanges(data.bookedRanges))
+      .catch(() => setCalendarRanges([]))
+      .finally(() => setCalendarLoading(false));
+  }, [calendarVehicleId]);
 
   const handleToggleStatus = async (id: string) => {
     try {
       await vehicleApi.toggleStatus(id);
       setVehicles(prev => prev.map(v => v._id === id ? { ...v, isActive: !v.isActive } : v));
-    } catch (err) { console.error(err); }
+      message.success('Vehicle status updated');
+    } catch (err: any) { message.error(err.message || 'Failed to update status'); }
   };
 
   const handleDeleteVehicle = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this vehicle?")) return;
-    try {
-      await vehicleApi.delete(id);
-      setVehicles(prev => prev.filter(v => v._id !== id));
-    } catch (err) { console.error(err); alert("Failed to delete vehicle"); }
+    Modal.confirm({
+      title: 'Delete Vehicle',
+      content: 'Are you sure you want to delete this vehicle? This action cannot be undone.',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await vehicleApi.delete(id);
+          setVehicles(prev => prev.filter(v => v._id !== id));
+          message.success('Vehicle deleted');
+        } catch (err: any) { message.error(err.message || 'Failed to delete vehicle'); }
+      },
+    });
   };
 
   const handleAcceptBooking = async (id: string) => {
     try {
       await bookingApi.accept(id);
       setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CONFIRMED' } : bk));
-    } catch (err: any) { alert(err.message); }
+      message.success('Booking confirmed! Email notifications sent.');
+    } catch (err: any) { message.error(err.message || 'Failed to accept booking'); }
   };
 
   const handleRejectBooking = async (id: string) => {
-    try {
-      await bookingApi.reject(id);
-      setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'REJECTED' } : bk));
-    } catch (err: any) { alert(err.message); }
+    Modal.confirm({
+      title: 'Reject Booking',
+      content: 'Are you sure you want to reject this booking request?',
+      okText: 'Reject',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await bookingApi.reject(id);
+          setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'REJECTED' } : bk));
+          message.success('Booking rejected');
+        } catch (err: any) { message.error(err.message || 'Failed to reject booking'); }
+      },
+    });
   };
 
   const handleCancelBooking = async (id: string) => {
-    try {
-      await bookingApi.cancel(id);
-      setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CANCELLED' } : bk));
-    } catch (err: any) { alert(err.message); }
+    Modal.confirm({
+      title: 'Cancel Booking',
+      content: 'Are you sure you want to cancel this booking?',
+      okText: 'Cancel Booking',
+      okType: 'danger',
+      cancelText: 'Go Back',
+      onOk: async () => {
+        try {
+          await bookingApi.cancel(id);
+          setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CANCELLED' } : bk));
+          message.success('Booking cancelled');
+        } catch (err: any) { message.error(err.message || 'Failed to cancel booking'); }
+      },
+    });
   };
 
-  const handleOpenBooking = (v: Vehicle) => {
-    if (!user?.isKycVerified) {
-      alert("Please verify your account first");
-      return;
-    }
-    setSelectedVehicle(v);
-    setShowBookingModal(true);
-  };
+  // Calendar cell renderer for owner dashboard
+  const calendarCellRender = useCallback((date: Dayjs) => {
+    const matchingBookings = bookings.filter((b) => {
+      const veh = typeof b.vehicle === 'object' ? (b.vehicle as Vehicle)._id : b.vehicle;
+      if (veh !== calendarVehicleId) return false;
+      const start = dayjs(b.startDate).startOf('day');
+      const end = dayjs(b.endDate).endOf('day');
+      return date.isBetween(start, end, 'day', '[]');
+    });
 
-  const submitBooking = async () => {
-    if (!selectedVehicle || !startDate || !endDate) return;
-    setBookingLoading(true);
-    try {
-      const resp = await bookingApi.create(selectedVehicle._id, startDate.toISOString(), endDate.toISOString());
-      setBookings(prev => [resp, ...prev]);
-      setShowBookingModal(false);
-      setStartDate(null);
-      setEndDate(null);
-      alert("Booking request submitted!");
-    } catch (err: any) {
-      alert(err.message || "Failed to book");
-    } finally {
-      setBookingLoading(false);
-    }
-  };
+    if (matchingBookings.length === 0) return null;
+
+    return (
+      <div className="dash-cal-events">
+        {matchingBookings.map((b) => {
+          const renter = typeof b.user === 'object' ? b.user : null;
+          return (
+            <div
+              key={b._id}
+              className={`dash-cal-event ${b.status === 'CONFIRMED' ? 'cal-confirmed' : b.status === 'PENDING' ? 'cal-pending' : 'cal-other'}`}
+              title={`${renter?.name || 'Renter'} — ${b.status}`}
+            >
+              <span className="cal-event-name">{renter?.name?.split(' ')[0] || '...'}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }, [bookings, calendarVehicleId]);
 
   if (!user) return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Please sign in</h2></div>;
 
@@ -122,7 +170,6 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-page page-wrapper bg-secondary">
-      {/* Removed custom back button for mobile swipe support */}
 
       <div className="dashboard-header">
         <div className="container" style={{ position: 'relative' }}>
@@ -175,7 +222,7 @@ export default function Dashboard() {
               <div className="stat-info"><span className="stat-number">{vehicles.length}</span><span className="stat-label">My Vehicles</span></div>
             </div>
             <div className="stat-card card">
-              <div className="stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}><Calendar size={24} /></div>
+              <div className="stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}><CalIcon size={24} /></div>
               <div className="stat-info"><span className="stat-number">{bookings.length}</span><span className="stat-label">Total Bookings</span></div>
             </div>
             <div className="stat-card card">
@@ -197,8 +244,13 @@ export default function Dashboard() {
             </button>
           )}
           <button className={`dashboard-tab ${tab === 'bookings' ? 'active' : ''}`} onClick={() => setTab('bookings')}>
-            <Calendar size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
+            <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
           </button>
+          {isOwner && (
+            <button className={`dashboard-tab ${tab === 'calendar' ? 'active' : ''}`} onClick={() => setTab('calendar')}>
+              <CalIcon size={16} /> Calendar
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -258,21 +310,15 @@ export default function Dashboard() {
               </table>
             )}
           </div>
-        ) : (
+        ) : tab === 'bookings' ? (
           <div className="dashboard-table-wrap card">
             {bookings.length === 0 ? (
               <div className="dashboard-empty">
-                <Calendar size={40} strokeWidth={1} />
+                <CalIcon size={40} strokeWidth={1} />
                 <p>No bookings yet</p>
                 {user.role === 'user' && (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => { 
-                      vehicleApi.getAll({ status: 'active' }).then(v => {
-                        if (v.length > 0) handleOpenBooking(v[0]); // Demo: book first one for quick test
-                        else navigate('/explore');
-                      });
-                    }} className="btn btn-primary btn-sm">Quick Book Now</button>
-                    <Link to="/explore" className="btn btn-secondary btn-sm">Explore All</Link>
+                    <Link to="/explore" className="btn btn-primary btn-sm">Explore Vehicles</Link>
                   </div>
                 )}
               </div>
@@ -332,66 +378,49 @@ export default function Dashboard() {
               </table>
             )}
           </div>
+        ) : (
+          /* ===== CALENDAR TAB (Owner Only) ===== */
+          <div className="dashboard-calendar-wrap card">
+            <div style={{ padding: '1.5rem 1.5rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CalIcon size={18} /> Booking Calendar
+              </h3>
+              <Select
+                value={calendarVehicleId || undefined}
+                onChange={(val) => setCalendarVehicleId(val)}
+                style={{ minWidth: 220 }}
+                placeholder="Select a vehicle"
+                options={vehicles.map(v => ({ value: v._id, label: v.title }))}
+              />
+            </div>
+
+            <div style={{ padding: '1rem 1.5rem', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+                <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#dcfce7', border: '1px solid #86efac' }}></span>
+                Confirmed
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+                <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
+                Pending
+              </span>
+            </div>
+
+            {calendarLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>Loading calendar...</div>
+            ) : vehicles.length === 0 ? (
+              <div className="dashboard-empty">
+                <Car size={40} strokeWidth={1} />
+                <p>List a vehicle to see its booking calendar</p>
+                <Link to="/list-vehicle" className="btn btn-primary btn-sm">List a Vehicle</Link>
+              </div>
+            ) : (
+              <div style={{ padding: '0 1rem 1.5rem' }}>
+                <Calendar fullscreen={false} cellRender={(date) => calendarCellRender(date as Dayjs)} />
+              </div>
+            )}
+          </div>
         )}
       </div>
-
-      {/* Booking Modal */}
-      {showBookingModal && selectedVehicle && (
-        <div className="modal-overlay" onClick={() => setShowBookingModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-            <button className="modal-close" onClick={() => setShowBookingModal(false)}><X size={20} /></button>
-            <h2 style={{ marginBottom: '0.5rem' }}>Book {selectedVehicle.title}</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>LKR {selectedVehicle.pricePerDay.toLocaleString()} / day</p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="input-group">
-                <label>Pickup Date</label>
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date: Date | null) => setStartDate(date)}
-                  selectsStart
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={new Date()}
-                  className="input-field"
-                  placeholderText="Select date"
-                />
-              </div>
-              <div className="input-group">
-                <label>Return Date</label>
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date: Date | null) => setEndDate(date)}
-                  selectsEnd
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={startDate || new Date()}
-                  className="input-field"
-                  placeholderText="Select date"
-                />
-              </div>
-
-              {startDate && endDate && (
-                <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px', marginTop: '0.5rem' }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                     <span>Total Amount</span>
-                     <span>LKR {(selectedVehicle.pricePerDay * Math.ceil((endDate.getTime() - startDate.getTime()) / (1000*60*60*24))).toLocaleString()}</span>
-                   </div>
-                </div>
-              )}
-
-              <button 
-                className="btn btn-primary btn-full" 
-                onClick={submitBooking}
-                disabled={bookingLoading || !startDate || !endDate}
-                style={{ marginTop: '1rem' }}
-              >
-                {bookingLoading ? 'Processing...' : 'Confirm Booking Request'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
