@@ -12,37 +12,122 @@ import { logAdminAction } from "../utils/auditLogger.js";
  */
 export const getAdminStats = async (req, res) => {
   try {
+    const { district, timeRange } = req.query;
+
+    // 1. Build common filters
+    let timeMatch = {};
+    if (timeRange && timeRange !== "all") {
+      const days = timeRange === "7d" ? 7 : timeRange === "90d" ? 90 : 30;
+      timeMatch = { createdAt: { $gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) } };
+    }
+
+    // 2. Aggregate Bookings (Filtered by district via join)
+    const bookingAggregation = [
+      { $match: timeMatch },
+      { 
+        $lookup: {
+          from: "vehicles",
+          localField: "vehicle",
+          foreignField: "_id",
+          as: "vehicleInfo"
+        }
+      },
+      { $unwind: "$vehicleInfo" }
+    ];
+
+    if (district && district !== "All Sri Lanka") {
+      bookingAggregation.push({ $match: { "vehicleInfo.district": district } });
+    }
+
+    bookingAggregation.push({
+      $facet: {
+        counts: [
+          { $group: { _id: "$status", count: { $sum: 1 } } }
+        ],
+        earnings: [
+          { $match: { status: "CONFIRMED" } },
+          { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        ],
+        successRate: [
+          { 
+            $group: { 
+              _id: null, 
+              confirmed: { $sum: { $cond: [{ $eq: ["$status", "CONFIRMED"] }, 1, 0] } },
+              total: { $sum: { $cond: [{ $ne: ["$status", "CANCELLED"] }, 1, 0] } } // Ignore cancelled for success rate
+            } 
+          }
+        ],
+        byDistrict: [
+          { $group: { _id: "$vehicleInfo.district", count: { $sum: 1 } } }
+        ]
+      }
+    });
+
+    const bookingStats = await Booking.aggregate(bookingAggregation);
+    const bookings = bookingStats[0];
+
+    // 3. Aggregate Vehicles
+    const vehicleMatch = { ...timeMatch };
+    if (district && district !== "All Sri Lanka") {
+      vehicleMatch.district = district;
+    }
+
+    const vehicleStats = await Vehicle.aggregate([
+      { $match: vehicleMatch },
+      {
+        $facet: {
+          counts: [
+            { $group: { _id: "$status", count: { $sum: 1 } } }
+          ],
+          popularTypes: [
+            { $group: { _id: "$make", count: { $sum: 1 } } }, // Simple grouping by make as placeholder for 'type'
+            { $sort: { count: -1 } },
+            { $limit: 10 }
+          ]
+        }
+      }
+    ]);
+    const vehicleInfo = vehicleStats[0];
+
+    // 4. General Stats (always unfiltered for context)
     const totalUsers = await User.countDocuments();
-    const totalOwners = await User.countDocuments({ role: "owner" });
-    const totalVehicles = await Vehicle.countDocuments();
-    const pendingVehicles = await Vehicle.countDocuments({ status: "pending" });
-    const activeVehicles = await Vehicle.countDocuments({ status: "active" });
-    const totalBookings = await Booking.countDocuments();
-    const confirmedBookings = await Booking.countDocuments({ status: "CONFIRMED" });
     const pendingKyc = await User.countDocuments({ verificationStatus: "pending" });
 
-    let totalEarnings = 0;
-    try {
-      const earningData = await Booking.aggregate([
-        { $match: { status: "CONFIRMED" } },
-        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
-      ]);
-      if (earningData.length) totalEarnings = earningData[0].total;
-    } catch {
-      // Earnings aggregation optional
-    }
+    // Format response
+    const confirmedCount = bookings.counts.find(c => c._id === "CONFIRMED")?.count || 0;
+    const pendingCount = bookings.counts.find(c => c._id === "PENDING")?.count || 0;
+    const totalBookingsCount = bookings.counts.reduce((acc, curr) => acc + curr.count, 0);
+    
+    const successData = bookings.successRate[0] || { confirmed: 0, total: 0 };
+    const successRate = successData.total > 0 ? ((successData.confirmed / successData.total) * 100).toFixed(1) : 0;
+
+    const districtBreakdown = {};
+    bookings.byDistrict.forEach(d => {
+      if (d._id) districtBreakdown[d._id] = d.count;
+    });
+
+    const types = {};
+    vehicleInfo.popularTypes.forEach(t => {
+      types[t._id] = t.count;
+    });
 
     res.json({
       totalUsers,
-      totalOwners,
-      totalVehicles,
-      pendingVehicles,
-      activeVehicles,
-      totalBookings,
-      confirmedBookings,
       pendingKyc,
-      totalEarnings,
+      totalVehicles: vehicleInfo.counts.reduce((acc, curr) => acc + curr.count, 0),
+      activeVehicles: vehicleInfo.counts.find(c => c._id === "active")?.count || 0,
+      pendingVehicles: vehicleInfo.counts.find(c => c._id === "pending")?.count || 0,
+      totalEarnings: bookings.earnings[0]?.total || 0,
+      bookings: {
+        total: totalBookingsCount,
+        confirmed: confirmedCount,
+        pending: pendingCount,
+        byDistrict: districtBreakdown
+      },
+      popularTypes: types,
+      successRate: parseFloat(successRate)
     });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

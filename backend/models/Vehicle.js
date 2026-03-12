@@ -40,6 +40,7 @@ const vehicleSchema = new mongoose.Schema(
     serviceType: { type: [String], default: [] },
     averageRating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
+    district: { type: String, default: null, index: true },
   },
   { timestamps: true }
 );

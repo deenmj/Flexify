@@ -134,14 +134,19 @@ export interface AuthResponse {
 
 export interface AdminStats {
   totalUsers: number;
-  totalOwners: number;
-  totalVehicles: number;
-  pendingVehicles: number;
-  activeVehicles: number;
-  totalBookings: number;
-  confirmedBookings: number;
   pendingKyc: number;
+  totalVehicles: number;
+  activeVehicles: number;
+  pendingVehicles: number;
   totalEarnings: number;
+  bookings: {
+    total: number;
+    confirmed: number;
+    pending: number;
+    byDistrict: Record<string, number>;
+  };
+  popularTypes: Record<string, number>;
+  successRate: number;
 }
 
 export interface AuditLog {
@@ -328,7 +333,12 @@ export const blackoutApi = {
 
 // =================== ADMIN (SUPERADMIN) ===================
 export const adminApi = {
-  getStats: () => apiFetch<AdminStats>('/admin/stats'),
+  getStats: (filters?: { district?: string; timeRange?: string }) => {
+    const params = new URLSearchParams();
+    if (filters?.district) params.append('district', filters.district);
+    if (filters?.timeRange) params.append('timeRange', filters.timeRange);
+    return apiFetch<AdminStats>(`/admin/stats?${params.toString()}`);
+  },
 
   getAllUsers: () => apiFetch<User[]>('/admin/users'),
 

@@ -227,6 +227,10 @@ export default function ListVehicle() {
         formData.append(key, value);
       });
 
+      // Append location fields from state
+      formData.append('district', selectedDistrict === 'Other' ? customPlace : selectedDistrict);
+      formData.append('city', selectedPlace === 'Other' ? customPlace : selectedPlace);
+
       photos.forEach(photo => {
         formData.append('photos', photo);
       });

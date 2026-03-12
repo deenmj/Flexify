@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, ArrowLeft, Edit2, Trash2, ShieldAlert, History } from 'lucide-react';
-import { Table, Tag, Tooltip, Space, Typography } from 'antd';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin } from 'lucide-react';
+import { Table, Tag, Tooltip, Space, Typography, Select, Card, Statistic, Spin } from 'antd';
 const { Text } = Typography;
 import './Dashboard.css';
+
+const SRI_LANKA_DISTRICTS = [
+  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 'Galle', 'Matara', 'Hambantota', 
+  'Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu', 'Batticaloa', 'Ampara', 'Trincomalee', 
+  'Kurunegala', 'Puttalam', 'Anuradhapura', 'Polonnaruwa', 'Badulla', 'Moneragala', 'Ratnapura', 'Kegalle'
+];
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -14,17 +20,35 @@ export default function AdminDashboard() {
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings'>('overview');
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [district, setDistrict] = useState<string>('All Sri Lanka');
+  const [timeRange, setTimeRange] = useState<string>('30d');
+  
   const [roleEditUser, setRoleEditUser] = useState<string | null>(null);
   const [newRole, setNewRole] = useState('');
   const [newOwnerType, setNewOwnerType] = useState('UNVERIFIED');
   const [searchQuery, setSearchQuery] = useState('');
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-  const [logsLoading, setLogsLoading] = useState(false);
+
+  const fetchStats = useCallback(async () => {
+    setStatsLoading(true);
+    try {
+      const s = await adminApi.getStats({ district, timeRange });
+      setStats(s);
+    } catch (err) {
+      console.error("Failed to fetch stats", err);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, [district, timeRange]);
 
   useEffect(() => {
     if (user?.role !== 'superadmin') return;
+    
+    // Initial full load
+    setLoading(true);
     Promise.all([
-      adminApi.getStats().catch(() => null),
+      adminApi.getStats({ district, timeRange }).catch(() => null),
       adminApi.getAllUsers().catch(() => []),
       adminApi.getAllVehicles().catch(() => []),
       adminApi.getAllBookings().catch(() => []),
@@ -36,7 +60,13 @@ export default function AdminDashboard() {
       setAllBookings(b);
       setAuditLogs(logs.logs);
     }).finally(() => setLoading(false));
-  }, [user]);
+  }, [user]); // Only run on user change (load)
+
+  // Refetch stats when filters change
+  useEffect(() => {
+    if (loading) return; // Wait for initial load
+    fetchStats();
+  }, [district, timeRange, fetchStats]);
 
   const handleUpdateRole = async (userId: string) => {
     try {
@@ -97,15 +127,15 @@ export default function AdminDashboard() {
             </div>
             <div className="stat-card card">
               <div className="stat-icon" style={{ background: '#eff6ff', color: '#2563eb' }}><Car size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{stats.totalVehicles}</span><span className="stat-label">Vehicles</span></div>
+              <div className="stat-info"><span className="stat-number">{stats.totalVehicles}</span><span className="stat-label">Vehicles ({district})</span></div>
             </div>
             <div className="stat-card card">
               <div className="stat-icon" style={{ background: '#fef3c7', color: '#d97706' }}><Calendar size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{stats.pendingVehicles}</span><span className="stat-label">Pending Vehicles</span></div>
+              <div className="stat-info"><span className="stat-number">{stats.bookings.total}</span><span className="stat-label">Bookings ({timeRange})</span></div>
             </div>
             <div className="stat-card card">
               <div className="stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}><DollarSign size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{stats.totalBookings}</span><span className="stat-label">Total Bookings</span></div>
+              <div className="stat-info"><span className="stat-number">LKR {stats.totalEarnings.toLocaleString()}</span><span className="stat-label">Earnings</span></div>
             </div>
           </div>
         )}
@@ -119,30 +149,92 @@ export default function AdminDashboard() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>Loading...</div>
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}><Spin size="large" /></div>
         ) : tab === 'overview' ? (
-          <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-            <h3 style={{ marginBottom: '0.5rem' }}>Platform Overview</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>Select a tab above to manage users, vehicles, or bookings.</p>
-            {stats && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
-                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '28px', fontWeight: 800, color: '#7c3aed' }}>{stats.totalOwners}</div>
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>Total Owners</div>
-                </div>
-                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '28px', fontWeight: 800, color: '#0d9488' }}>{stats.pendingKyc}</div>
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>Pending KYC</div>
-                </div>
-                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '28px', fontWeight: 800, color: '#16a34a' }}>{stats.confirmedBookings}</div>
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>Confirmed Bookings</div>
-                </div>
-                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '28px', fontWeight: 800, color: '#1890ff' }}>{stats.activeVehicles}</div>
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>Active Vehicles</div>
-                </div>
+          <div className="card" style={{ padding: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h3 style={{ margin: 0 }}>Platform Performance</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Analyze trends by district and time range.</p>
               </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <Select 
+                  value={district} 
+                  onChange={setDistrict} 
+                  style={{ width: 180 }}
+                  suffixIcon={<MapPin size={14} />}
+                >
+                  <Select.Option value="All Sri Lanka">All Sri Lanka</Select.Option>
+                  {SRI_LANKA_DISTRICTS.map(d => <Select.Option key={d} value={d}>{d}</Select.Option>)}
+                </Select>
+                <Select 
+                  value={timeRange} 
+                  onChange={setTimeRange} 
+                  style={{ width: 140 }}
+                  suffixIcon={<TrendingUp size={14} />}
+                >
+                  <Select.Option value="7d">Last 7 Days</Select.Option>
+                  <Select.Option value="30d">Last 30 Days</Select.Option>
+                  <Select.Option value="90d">Last 90 Days</Select.Option>
+                  <Select.Option value="all">All Time</Select.Option>
+                </Select>
+              </div>
+            </div>
+
+            {statsLoading ? (
+              <div style={{ textAlign: 'center', padding: '4rem' }}><Spin tip="Loading stats..." /></div>
+            ) : stats && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+                  <Card size="small" style={{ background: '#f8fafc' }}>
+                    <Statistic 
+                      title="Success Rate" 
+                      value={stats.successRate} 
+                      suffix="%" 
+                      precision={1}
+                      valueStyle={{ color: stats.successRate > 80 ? '#16a34a' : '#d97706' }}
+                    />
+                  </Card>
+                  <Card size="small" style={{ background: '#f8fafc' }}>
+                    <Statistic title="Confirmed Bookings" value={stats.bookings.confirmed} />
+                  </Card>
+                  <Card size="small" style={{ background: '#f8fafc' }}>
+                    <Statistic title="Pending KYC" value={stats.pendingKyc} valueStyle={{ color: '#d97706' }} />
+                  </Card>
+                  <Card size="small" style={{ background: '#f8fafc' }}>
+                    <Statistic title="Active Vehicles" value={stats.activeVehicles} />
+                  </Card>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+                  <div className="card-sub" style={{ border: '1px solid #f1f5f9', padding: '1.5rem', borderRadius: '12px' }}>
+                    <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}><Car size={18} /> Popular Vehicles (by Make)</h4>
+                    {Object.entries(stats.popularTypes).length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {Object.entries(stats.popularTypes).map(([make, count]) => (
+                          <Tag key={make} color="blue" style={{ fontSize: '13px', padding: '4px 10px', borderRadius: '20px' }}>
+                            {make}: <strong>{count}</strong>
+                          </Tag>
+                        ))}
+                      </div>
+                    ) : <Text type="secondary">No data for this filter.</Text>}
+                  </div>
+                  
+                  <div className="card-sub" style={{ border: '1px solid #f1f5f9', padding: '1.5rem', borderRadius: '12px' }}>
+                    <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={18} /> Booking Distribution</h4>
+                    <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                      {Object.entries(stats.bookings.byDistrict).length > 0 ? (
+                        Object.entries(stats.bookings.byDistrict).sort((a,b) => b[1] - a[1]).map(([dist, count]) => (
+                          <div key={dist} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f8fafc' }}>
+                            <Text>{dist}</Text>
+                            <Text strong>{count}</Text>
+                          </div>
+                        ))
+                      ) : <Text type="secondary">No district data available.</Text>}
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
 
             {/* Audit Log Table */}
@@ -175,17 +267,17 @@ export default function AdminDashboard() {
                   {
                     title: 'Performed By',
                     dataIndex: 'performedBy',
-                    render: (p) => <div style={{ fontSize: '13px' }}><strong>{p?.name}</strong><br/><Text type="secondary" style={{ fontSize: '11px' }}>{p?.email}</Text></div>
+                    render: (p: any) => <div style={{ fontSize: '13px' }}><strong>{p?.name}</strong><br/><Text type="secondary" style={{ fontSize: '11px' }}>{p?.email}</Text></div>
                   },
                   {
                     title: 'Target User',
                     dataIndex: 'targetUser',
-                    render: (tu) => <div style={{ fontSize: '13px' }}>{tu?.name || 'N/A'}<br/><Text type="secondary" style={{ fontSize: '11px' }}>{tu?.email || 'N/A'}</Text></div>
+                    render: (tu: any) => <div style={{ fontSize: '13px' }}>{tu?.name || 'N/A'}<br/><Text type="secondary" style={{ fontSize: '11px' }}>{tu?.email || 'N/A'}</Text></div>
                   },
                   {
                     title: 'Details',
                     dataIndex: 'details',
-                    render: (d) => (
+                    render: (d: any) => (
                       <Tooltip title={JSON.stringify(d, null, 2)}>
                         <span style={{ fontSize: '12px', color: '#64748b', cursor: 'help' }}>
                           {d.oldRole ? `Role: ${d.oldRole} → ${d.newRole}` : d.reason || 'View details'}
