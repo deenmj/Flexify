@@ -59,10 +59,20 @@ export interface Review {
   booking: string;
   reviewer: User;
   reviewedOwner: string;
-  vehicle: string;
+  vehicle: {
+    _id: string;
+    title: string;
+    make: string;
+    model: string;
+  };
   rating: number;
   comment: string;
-  status: 'visible' | 'hidden';
+  status: 'visible' | 'hidden' | 'rejected';
+  rejectionReason?: string;
+  rejectionComment?: string;
+  rejectedAt?: string;
+  hiddenBy?: string;
+  hiddenAt?: string;
   createdAt: string;
 }
 
@@ -403,6 +413,14 @@ export const reviewApi = {
 
   getForVehicle: (vehicleId: string) =>
     apiFetch<Review[]>(`/reviews/vehicle/${vehicleId}`),
+
+  getMyReviews: () =>
+    apiFetch<Review[]>('/reviews/owner'),
+
+  toggleVisibility: (reviewId: string) =>
+    apiFetch<{ message: string; review: Review }>(`/reviews/${reviewId}/hide`, {
+      method: 'PATCH',
+    }),
 };
 
 // =================== USER ===================

@@ -4,8 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, Modal, message, Select, Tag, Badge, DatePicker, Button, Form, Input, Rate } from 'antd';
-import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange } from '../api';
-import { Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, CalendarOff, Star } from 'lucide-react';
+import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review } from '../api';
+import { Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, CalendarOff, Star, MessageSquare } from 'lucide-react';
 
 const { RangePicker } = DatePicker;
 import './Dashboard.css';
@@ -17,8 +17,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar'>(user?.role === 'user' ? 'bookings' : 'vehicles');
+  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews'>(user?.role === 'user' ? 'bookings' : 'vehicles');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   
   // Calendar tab state (owner only)
@@ -38,16 +39,25 @@ export default function Dashboard() {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
+    const promises: Promise<any>[] = [
       vehicleApi.getMy().catch(() => []),
       bookingApi.getMy().catch(() => []),
-    ]).then(([v, b]) => {
-      setVehicles(v);
-      setBookings(b);
+    ];
+
+    if (user?.role === 'owner') {
+      promises.push(reviewApi.getMyReviews().catch(() => []));
+    } else {
+      promises.push(Promise.resolve([]));
+    }
+
+    Promise.all(promises).then(([v, b, r]) => {
+      setVehicles(v as Vehicle[]);
+      setBookings(b as Booking[]);
+      setReviews(r as Review[]);
       // Set default calendar vehicle
-      if (v.length > 0) setCalendarVehicleId(v[0]._id);
+      if ((v as Vehicle[]).length > 0) setCalendarVehicleId((v as Vehicle[])[0]._id);
     }).finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   // Fetch calendar availability & blackouts when vehicle changes
   useEffect(() => {
@@ -189,6 +199,16 @@ export default function Dashboard() {
       message.error(err.message || 'Failed to submit review');
     } finally {
       setSubmittingReview(false);
+    }
+  };
+
+  const handleToggleReviewVisibility = async (reviewId: string) => {
+    try {
+      const res = await reviewApi.toggleVisibility(reviewId);
+      setReviews((prev: Review[]) => prev.map((r: Review) => r._id === reviewId ? res.review : r));
+      message.success(res.message);
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update review visibility');
     }
   };
 
@@ -347,6 +367,11 @@ export default function Dashboard() {
               <CalIcon size={16} /> Calendar
             </button>
           )}
+          {isOwner && (
+            <button className={`dashboard-tab ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>
+              <Star size={16} /> Reviews
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -480,7 +505,7 @@ export default function Dashboard() {
               </table>
             )}
           </div>
-        ) : (
+        ) : tab === 'calendar' ? (
           /* ===== CALENDAR TAB (Owner Only) ===== */
           <div className="dashboard-calendar-wrap card">
             <div style={{ padding: '1.5rem 1.5rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -601,6 +626,97 @@ export default function Dashboard() {
                 </Button>
               </Form>
             </Modal>
+          </div>
+        ) : (
+          /* ===== REVIEWS TAB (Owner Only) ===== */
+          <div className="dashboard-table-wrap card">
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Star size={18} /> Customer Reviews
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.4rem' }}>
+                Manage reviews for your vehicles. Verified owners can hide reviews temporarily.
+              </p>
+            </div>
+
+            {reviews.length === 0 ? (
+              <div className="dashboard-empty" style={{ padding: '4rem 1.5rem' }}>
+                <MessageSquare size={40} strokeWidth={1} />
+                <p>No reviews yet for your vehicles</p>
+              </div>
+            ) : (
+              <table className="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>Vehicle</th>
+                    <th>Reviewer</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reviews.map((r: Review) => (
+                    <tr key={r._id}>
+                      <td>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{r.vehicle?.title || 'Vehicle'}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{r.vehicle?.make} {r.vehicle?.model}</div>
+                      </td>
+                      <td>
+                        <div style={{ fontSize: '0.9rem' }}>{r.reviewer?.name || 'User'}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                      </td>
+                      <td><Rate disabled defaultValue={r.rating} style={{ fontSize: '14px' }} /></td>
+                      <td style={{ maxWidth: '250px' }}>
+                        <div style={{ fontSize: '0.9rem', fontStyle: 'italic' }}>"{r.comment}"</div>
+                      </td>
+                      <td>
+                        {r.status === 'visible' ? (
+                          <Tag color="success">Visible</Tag>
+                        ) : r.status === 'hidden' ? (
+                          <Tag color="warning">
+                            {r.hiddenBy === (user._id || user.id) ? 'Hidden by You' : 'Hidden by Admin'}
+                          </Tag>
+                        ) : (
+                          <Tag color="error">Rejected</Tag>
+                        )}
+                      </td>
+                      <td>
+                        {isVerifiedOwner && r.status === 'visible' && (
+                          <Button 
+                            danger 
+                            size="small" 
+                            type="text"
+                            onClick={() => {
+                              Modal.confirm({
+                                title: 'Hide Review Temporarily?',
+                                content: 'This review will be hidden from the public view until you decide to unhide it or an admin overrides this action.',
+                                onOk: () => handleToggleReviewVisibility(r._id)
+                              });
+                            }}
+                          >
+                            Hide
+                          </Button>
+                        )}
+                        {isVerifiedOwner && r.status === 'hidden' && r.hiddenBy === (user._id || user.id) && (
+                          <Button 
+                            type="link" 
+                            size="small"
+                            onClick={() => handleToggleReviewVisibility(r._id)}
+                          >
+                            Unhide
+                          </Button>
+                        )}
+                        {r.status === 'hidden' && r.hiddenBy !== (user._id || user.id) && (
+                          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Admin Action</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
       </div>

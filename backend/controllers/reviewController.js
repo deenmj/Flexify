@@ -151,3 +151,60 @@ export const getAllReviews = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// @desc    Get reviews for owner's vehicles
+// @route   GET /api/reviews/owner
+// @access  Private (Owner)
+export const getOwnerReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find({ reviewedOwner: req.user._id })
+      .populate("reviewer", "name profilePic")
+      .populate("vehicle", "title make model")
+      .sort({ createdAt: -1 });
+
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Hide/Unhide review (Owner Self-Moderation)
+// @route   PATCH /api/reviews/:id/hide
+// @access  Private (Verified Owner)
+export const hideReviewByOwner = async (req, res) => {
+  try {
+    if (req.user.role !== "owner" || req.user.ownerType !== "VERIFIED") {
+      return res.status(403).json({ message: "Only verified owners can moderate reviews" });
+    }
+
+    const review = await Review.findById(req.params.id);
+    if (!review) {
+      return res.status(404).json({ message: "Review not found" });
+    }
+
+    // Verify ownership
+    if (review.reviewedOwner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to moderate this review" });
+    }
+
+    // Toggle visibility
+    if (review.status === "visible") {
+      review.status = "hidden";
+      review.hiddenBy = req.user._id;
+      review.hiddenAt = new Date();
+    } else if (review.status === "hidden" && review.hiddenBy?.toString() === req.user._id.toString()) {
+      // Only allow unhiding if hidden by the owner (sub-admin can override via their own endpoint)
+      review.status = "visible";
+      review.hiddenBy = null;
+      review.hiddenAt = null;
+    } else {
+      return res.status(400).json({ message: "Cannot toggle visibility of this review in its current state" });
+    }
+
+    await review.save();
+    await updateVehicleRating(review.vehicle);
+
+    res.json({ message: `Review is now ${review.status}`, review });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
