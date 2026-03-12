@@ -5,6 +5,7 @@ import Blackout from "../models/Blackout.js";
 import User from "../models/User.js";
 import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
+import { sendSubadminAlert } from "../utils/notifier.js";
 
 /**
  * Owner creates a vehicle listing.

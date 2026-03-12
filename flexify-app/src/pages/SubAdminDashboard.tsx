@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { notification } from 'antd';
 import { subadminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { Users, Car, Shield, CheckCircle, XCircle, Search, AlertTriangle, FileText, Clock, MessageSquare, Eye, EyeOff } from 'lucide-react';
 import { Rate } from 'antd';
@@ -24,6 +25,17 @@ export default function SubAdminDashboard() {
 
     useEffect(() => { fetchData(); }, []);
     useEffect(() => { setCheckedItems([false, false, false, false]); }, [selectedUser]);
+
+    useEffect(() => {
+        if (stats && (stats.pendingUsers > 0 || stats.pendingVehicles > 0)) {
+            notification.info({
+                message: 'Pending Actions Required',
+                description: `You have ${stats.pendingUsers} users and ${stats.pendingVehicles} vehicles awaiting approval.`,
+                placement: 'topRight',
+                duration: 5,
+            });
+        }
+    }, [stats]);
 
     const fetchData = async () => {
         setLoading(true);
