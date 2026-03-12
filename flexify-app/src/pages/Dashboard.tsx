@@ -3,9 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, Modal, message, Select, Tag, Badge } from 'antd';
-import { vehicleApi, bookingApi, type Vehicle, type Booking, type BookedRange } from '../api';
-import { Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle } from 'lucide-react';
+import { Calendar, Modal, message, Select, Tag, Badge, DatePicker, Button, Form, Input } from 'antd';
+import { vehicleApi, bookingApi, blackoutApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange } from '../api';
+import { Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, CalendarOff } from 'lucide-react';
+
+const { RangePicker } = DatePicker;
 import './Dashboard.css';
 
 dayjs.extend(isBetween);
@@ -22,7 +24,12 @@ export default function Dashboard() {
   // Calendar tab state (owner only)
   const [calendarVehicleId, setCalendarVehicleId] = useState<string>('');
   const [calendarRanges, setCalendarRanges] = useState<BookedRange[]>([]);
+  const [blackoutRanges, setBlackoutRanges] = useState<BlackoutRange[]>([]);
+  const [blackouts, setBlackouts] = useState<Blackout[]>([]);
   const [calendarLoading, setCalendarLoading] = useState(false);
+  const [showBlackoutModal, setShowBlackoutModal] = useState(false);
+  const [blackoutForm] = Form.useForm();
+  const [blackoutSaving, setBlackoutSaving] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -36,15 +43,62 @@ export default function Dashboard() {
     }).finally(() => setLoading(false));
   }, []);
 
-  // Fetch calendar availability when vehicle changes
+  // Fetch calendar availability & blackouts when vehicle changes
   useEffect(() => {
     if (!calendarVehicleId) return;
     setCalendarLoading(true);
-    vehicleApi.getAvailability(calendarVehicleId)
-      .then((data) => setCalendarRanges(data.bookedRanges))
-      .catch(() => setCalendarRanges([]))
-      .finally(() => setCalendarLoading(false));
+    
+    Promise.all([
+      vehicleApi.getAvailability(calendarVehicleId),
+      blackoutApi.getForVehicle(calendarVehicleId)
+    ])
+    .then(([availData, blackoutData]) => {
+      setCalendarRanges(availData.bookedRanges);
+      setBlackoutRanges(availData.blackoutRanges);
+      setBlackouts(blackoutData);
+    })
+    .catch(() => {
+      setCalendarRanges([]);
+      setBlackoutRanges([]);
+      setBlackouts([]);
+    })
+    .finally(() => setCalendarLoading(false));
   }, [calendarVehicleId]);
+
+  const handleAddBlackout = async (values: any) => {
+    if (!values.dates || !values.dates[0] || !values.dates[1]) return;
+    if (!calendarVehicleId) return;
+
+    setBlackoutSaving(true);
+    try {
+      const newBlackout = await blackoutApi.create(
+        calendarVehicleId,
+        values.dates[0].toISOString(),
+        values.dates[1].toISOString(),
+        values.reason
+      );
+      setBlackouts([...blackouts, newBlackout]);
+      setBlackoutRanges([...blackoutRanges, { start: newBlackout.startDate, end: newBlackout.endDate }]);
+      message.success('Blackout period added successfully');
+      setShowBlackoutModal(false);
+      blackoutForm.resetFields();
+    } catch (err: any) {
+      message.error(err.message || 'Failed to add blackout period');
+    } finally {
+      setBlackoutSaving(false);
+    }
+  };
+
+  const handleDeleteBlackout = async (id: string, startDay: string, endDay: string) => {
+    try {
+      await blackoutApi.delete(id);
+      setBlackouts(prev => prev.filter(b => b._id !== id));
+      setBlackoutRanges(prev => prev.filter(br => br.start !== startDay || br.end !== endDay));
+      message.success('Blackout period removed');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to remove blackout');
+    }
+  };
 
   const handleToggleStatus = async (id: string) => {
     try {
@@ -115,6 +169,7 @@ export default function Dashboard() {
 
   // Calendar cell renderer for owner dashboard
   const calendarCellRender = useCallback((date: Dayjs) => {
+    // 1. Regular Bookings
     const matchingBookings = bookings.filter((b) => {
       const veh = typeof b.vehicle === 'object' ? (b.vehicle as Vehicle)._id : b.vehicle;
       if (veh !== calendarVehicleId) return false;
@@ -123,7 +178,14 @@ export default function Dashboard() {
       return date.isBetween(start, end, 'day', '[]');
     });
 
-    if (matchingBookings.length === 0) return null;
+    // 2. Blackout Dates
+    const matchingBlackouts = blackouts.filter((b) => {
+      const start = dayjs(b.startDate).startOf('day');
+      const end = dayjs(b.endDate).endOf('day');
+      return date.isBetween(start, end, 'day', '[]');
+    });
+
+    if (matchingBookings.length === 0 && matchingBlackouts.length === 0) return null;
 
     return (
       <div className="dash-cal-events">
@@ -139,9 +201,18 @@ export default function Dashboard() {
             </div>
           );
         })}
+        {matchingBlackouts.map((b) => (
+          <div
+            key={b._id}
+            className="dash-cal-event cal-blackout"
+            title={`Blackout: ${b.reason || 'Unavailable'}`}
+          >
+            <span className="cal-event-name">Unavailable</span>
+          </div>
+        ))}
       </div>
     );
-  }, [bookings, calendarVehicleId]);
+  }, [bookings, blackouts, calendarVehicleId]);
 
   if (!user) return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Please sign in</h2></div>;
 
@@ -403,6 +474,21 @@ export default function Dashboard() {
                 <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
                 Pending
               </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+                <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#f3f4f6', border: '1px solid #9ca3af' }}></span>
+                Blackout / Unavailable
+              </span>
+              <div style={{ marginLeft: 'auto' }}>
+                <Button 
+                  type="primary" 
+                  ghost 
+                  icon={<CalendarOff size={16} />} 
+                  onClick={() => setShowBlackoutModal(true)}
+                  disabled={!calendarVehicleId || calendarLoading}
+                >
+                  Block Dates
+                </Button>
+              </div>
             </div>
 
             {calendarLoading ? (
@@ -416,8 +502,74 @@ export default function Dashboard() {
             ) : (
               <div style={{ padding: '0 1rem 1.5rem' }}>
                 <Calendar fullscreen={false} cellRender={(date) => calendarCellRender(date as Dayjs)} />
+                
+                {blackouts.length > 0 && (
+                  <div style={{ marginTop: '2rem' }}>
+                    <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Active Blackout Periods</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {blackouts.map(b => (
+                        <div key={b._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                          <div>
+                            <div style={{ fontWeight: 500 }}>
+                              {new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}
+                            </div>
+                            {b.reason && <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Reason: {b.reason}</div>}
+                          </div>
+                          <Button 
+                            danger 
+                            type="text" 
+                            icon={<Trash2 size={16} />} 
+                            onClick={() => handleDeleteBlackout(b._id, b.startDate, b.endDate)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
+            {/* BLACKOUT MODAL */}
+            <Modal
+              title="Block Dates (Manual Blackout)"
+              open={showBlackoutModal}
+              onCancel={() => setShowBlackoutModal(false)}
+              footer={null}
+              destroyOnClose
+            >
+              <Form 
+                form={blackoutForm} 
+                layout="vertical" 
+                onFinish={handleAddBlackout}
+                style={{ marginTop: '1.5rem' }}
+              >
+                <Form.Item 
+                  name="dates" 
+                  label="Select Dates to Block" 
+                  rules={[{ required: true, message: 'Please select dates' }]}
+                >
+                  <RangePicker 
+                    style={{ width: '100%' }} 
+                    disabledDate={(current) => {
+                      if (current && current < dayjs().startOf('day')) return true;
+                      // Disable dates that overlap with confirmed bookings so we don't double book a blackout
+                      return calendarRanges.some(cr => {
+                        if (cr.status !== 'CONFIRMED') return false;
+                        const start = dayjs(cr.start).startOf('day');
+                        const end = dayjs(cr.end).endOf('day');
+                        return current.isBetween(start, end, 'day', '[]');
+                      });
+                    }}
+                  />
+                </Form.Item>
+                <Form.Item name="reason" label="Reason (Optional)">
+                  <Input.TextArea placeholder="e.g. Maintenance, Personal Use..." rows={3} />
+                </Form.Item>
+                <Button type="primary" htmlType="submit" loading={blackoutSaving} style={{ width: '100%' }}>
+                  Save Blackout
+                </Button>
+              </Form>
+            </Modal>
           </div>
         )}
       </div>

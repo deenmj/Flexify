@@ -59,6 +59,7 @@ import vehicleRoutes from "./routes/vehicleRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import subadminRoutes from "./routes/subadminRoutes.js";
+import blackoutRoutes from "./routes/blackoutRoutes.js";
 
 import { protect } from "./middleware/authMiddleware.js";
 
@@ -72,6 +73,7 @@ app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/bookings", protect, bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/subadmin", subadminRoutes);
+app.use("/api/blackouts", blackoutRoutes);
 
 // Catch-all to serve React app
 app.get("*", (req, res) => {

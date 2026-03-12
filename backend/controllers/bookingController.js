@@ -1,6 +1,7 @@
 // backend/controllers/bookingController.js
 import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
+import Blackout from "../models/Blackout.js";
 import sendEmail from "../utils/sendEmail.js";
 
 /**
@@ -44,7 +45,17 @@ export const createBooking = async (req, res) => {
     });
 
     if (overlapping) {
-      return res.status(409).json({ message: "Vehicle not available for selected dates" });
+      return res.status(409).json({ message: "Vehicle not available for selected dates (Already booked)" });
+    }
+
+    // Check for overlapping blackouts
+    const overlappingBlackout = await Blackout.findOne({
+      vehicle: vehicleId,
+      $or: [{ startDate: { $lte: e }, endDate: { $gte: s } }],
+    });
+
+    if (overlappingBlackout) {
+      return res.status(409).json({ message: "Vehicle not available for selected dates (Owner unavailable)" });
     }
 
     const totalAmount = (vehicle.pricePerDay || 0) * days;

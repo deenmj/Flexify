@@ -71,6 +71,21 @@ export interface BookedRange {
   status: 'CONFIRMED' | 'PENDING';
 }
 
+export interface BlackoutRange {
+  start: string;
+  end: string;
+}
+
+export interface Blackout {
+  _id: string;
+  vehicle: Vehicle | string;
+  owner: User | string;
+  startDate: string;
+  endDate: string;
+  reason?: string;
+  createdAt?: string;
+}
+
 export interface AuthResponse {
   token: string;
   user: User;
@@ -201,7 +216,7 @@ export const vehicleApi = {
     }),
 
   getAvailability: (id: string) =>
-    apiFetch<{ bookedRanges: BookedRange[] }>(`/vehicles/${id}/availability`),
+    apiFetch<{ bookedRanges: BookedRange[]; blackoutRanges: BlackoutRange[] }>(`/vehicles/${id}/availability`),
 };
 
 // =================== BOOKINGS ===================
@@ -222,6 +237,21 @@ export const bookingApi = {
 
   cancel: (id: string) =>
     apiFetch<{ message: string }>(`/bookings/cancel/${id}`, { method: 'PUT' }),
+};
+
+// =================== BLACKOUTS ===================
+export const blackoutApi = {
+  create: (vehicleId: string, startDate: string, endDate: string, reason?: string) =>
+    apiFetch<Blackout>('/blackouts', {
+      method: 'POST',
+      body: JSON.stringify({ vehicleId, startDate, endDate, reason }),
+    }),
+
+  getForVehicle: (vehicleId: string) =>
+    apiFetch<Blackout[]>(`/blackouts/vehicle/${vehicleId}`),
+
+  delete: (id: string) =>
+    apiFetch<{ message: string }>(`/blackouts/${id}`, { method: 'DELETE' }),
 };
 
 // =================== ADMIN (SUPERADMIN) ===================

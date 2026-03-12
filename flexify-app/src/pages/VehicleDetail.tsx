@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, DatePicker, Tooltip, Modal, message } from 'antd';
-import { vehicleApi, bookingApi, type Vehicle, type BookedRange } from '../api';
+import { vehicleApi, bookingApi, type Vehicle, type BookedRange, type BlackoutRange } from '../api';
 import { Users, CheckCircle, Star, ShieldCheck, Calendar as CalIcon, ArrowRight, Phone, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './VehicleDetail.css';
@@ -20,8 +20,9 @@ export default function VehicleDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Availability
+  // Availability & Blackouts
   const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
+  const [blackoutRanges, setBlackoutRanges] = useState<BlackoutRange[]>([]);
   const [availLoading, setAvailLoading] = useState(false);
 
   // Booking modal
@@ -53,7 +54,10 @@ export default function VehicleDetail() {
     if (!id) return;
     setAvailLoading(true);
     vehicleApi.getAvailability(id)
-      .then((data) => setBookedRanges(data.bookedRanges))
+      .then((data) => {
+        setBookedRanges(data.bookedRanges);
+        setBlackoutRanges(data.blackoutRanges);
+      })
       .catch(() => { /* silently fail — calendar just won't show booked dates */ })
       .finally(() => setAvailLoading(false));
   }, [id]);
@@ -68,21 +72,26 @@ export default function VehicleDetail() {
     });
   }, [bookedRanges]);
 
-  // Helper: is a date within a CONFIRMED range? (used for disabling in picker)
-  const isDateConfirmed = useCallback((date: Dayjs) => {
-    return isDateBooked(date, 'CONFIRMED');
-  }, [isDateBooked]);
+  // Helper: is a date within a blackout range?
+  const isDateBlackedOut = useCallback((date: Dayjs) => {
+    return blackoutRanges.some((r) => {
+      const start = dayjs(r.start).startOf('day');
+      const end = dayjs(r.end).endOf('day');
+      return date.isBetween(start, end, 'day', '[]');
+    });
+  }, [blackoutRanges]);
 
-  // Disable dates in the RangePicker (past + confirmed ranges)
+  // Disable dates in the RangePicker (past, confirmed ranges, and blackouts)
   const disabledDate = useCallback((current: Dayjs) => {
     if (current.isBefore(dayjs(), 'day')) return true;
-    return isDateConfirmed(current);
-  }, [isDateConfirmed]);
+    return isDateBooked(current, 'CONFIRMED') || isDateBlackedOut(current);
+  }, [isDateBooked, isDateBlackedOut]);
 
   // Calendar cell renderer for the availability calendar
   const dateCellRender = useCallback((date: Dayjs) => {
     const confirmed = isDateBooked(date, 'CONFIRMED');
     const pending = isDateBooked(date, 'PENDING');
+    const blackedOut = isDateBlackedOut(date);
 
     if (confirmed) {
       return (
@@ -98,8 +107,15 @@ export default function VehicleDetail() {
         </Tooltip>
       );
     }
+    if (blackedOut) {
+      return (
+        <Tooltip title="Owner Unavailable / Blackout">
+          <div className="avail-cell avail-blackout">Unavailable</div>
+        </Tooltip>
+      );
+    }
     return null;
-  }, [isDateBooked]);
+  }, [isDateBooked, isDateBlackedOut]);
 
   const handleBookNow = async () => {
     if (!user) {
@@ -129,7 +145,10 @@ export default function VehicleDetail() {
       message.success('Booking request submitted!');
       // Refresh availability
       vehicleApi.getAvailability(id!)
-        .then((data) => setBookedRanges(data.bookedRanges))
+        .then((data) => {
+          setBookedRanges(data.bookedRanges);
+          setBlackoutRanges(data.blackoutRanges);
+        })
         .catch(() => {});
     } catch (err: any) {
       message.error(err.message || 'Failed to submit booking');

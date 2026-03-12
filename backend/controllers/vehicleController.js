@@ -1,6 +1,7 @@
 // backend/controllers/vehicleController.js
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/Booking.js";
+import Blackout from "../models/Blackout.js";
 import User from "../models/User.js";
 
 /**
@@ -250,13 +251,26 @@ export const getVehicleAvailability = async (req, res) => {
       .sort({ startDate: 1 })
       .lean();
 
+    const blackouts = await Blackout.find({
+      vehicle: req.params.id,
+      endDate: { $gte: now },
+    })
+      .select("startDate endDate")
+      .sort({ startDate: 1 })
+      .lean();
+
     const bookedRanges = bookings.map((b) => ({
       start: b.startDate,
       end: b.endDate,
       status: b.status,
     }));
 
-    res.json({ bookedRanges });
+    const blackoutRanges = blackouts.map((b) => ({
+      start: b.startDate,
+      end: b.endDate,
+    }));
+
+    res.json({ bookedRanges, blackoutRanges });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

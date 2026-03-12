@@ -225,6 +225,13 @@
   border: 1px solid #fcd34d;
 }
 
+.avail-blackout {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #9ca3af;
+  text-decoration: line-through;
+}
+
 /* Antd RangePicker override to match theme */
 .ant-picker {
   border-radius: 10px !important;
