@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { vehicleApi } from '../api';
+import { vehicleApi, type VehicleMake, type VehicleModel } from '../api';
+import { Select as AntSelect, message } from 'antd';
 import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -16,21 +17,10 @@ L.Marker.prototype.options.icon = L.icon({
   iconAnchor: [12, 41]
 });
 
-const CAR_BRANDS: Record<string, string[]> = {
-  Toyota: ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Prius', 'Yaris', 'Tacoma'],
-  Honda: ['Civic', 'Accord', 'CR-V', 'Pilot', 'Fit', 'HR-V'],
-  Ford: ['F-150', 'Escape', 'Explorer', 'Focus', 'Mustang', 'Transit'],
-  Tesla: ['Model S', 'Model 3', 'Model X', 'Model Y', 'Cybertruck'],
-  BMW: ['3 Series', '4 Series', '5 Series', 'X3', 'X5', 'X7'],
-  'Mercedes-Benz': ['C-Class', 'E-Class', 'S-Class', 'GLC', 'GLE'],
-  Audi: ['A3', 'A4', 'A6', 'Q3', 'Q5', 'Q7'],
-  Chevrolet: ['Silverado', 'Equinox', 'Malibu', 'Cruze', 'Tahoe'],
-  Nissan: ['Altima', 'Sentra', 'Rogue', 'Pathfinder', 'Leaf'],
-  Hyundai: ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'Kona'],
-  Kia: ['Forte', 'Optima', 'Sportage', 'Sorento', 'Soul'],
-  Volkswagen: ['Jetta', 'Passat', 'Tiguan', 'Atlas', 'Golf'],
-  Other: [] // Used to show custom input
-};
+// Local fallback if API fails, though we primarily use dynamic data now
+const FALLBACK_BRANDS: string[] = ['Toyota', 'Honda', 'Suzuki', 'Nissan', 'Kia', 'Hyundai', 'Mitsubishi', 'Perodua', 'Tata', 'Mahindra'];
+
+const { Option } = AntSelect;
 
 const SRI_LANKA_DISTRICTS: Record<string, string[]> = {
   Colombo: ['Colombo', 'Dehiwala', 'Mount Lavinia', 'Moratuwa', 'Maharagama', 'Nugegoda', 'Battaramulla', 'Malabe', 'Kottawa', 'Homagama'],
@@ -93,6 +83,50 @@ export default function ListVehicle() {
 
   // Map State defaults to Sri Lanka center
   const [position, setPosition] = useState({ lat: 7.8731, lng: 80.7718 });
+
+  // Dynamic Makes/Models
+  const [makes, setMakes] = useState<VehicleMake[]>([]);
+  const [models, setModels] = useState<VehicleModel[]>([]);
+  const [loadingMakes, setLoadingMakes] = useState(false);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  useEffect(() => {
+    const fetchMakes = async () => {
+      setLoadingMakes(true);
+      try {
+        const data = await vehicleApi.getMakes();
+        setMakes(data);
+      } catch (err) {
+        console.error("Failed to load makes", err);
+      } finally {
+        setLoadingMakes(false);
+      }
+    };
+    fetchMakes();
+  }, []);
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      if (!selectedMake || selectedMake === 'Other') {
+        setModels([]);
+        return;
+      }
+      // Find the ID of the selected make
+      const makeObj = makes.find((m: VehicleMake) => m.name === selectedMake);
+      if (!makeObj) return;
+
+      setLoadingModels(true);
+      try {
+        const data = await vehicleApi.getModels(makeObj._id);
+        setModels(data);
+      } catch (err) {
+        console.error("Failed to load models", err);
+      } finally {
+        setLoadingModels(false);
+      }
+    };
+    fetchModels();
+  }, [selectedMake, makes]);
 
   // Sync internal Make/Model states to form output dynamically
   useEffect(() => {
@@ -221,7 +255,7 @@ export default function ListVehicle() {
     }
   };
 
-  const modelsList = selectedMake && selectedMake !== 'Other' && CAR_BRANDS[selectedMake] ? CAR_BRANDS[selectedMake] : [];
+
 
   return (
     <div className="list-vehicle-page">
@@ -248,20 +282,25 @@ export default function ListVehicle() {
             <div className="form-row">
               <div className="input-group">
                 <label><Settings size={14} /> Make</label>
-                <select
-                  className="input-field"
-                  value={selectedMake}
-                  onChange={(e) => {
-                    setSelectedMake(e.target.value);
-                    setSelectedModel(''); // Reset model when make changes
+                <AntSelect
+                  showSearch
+                  className="antd-select-full"
+                  placeholder="Select or Search Brand"
+                  value={selectedMake || undefined}
+                  onChange={(val: string) => {
+                    setSelectedMake(val);
+                    setSelectedModel(''); 
                   }}
-                  required
+                  loading={loadingMakes}
+                  filterOption={(input: string, option: any) =>
+                    (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                  }
                 >
-                  <option value="">Select Brand</option>
-                  {Object.keys(CAR_BRANDS).map(brand => (
-                    <option key={brand} value={brand}>{brand}</option>
+                  {makes.map((m: VehicleMake) => (
+                    <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>
                   ))}
-                </select>
+                  <Option value="Other" label="Other / Suggest New">Other / Suggest New</Option>
+                </AntSelect>
                 {selectedMake === 'Other' && (
                   <input
                     className="input-field animate-fade-in"
@@ -275,19 +314,23 @@ export default function ListVehicle() {
               </div>
               <div className="input-group">
                 <label><PenTool size={14} /> Model</label>
-                <select
-                  className="input-field"
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  required={selectedMake !== 'Other'}
-                  disabled={!selectedMake || selectedMake === 'Other'}
+                <AntSelect
+                  showSearch
+                  className="antd-select-full"
+                  placeholder="Select Model"
+                  value={selectedModel || undefined}
+                  onChange={(val: string) => setSelectedModel(val)}
+                  loading={loadingModels}
+                  disabled={!selectedMake || (selectedMake === 'Other' && !customMake)}
+                  filterOption={(input: string, option: any) =>
+                    (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                  }
                 >
-                  <option value="">Select Model</option>
-                  {modelsList.map(m => (
-                    <option key={m} value={m}>{m}</option>
+                  {models.map((m: VehicleModel) => (
+                    <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>
                   ))}
-                  <option value="Other">Add Model / Other</option>
-                </select>
+                  <Option value="Other" label="Other / Suggest New">Other / Suggest New</Option>
+                </AntSelect>
                 {(selectedModel === 'Other' || selectedMake === 'Other') && (
                   <input
                     className="input-field animate-fade-in"

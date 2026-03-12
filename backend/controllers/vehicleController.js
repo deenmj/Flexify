@@ -3,6 +3,8 @@ import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/Booking.js";
 import Blackout from "../models/Blackout.js";
 import User from "../models/User.js";
+import VehicleMake from "../models/VehicleMake.js";
+import VehicleModel from "../models/VehicleModel.js";
 
 /**
  * Owner creates a vehicle listing.
@@ -36,11 +38,66 @@ export const createVehicle = async (req, res) => {
       vehicleStatus = "active";
     }
 
+    // Normalization & Dynamic Creation
+    let makeId = make;
+    let modelId = model;
+
+    // Helper to find or create approved/pending make/model
+    const getNormalizedMake = async (name) => {
+      const normalized = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+      let m = await VehicleMake.findOne({ name: new RegExp(`^${name}$`, "i") });
+      if (!m) {
+        m = await VehicleMake.create({ name: normalized, approved: false, createdBy: owner._id });
+      }
+      return m;
+    };
+
+    const getNormalizedModel = async (makeObjId, name) => {
+      const normalized = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+      let m = await VehicleModel.findOne({ make: makeObjId, name: new RegExp(`^${name}$`, "i") });
+      if (!m) {
+        m = await VehicleModel.create({ make: makeObjId, name: normalized, approved: false, createdBy: owner._id });
+      }
+      return m;
+    };
+
+    // If text values were passed directly (new/other), normalize them
+    // Note: If make/model are IDs, we use them, but if they are strings, we create/find
+    const mongoose = (await import("mongoose")).default;
+    const isObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+    let finalMakeName = make;
+    let finalModelName = model;
+
+    if (!isObjectId(make)) {
+      const makeObj = await getNormalizedMake(make);
+      finalMakeName = makeObj.name;
+    } else {
+      const m = await VehicleMake.findById(make);
+      if (m) finalMakeName = m.name;
+    }
+
+    if (!isObjectId(model)) {
+      if (isObjectId(make)) {
+        const modelObj = await getNormalizedModel(make, model);
+        finalModelName = modelObj.name;
+      } else {
+        // If make is also new, we'll wait for subadmin to link them or just use strings for vehicle
+        // But for consistency let's link to the newly created make
+        const makeObj = await getNormalizedMake(make);
+        const modelObj = await getNormalizedModel(makeObj._id, model);
+        finalModelName = modelObj.name;
+      }
+    } else {
+      const m = await VehicleModel.findById(model);
+      if (m) finalModelName = m.name;
+    }
+
     const vehicle = await Vehicle.create({
       owner: owner._id,
       title,
-      make,
-      model,
+      make: finalMakeName,
+      model: finalModelName,
       year: parseInt(year),
       photos,
       location: {
@@ -276,3 +333,30 @@ export const getVehicleAvailability = async (req, res) => {
   }
 };
 
+
+/**
+ * GET all approved makes
+ */
+export const getMakes = async (req, res) => {
+  try {
+    const makes = await VehicleMake.find({ approved: true }).sort({ name: 1 });
+    res.json(makes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * GET all approved models for a make
+ */
+export const getModels = async (req, res) => {
+  try {
+    const models = await VehicleModel.find({ 
+      make: req.params.makeId, 
+      approved: true 
+    }).sort({ name: 1 });
+    res.json(models);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

@@ -101,6 +101,21 @@ export interface Blackout {
   createdAt?: string;
 }
 
+export interface VehicleMake {
+  _id: string;
+  name: string;
+  approved: boolean;
+  createdBy?: User | string;
+}
+
+export interface VehicleModel {
+  _id: string;
+  make: VehicleMake | string;
+  name: string;
+  approved: boolean;
+  createdBy?: User | string;
+}
+
 export interface AuthResponse {
   token: string;
   user: User;
@@ -122,6 +137,8 @@ export interface AdminStats {
 export interface SubadminStats {
   pendingUsers: number;
   pendingVehicles: number;
+  pendingMakes: number;
+  pendingModels: number;
   approvedUsers: number;
   totalVehicles: number;
 }
@@ -232,6 +249,10 @@ export const vehicleApi = {
 
   getAvailability: (id: string) =>
     apiFetch<{ bookedRanges: BookedRange[]; blackoutRanges: BlackoutRange[] }>(`/vehicles/${id}/availability`),
+
+  getMakes: () => apiFetch<VehicleMake[]>('/vehicles/makes'),
+  
+  getModels: (makeId: string) => apiFetch<VehicleModel[]>(`/vehicles/models/${makeId}`),
 };
 
 // =================== BOOKINGS ===================
@@ -327,6 +348,18 @@ export const subadminApi = {
 
   getAllReviews: () =>
     apiFetch<Review[]>('/subadmin/reviews'),
+
+  getPendingMakes: () => apiFetch<VehicleMake[]>('/subadmin/pending-makes'),
+  
+  getPendingModels: () => apiFetch<VehicleModel[]>('/subadmin/pending-models'),
+  
+  approveMake: (id: string) => apiFetch<{ message: string; make: VehicleMake }>(`/subadmin/approve-make/${id}`, { method: 'PATCH' }),
+  
+  approveModel: (id: string) => apiFetch<{ message: string; model: VehicleModel }>(`/subadmin/approve-model/${id}`, { method: 'PATCH' }),
+  
+  deleteMake: (id: string) => apiFetch<{ message: string }>(`/subadmin/make/${id}`, { method: 'DELETE' }),
+  
+  deleteModel: (id: string) => apiFetch<{ message: string }>(`/subadmin/model/${id}`, { method: 'DELETE' }),
 };
 
 // =================== REVIEWS ===================

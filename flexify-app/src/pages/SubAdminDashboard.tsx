@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { subadminApi, type User, type Vehicle, type SubadminStats, type Review } from '../api';
+import { subadminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { Users, Car, Shield, CheckCircle, XCircle, Search, AlertTriangle, FileText, Clock, MessageSquare, Eye, EyeOff } from 'lucide-react';
 import { Rate } from 'antd';
 import './Dashboard.css';
@@ -11,8 +11,10 @@ export default function SubAdminDashboard() {
     const [pendingUsers, setPendingUsers] = useState<User[]>([]);
     const [pendingVehicles, setPendingVehicles] = useState<Vehicle[]>([]);
     const [reviews, setReviews] = useState<Review[]>([]);
+    const [pendingMakes, setPendingMakes] = useState<VehicleMake[]>([]);
+    const [pendingModels, setPendingModels] = useState<VehicleModel[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews'>('users');
+    const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation'>('users');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -26,16 +28,20 @@ export default function SubAdminDashboard() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [s, u, v, r] = await Promise.all([
+            const [s, u, v, r, m, mo] = await Promise.all([
                 subadminApi.getStats().catch(() => null),
                 subadminApi.getPendingUsers().catch(() => []),
                 subadminApi.getPendingVehicles().catch(() => []),
                 subadminApi.getAllReviews().catch(() => []),
+                subadminApi.getPendingMakes().catch(() => []),
+                subadminApi.getPendingModels().catch(() => []),
             ]);
             if (s) setStats(s);
             setPendingUsers(u);
             setPendingVehicles(v);
             setReviews(r);
+            setPendingMakes(m);
+            setPendingModels(mo);
         } catch (err) { console.error('Error:', err); }
         finally { setLoading(false); }
     };
@@ -93,6 +99,44 @@ export default function SubAdminDashboard() {
         try {
             await subadminApi.updateReviewStatus(reviewId, newStatus);
             setReviews(prev => prev.map(r => r._id === reviewId ? { ...r, status: newStatus as any } : r));
+        } catch (err: any) { alert(err.message); }
+        finally { setActionLoading(null); }
+    };
+
+    const handleApproveMake = async (id: string) => {
+        setActionLoading(id);
+        try {
+            await subadminApi.approveMake(id);
+            setPendingMakes((prev: VehicleMake[]) => prev.filter((m: VehicleMake) => m._id !== id));
+        } catch (err: any) { alert(err.message); }
+        finally { setActionLoading(null); }
+    };
+
+    const handleApproveModel = async (id: string) => {
+        setActionLoading(id);
+        try {
+            await subadminApi.approveModel(id);
+            setPendingModels((prev: VehicleModel[]) => prev.filter((m: VehicleModel) => m._id !== id));
+        } catch (err: any) { alert(err.message); }
+        finally { setActionLoading(null); }
+    };
+
+    const handleDeleteMake = async (id: string) => {
+        if (!window.confirm("Delete this make suggestion?")) return;
+        setActionLoading(id);
+        try {
+            await subadminApi.deleteMake(id);
+            setPendingMakes((prev: VehicleMake[]) => prev.filter((m: VehicleMake) => m._id !== id));
+        } catch (err: any) { alert(err.message); }
+        finally { setActionLoading(null); }
+    };
+
+    const handleDeleteModel = async (id: string) => {
+        if (!window.confirm("Delete this model suggestion?")) return;
+        setActionLoading(id);
+        try {
+            await subadminApi.deleteModel(id);
+            setPendingModels((prev: VehicleModel[]) => prev.filter((m: VehicleModel) => m._id !== id));
         } catch (err: any) { alert(err.message); }
         finally { setActionLoading(null); }
     };
@@ -171,6 +215,9 @@ export default function SubAdminDashboard() {
                     <button className={`dashboard-tab ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>
                         <MessageSquare size={16} /> Customer Reviews ({reviews.length})
                     </button>
+                    <button className={`dashboard-tab ${tab === 'moderation' ? 'active' : ''}`} onClick={() => setTab('moderation')}>
+                        <Clock size={16} /> Suggestions ({pendingMakes.length + pendingModels.length})
+                    </button>
                 </div>
 
                 {/* Search bar */}
@@ -228,7 +275,6 @@ export default function SubAdminDashboard() {
                         )}
                     </div>
                 ) : tab === 'vehicles' ? (
-                    /* Vehicles Tab */
                     <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
                         {pendingVehicles.length === 0 ? (
                             <div className="dashboard-empty" style={{ padding: '6rem 2rem' }}>
@@ -262,8 +308,7 @@ export default function SubAdminDashboard() {
                             </table>
                         )}
                     </div>
-                ) : (
-                    /* Reviews Tab */
+                ) : tab === 'reviews' ? (
                     <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
                         {reviews.length === 0 ? (
                             <div className="dashboard-empty" style={{ padding: '6rem 2rem' }}>
@@ -319,6 +364,68 @@ export default function SubAdminDashboard() {
                                 </tbody>
                             </table>
                         )}
+                    </div>
+                ) : (
+                    /* Suggestions Tab */
+                    <div style={{ display: 'grid', gap: '2rem' }}>
+                        <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
+                            <div style={{ padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                <h3 style={{ fontSize: '14px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Car size={16} /> New Makes suggestions ({pendingMakes.length})
+                                </h3>
+                            </div>
+                            {pendingMakes.length === 0 ? (
+                                <div className="dashboard-empty" style={{ padding: '3rem' }}>
+                                    <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>No new vehicle makes pending.</p>
+                                </div>
+                            ) : (
+                                <table className="dashboard-table">
+                                    <thead><tr><th>Make Name</th><th>Suggested By</th><th>Actions</th></tr></thead>
+                                    <tbody>
+                                        {pendingMakes.map((m: VehicleMake) => (
+                                            <tr key={m._id}>
+                                                <td style={{ fontWeight: 700 }}>{m.name}</td>
+                                                <td><span style={{ fontSize: '13px' }}>{(m.createdBy as any)?.name || 'Owner'}</span></td>
+                                                <td className="table-actions">
+                                                    <button className="btn btn-sm btn-primary" onClick={() => handleApproveMake(m._id)} disabled={actionLoading === m._id}><CheckCircle size={14} /> Approve</button>
+                                                    <button className="btn btn-sm btn-danger" onClick={() => handleDeleteMake(m._id)} disabled={actionLoading === m._id}><XCircle size={14} /> Reject</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+
+                        <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
+                            <div style={{ padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                <h3 style={{ fontSize: '14px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Car size={16} /> New Models suggestions ({pendingModels.length})
+                                </h3>
+                            </div>
+                            {pendingModels.length === 0 ? (
+                                <div className="dashboard-empty" style={{ padding: '3rem' }}>
+                                    <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>No new vehicle models pending.</p>
+                                </div>
+                            ) : (
+                                <table className="dashboard-table">
+                                    <thead><tr><th>Model Name</th><th>Make</th><th>Suggested By</th><th>Actions</th></tr></thead>
+                                    <tbody>
+                                        {pendingModels.map((mo: VehicleModel) => (
+                                            <tr key={mo._id}>
+                                                <td style={{ fontWeight: 700 }}>{mo.name}</td>
+                                                <td><span className="badge">{(mo.make as any)?.name}</span></td>
+                                                <td><span style={{ fontSize: '13px' }}>{(mo.createdBy as any)?.name || 'Owner'}</span></td>
+                                                <td className="table-actions">
+                                                    <button className="btn btn-sm btn-primary" onClick={() => handleApproveModel(mo._id)} disabled={actionLoading === mo._id}><CheckCircle size={14} /> Approve</button>
+                                                    <button className="btn btn-sm btn-danger" onClick={() => handleDeleteModel(mo._id)} disabled={actionLoading === mo._id}><XCircle size={14} /> Reject</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

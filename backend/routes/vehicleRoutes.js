@@ -11,12 +11,16 @@ import {
   deleteVehicle,
   toggleVehicleStatus,
   getVehicleAvailability,
+  getMakes,
+  getModels,
 } from "../controllers/vehicleController.js";
 
 const router = express.Router();
 
 // Public
 router.get("/", listVehicles);
+router.get("/makes", getMakes);
+router.get("/models/:makeId", getModels);
 router.get("/my", protect, getMyVehicles);
 router.get("/:id/availability", getVehicleAvailability);
 router.get("/:id", getVehicleById);

@@ -2,6 +2,8 @@
 // SUBADMIN controller — KYC review + vehicle approval
 import User from "../models/User.js";
 import Vehicle from "../models/Vehicle.js";
+import VehicleMake from "../models/VehicleMake.js";
+import VehicleModel from "../models/VehicleModel.js";
 
 /**
  * List users with pending KYC verification
@@ -132,10 +134,92 @@ export const getSubadminStats = async (req, res) => {
     try {
         const pendingUsers = await User.countDocuments({ verificationStatus: "pending" });
         const pendingVehicles = await Vehicle.countDocuments({ status: "pending" });
+        const pendingMakes = await VehicleMake.countDocuments({ approved: false });
+        const pendingModels = await VehicleModel.countDocuments({ approved: false });
         const approvedUsers = await User.countDocuments({ verificationStatus: "approved" });
         const totalVehicles = await Vehicle.countDocuments({ status: "active" });
 
-        res.json({ pendingUsers, pendingVehicles, approvedUsers, totalVehicles });
+        res.json({ pendingUsers, pendingVehicles, pendingMakes, pendingModels, approvedUsers, totalVehicles });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+/**
+ * List pending makes
+ */
+export const getPendingMakes = async (req, res) => {
+    try {
+        const makes = await VehicleMake.find({ approved: false }).populate("createdBy", "name email");
+        res.json(makes);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+/**
+ * List pending models
+ */
+export const getPendingModels = async (req, res) => {
+    try {
+        const models = await VehicleModel.find({ approved: false })
+            .populate("make")
+            .populate("createdBy", "name email");
+        res.json(models);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+/**
+ * Approve make
+ */
+export const approveMake = async (req, res) => {
+    try {
+        const make = await VehicleMake.findById(req.params.id);
+        if (!make) return res.status(404).json({ message: "Make not found" });
+        make.approved = true;
+        await make.save();
+        res.json({ message: "Make approved", make });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+/**
+ * Approve model
+ */
+export const approveModel = async (req, res) => {
+    try {
+        const model = await VehicleModel.findById(req.params.id);
+        if (!model) return res.status(404).json({ message: "Model not found" });
+        model.approved = true;
+        await model.save();
+        res.json({ message: "Model approved", model });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+/**
+ * Delete make
+ */
+export const deleteMake = async (req, res) => {
+    try {
+        await VehicleMake.findByIdAndDelete(req.params.id);
+        res.json({ message: "Make deleted" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+/**
+ * Delete model
+ */
+export const deleteModel = async (req, res) => {
+    try {
+        await VehicleModel.findByIdAndDelete(req.params.id);
+        res.json({ message: "Model deleted" });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
