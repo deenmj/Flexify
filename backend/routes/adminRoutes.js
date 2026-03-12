@@ -7,6 +7,7 @@ import {
   deleteUser,
   getAllVehicles,
   getAllBookings,
+  getAuditLogs,
 } from "../controllers/adminController.js";
 import { protect, requireSuperAdmin } from "../middleware/authMiddleware.js";
 
@@ -18,5 +19,6 @@ router.patch("/users/:id/role", protect, requireSuperAdmin, updateUserRole);
 router.delete("/users/:id", protect, requireSuperAdmin, deleteUser);
 router.get("/vehicles", protect, requireSuperAdmin, getAllVehicles);
 router.get("/bookings", protect, requireSuperAdmin, getAllBookings);
+router.get("/audit-logs", protect, requireSuperAdmin, getAuditLogs);
 
 export default router;

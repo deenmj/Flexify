@@ -3,6 +3,8 @@
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/Booking.js";
 import User from "../models/User.js";
+import AuditLog from "../models/AuditLog.js";
+import { logAdminAction } from "../utils/auditLogger.js";
 
 
 /**
@@ -79,6 +81,7 @@ export const updateUserRole = async (req, res) => {
       return res.status(400).json({ message: "Invalid role" });
     }
 
+    const oldRole = user.role;
     user.role = role;
 
     // Set ownerType if promoting to owner
@@ -95,6 +98,14 @@ export const updateUserRole = async (req, res) => {
     }
 
     await user.save();
+
+    // AUDIT LOG
+    logAdminAction(req, "role_change", user._id, {
+      oldRole,
+      newRole: role,
+      ownerType: user.ownerType
+    });
+
     res.json({ message: `User role updated to ${role}`, user });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -113,7 +124,17 @@ export const deleteUser = async (req, res) => {
       return res.status(400).json({ message: "Cannot delete yourself" });
     }
 
+    const targetId = user._id;
+    const targetInfo = { name: user.name, email: user.email };
+
     await user.deleteOne();
+
+    // AUDIT LOG
+    logAdminAction(req, "user_delete", targetId, {
+      reason: req.body.reason || "Admin panel action",
+      userSnapshot: targetInfo
+    });
+
     res.json({ message: "User deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -145,6 +166,35 @@ export const getAllBookings = async (req, res) => {
       .populate("vehicle", "title make model")
       .sort({ createdAt: -1 });
     res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Get recent audit logs (superadmin)
+ */
+export const getAuditLogs = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    const logs = await AuditLog.find()
+      .populate("performedBy", "name email")
+      .populate("targetUser", "name email")
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await AuditLog.countDocuments();
+
+    res.json({
+      logs,
+      total,
+      pages: Math.ceil(total / limit),
+      currentPage: page
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

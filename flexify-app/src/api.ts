@@ -134,6 +134,32 @@ export interface AdminStats {
   totalEarnings: number;
 }
 
+export interface AuditLog {
+  _id: string;
+  action: string;
+  performedBy: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  targetUser: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  details: any;
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp: string;
+}
+
+export interface AuditLogResponse {
+  logs: AuditLog[];
+  total: number;
+  pages: number;
+  currentPage: number;
+}
+
 export interface SubadminStats {
   pendingUsers: number;
   pendingVehicles: number;
@@ -308,6 +334,9 @@ export const adminApi = {
   getAllVehicles: () => apiFetch<Vehicle[]>('/admin/vehicles'),
 
   getAllBookings: () => apiFetch<Booking[]>('/admin/bookings'),
+
+  getAuditLogs: (page: number = 1, limit: number = 20) =>
+    apiFetch<AuditLogResponse>(`/admin/audit-logs?page=${page}&limit=${limit}`),
 };
 
 // =================== SUBADMIN ===================

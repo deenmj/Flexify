@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, type AdminStats, type Vehicle, type User, type Booking } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, ArrowLeft, Edit2, Trash2 } from 'lucide-react';
+import { adminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog } from '../api';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, ArrowLeft, Edit2, Trash2, ShieldAlert, History } from 'lucide-react';
+import { Table, Tag, Tooltip, Space, Typography } from 'antd';
+const { Text } = Typography;
 import './Dashboard.css';
 
 export default function AdminDashboard() {
@@ -16,6 +18,8 @@ export default function AdminDashboard() {
   const [newRole, setNewRole] = useState('');
   const [newOwnerType, setNewOwnerType] = useState('UNVERIFIED');
   const [searchQuery, setSearchQuery] = useState('');
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   useEffect(() => {
     if (user?.role !== 'superadmin') return;
@@ -24,11 +28,13 @@ export default function AdminDashboard() {
       adminApi.getAllUsers().catch(() => []),
       adminApi.getAllVehicles().catch(() => []),
       adminApi.getAllBookings().catch(() => []),
-    ]).then(([s, u, v, b]) => {
+      adminApi.getAuditLogs(1, 15).catch(() => ({ logs: [] })),
+    ]).then(([s, u, v, b, logs]) => {
       if (s) setStats(s);
       setAllUsers(u);
       setAllVehicles(v);
       setAllBookings(b);
+      setAuditLogs(logs.logs);
     }).finally(() => setLoading(false));
   }, [user]);
 
@@ -138,6 +144,58 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+
+            {/* Audit Log Table */}
+            <div style={{ marginTop: '3rem', textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
+                <div style={{ background: '#fecaca', color: '#dc2626', padding: '8px', borderRadius: '8px' }}><History size={20} /></div>
+                <h3 style={{ margin: 0 }}>Recent Admin Actions (Audit Log)</h3>
+              </div>
+              
+              <Table 
+                dataSource={auditLogs} 
+                rowKey="_id"
+                pagination={{ pageSize: 5 }}
+                size="middle"
+                className="audit-table"
+                columns={[
+                  {
+                    title: 'Date & Time',
+                    dataIndex: 'timestamp',
+                    render: (t) => <span style={{ color: '#64748b', fontSize: '13px' }}>{new Date(t).toLocaleString()}</span>
+                  },
+                  {
+                    title: 'Action',
+                    dataIndex: 'action',
+                    render: (a) => {
+                      const colors: any = { role_change: 'purple', user_delete: 'red', user_promote: 'green' };
+                      return <Tag color={colors[a] || 'blue'}>{a.replace('_', ' ').toUpperCase()}</Tag>
+                    }
+                  },
+                  {
+                    title: 'Performed By',
+                    dataIndex: 'performedBy',
+                    render: (p) => <div style={{ fontSize: '13px' }}><strong>{p?.name}</strong><br/><Text type="secondary" style={{ fontSize: '11px' }}>{p?.email}</Text></div>
+                  },
+                  {
+                    title: 'Target User',
+                    dataIndex: 'targetUser',
+                    render: (tu) => <div style={{ fontSize: '13px' }}>{tu?.name || 'N/A'}<br/><Text type="secondary" style={{ fontSize: '11px' }}>{tu?.email || 'N/A'}</Text></div>
+                  },
+                  {
+                    title: 'Details',
+                    dataIndex: 'details',
+                    render: (d) => (
+                      <Tooltip title={JSON.stringify(d, null, 2)}>
+                        <span style={{ fontSize: '12px', color: '#64748b', cursor: 'help' }}>
+                          {d.oldRole ? `Role: ${d.oldRole} → ${d.newRole}` : d.reason || 'View details'}
+                        </span>
+                      </Tooltip>
+                    )
+                  }
+                ]}
+              />
+            </div>
           </div>
 
         ) : tab === 'users' ? (
