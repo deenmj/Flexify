@@ -49,7 +49,21 @@ export interface Vehicle {
   status: 'pending' | 'active' | 'rejected';
   isActive: boolean;
   timesRented?: number;
+  averageRating?: number;
+  reviewCount?: number;
   createdAt?: string;
+}
+
+export interface Review {
+  _id: string;
+  booking: string;
+  reviewer: User;
+  reviewedOwner: string;
+  vehicle: string;
+  rating: number;
+  comment: string;
+  status: 'visible' | 'hidden';
+  createdAt: string;
 }
 
 export interface Booking {
@@ -62,6 +76,7 @@ export interface Booking {
   days: number;
   totalAmount: number;
   status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED';
+  isReviewed?: boolean;
   createdAt?: string;
 }
 
@@ -303,6 +318,27 @@ export const subadminApi = {
     apiFetch<{ message: string; vehicle: Vehicle }>(`/subadmin/reject-vehicle/${vehicleId}`, {
       method: 'PATCH',
     }),
+
+  updateReviewStatus: (reviewId: string, status: string) =>
+    apiFetch<{ message: string; review: Review }>(`/subadmin/reviews/${reviewId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
+  getAllReviews: () =>
+    apiFetch<Review[]>('/subadmin/reviews'),
+};
+
+// =================== REVIEWS ===================
+export const reviewApi = {
+  create: (bookingId: string, rating: number, comment: string) =>
+    apiFetch<Review>('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({ bookingId, rating, comment }),
+    }),
+
+  getForVehicle: (vehicleId: string) =>
+    apiFetch<Review[]>(`/reviews/vehicle/${vehicleId}`),
 };
 
 // =================== USER ===================

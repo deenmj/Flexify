@@ -15,6 +15,7 @@ const bookingSchema = new mongoose.Schema(
       enum: ["PENDING", "CONFIRMED", "REJECTED", "COMPLETED", "CANCELLED"],
       default: "PENDING",
     },
+    isReviewed: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

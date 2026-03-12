@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, DatePicker, Tooltip, Modal, message } from 'antd';
-import { vehicleApi, bookingApi, type Vehicle, type BookedRange, type BlackoutRange } from '../api';
-import { Users, CheckCircle, Star, ShieldCheck, Calendar as CalIcon, ArrowRight, Phone, Shield } from 'lucide-react';
+import { Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar } from 'antd';
+import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review } from '../api';
+import { Users, CheckCircle, Star, ShieldCheck, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './VehicleDetail.css';
 
@@ -34,6 +34,10 @@ export default function VehicleDetail() {
   // active carousel image
   const [activeImage, setActiveImage] = useState(0);
 
+  // Reviews
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
   useEffect(() => {
     if (!id) return;
     const fetchVehicle = async () => {
@@ -49,17 +53,26 @@ export default function VehicleDetail() {
     fetchVehicle();
   }, [id]);
 
-  // Fetch availability
+  // Fetch availability & reviews
   useEffect(() => {
     if (!id) return;
     setAvailLoading(true);
-    vehicleApi.getAvailability(id)
-      .then((data) => {
-        setBookedRanges(data.bookedRanges);
-        setBlackoutRanges(data.blackoutRanges);
-      })
-      .catch(() => { /* silently fail — calendar just won't show booked dates */ })
-      .finally(() => setAvailLoading(false));
+    setReviewsLoading(true);
+
+    Promise.all([
+      vehicleApi.getAvailability(id),
+      reviewApi.getForVehicle(id)
+    ])
+    .then(([availData, reviewData]) => {
+      setBookedRanges(availData.bookedRanges);
+      setBlackoutRanges(availData.blackoutRanges);
+      setReviews(reviewData);
+    })
+    .catch(() => { /* silently fail */ })
+    .finally(() => {
+      setAvailLoading(false);
+      setReviewsLoading(false);
+    });
   }, [id]);
 
   // Helper: is a date within a booked range?
@@ -220,8 +233,8 @@ export default function VehicleDetail() {
                 </div>
                 <div className="detail-rating">
                   <Star size={20} fill="#f59e0b" color="#f59e0b" />
-                  <span className="rating-score">4.8</span>
-                  <span className="rating-count">(24 reviews)</span>
+                  <span className="rating-score">{vehicle.averageRating || 'New'}</span>
+                  <span className="rating-count">({vehicle.reviewCount || 0} reviews)</span>
                 </div>
               </div>
 
@@ -286,6 +299,39 @@ export default function VehicleDetail() {
               ) : (
                 <Calendar fullscreen={false} cellRender={(date) => dateCellRender(date as Dayjs)} />
               )}
+            </div>
+
+            {/* REVIEWS SECTION */}
+            <div className="detail-reviews card" style={{ marginTop: '2rem', padding: '2rem' }}>
+              <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MessageSquare size={20} /> Guest Reviews ({reviews.length})
+              </h3>
+              
+              <List
+                loading={reviewsLoading}
+                itemLayout="horizontal"
+                dataSource={reviews}
+                renderItem={(review: Review) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={<Avatar src={review.reviewer.profilePic} alt={review.reviewer.name} />}
+                      title={
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 600 }}>{review.reviewer.name}</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{dayjs(review.createdAt).format('MMMM D, YYYY')}</span>
+                        </div>
+                      }
+                      description={
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <Rate disabled defaultValue={review.rating} style={{ fontSize: '14px', marginBottom: '0.5rem' }} />
+                          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.5' }}>{review.comment}</p>
+                        </div>
+                      }
+                    />
+                  </List.Item>
+                )}
+                locale={{ emptyText: <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-tertiary)' }}>No reviews yet for this vehicle.</div> }}
+              />
             </div>
           </div>
 

@@ -34,6 +34,8 @@ const vehicleSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     timesRented: { type: Number, default: 0 },
     serviceType: { type: [String], default: [] },
+    averageRating: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

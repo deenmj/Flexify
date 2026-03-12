@@ -3,9 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, Modal, message, Select, Tag, Badge, DatePicker, Button, Form, Input } from 'antd';
-import { vehicleApi, bookingApi, blackoutApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange } from '../api';
-import { Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, CalendarOff } from 'lucide-react';
+import { Calendar, Modal, message, Select, Tag, Badge, DatePicker, Button, Form, Input, Rate } from 'antd';
+import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange } from '../api';
+import { Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, CalendarOff, Star } from 'lucide-react';
 
 const { RangePicker } = DatePicker;
 import './Dashboard.css';
@@ -30,6 +30,12 @@ export default function Dashboard() {
   const [showBlackoutModal, setShowBlackoutModal] = useState(false);
   const [blackoutForm] = Form.useForm();
   const [blackoutSaving, setBlackoutSaving] = useState(false);
+
+  // Review state
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewForm] = Form.useForm();
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -165,6 +171,25 @@ export default function Dashboard() {
         } catch (err: any) { message.error(err.message || 'Failed to cancel booking'); }
       },
     });
+  };
+
+  const handleReviewSubmit = async (values: any) => {
+    if (!selectedBookingId) return;
+    setSubmittingReview(true);
+    try {
+      await reviewApi.create(selectedBookingId, values.rating, values.comment);
+      message.success('Review submitted successfully!');
+      
+      // Update local state to hide review button
+      setBookings((prev: any[]) => prev.map(b => b._id === selectedBookingId ? { ...b, isReviewed: true } : b));
+      
+      setShowReviewModal(false);
+      reviewForm.resetFields();
+    } catch (err: any) {
+      message.error(err.message || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   // Calendar cell renderer for owner dashboard
@@ -441,6 +466,12 @@ export default function Dashboard() {
                               <XCircle size={14} /> Cancel
                             </button>
                           )}
+                          {/* Renter can review completed bookings */}
+                          {b.status === 'COMPLETED' && user?.role === 'user' && !b.isReviewed && (
+                            <button className="btn btn-sm btn-primary" onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>
+                              <Star size={14} /> Review
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -573,6 +604,27 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* REVIEW MODAL */}
+      <Modal
+        title="Rate Your Experience"
+        open={showReviewModal}
+        onCancel={() => setShowReviewModal(false)}
+        footer={null}
+        destroyOnClose
+      >
+        <Form form={reviewForm} layout="vertical" onFinish={handleReviewSubmit} style={{ marginTop: '1rem' }}>
+          <Form.Item name="rating" label="Rating" rules={[{ required: true, message: 'Please select a rating' }]}>
+            <Rate />
+          </Form.Item>
+          <Form.Item name="comment" label="Your Feedback" rules={[{ required: true, message: 'Please leave a comment' }]}>
+            <Input.TextArea rows={4} placeholder="How was the vehicle and the service?" />
+          </Form.Item>
+          <Button type="primary" htmlType="submit" loading={submittingReview} block style={{ height: '44px' }}>
+            Submit Review
+          </Button>
+        </Form>
+      </Modal>
     </div>
   );
 }

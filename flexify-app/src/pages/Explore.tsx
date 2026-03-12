@@ -8,12 +8,25 @@ const SRI_LANKA_DISTRICTS = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Galle', 'Matara', 'Kurunegala', 'Jaffna', 'Other'
 ];
 
+interface Filters {
+  transmission: string;
+  minPrice: string;
+  maxPrice: string;
+  seats: string;
+  vehicleType: string;
+  lat: string;
+  lng: string;
+  radius: string;
+  sort: string;
+  district: string;
+}
+
 export default function Explore() {
   const [searchParams] = useSearchParams();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(searchParams.get('q') || '');
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     transmission: '',
     minPrice: '',
     maxPrice: '',
@@ -59,7 +72,7 @@ export default function Explore() {
     const urlQuery = searchParams.get('q') || '';
     
     setQuery(urlQuery);
-    setFilters(prev => ({ ...prev, vehicleType: urlType }));
+    setFilters((prev: Filters) => ({ ...prev, vehicleType: urlType }));
     
     if (urlType) setShowFilters(true);
 
@@ -178,7 +191,7 @@ export default function Explore() {
                   className="input-field"
                   placeholder="0"
                   value={filters.minPrice}
-                  onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, minPrice: e.target.value })}
                 />
               </div>
               <div className="input-group">
@@ -188,7 +201,7 @@ export default function Explore() {
                   className="input-field"
                   placeholder="500"
                   value={filters.maxPrice}
-                  onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, maxPrice: e.target.value })}
                 />
               </div>
               <div className="input-group">
@@ -196,7 +209,7 @@ export default function Explore() {
                 <select
                   className="input-field"
                   value={filters.seats}
-                  onChange={(e) => setFilters({ ...filters, seats: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, seats: e.target.value })}
                 >
                   <option value="">Any</option>
                   <option value="2">2</option>
@@ -210,7 +223,7 @@ export default function Explore() {
                 <select
                   className="input-field"
                   value={filters.sort}
-                  onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, sort: e.target.value })}
                 >
                   <option value="newest">Newest</option>
                   <option value="price_low">Price: Low → High</option>
@@ -284,7 +297,7 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <h3 className="explore-vehicle-title">{vehicle.title}</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600, color: '#f59e0b' }}>
-            <Star size={14} fill="currentColor" /> 4.8 <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>(24)</span>
+            <Star size={14} fill="currentColor" /> {vehicle.averageRating || 'New'} <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>({vehicle.reviewCount || 0})</span>
           </div>
         </div>
         <p className="explore-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>

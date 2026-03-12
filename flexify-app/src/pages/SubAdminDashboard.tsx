@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { subadminApi, type User, type Vehicle, type SubadminStats } from '../api';
-import { Users, Car, Shield, CheckCircle, XCircle, Search, AlertTriangle, FileText, Clock } from 'lucide-react';
+import { subadminApi, type User, type Vehicle, type SubadminStats, type Review } from '../api';
+import { Users, Car, Shield, CheckCircle, XCircle, Search, AlertTriangle, FileText, Clock, MessageSquare, Eye, EyeOff } from 'lucide-react';
+import { Rate } from 'antd';
 import './Dashboard.css';
 
 export default function SubAdminDashboard() {
@@ -9,8 +10,9 @@ export default function SubAdminDashboard() {
     const [stats, setStats] = useState<SubadminStats | null>(null);
     const [pendingUsers, setPendingUsers] = useState<User[]>([]);
     const [pendingVehicles, setPendingVehicles] = useState<Vehicle[]>([]);
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'users' | 'vehicles'>('users');
+    const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews'>('users');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -24,14 +26,16 @@ export default function SubAdminDashboard() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [s, u, v] = await Promise.all([
+            const [s, u, v, r] = await Promise.all([
                 subadminApi.getStats().catch(() => null),
                 subadminApi.getPendingUsers().catch(() => []),
                 subadminApi.getPendingVehicles().catch(() => []),
+                subadminApi.getAllReviews().catch(() => []),
             ]);
             if (s) setStats(s);
             setPendingUsers(u);
             setPendingVehicles(v);
+            setReviews(r);
         } catch (err) { console.error('Error:', err); }
         finally { setLoading(false); }
     };
@@ -79,6 +83,16 @@ export default function SubAdminDashboard() {
         try {
             await subadminApi.rejectVehicle(vehicleId);
             setPendingVehicles(prev => prev.filter(v => v._id !== vehicleId));
+        } catch (err: any) { alert(err.message); }
+        finally { setActionLoading(null); }
+    };
+
+    const handleToggleReviewStatus = async (reviewId: string, currentStatus: string) => {
+        const newStatus = currentStatus === 'visible' ? 'hidden' : 'visible';
+        setActionLoading(reviewId);
+        try {
+            await subadminApi.updateReviewStatus(reviewId, newStatus);
+            setReviews(prev => prev.map(r => r._id === reviewId ? { ...r, status: newStatus as any } : r));
         } catch (err: any) { alert(err.message); }
         finally { setActionLoading(null); }
     };
@@ -154,6 +168,9 @@ export default function SubAdminDashboard() {
                     <button className={`dashboard-tab ${tab === 'vehicles' ? 'active' : ''}`} onClick={() => setTab('vehicles')}>
                         <Car size={16} /> Vehicle Approvals ({pendingVehicles.length})
                     </button>
+                    <button className={`dashboard-tab ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>
+                        <MessageSquare size={16} /> Customer Reviews ({reviews.length})
+                    </button>
                 </div>
 
                 {/* Search bar */}
@@ -210,7 +227,7 @@ export default function SubAdminDashboard() {
                             </table>
                         )}
                     </div>
-                ) : (
+                ) : tab === 'vehicles' ? (
                     /* Vehicles Tab */
                     <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
                         {pendingVehicles.length === 0 ? (
@@ -236,6 +253,64 @@ export default function SubAdminDashboard() {
                                                     </button>
                                                     <button className="btn btn-sm btn-danger" onClick={() => handleRejectVehicle(v._id)} disabled={actionLoading === v._id}>
                                                         <XCircle size={14} /> Reject
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                ) : (
+                    /* Reviews Tab */
+                    <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
+                        {reviews.length === 0 ? (
+                            <div className="dashboard-empty" style={{ padding: '6rem 2rem' }}>
+                                <MessageSquare size={48} strokeWidth={1} />
+                                <h3>No Reviews Yet</h3>
+                                <p>No guest reviews have been submitted.</p>
+                            </div>
+                        ) : (
+                            <table className="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Reviewer & Vehicle</th>
+                                        <th>Rating</th>
+                                        <th>Comment</th>
+                                        <th>Status</th>
+                                        <th style={{ textAlign: 'right' }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {reviews.map(r => {
+                                        const vehicle = typeof r.vehicle === 'object' ? r.vehicle : null;
+                                        return (
+                                            <tr key={r._id}>
+                                                <td>
+                                                    <div className="table-vehicle">
+                                                        <strong>{r.reviewer.name}</strong>
+                                                        <span>{vehicle ? (vehicle as Vehicle).title : 'Unknown Vehicle'}</span>
+                                                    </div>
+                                                </td>
+                                                <td><Rate disabled defaultValue={r.rating} style={{ fontSize: '14px' }} /></td>
+                                                <td style={{ maxWidth: '300px' }}>
+                                                    <p style={{ fontSize: '13px', margin: 0, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.comment}>
+                                                        {r.comment}
+                                                    </p>
+                                                </td>
+                                                <td>
+                                                    <span className={`badge badge-${r.status === 'visible' ? 'success' : 'danger'}`}>
+                                                        {r.status === 'visible' ? 'Visible' : 'Hidden'}
+                                                    </span>
+                                                </td>
+                                                <td style={{ textAlign: 'right' }}>
+                                                    <button 
+                                                        className={`btn btn-sm ${r.status === 'visible' ? 'btn-danger' : 'btn-primary'}`} 
+                                                        onClick={() => handleToggleReviewStatus(r._id, r.status)}
+                                                        disabled={actionLoading === r._id}
+                                                    >
+                                                        {r.status === 'visible' ? <><EyeOff size={14} /> Hide</> : <><Eye size={14} /> Show</>}
                                                     </button>
                                                 </td>
                                             </tr>
