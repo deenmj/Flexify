@@ -4,6 +4,7 @@ import User from "../models/User.js";
 import Vehicle from "../models/Vehicle.js";
 import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
+import { sendRejectionEmail } from "../utils/notifier.js";
 
 /**
  * List users with pending KYC verification
@@ -48,6 +49,11 @@ export const approveUserKyc = async (req, res) => {
             user.ownerType = "VERIFIED";
         }
 
+        // Clear rejection fields on approval
+        user.rejectionReason = null;
+        user.rejectionComment = null;
+        user.rejectedAt = null;
+
         await user.save();
         res.json({ message: "User KYC approved successfully", user });
     } catch (err) {
@@ -59,15 +65,28 @@ export const approveUserKyc = async (req, res) => {
  * Reject user KYC
  */
 export const rejectUserKyc = async (req, res) => {
+    const { reason, comment } = req.body;
+
+    if (!reason) {
+        return res.status(400).json({ message: "Rejection reason is required" });
+    }
+
     try {
         const user = await User.findById(req.params.id);
         if (!user) return res.status(404).json({ message: "User not found" });
 
         user.verificationStatus = "rejected";
         user.isKycVerified = false;
+        user.rejectionReason = reason;
+        user.rejectionComment = comment;
+        user.rejectedAt = new Date();
 
         await user.save();
-        res.json({ message: "User KYC rejected", user });
+
+        // Send feedback email async
+        sendRejectionEmail(user, "KYC", reason, comment);
+
+        res.json({ message: "User KYC rejected and notification sent", user });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -96,6 +115,11 @@ export const approveVehicle = async (req, res) => {
         if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
 
         vehicle.status = "active";
+        // Clear rejection fields
+        vehicle.rejectionReason = null;
+        vehicle.rejectionComment = null;
+        vehicle.rejectedAt = null;
+        
         await vehicle.save();
 
         // Optionally promote owner to VERIFIED if they were UNVERIFIED
@@ -114,14 +138,28 @@ export const approveVehicle = async (req, res) => {
  * Reject vehicle listing
  */
 export const rejectVehicle = async (req, res) => {
+    const { reason, comment } = req.body;
+
+    if (!reason) {
+        return res.status(400).json({ message: "Rejection reason is required" });
+    }
+
     try {
-        const vehicle = await Vehicle.findById(req.params.id);
+        const vehicle = await Vehicle.findById(req.params.id).populate("owner");
         if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
 
         vehicle.status = "rejected";
+        vehicle.rejectionReason = reason;
+        vehicle.rejectionComment = comment;
+        vehicle.rejectedAt = new Date();
+
         await vehicle.save();
 
-        res.json({ message: "Vehicle rejected", vehicle });
+        if (vehicle.owner) {
+            sendRejectionEmail(vehicle.owner, "Vehicle", reason, comment);
+        }
+
+        res.json({ message: "Vehicle rejected and notification sent", vehicle });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

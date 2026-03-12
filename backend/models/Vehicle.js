@@ -31,6 +31,10 @@ const vehicleSchema = new mongoose.Schema(
       default: "pending",
     },
 
+    rejectionReason: { type: String, default: null },
+    rejectionComment: { type: String, default: null },
+    rejectedAt: { type: Date, default: null },
+
     isActive: { type: Boolean, default: true },
     timesRented: { type: Number, default: 0 },
     serviceType: { type: [String], default: [] },

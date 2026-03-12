@@ -1,6 +1,7 @@
 import Review from "../models/Review.js";
 import Vehicle from "../models/Vehicle.js";
-import Booking from "../models/booking.js";
+import Booking from "../models/Booking.js";
+import { sendRejectionEmail } from "../utils/notifier.js";
 
 // Helper to update vehicle rating stats
 const updateVehicleRating = async (vehicleId) => {
@@ -94,15 +95,36 @@ export const getVehicleReviews = async (req, res) => {
 // @route   PATCH /api/subadmin/reviews/:id/status
 // @access  Private (Subadmin/Superadmin)
 export const updateReviewStatus = async (req, res) => {
-  const { status } = req.body; // 'visible' or 'hidden'
+  const { status, reason, comment } = req.body; // 'visible', 'hidden', or 'rejected'
+
+  if (status === "rejected" && !reason) {
+    return res.status(400).json({ message: "Rejection reason is required" });
+  }
 
   try {
-    const review = await Review.findById(req.params.id);
+    const review = await Review.findById(req.params.id).populate("reviewer");
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
     }
 
     review.status = status;
+
+    if (status === "rejected") {
+      review.rejectionReason = reason;
+      review.rejectionComment = comment;
+      review.rejectedAt = new Date();
+      
+      // Notify reviewer
+      if (review.reviewer) {
+        sendRejectionEmail(review.reviewer, "Review", reason, comment);
+      }
+    } else {
+      // Clear rejection if changing away from rejected
+      review.rejectionReason = null;
+      review.rejectionComment = null;
+      review.rejectedAt = null;
+    }
+
     await review.save();
 
     // Recalculate rating

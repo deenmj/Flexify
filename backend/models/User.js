@@ -64,6 +64,10 @@ const userSchema = new mongoose.Schema(
       default: "not_submitted",
     },
 
+    rejectionReason: { type: String, default: null },
+    rejectionComment: { type: String, default: null },
+    rejectedAt: { type: Date, default: null },
+
     // KYC documents (file paths)
     documents: { type: documentsSchema, default: () => ({}) },
 

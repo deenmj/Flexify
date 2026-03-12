@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, Filter, MapPin, Verified, X, SlidersHorizontal, Star, Locate } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';

@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { notification } from 'antd';
+import { notification, Modal, Form, Select, Input, message, Rate } from 'antd';
 import { subadminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { Users, Car, Shield, CheckCircle, XCircle, Search, AlertTriangle, FileText, Clock, MessageSquare, Eye, EyeOff } from 'lucide-react';
-import { Rate } from 'antd';
 import './Dashboard.css';
 
 export default function SubAdminDashboard() {
@@ -22,6 +21,13 @@ export default function SubAdminDashboard() {
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
     const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+    const [rejectionModal, setRejectionModal] = useState<{
+        visible: boolean;
+        type: 'KYC' | 'Vehicle' | 'Review';
+        id: string;
+        targetName: string;
+    }>({ visible: false, type: 'KYC', id: '', targetName: '' });
+    const [form] = Form.useForm();
 
     useEffect(() => { fetchData(); }, []);
     useEffect(() => { setCheckedItems([false, false, false, false]); }, [selectedUser]);
@@ -54,7 +60,7 @@ export default function SubAdminDashboard() {
             setReviews(r);
             setPendingMakes(m);
             setPendingModels(mo);
-        } catch (err) { console.error('Error:', err); }
+        } catch (err: any) { message.error(err.message || 'Error fetching data'); }
         finally { setLoading(false); }
     };
 
@@ -71,47 +77,90 @@ export default function SubAdminDashboard() {
         setActionLoading(userId);
         try {
             await subadminApi.approveUser(userId);
-            setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
+            setPendingUsers((prev: User[]) => prev.filter((u: User) => (u.id || u._id) !== userId));
             setShowModal(false);
-        } catch (err: any) { alert(err.message); }
+        } catch (err: any) { message.error(err.message); }
         finally { setActionLoading(null); }
     };
 
     const handleRejectUser = async (userId: string) => {
-        setActionLoading(userId);
+        const user = pendingUsers.find((u: User) => (u.id || u._id) === userId);
+        setRejectionModal({
+            visible: true,
+            type: 'KYC',
+            id: userId,
+            targetName: user?.name || 'User'
+        });
+    };
+
+    const submitRejection = async (values: { reason: string; comment?: string }) => {
+        const { type, id } = rejectionModal;
+        setActionLoading(id);
         try {
-            await subadminApi.rejectUser(userId);
-            setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
-            setShowModal(false);
-        } catch (err: any) { alert(err.message); }
-        finally { setActionLoading(null); }
+            if (type === 'KYC') {
+                await subadminApi.rejectUser(id, values.reason, values.comment);
+                setPendingUsers((prev: User[]) => prev.filter((u: User) => (u.id || u._id) !== id));
+                setShowModal(false);
+            } else if (type === 'Vehicle') {
+                await subadminApi.rejectVehicle(id, values.reason, values.comment);
+                setPendingVehicles((prev: Vehicle[]) => prev.filter((v: Vehicle) => v._id !== id));
+            } else if (type === 'Review') {
+                await subadminApi.updateReviewStatus(id, 'rejected', values.reason, values.comment);
+                setReviews((prev: Review[]) => prev.map((r: Review) => r._id === id ? { ...r, status: 'rejected' as any } : r));
+            }
+            message.success(`${type} rejected successfully`);
+            setRejectionModal((prev: any) => ({ ...prev, visible: false }));
+            form.resetFields();
+        } catch (err: any) {
+            message.error(err.message || "Failed to reject");
+        } finally {
+            setActionLoading(null);
+        }
     };
 
     const handleApproveVehicle = async (vehicleId: string) => {
         setActionLoading(vehicleId);
         try {
             await subadminApi.approveVehicle(vehicleId);
-            setPendingVehicles(prev => prev.filter(v => v._id !== vehicleId));
-        } catch (err: any) { alert(err.message); }
+            setPendingVehicles((prev: Vehicle[]) => prev.filter((v: Vehicle) => v._id !== vehicleId));
+        } catch (err: any) { message.error(err.message); }
         finally { setActionLoading(null); }
     };
 
     const handleRejectVehicle = async (vehicleId: string) => {
-        setActionLoading(vehicleId);
-        try {
-            await subadminApi.rejectVehicle(vehicleId);
-            setPendingVehicles(prev => prev.filter(v => v._id !== vehicleId));
-        } catch (err: any) { alert(err.message); }
-        finally { setActionLoading(null); }
+        const vehicle = pendingVehicles.find((v: Vehicle) => v._id === vehicleId);
+        setRejectionModal({
+            visible: true,
+            type: 'Vehicle',
+            id: vehicleId,
+            targetName: vehicle?.title || 'Vehicle'
+        });
     };
 
     const handleToggleReviewStatus = async (reviewId: string, currentStatus: string) => {
-        const newStatus = currentStatus === 'visible' ? 'hidden' : 'visible';
+        if (currentStatus === 'visible') {
+            // Logic for hiding if already visible? Or do we want a specific rejection flow?
+            // User request says "When sub-admins reject reviews... require selecting a reason"
+            // So I'll interpret "Hide" as a form of rejection or add a separate Reject button.
+            // Current UI has a "Hide" button which calls this with 'hidden'. 
+            // I'll add a separate rejection flow for reviews or reuse this.
+            
+            const review = reviews.find((r: Review) => r._id === reviewId);
+            setRejectionModal({
+                visible: true,
+                type: 'Review',
+                id: reviewId,
+                targetName: `Review by ${review?.reviewer.name}`
+            });
+            return;
+        }
+
+        const newStatus = 'visible';
         setActionLoading(reviewId);
         try {
             await subadminApi.updateReviewStatus(reviewId, newStatus);
-            setReviews(prev => prev.map(r => r._id === reviewId ? { ...r, status: newStatus as any } : r));
-        } catch (err: any) { alert(err.message); }
+            setReviews((prev: Review[]) => prev.map((r: Review) => r._id === reviewId ? { ...r, status: newStatus as any } : r));
+        } catch (err: any) { message.error(err.message); }
         finally { setActionLoading(null); }
     };
 
@@ -120,7 +169,7 @@ export default function SubAdminDashboard() {
         try {
             await subadminApi.approveMake(id);
             setPendingMakes((prev: VehicleMake[]) => prev.filter((m: VehicleMake) => m._id !== id));
-        } catch (err: any) { alert(err.message); }
+        } catch (err: any) { message.error(err.message); }
         finally { setActionLoading(null); }
     };
 
@@ -128,8 +177,8 @@ export default function SubAdminDashboard() {
         setActionLoading(id);
         try {
             await subadminApi.approveModel(id);
-            setPendingModels((prev: VehicleModel[]) => prev.filter((m: VehicleModel) => m._id !== id));
-        } catch (err: any) { alert(err.message); }
+            setPendingModels((prev: VehicleModel[]) => prev.filter((mod: VehicleModel) => mod._id !== id));
+        } catch (err: any) { message.error(err.message); }
         finally { setActionLoading(null); }
     };
 
@@ -139,7 +188,7 @@ export default function SubAdminDashboard() {
         try {
             await subadminApi.deleteMake(id);
             setPendingMakes((prev: VehicleMake[]) => prev.filter((m: VehicleMake) => m._id !== id));
-        } catch (err: any) { alert(err.message); }
+        } catch (err: any) { message.error(err.message); }
         finally { setActionLoading(null); }
     };
 
@@ -148,8 +197,8 @@ export default function SubAdminDashboard() {
         setActionLoading(id);
         try {
             await subadminApi.deleteModel(id);
-            setPendingModels((prev: VehicleModel[]) => prev.filter((m: VehicleModel) => m._id !== id));
-        } catch (err: any) { alert(err.message); }
+            setPendingModels((prev: VehicleModel[]) => prev.filter((mod: VehicleModel) => mod._id !== id));
+        } catch (err: any) { message.error(err.message); }
         finally { setActionLoading(null); }
     };
 
@@ -543,6 +592,69 @@ export default function SubAdminDashboard() {
                     </div>
                 </div>
             )}
+            {/* Rejection Reasons Modal */}
+            <Modal
+                title={`Reject ${rejectionModal.type}: ${rejectionModal.targetName}`}
+                open={rejectionModal.visible}
+                onCancel={() => setRejectionModal(prev => ({ ...prev, visible: false }))}
+                onOk={() => form.submit()}
+                confirmLoading={!!actionLoading}
+                okText="Confirm Rejection"
+                okButtonProps={{ danger: true }}
+            >
+                <Form form={form} layout="vertical" onFinish={submitRejection}>
+                    <Form.Item
+                        name="reason"
+                        label="Select Reason"
+                        rules={[{ required: true, message: 'Please select a reason' }]}
+                    >
+                        <Select placeholder="Select a reason for rejection">
+                            {rejectionModal.type === 'KYC' && [
+                                "Blurry or unclear document/photo",
+                                "Document mismatch or invalid details",
+                                "Expired or unsupported document",
+                                "Selfie does not match ID",
+                                "Incomplete submission",
+                                "Other"
+                            ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
+
+                            {rejectionModal.type === 'Vehicle' && [
+                                "Low quality photos",
+                                "Invalid vehicle specs or photos",
+                                "Suspicious ownership documentation",
+                                "Restricted or unsupported vehicle type",
+                                "Incomplete listing details",
+                                "Other"
+                            ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
+
+                            {rejectionModal.type === 'Review' && [
+                                "Spam or inappropriate content",
+                                "Inappropriate language",
+                                "Irrelevant content",
+                                "Duplicate review",
+                                "Other"
+                            ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        noStyle
+                        shouldUpdate={(prevValues, currentValues) => prevValues.reason !== currentValues.reason}
+                    >
+                        {({ getFieldValue }) => 
+                            getFieldValue('reason') === 'Other' || rejectionModal.type !== 'Review' ? (
+                                <Form.Item
+                                    name="comment"
+                                    label="Additional Comments (Optional)"
+                                    help="Provide specific details to help the user correct the issue."
+                                >
+                                    <Input.TextArea rows={4} placeholder="Detailed explanation for the user..." />
+                                </Form.Item>
+                            ) : null
+                        }
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 }

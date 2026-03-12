@@ -352,9 +352,10 @@ export const subadminApi = {
       method: 'PATCH',
     }),
 
-  rejectUser: (userId: string) =>
+  rejectUser: (userId: string, reason: string, comment?: string) =>
     apiFetch<{ message: string; user: User }>(`/subadmin/reject-user/${userId}`, {
       method: 'PATCH',
+      body: JSON.stringify({ reason, comment }),
     }),
 
   getPendingVehicles: () => apiFetch<Vehicle[]>('/subadmin/pending-vehicles'),
@@ -364,15 +365,16 @@ export const subadminApi = {
       method: 'PATCH',
     }),
 
-  rejectVehicle: (vehicleId: string) =>
+  rejectVehicle: (vehicleId: string, reason: string, comment?: string) =>
     apiFetch<{ message: string; vehicle: Vehicle }>(`/subadmin/reject-vehicle/${vehicleId}`, {
       method: 'PATCH',
+      body: JSON.stringify({ reason, comment }),
     }),
 
-  updateReviewStatus: (reviewId: string, status: string) =>
+  updateReviewStatus: (reviewId: string, status: string, reason?: string, comment?: string) =>
     apiFetch<{ message: string; review: Review }>(`/subadmin/reviews/${reviewId}/status`, {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, reason, comment }),
     }),
 
   getAllReviews: () =>

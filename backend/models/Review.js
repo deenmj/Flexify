@@ -37,9 +37,12 @@ const reviewSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["visible", "hidden"],
+      enum: ["visible", "hidden", "rejected"],
       default: "visible",
     },
+    rejectionReason: { type: String, default: null },
+    rejectionComment: { type: String, default: null },
+    rejectedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

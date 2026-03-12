@@ -65,3 +65,61 @@ export const sendSubadminAlert = async ({ subject, type, details, linkPath }) =>
         console.error("Error in sendSubadminAlert:", error);
     }
 };
+
+/**
+ * Sends a rejection notification to a user
+ * @param {Object} user - User document
+ * @param {string} type - 'KYC', 'Vehicle', or 'Review'
+ * @param {string} reason - Selected rejection reason
+ * @param {string} comment - Optional additional feedback
+ */
+export const sendRejectionEmail = async (user, type, reason, comment) => {
+    try {
+        const resubmitLinks = {
+            'KYC': '/profile/verify',
+            'Vehicle': '/owner/vehicles',
+            'Review': '/bookings'
+        };
+
+        const linkPath = resubmitLinks[type] || '/';
+        const dashboardUrl = (process.env.FRONTEND_URL || "http://localhost:5173") + linkPath;
+
+        const html = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #ef4444; padding: 24px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Action Required: Flexify</h1>
+                </div>
+                <div style="padding: 32px; color: #1e293b;">
+                    <h2 style="font-size: 20px; color: #ef4444; margin-top: 0;">Your ${type} submission was not approved</h2>
+                    <p style="font-size: 16px; line-height: 1.6;">Hello ${user.name},</p>
+                    <p style="font-size: 16px; line-height: 1.6;">Our moderation team has reviewed your ${type.toLowerCase()} submission and unfortunately, it could not be approved at this time.</p>
+                    
+                    <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid #ef4444;">
+                        <h3 style="font-size: 14px; text-transform: uppercase; color: #991b1b; margin-top: 0; margin-bottom: 8px;">Reason for Rejection</h3>
+                        <p style="font-size: 15px; margin-bottom: 0; font-weight: 600; color: #1e293b;">${reason}</p>
+                        ${comment ? `<p style="font-size: 14px; margin-top: 8px; color: #475569; font-style: italic;">"${comment}"</p>` : ''}
+                    </div>
+
+                    <p style="font-size: 15px; line-height: 1.6;"><strong>Next Steps:</strong> Please address the issue above and resubmit your details for review.</p>
+
+                    <div style="text-align: center; margin-top: 32px;">
+                        <a href="${dashboardUrl}" style="background-color: #1e293b; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block;">Go to Resubmit</a>
+                    </div>
+                </div>
+                <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
+                    <p style="margin: 0;">This is an automated message from Flexify. If you have questions, please contact support.</p>
+                </div>
+            </div>
+        `;
+
+        await sendEmail({
+            to: user.email,
+            subject: `Flexify: Your ${type} Submission Status Update`,
+            html: html
+        });
+
+        console.log(`Rejection email sent to ${user.email} for ${type}`);
+    } catch (error) {
+        console.error("Error in sendRejectionEmail:", error);
+    }
+};
