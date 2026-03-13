@@ -60,6 +60,7 @@ router.post(
         license: files.license ? `/uploads/verification/${files.license[0].filename}` : user.documents?.license || "",
         selfie: files.selfie ? `/uploads/verification/${files.selfie[0].filename}` : user.documents?.selfie || "",
         address: req.body.address || user.documents?.address || "",
+        kycConsentGiven: req.body.kycConsentGiven === "true" || req.body.kycConsentGiven === true,
       };
 
       user.verificationStatus = "pending";

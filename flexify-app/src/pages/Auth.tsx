@@ -174,6 +174,11 @@ export default function Auth() {
                 </>
               )}
             </button>
+            {mode === 'signup' && (
+              <p className="auth-legal-notice">
+                By creating an account, you agree to our <a href="/privacy">Privacy Policy</a> and <a href="/privacy">Terms of Service</a>.
+              </p>
+            )}
           </form>
 
           {/* Divider */}

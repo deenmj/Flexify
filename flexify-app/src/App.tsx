@@ -23,6 +23,7 @@ import Contact from './pages/Contact';
 import Help from './pages/Help';
 import VerifyUser from './pages/VerifyUser';
 import SubscriptionManagement from './pages/SubscriptionManagement';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="/faq" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><FAQ /></ProtectedRoute></AppLayout>} />
           <Route path="/contact" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Contact /></ProtectedRoute></AppLayout>} />
           <Route path="/help" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Help /></ProtectedRoute></AppLayout>} />
+          <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
 
           {/* Protected pages */}
           <Route path="/profile" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Profile /></ProtectedRoute></AppLayout>} />
@@ -71,7 +73,8 @@ export default function App() {
           {/* Admin dashboards */}
           <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
           <Route path="/subadmin" element={<AppLayout><ProtectedRoute roles={['subadmin', 'superadmin']}><SubAdminDashboard /></ProtectedRoute></AppLayout>} />
-        </Routes>
+          </Routes>
+        </SocketProvider>
       </AuthProvider>
     </BrowserRouter>
   );

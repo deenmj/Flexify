@@ -42,7 +42,7 @@ export default function Footer() {
           <div className="footer-links-group">
             <h3 className="footer-heading">Legal</h3>
             <ul className="footer-links">
-              <li><Link to="#">Privacy Policy</Link></li>
+              <li><Link to="/privacy">Privacy Policy</Link></li>
               <li><Link to="#">Terms of Service</Link></li>
               <li><Link to="#">Cookie Policy</Link></li>
             </ul>

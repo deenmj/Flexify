@@ -8,6 +8,7 @@ const documentsSchema = new mongoose.Schema({
   license: { type: String, default: "" },
   selfie: { type: String, default: "" },
   address: { type: String, default: "" },
+  kycConsentGiven: { type: Boolean, default: false },
 }, { _id: false });
 
 const subscriptionSchema = new mongoose.Schema({

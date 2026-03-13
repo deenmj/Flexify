@@ -1,14 +1,20 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userApi } from '../api';
-import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck } from 'lucide-react';
+import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck, FileText, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Checkbox, Modal, Button, Typography, Space } from 'antd';
+
+const { Title: AntTitle, Paragraph, Text: AntText } = Typography;
 
 export default function VerifyUser() {
   const { user, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [agreed, setAgreed] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+
   const [form, setForm] = useState({
     fullName: user?.name || '',
     phone: user?.phone || '',
@@ -30,6 +36,11 @@ export default function VerifyUser() {
     setError('');
     setMessage('');
 
+    if (!agreed) {
+      setError('You must agree to the Terms & Conditions to proceed');
+      return;
+    }
+
     if (!files.nicFront || !files.nicBack || !files.license || !files.selfie) {
       setError('Please upload all 4 required documents');
       return;
@@ -49,6 +60,7 @@ export default function VerifyUser() {
       formData.append('address', form.address);
       formData.append('fullName', form.fullName);
       formData.append('phone', form.phone);
+      formData.append('kycConsentGiven', 'true');
 
       await userApi.submitKyc(formData);
       setMessage('KYC documents submitted successfully! Please wait for admin approval.');
@@ -191,6 +203,14 @@ export default function VerifyUser() {
               </div>
             </div>
 
+            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <Checkbox checked={agreed} onChange={(e) => setAgreed(e.target.checked)}>
+                <span style={{ fontSize: '14px', color: '#475569' }}>
+                  I have read and agree to the <a onClick={(e) => { e.preventDefault(); setShowTerms(true); }} style={{ color: '#1890ff', fontWeight: 600 }}>Verification Terms & Conditions</a> and Privacy Policy.
+                </span>
+              </Checkbox>
+            </div>
+
             {error && (
               <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '12px 16px', borderRadius: '12px', marginBottom: '1rem', fontWeight: 600, fontSize: '14px' }}>
                 {error}
@@ -204,15 +224,97 @@ export default function VerifyUser() {
 
             <button
               type="submit"
-              className="btn btn-primary btn-lg"
-              disabled={loading}
-              style={{ width: '100%', padding: '1rem', fontSize: '16px', borderRadius: '12px', fontWeight: 700 }}
+              className={`btn btn-primary btn-lg ${!agreed ? 'btn-disabled' : ''}`}
+              disabled={loading || !agreed}
+              style={{ width: '100%', padding: '1rem', fontSize: '16px', borderRadius: '12px', fontWeight: 700, opacity: agreed ? 1 : 0.6, cursor: agreed ? 'pointer' : 'not-allowed' }}
             >
               {loading ? 'Submitting...' : 'Submit KYC for Verification'}
             </button>
           </form>
         )}
       </div>
+
+      <Modal
+        title={null}
+        open={showTerms}
+        onCancel={() => setShowTerms(false)}
+        footer={[
+          <Button key="close" type="primary" onClick={() => setShowTerms(false)}>
+            I Understand
+          </Button>
+        ]}
+        width={700}
+        bodyStyle={{ padding: '2rem' }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ background: '#e6f7ff', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#1890ff' }}>
+            <FileText size={24} />
+          </div>
+          <AntTitle level={3}>Flexify Verification Terms</AntTitle>
+        </div>
+
+        <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '1rem' }} className="custom-scrollbar">
+          <Paragraph>
+            By submitting your National Identity Card (NIC), driving licence, selfie photograph, and address details for verification on Flexify, you agree to the following:
+          </Paragraph>
+
+          <AntTitle level={5}>1. Purpose</AntTitle>
+          <Paragraph>
+            These documents are collected only to verify your identity and eligibility to use Flexify as a renter or vehicle owner, in accordance with Sri Lankan law and to ensure platform safety.
+          </Paragraph>
+
+          <AntTitle level={5}>2. Data Handling & Security</AntTitle>
+          <Paragraph>
+            <ul>
+              <li>Your documents are stored securely on encrypted servers.</li>
+              <li>Access is strictly limited to authorised Flexify administrators and sub-administrators for verification purposes only.</li>
+              <li>We do not share your documents with third parties except when required by law or to prevent fraud/abuse.</li>
+            </ul>
+          </Paragraph>
+
+          <AntTitle level={5}>3. Retention</AntTitle>
+          <Paragraph>
+            <ul>
+              <li>Verified documents are retained for the life of your active account plus 2 years after deletion (for legal and dispute resolution purposes).</li>
+              <li>After successful verification, we may retain only a secure reference instead of full images where possible.</li>
+            </ul>
+          </Paragraph>
+
+          <AntTitle level={5}>4. Your Rights</AntTitle>
+          <Paragraph>
+            <ul>
+              <li>You may request access to, correction of, or deletion of your personal data by emailing support@flexify.lk.</li>
+              <li>We will respond within 30 days in line with the Personal Data Protection Act No. 9 of 2022 (PDPA).</li>
+              <li>You may withdraw consent at any time, but this may result in suspension of your account or inability to use certain features.</li>
+            </ul>
+          </Paragraph>
+
+          <AntTitle level={5}>5. Accuracy & Liability</AntTitle>
+          <Paragraph>
+            <ul>
+              <li>You confirm that all submitted information and documents are true, accurate, and belong to you.</li>
+              <li>Submitting false or forged documents may lead to permanent account suspension and reporting to relevant authorities.</li>
+            </ul>
+          </Paragraph>
+
+          <AntTitle level={5}>6. Rejection & Resubmission</AntTitle>
+          <Paragraph>
+            <ul>
+              <li>If verification is rejected, you will be notified by email with a reason and may resubmit corrected documents.</li>
+              <li>Repeated rejections may result in account restrictions.</li>
+            </ul>
+          </Paragraph>
+
+          <AntTitle level={5}>7. Governing Law</AntTitle>
+          <Paragraph>
+            These terms are governed by the laws of Sri Lanka.
+          </Paragraph>
+
+          <AntText type="secondary" italic>
+            By checking the box and clicking "Submit Verification", you give your <strong>explicit consent</strong> to the collection, processing, and storage of the submitted personal data for the purposes described above.
+          </AntText>
+        </div>
+      </Modal>
     </div>
   );
 }
