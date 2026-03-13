@@ -11,10 +11,12 @@ const documentsSchema = new mongoose.Schema({
 }, { _id: false });
 
 const subscriptionSchema = new mongoose.Schema({
-  tier: { type: String, enum: ['BASIC', 'PRO'], default: 'BASIC' },
+  tier: { type: String, enum: ['BASIC', 'STANDARD', 'ENTERPRISE'], default: 'BASIC' },
   status: { type: String, enum: ['trial', 'active', 'expired'], default: 'trial' },
   startDate: { type: Date, default: Date.now },
   endDate: { type: Date, default: null },
+  gracePeriodEnd: { type: Date, default: null },
+  notifiedGraceEnd: { type: Boolean, default: false },
 }, { _id: false });
 
 const userSchema = new mongoose.Schema(

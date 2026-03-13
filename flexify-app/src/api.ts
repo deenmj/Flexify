@@ -26,7 +26,7 @@ export interface User {
   status?: string;
   createdAt?: string;
   subscription?: {
-    tier: 'BASIC' | 'PRO';
+    tier: 'BASIC' | 'STANDARD' | 'ENTERPRISE';
     status: 'trial' | 'active' | 'expired';
     startDate: string;
     endDate: string | null;
@@ -363,6 +363,14 @@ export const adminApi = {
 
   getAuditLogs: (page: number = 1, limit: number = 20) =>
     apiFetch<AuditLogResponse>(`/admin/audit-logs?page=${page}&limit=${limit}`),
+
+  getPendingPayments: () => apiFetch<any[]>('/admin/payments/pending'),
+
+  verifyPayment: (paymentId: string, status: 'approved' | 'rejected', rejectionReason?: string) =>
+    apiFetch<{ message: string }>(`/admin/payments/verify`, {
+      method: 'POST',
+      body: JSON.stringify({ paymentId, status, rejectionReason }),
+    }),
 };
 
 // =================== SUBADMIN ===================
@@ -475,9 +483,9 @@ export const ownerApi = {
     apiFetch<{ subscription: User['subscription'] }>('/auth/me').then(res => res.subscription),
 
   // Placeholder for future implementation
-  initiateSubscription: (tier: string) =>
-    apiFetch<{ message: string }>('/users/subscription/initiate', {
+  initiateSubscription: (tier: string, duration: string, amount: number, reference: string) =>
+    apiFetch<{ message: string }>('/owner/subscribe', {
       method: 'POST',
-      body: JSON.stringify({ tier }),
+      body: JSON.stringify({ tier, duration, amount, reference }),
     }),
 };

@@ -291,6 +291,8 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <div className="explore-vehicle-badges">
           {vehicle.transmission && <span className="badge badge-primary">{vehicle.transmission}</span>}
           {ownerData?.ownerType === 'VERIFIED' && <span className="badge badge-success"><Verified size={12} /> Verified</span>}
+          {ownerData?.subscription?.tier === 'ENTERPRISE' && <span className="badge badge-premium" style={{ background: '#6610f2', color: 'white' }}><Star size={12} fill="white" /> Priority</span>}
+          {ownerData?.subscription?.tier === 'STANDARD' && <span className="badge" style={{ background: '#f59e0b', color: 'white' }}>Standard</span>}
         </div>
       </div>
       <div className="explore-vehicle-body">

@@ -24,7 +24,8 @@ export default function AdminDashboard() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
-  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings'>('overview');
+  const [pendingPayments, setPendingPayments] = useState<any[]>([]);
+  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments'>('overview');
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(false);
   const [district, setDistrict] = useState<string>('All Sri Lanka');
@@ -59,12 +60,14 @@ export default function AdminDashboard() {
       adminApi.getAllVehicles().catch(() => []),
       adminApi.getAllBookings().catch(() => []),
       adminApi.getAuditLogs(1, 15).catch(() => ({ logs: [] })),
-    ]).then(([s, u, v, b, logs]) => {
+      adminApi.getPendingPayments().catch(() => []),
+    ]).then(([s, u, v, b, logs, p]) => {
       if (s) setStats(s);
       setAllUsers(u);
       setAllVehicles(v);
       setAllBookings(b);
       if (logs?.logs) setAuditLogs(logs.logs);
+      setPendingPayments(p);
     }).finally(() => setLoading(false));
   }, [user]);
 
@@ -76,7 +79,7 @@ export default function AdminDashboard() {
   const handleUpdateRole = async (userId: string) => {
     try {
       const result = await adminApi.updateUserRole(userId, newRole, newRole === 'owner' ? newOwnerType : undefined);
-      setAllUsers(prev => prev.map(u => (u.id || u._id) === userId ? { ...u, ...result.user } : u));
+      setAllUsers((prev: User[]) => prev.map((u: User) => (u.id || u._id) === userId ? { ...u, ...result.user } : u));
       setRoleEditUser(null);
       alert(result.message);
     } catch (err: any) { alert(err.message); }
@@ -86,7 +89,7 @@ export default function AdminDashboard() {
     if (!window.confirm('Are you sure you want to delete this user permanently?')) return;
     try {
       await adminApi.deleteUser(userId);
-      setAllUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
+      setAllUsers((prev: User[]) => prev.filter((u: User) => (u.id || u._id) !== userId));
     } catch (err: any) { alert(err.message); }
   };
 
@@ -112,6 +115,24 @@ export default function AdminDashboard() {
         )}
       </Space>
     );
+  };
+
+  const handleVerifyPayment = async (paymentId: string, status: 'approved' | 'rejected') => {
+    let reason = '';
+    if (status === 'rejected') {
+        reason = window.prompt('Enter rejection reason:') || 'Payment details incorrect';
+    }
+    
+    try {
+        const res = await adminApi.verifyPayment(paymentId, status, reason);
+        setPendingPayments(prev => prev.filter(p => p._id !== paymentId));
+        alert(res.message);
+        // Refresh users since subscription might have updated
+        const u = await adminApi.getAllUsers();
+        setAllUsers(u);
+    } catch (err: any) {
+        alert(err.message);
+    }
   };
 
   const handleLogout = () => {
@@ -151,6 +172,7 @@ export default function AdminDashboard() {
             { key: 'users', icon: <Users size={18} />, label: `Users (${allUsers.length})` },
             { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${allVehicles.length})` },
             { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
+            { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
           ]}
         />
       </Sider>
@@ -173,6 +195,7 @@ export default function AdminDashboard() {
               {tab === 'users' && 'User Management'}
               {tab === 'vehicles' && 'Vehicle Directory'}
               {tab === 'bookings' && 'Booking Records'}
+              {tab === 'payments' && 'Subscription Payments'}
             </Title>
           </div>
           <Space size="large">
@@ -426,6 +449,56 @@ export default function AdminDashboard() {
                       { title: 'Dates', render: (_, b) => <Text style={{ fontSize: '13px' }}>{b.startDate ? new Date(b.startDate).toLocaleDateString() : 'N/A'} — {b.endDate ? new Date(b.endDate).toLocaleDateString() : 'N/A'}</Text> },
                       { title: 'Amount', dataIndex: 'totalAmount', render: a => `LKR ${(a || 0).toLocaleString()}` },
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> }
+                    ]}
+                  />
+                </div>
+              )}
+
+              {tab === 'payments' && (
+                <div className="animate-fade-in">
+                  <Table 
+                    dataSource={pendingPayments}
+                    rowKey="_id"
+                    pagination={{ pageSize: 15 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
+                      { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
+                      { title: 'Duration', dataIndex: 'duration' },
+                      { title: 'Amount', dataIndex: 'amount', render: (a: number) => `LKR ${a?.toLocaleString()}` },
+                      { title: 'Reference', dataIndex: 'reference' },
+                      { title: 'Date', dataIndex: 'createdAt', render: (d: string) => new Date(d).toLocaleString() },
+                      { title: 'Actions', render: (_, p: any) => (
+                        <Space>
+                          <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
+                          <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
+                        </Space>
+                      )}
+                    ]}
+                  />
+                </div>
+              )}
+
+              {tab === 'payments' && (
+                <div className="animate-fade-in">
+                  <Table 
+                    dataSource={pendingPayments}
+                    rowKey="_id"
+                    pagination={{ pageSize: 15 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
+                      { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
+                      { title: 'Duration', dataIndex: 'duration' },
+                      { title: 'Amount', dataIndex: 'amount', render: (a: number) => `LKR ${a?.toLocaleString()}` },
+                      { title: 'Reference', dataIndex: 'reference' },
+                      { title: 'Date', dataIndex: 'createdAt', render: (d: string) => new Date(d).toLocaleString() },
+                      { title: 'Actions', render: (_, p: any) => (
+                        <Space>
+                          <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
+                          <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
+                        </Space>
+                      )}
                     ]}
                   />
                 </div>

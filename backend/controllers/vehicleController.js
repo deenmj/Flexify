@@ -24,14 +24,20 @@ export const createVehicle = async (req, res) => {
     if (owner.role === "owner") {
       const sub = owner.subscription || { tier: 'BASIC', status: 'trial' };
       
-      if (sub.status === 'expired') {
-        return res.status(403).json({ message: "Your subscription has expired. Please upgrade/renew to list new vehicles." });
+      const now = new Date();
+      if (sub.status === 'expired' && (!sub.gracePeriodEnd || now > new Date(sub.gracePeriodEnd))) {
+        return res.status(403).json({ message: "Your subscription has expired and grace period ended. Please upgrade/renew to list new vehicles." });
       }
 
       if (sub.tier === 'BASIC') {
         const vehicleCount = await Vehicle.countDocuments({ owner: owner._id });
         if (vehicleCount >= 2) {
-          return res.status(403).json({ message: "BASIC tier limit reached (2 vehicles). Please upgrade to PRO for unlimited listings." });
+          return res.status(403).json({ message: "BASIC tier limit reached (2 vehicles). Please upgrade to STANDARD or ENTERPRISE for more listings." });
+        }
+      } else if (sub.tier === 'STANDARD') {
+        const vehicleCount = await Vehicle.countDocuments({ owner: owner._id });
+        if (vehicleCount >= 6) {
+          return res.status(403).json({ message: "STANDARD tier limit reached (6 vehicles). Please upgrade to ENTERPRISE for unlimited listings." });
         }
       }
     }
@@ -249,7 +255,8 @@ export const listVehicles = async (req, res) => {
     else if (sort === "price_high") sortCondition = { pricePerDay: -1 };
     else if (sort === "popular" || sort === "rating") sortCondition = { timesRented: -1 };
 
-    // Use aggregation to filter by owner subscription status
+    // Use aggregation to filter by owner subscription status and apply tier boost
+    const now = new Date();
     const vehicles = await Vehicle.aggregate([
       { $match: filter },
       {
@@ -263,10 +270,31 @@ export const listVehicles = async (req, res) => {
       { $unwind: "$ownerInfo" },
       {
         $match: {
-          "ownerInfo.subscription.status": { $ne: "expired" }
+          $or: [
+            { "ownerInfo.subscription.status": "active" },
+            { "ownerInfo.subscription.status": "trial" },
+            { 
+              "ownerInfo.subscription.status": "expired",
+              "ownerInfo.subscription.gracePeriodEnd": { $gte: now }
+            }
+          ]
         }
       },
-      { $sort: sortCondition },
+      {
+        $addFields: {
+          tierBoost: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$ownerInfo.subscription.tier", "ENTERPRISE"] }, then: 100 },
+                { case: { $eq: ["$ownerInfo.subscription.tier", "STANDARD"] }, then: 50 },
+                { case: { $eq: ["$ownerInfo.subscription.tier", "BASIC"] }, then: 10 }
+              ],
+              default: 0
+            }
+          }
+        }
+      },
+      { $sort: { tierBoost: -1, ...sortCondition } },
       {
         $project: {
           _id: 1,

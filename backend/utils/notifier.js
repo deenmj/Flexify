@@ -123,3 +123,68 @@ export const sendRejectionEmail = async (user, type, reason, comment) => {
         console.error("Error in sendRejectionEmail:", error);
     }
 };
+
+/**
+ * Sends a subscription expiry reminder
+ * @param {Object} user - User document
+ * @param {number} daysLeft - 7 or 1
+ */
+export const sendSubscriptionReminder = async (user, daysLeft) => {
+    try {
+        const dashboardUrl = (process.env.FRONTEND_URL || "http://localhost:5173") + "/subscription";
+        const subject = daysLeft === 1 
+            ? "Urgent: Your Flexify Subscription expires tomorrow!" 
+            : `Reminder: Your Flexify Subscription expires in ${daysLeft} days`;
+
+        const html = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #f59e0b; padding: 24px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Subscription Renewal</h1>
+                </div>
+                <div style="padding: 32px; color: #1e293b;">
+                    <p style="font-size: 16px; line-height: 1.6;">Hello ${user.name},</p>
+                    <p style="font-size: 16px; line-height: 1.6;">Your ${user.subscription.tier} plan is set to expire in <strong>${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}</strong> (${new Date(user.subscription.endDate).toLocaleDateString()}).</p>
+                    <p style="font-size: 16px; line-height: 1.6;">To avoid any interruption in your listing visibility, please renew your subscription soon.</p>
+                    
+                    <div style="text-align: center; margin-top: 32px;">
+                        <a href="${dashboardUrl}" style="background-color: #1e293b; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block;">Renew Now</a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        await sendEmail({ to: user.email, subject, html });
+    } catch (err) {
+        console.error("Error in sendSubscriptionReminder:", err);
+    }
+};
+
+/**
+ * Sends a notification when the grace period ends and listings are hidden
+ */
+export const sendSubscriptionExpired = async (user) => {
+    try {
+        const dashboardUrl = (process.env.FRONTEND_URL || "http://localhost:5173") + "/subscription";
+        const html = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #ef4444; padding: 24px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Listings Hidden</h1>
+                </div>
+                <div style="padding: 32px; color: #1e293b;">
+                    <h2 style="font-size: 20px; color: #ef4444; margin-top: 0;">Your Subscription has Expired</h2>
+                    <p style="font-size: 16px; line-height: 1.6;">Hello ${user.name},</p>
+                    <p style="font-size: 16px; line-height: 1.6;">Your subscription and grace period have ended. As a result, your vehicle listings are no longer visible to the public.</p>
+                    <p style="font-size: 16px; line-height: 1.6;">Renew your plan today to instantly reactivate all your listings.</p>
+                    
+                    <div style="text-align: center; margin-top: 32px;">
+                        <a href="${dashboardUrl}" style="background-color: #1e293b; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block;">Renew Now</a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        await sendEmail({ to: user.email, subject: "Flexify: Your listings are now hidden", html });
+    } catch (err) {
+        console.error("Error in sendSubscriptionExpired:", err);
+    }
+};

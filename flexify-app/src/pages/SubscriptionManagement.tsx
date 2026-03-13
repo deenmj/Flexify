@@ -8,7 +8,7 @@ const PLANS = [
   {
     id: 'BASIC',
     name: 'Basic',
-    price: 'LKR 1,000/mo',
+    price: 1000,
     description: 'Perfect for casual owners',
     features: [
       'Up to 2 vehicle listings',
@@ -21,13 +21,29 @@ const PLANS = [
     limit: '2 Vehicles'
   },
   {
-    id: 'PRO',
-    name: 'Pro',
-    price: 'LKR 2,500/mo',
+    id: 'STANDARD',
+    name: 'Standard',
+    price: 2500,
+    description: 'Recommended for active owners',
+    features: [
+      'Up to 6 vehicle listings',
+      'Higher search visibility',
+      'Priority email support',
+      'Standard analytics'
+    ],
+    icon: <Zap className="plan-icon" style={{ color: '#f59e0b'}} />,
+    color: '#f59e0b',
+    limit: '6 Vehicles'
+  },
+  {
+    id: 'ENTERPRISE',
+    name: 'Enterprise',
+    price: 3500,
+    price6: 18000,
     description: 'For professional fleet owners',
     features: [
       'Unlimited vehicle listings',
-      'Priority search visibility',
+      'Priority sort boost + Badge',
       '24/7 Priority support',
       'Advanced performance metrics',
       'Featured listing status'
@@ -43,14 +59,15 @@ const SubscriptionManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showPayment, setShowPayment] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
+  const [selectedTier, setSelectedTier] = useState<any>(null);
+  const [is6Month, setIs6Month] = useState(false);
 
   const sub = user?.subscription || { tier: 'BASIC', status: 'trial', endDate: null };
   const isTrial = sub.status === 'trial';
   const isExpired = sub.status === 'expired';
 
-  const handleRequestUpgrade = (tierId: string) => {
-    setSelectedTier(tierId);
+  const handleRequestUpgrade = (plan: any) => {
+    setSelectedTier(plan);
     setShowPayment(true);
   };
 
@@ -58,7 +75,16 @@ const SubscriptionManagement: React.FC = () => {
     if (!selectedTier) return;
     setLoading(true);
     try {
-      const res = await ownerApi.initiateSubscription(selectedTier);
+      const duration = (selectedTier.id === 'ENTERPRISE' && is6Month) ? 'BI_ANNUAL' : 'MONTHLY';
+      const amount = (selectedTier.id === 'ENTERPRISE' && is6Month) ? selectedTier.price6 : selectedTier.price;
+      
+      const res = await ownerApi.initiateSubscription(
+          selectedTier.id, 
+          duration, 
+          amount, 
+          user?.email || 'Unknown'
+      );
+      
       setMessage({ type: 'success', text: res.message });
       setShowPayment(false);
       await refreshUser();
@@ -97,7 +123,7 @@ const SubscriptionManagement: React.FC = () => {
             </h3>
             <p>
               {isExpired 
-                ? 'Your listings are currently hidden from public search.' 
+                ? 'Your listings are currently hidden (or will be soon after grace period).' 
                 : `Your ${isTrial ? 'trial' : 'subscription'} ends in ${daysLeft} days (${new Date(sub.endDate!).toLocaleDateString()}).`}
             </p>
           </div>
@@ -122,7 +148,29 @@ const SubscriptionManagement: React.FC = () => {
               {plan.id === sub.tier && !isExpired && <div className="current-label">Active</div>}
               <div className="plan-icon-wrapper">{plan.icon}</div>
               <h2 className="plan-name">{plan.name}</h2>
-              <div className="plan-price">{plan.price}</div>
+              
+              {plan.id === 'ENTERPRISE' ? (
+                  <div className="enterprise-toggle-container">
+                      <div className="toggle-switch">
+                          <button 
+                            className={!is6Month ? 'active' : ''} 
+                            onClick={() => setIs6Month(false)}
+                          >Monthly</button>
+                          <button 
+                            className={is6Month ? 'active' : ''} 
+                            onClick={() => setIs6Month(true)}
+                          >6-Months</button>
+                      </div>
+                      <div className="plan-price">
+                        LKR {is6Month ? plan.price6!.toLocaleString() : plan.price.toLocaleString()}
+                        <span className="duration">/{is6Month ? '6mo' : 'mo'}</span>
+                      </div>
+                      {is6Month && <div className="save-badge">Save 14%</div>}
+                  </div>
+              ) : (
+                <div className="plan-price">LKR {plan.price.toLocaleString()}<span className="duration">/mo</span></div>
+              )}
+
               <p className="plan-desc">{plan.description}</p>
               <div className="plan-limit-info"><Info size={14} /> {plan.limit}</div>
               
@@ -135,9 +183,9 @@ const SubscriptionManagement: React.FC = () => {
               <button 
                 className="plan-button" 
                 disabled={loading || (plan.id === sub.tier && !isExpired)}
-                onClick={() => handleRequestUpgrade(plan.id)}
+                onClick={() => handleRequestUpgrade(plan)}
               >
-                {plan.id === sub.tier && !isExpired ? 'Active Plan' : isExpired ? 'Renew Now' : 'Upgrade'}
+                {plan.id === sub.tier && !isExpired ? 'Active Plan' : isExpired ? 'Renew Now' : 'Select Plan'}
               </button>
             </div>
           ))}
@@ -145,7 +193,7 @@ const SubscriptionManagement: React.FC = () => {
       ) : (
         <div className="payment-instructions-card animate-scale-in">
           <button className="back-link" onClick={() => setShowPayment(false)}>← Back to plans</button>
-          <h2>Complete Your {selectedTier} Subscription</h2>
+          <h2>Complete Your {selectedTier.name} Subscription</h2>
           <p>Please follow the manual payment steps below to activate your plan.</p>
           
           <div className="bank-details">
@@ -154,7 +202,7 @@ const SubscriptionManagement: React.FC = () => {
             <div className="detail-row"><span>Account Name:</span> <strong>Studio Nazar (Pvt) Ltd</strong></div>
             <div className="detail-row"><span>Account Number:</span> <strong>8010045622</strong></div>
             <div className="detail-row"><span>Branch:</span> <strong>Colombo Main</strong></div>
-            <div className="detail-row"><span>Amount:</span> <strong>{PLANS.find(p => p.id === selectedTier)?.price.split('/')[0]}</strong></div>
+            <div className="detail-row"><span>Amount:</span> <strong>LKR {(selectedTier.id === 'ENTERPRISE' && is6Month ? selectedTier.price6 : selectedTier.price).toLocaleString()}</strong></div>
           </div>
 
           <div className="instruction-box">

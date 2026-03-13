@@ -234,3 +234,16 @@
     font-size: 2rem;
   }
 }
+
+.badge-premium {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: pulse-premium 2s infinite;
+}
+
+@keyframes pulse-premium {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 16, 242, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(102, 16, 242, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 16, 242, 0); }
+}
