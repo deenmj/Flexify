@@ -352,9 +352,9 @@ export const getMakes = async (req, res) => {
  */
 export const getModels = async (req, res) => {
   try {
-    const models = await VehicleModel.find({ 
-      make: req.params.makeId, 
-      approved: true 
+    const models = await VehicleModel.find({
+      make: req.params.makeId,
+      approved: true
     }).sort({ name: 1 });
     res.json(models);
   } catch (err) {

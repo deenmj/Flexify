@@ -292,7 +292,7 @@ export const vehicleApi = {
     apiFetch<{ bookedRanges: BookedRange[]; blackoutRanges: BlackoutRange[] }>(`/vehicles/${id}/availability`),
 
   getMakes: () => apiFetch<VehicleMake[]>('/vehicles/makes'),
-  
+
   getModels: (makeId: string) => apiFetch<VehicleModel[]>(`/vehicles/models/${makeId}`),
 };
 
@@ -401,15 +401,15 @@ export const subadminApi = {
     apiFetch<Review[]>('/subadmin/reviews'),
 
   getPendingMakes: () => apiFetch<VehicleMake[]>('/subadmin/pending-makes'),
-  
+
   getPendingModels: () => apiFetch<VehicleModel[]>('/subadmin/pending-models'),
-  
+
   approveMake: (id: string) => apiFetch<{ message: string; make: VehicleMake }>(`/subadmin/approve-make/${id}`, { method: 'PATCH' }),
-  
+
   approveModel: (id: string) => apiFetch<{ message: string; model: VehicleModel }>(`/subadmin/approve-model/${id}`, { method: 'PATCH' }),
-  
+
   deleteMake: (id: string) => apiFetch<{ message: string }>(`/subadmin/make/${id}`, { method: 'DELETE' }),
-  
+
   deleteModel: (id: string) => apiFetch<{ message: string }>(`/subadmin/model/${id}`, { method: 'DELETE' }),
 };
 
