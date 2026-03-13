@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Check, Shield, Zap, AlertCircle, Clock, Info } from 'lucide-react';
+import { useSocket } from '../SocketContext';
+import { Check, Shield, Zap, AlertCircle, Clock, Info, CreditCard, Landmark, ArrowLeft, Loader2 } from 'lucide-react';
 import { ownerApi } from '../api';
 import './SubscriptionManagement.css';
+import { notification, Modal } from 'antd';
 
 const PLANS = [
   {
@@ -56,22 +58,61 @@ const PLANS = [
 
 const SubscriptionManagement: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const { socket } = useSocket();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [selectedTier, setSelectedTier] = useState<any>(null);
   const [is6Month, setIs6Month] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'CARD' | 'BANK'>('CARD');
+  const [payhereParams, setPayhereParams] = useState<any>(null);
 
   const sub = user?.subscription || { tier: 'BASIC', status: 'trial', endDate: null };
   const isTrial = sub.status === 'trial';
   const isExpired = sub.status === 'expired';
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('subscriptionActivated', (data: any) => {
+        notification.success({
+          message: 'Subscription Activated!',
+          description: `Your ${data.tier} plan is now active until ${new Date(data.endDate).toLocaleDateString()}.`,
+          duration: 10
+        });
+        refreshUser();
+        setShowPayment(false);
+      });
+
+      return () => {
+        socket.off('subscriptionActivated');
+      };
+    }
+  }, [socket]);
 
   const handleRequestUpgrade = (plan: any) => {
     setSelectedTier(plan);
     setShowPayment(true);
   };
 
-  const confirmPaymentRequest = async () => {
+  const handlePayHere = async () => {
+    setLoading(true);
+    try {
+      const duration = (selectedTier.id === 'ENTERPRISE' && is6Month) ? 'BI_ANNUAL' : 'MONTHLY';
+      const amount = (selectedTier.id === 'ENTERPRISE' && is6Month) ? selectedTier.price6 : selectedTier.price;
+      
+      const params = await ownerApi.getPayHereParams(selectedTier.id, duration, amount);
+      setPayhereParams(params);
+      
+      setTimeout(() => {
+        (document.getElementById('payhere-form') as HTMLFormElement).submit();
+      }, 100);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Failed to initiate payment' });
+      setLoading(false);
+    }
+  };
+
+  const confirmManualPayment = async () => {
     if (!selectedTier) return;
     setLoading(true);
     try {
@@ -191,38 +232,96 @@ const SubscriptionManagement: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="payment-instructions-card animate-scale-in">
-          <button className="back-link" onClick={() => setShowPayment(false)}>← Back to plans</button>
-          <h2>Complete Your {selectedTier.name} Subscription</h2>
-          <p>Please follow the manual payment steps below to activate your plan.</p>
+        <div className="payment-selection-container animate-scale-in">
+          <button className="back-link" onClick={() => setShowPayment(false)}><ArrowLeft size={16} /> Back to plans</button>
           
-          <div className="bank-details">
-            <h3>Bank Transfer Details</h3>
-            <div className="detail-row"><span>Bank:</span> <strong>Commercial Bank of Ceylon</strong></div>
-            <div className="detail-row"><span>Account Name:</span> <strong>Studio Nazar (Pvt) Ltd</strong></div>
-            <div className="detail-row"><span>Account Number:</span> <strong>8010045622</strong></div>
-            <div className="detail-row"><span>Branch:</span> <strong>Colombo Main</strong></div>
-            <div className="detail-row"><span>Amount:</span> <strong>LKR {(selectedTier.id === 'ENTERPRISE' && is6Month ? selectedTier.price6 : selectedTier.price).toLocaleString()}</strong></div>
-          </div>
+          <div className="payment-checkout-card">
+            <div className="checkout-summary">
+              <h2>Checkout: {selectedTier.name}</h2>
+              <div className="amount-display">
+                <span className="label">Total to Pay:</span>
+                <span className="value">LKR {(selectedTier.id === 'ENTERPRISE' && is6Month ? selectedTier.price6 : selectedTier.price).toLocaleString()}</span>
+              </div>
+              <p className="duration-text">Subscription for {is6Month ? '6 months' : '1 month'}</p>
+            </div>
 
-          <div className="instruction-box">
-            <h4>Instructions:</h4>
-            <ol>
-              <li>Transfer the exact amount to the account above.</li>
-              <li>Include your email address <strong>({user?.email})</strong> in the reference field.</li>
-              <li>Click the button below to notify our admin team.</li>
-              <li>Activation takes 2-4 hours after verification.</li>
-            </ol>
-          </div>
+            <div className="method-selector">
+                <div 
+                  className={`method-option ${paymentMethod === 'CARD' ? 'selected' : ''}`}
+                  onClick={() => setPaymentMethod('CARD')}
+                >
+                  <CreditCard size={20} />
+                  <div>
+                    <strong>Online Payment</strong>
+                    <p>Card, Genie, Vishwa, etc. (Instant Activation)</p>
+                  </div>
+                  <div className="radio-circle"></div>
+                </div>
 
-          <button 
-            className="confirm-payment-btn" 
-            onClick={confirmPaymentRequest}
-            disabled={loading}
-          >
-            {loading ? 'Sending Request...' : 'I Have Made the Payment'}
-          </button>
-          <p className="note">By clicking, you confirm that you have initiated the transfer.</p>
+                <div 
+                  className={`method-option ${paymentMethod === 'BANK' ? 'selected' : ''}`}
+                  onClick={() => setPaymentMethod('BANK')}
+                >
+                  <Landmark size={20} />
+                  <div>
+                    <strong>Bank Transfer</strong>
+                    <p>Manual verification (Takes 2-4 hours)</p>
+                  </div>
+                  <div className="radio-circle"></div>
+                </div>
+            </div>
+
+            {paymentMethod === 'CARD' ? (
+              <div className="card-payment-info">
+                <button 
+                  className="pay-now-btn" 
+                  onClick={handlePayHere}
+                  disabled={loading}
+                >
+                  {loading ? <><Loader2 className="animate-spin" size={18} /> Processing...</> : 'Pay with PayHere'}
+                </button>
+                <p className="secure-text">Securely processed by PayHere</p>
+              </div>
+            ) : (
+              <div className="bank-payment-info">
+                <div className="bank-details">
+                  <div className="detail-row"><span>Bank:</span> <strong>Commercial Bank</strong></div>
+                  <div className="detail-row"><span>Acc Name:</span> <strong>Flexify Pvt Ltd</strong></div>
+                  <div className="detail-row"><span>Acc Number:</span> <strong>8010045622</strong></div>
+                  <div className="detail-row"><span>Reference:</span> <strong>{user?.email}</strong></div>
+                </div>
+                <button 
+                  className="confirm-manual-btn" 
+                  onClick={confirmManualPayment}
+                  disabled={loading}
+                >
+                  {loading ? 'Sending Request...' : 'I Have Made the Transfer'}
+                </button>
+              </div>
+            )}
+          </div>
+          
+          {/* Hidden PayHere Form */}
+          {payhereParams && (
+            <form id="payhere-form" method="post" action="https://sandbox.payhere.lk/pay/checkout">
+                <input type="hidden" name="merchant_id" value={payhereParams.merchant_id} />
+                <input type="hidden" name="return_url" value={payhereParams.return_url} />
+                <input type="hidden" name="cancel_url" value={payhereParams.cancel_url} />
+                <input type="hidden" name="notify_url" value={payhereParams.notify_url} />
+                <input type="hidden" name="order_id" value={payhereParams.order_id} />
+                <input type="hidden" name="items" value={payhereParams.items} />
+                <input type="hidden" name="currency" value={payhereParams.currency} />
+                <input type="hidden" name="amount" value={payhereParams.amount} />
+                <input type="hidden" name="first_name" value={payhereParams.first_name} />
+                <input type="hidden" name="last_name" value={payhereParams.last_name} />
+                <input type="hidden" name="email" value={payhereParams.email} />
+                <input type="hidden" name="phone" value={payhereParams.phone} />
+                <input type="hidden" name="address" value={payhereParams.address} />
+                <input type="hidden" name="city" value={payhereParams.city} />
+                <input type="hidden" name="country" value={payhereParams.country} />
+                <input type="hidden" name="hash" value={payhereParams.hash} />
+            </form>
+          )}
         </div>
       )}
     </div>

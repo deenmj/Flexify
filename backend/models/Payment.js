@@ -23,8 +23,21 @@ const paymentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "approved", "rejected", "failed"],
       default: "pending",
+    },
+    method: {
+      type: String,
+      enum: ["MANUAL", "PAYHERE"],
+      default: "MANUAL",
+    },
+    transactionId: {
+      type: String,
+      default: null,
+    },
+    paidAt: {
+      type: Date,
+      default: null,
     },
     reference: {
       type: String,

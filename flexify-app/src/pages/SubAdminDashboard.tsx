@@ -609,13 +609,24 @@ export default function SubAdminDashboard() {
                     columns={[
                       { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
                       { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
-                      { title: 'Duration', dataIndex: 'duration' },
-                      { title: 'Amount', dataIndex: 'amount', render: (a: number) => `LKR ${a?.toLocaleString()}` },
-                      { title: 'Reference', dataIndex: 'reference' },
+                      { title: 'Method', dataIndex: 'method', render: (m: string) => <Tag color={m === 'PAYHERE' ? 'green' : 'orange'}>{m || 'MANUAL'}</Tag> },
+                      { title: 'Amount', dataIndex: 'amount', render: (a: number) => <Text strong>LKR {a?.toLocaleString()}</Text> },
+                      { title: 'Transaction/Ref', render: (_, p: any) => (
+                        <div>
+                          <Text copyable fontSize="12px">{p.transactionId || p.reference}</Text>
+                          {p.paidAt && <div style={{ fontSize: '11px', color: '#94a3b8' }}>Paid: {new Date(p.paidAt).toLocaleString()}</div>}
+                        </div>
+                      )},
                       { title: 'Action', render: (_, p: any) => (
                         <Space>
-                          <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')} loading={actionLoading === p._id}>Approve</Button>
-                          <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')} loading={actionLoading === p._id}>Reject</Button>
+                          {p.status === 'approved' ? (
+                            <Tag color="success">Verified</Tag>
+                          ) : (
+                            <>
+                              <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')} loading={actionLoading === p._id}>Approve</Button>
+                              <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')} loading={actionLoading === p._id}>Reject</Button>
+                            </>
+                          )}
                         </Space>
                       )}
                     ]}

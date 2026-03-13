@@ -125,7 +125,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/subadmin", subadminRoutes);
 app.use("/api/blackouts", blackoutRoutes);
 app.use("/api/reviews", reviewRoutes);
-app.use("/api/owner", protect, ownerRoutes);
+app.use("/api/owner", ownerRoutes);
 
 // Catch-all to serve React app
 app.get("*", (req, res) => {

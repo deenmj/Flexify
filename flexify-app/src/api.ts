@@ -483,9 +483,9 @@ export const ownerApi = {
     apiFetch<{ subscription: User['subscription'] }>('/auth/me').then(res => res.subscription),
 
   // Placeholder for future implementation
-  initiateSubscription: (tier: string, duration: string, amount: number, reference: string) =>
-    apiFetch<{ message: string }>('/owner/subscribe', {
-      method: 'POST',
-      body: JSON.stringify({ tier, duration, amount, reference }),
-    }),
+    initiateSubscription: (tier: string, duration: string, amount: number, reference: string) =>
+        API.post('/owner/subscribe', { tier, duration, amount, reference }).then(res => res.data),
+    getPayHereParams: (tier: string, duration: string, amount: number) =>
+        API.post('/owner/payhere-params', { tier, duration, amount }).then(res => res.data),
+    getStats: () => API.get('/owner/stats').then(res => res.data)
 };
