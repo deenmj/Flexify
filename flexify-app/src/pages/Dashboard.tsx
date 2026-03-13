@@ -5,15 +5,22 @@ import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, Modal, message, Select, Tag, Badge, DatePicker, Button, Form, Input, Rate } from 'antd';
 import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review } from '../api';
-import { Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, CalendarOff, Star, MessageSquare } from 'lucide-react';
+import { 
+  Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, 
+  Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, 
+  CalendarOff, Star, MessageSquare 
+} from 'lucide-react';
+import { notification } from 'antd';
 
 const { RangePicker } = DatePicker;
+import { useSocket } from '../SocketContext';
 import './Dashboard.css';
 
 dayjs.extend(isBetween);
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -58,6 +65,45 @@ export default function Dashboard() {
       if ((v as Vehicle[]).length > 0) setCalendarVehicleId((v as Vehicle[])[0]._id);
     }).finally(() => setLoading(false));
   }, [user]);
+
+  // Handle Real-time Sockets
+  useEffect(() => {
+    if (!socket) return;
+
+    // Listen for new bookings (Owners only)
+    if (user?.role === 'owner') {
+      socket.on('newBookingRequest', (data: any) => {
+        notification.success({
+          message: '🔔 New Booking Request!',
+          description: `${data.renterName} wants to rent your ${data.vehicleTitle}.`,
+          duration: 10,
+          placement: 'topRight',
+          onClick: () => setTab('bookings')
+        });
+        // Add to local state
+        bookingApi.getMy().then(setBookings);
+      });
+    }
+
+    // Listen for status updates (Renters only)
+    if (user?.role === 'user') {
+      socket.on('bookingStatusUpdate', (data: any) => {
+        notification.info({
+          message: '📅 Booking Update',
+          description: data.message,
+          duration: 7,
+          placement: 'topRight'
+        });
+        // Refresh local bookings
+        bookingApi.getMy().then(setBookings);
+      });
+    }
+
+    return () => {
+      socket.off('newBookingRequest');
+      socket.off('bookingStatusUpdate');
+    };
+  }, [socket, user]);
 
   // Fetch calendar availability & blackouts when vehicle changes
   useEffect(() => {

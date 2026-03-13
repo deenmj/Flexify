@@ -74,6 +74,19 @@ export const createBooking = async (req, res) => {
     // Log notification
     console.log(`🔔 NEW BOOKING: ${vehicle.title} by ${req.user.name} | LKR ${totalAmount} for ${days} days`);
 
+    // SOCKET NOTIFICATION TO OWNER
+    const io = req.app.get("io");
+    if (io) {
+      io.to(vehicle.owner._id.toString()).emit("newBookingRequest", {
+        bookingId: booking._id,
+        renterName: req.user.name,
+        vehicleTitle: vehicle.title,
+        startDate: s,
+        endDate: e,
+        totalAmount
+      });
+    }
+
     // Send email to owner
     try {
       await sendEmail({
@@ -141,6 +154,16 @@ export const acceptBooking = async (req, res) => {
 
     // Increment timesRented
     await Vehicle.findByIdAndUpdate(booking.vehicle._id, { $inc: { timesRented: 1 } });
+
+    // SOCKET NOTIFICATION TO RENTER
+    const io = req.app.get("io");
+    if (io) {
+      io.to(booking.user._id.toString()).emit("bookingStatusUpdate", {
+        bookingId: booking._id,
+        status: "CONFIRMED",
+        message: `Your booking for ${booking.vehicle.title} has been confirmed!`
+      });
+    }
 
     // Send confirmation email to RENTER
     try {
@@ -235,6 +258,17 @@ export const rejectBooking = async (req, res) => {
 
     booking.status = "REJECTED";
     await booking.save();
+
+    // SOCKET NOTIFICATION TO RENTER
+    const io = req.app.get("io");
+    if (io) {
+      io.to(booking.user.toString()).emit("bookingStatusUpdate", {
+        bookingId: booking._id,
+        status: "REJECTED",
+        message: `Your booking for ${booking.vehicle?.title || "a vehicle"} was rejected.`
+      });
+    }
+
     return res.json({ message: "Booking rejected", booking });
   } catch (err) {
     return res.status(500).json({ message: err.message });

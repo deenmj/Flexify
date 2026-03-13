@@ -38,11 +38,14 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+import { SocketProvider } from './SocketContext';
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <SocketProvider>
+          <Routes>
           {/* Auth pages (no navbar/footer) */}
           <Route path="/auth" element={<AuthLayout><Auth /></AuthLayout>} />
           <Route path="/google-success" element={<AuthLayout><GoogleSuccess /></AuthLayout>} />

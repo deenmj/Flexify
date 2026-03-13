@@ -55,6 +55,13 @@ export const approveUserKyc = async (req, res) => {
         user.rejectedAt = null;
 
         await user.save();
+
+        // SOCKET NOTIFICATION TO ALL ADMINS
+        const io = req.app.get("io");
+        if (io) {
+            io.to("admin_room").emit("pendingUpdate", { type: "KYC", status: "approved" });
+        }
+
         res.json({ message: "User KYC approved successfully", user });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -82,6 +89,12 @@ export const rejectUserKyc = async (req, res) => {
         user.rejectedAt = new Date();
 
         await user.save();
+
+        // SOCKET NOTIFICATION TO ALL ADMINS
+        const io = req.app.get("io");
+        if (io) {
+            io.to("admin_room").emit("pendingUpdate", { type: "KYC", status: "rejected" });
+        }
 
         // Send feedback email async
         sendRejectionEmail(user, "KYC", reason, comment);
@@ -129,6 +142,12 @@ export const approveVehicle = async (req, res) => {
         }
 
         res.json({ message: "Vehicle approved and now active", vehicle });
+
+        // SOCKET NOTIFICATION TO ALL ADMINS
+        const io = req.app.get("io");
+        if (io) {
+            io.to("admin_room").emit("pendingUpdate", { type: "VEHICLE", status: "approved" });
+        }
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -160,6 +179,12 @@ export const rejectVehicle = async (req, res) => {
         }
 
         res.json({ message: "Vehicle rejected and notification sent", vehicle });
+
+        // SOCKET NOTIFICATION TO ALL ADMINS
+        const io = req.app.get("io");
+        if (io) {
+            io.to("admin_room").emit("pendingUpdate", { type: "VEHICLE", status: "rejected" });
+        }
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { subadminApi, adminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { DollarSign } from 'lucide-react';
+import { useSocket } from '../SocketContext';
 import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
@@ -16,6 +17,7 @@ const { Text, Title } = Typography;
 
 export default function SubAdminDashboard() {
   const { user, logout } = useAuth();
+  const { socket, connected: socketConnected } = useSocket();
   const navigate = useNavigate();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -49,6 +51,25 @@ export default function SubAdminDashboard() {
   useEffect(() => {
     setCheckedItems([false, false, false, false]);
   }, [selectedUser]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('pendingUpdate', (data: any) => {
+        console.log('🔄 Live Update Received:', data);
+        fetchData(); // Refresh all data when something changes
+        notification.info({
+          message: 'Real-time Update',
+          description: `New ${data.type} update detected. Dashboard refreshed.`,
+          placement: 'bottomRight',
+          duration: 3
+        });
+      });
+
+      return () => {
+        socket.off('pendingUpdate');
+      };
+    }
+  }, [socket]);
 
   useEffect(() => {
     if (stats && (stats.pendingUsers > 0 || stats.pendingVehicles > 0)) {
@@ -345,6 +366,10 @@ export default function SubAdminDashboard() {
             </Title>
           </div>
           <Space size="large">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: socketConnected ? '#10b981' : '#ef4444' }}></div>
+              <Text type="secondary" style={{ fontSize: 12 }}>{socketConnected ? 'Live' : 'Offline'}</Text>
+            </div>
             <Button type="text" onClick={() => navigate('/')} icon={<ArrowLeft size={16} />}>Back to Site</Button>
             <Dropdown menu={{
               items: [
