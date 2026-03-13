@@ -7,7 +7,8 @@ import {
   AlertTriangle, FileText, Clock, MessageSquare, 
   LogOut, ArrowLeft 
 } from 'lucide-react';
-import { subadminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
+import { subadminApi, adminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
+import { DollarSign } from 'lucide-react';
 import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
@@ -24,8 +25,9 @@ export default function SubAdminDashboard() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [pendingMakes, setPendingMakes] = useState<VehicleMake[]>([]);
   const [pendingModels, setPendingModels] = useState<VehicleModel[]>([]);
+  const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation'>('users');
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments'>('users');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -62,13 +64,14 @@ export default function SubAdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [s, u, v, r, m, mo] = await Promise.all([
+      const [s, u, v, r, m, mo, p] = await Promise.all([
         subadminApi.getStats().catch(() => null),
         subadminApi.getPendingUsers().catch(() => []),
         subadminApi.getPendingVehicles().catch(() => []),
         subadminApi.getAllReviews().catch(() => []),
         subadminApi.getPendingMakes().catch(() => []),
         subadminApi.getPendingModels().catch(() => []),
+        adminApi.getPendingPayments().catch(() => []),
       ]);
       if (s) setStats(s);
       setPendingUsers(u);
@@ -76,6 +79,7 @@ export default function SubAdminDashboard() {
       setReviews(r);
       setPendingMakes(m);
       setPendingModels(mo);
+      setPendingPayments(p || []);
     } catch (err: any) {
       message.error(err.message || 'Error fetching data');
     } finally {
@@ -243,6 +247,24 @@ export default function SubAdminDashboard() {
     }
   };
 
+  const handleVerifyPayment = async (paymentId: string, status: 'approved' | 'rejected') => {
+    let reason = '';
+    if (status === 'rejected') {
+        reason = window.prompt('Enter rejection reason:') || 'Payment details incorrect';
+    }
+    
+    setActionLoading(paymentId);
+    try {
+        const res = await adminApi.verifyPayment(paymentId, status, reason);
+        setPendingPayments(prev => prev.filter(p => p._id !== paymentId));
+        message.success(res.message);
+    } catch (err: any) {
+        message.error(err.message);
+    } finally {
+        setActionLoading(null);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -296,6 +318,7 @@ export default function SubAdminDashboard() {
             { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
             { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
             { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
+            { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
           ]}
         />
       </Sider>
@@ -318,6 +341,7 @@ export default function SubAdminDashboard() {
               {tab === 'vehicles' && 'Vehicle Approvals'}
               {tab === 'reviews' && 'Review Moderation'}
               {tab === 'moderation' && 'Platform Content Suggestions'}
+              {tab === 'payments' && 'Subscription Payments'}
             </Title>
           </div>
           <Space size="large">
@@ -543,6 +567,34 @@ export default function SubAdminDashboard() {
                       />
                     </Card>
                   </Space>
+                </div>
+              )}
+
+              {tab === 'payments' && (
+                <div className="animate-fade-in">
+                  <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Title level={5} style={{ margin: 0 }}>Pending Subscription Payments</Title>
+                    <Button type="primary" onClick={fetchData}>Refresh</Button>
+                  </div>
+                  <Table 
+                    dataSource={pendingPayments}
+                    rowKey="_id"
+                    pagination={{ pageSize: 12 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
+                      { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
+                      { title: 'Duration', dataIndex: 'duration' },
+                      { title: 'Amount', dataIndex: 'amount', render: (a: number) => `LKR ${a?.toLocaleString()}` },
+                      { title: 'Reference', dataIndex: 'reference' },
+                      { title: 'Action', render: (_, p: any) => (
+                        <Space>
+                          <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')} loading={actionLoading === p._id}>Approve</Button>
+                          <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')} loading={actionLoading === p._id}>Reject</Button>
+                        </Space>
+                      )}
+                    ]}
+                  />
                 </div>
               )}
             </>

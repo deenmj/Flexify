@@ -19,9 +19,10 @@ export default function Auth() {
 
   useEffect(() => {
     if (user) {
-      if (user.role === 'admin') navigate('/admin');
-      else if (user.role === 'staff') navigate('/staff');
-      else navigate('/');
+      if (user.role === 'superadmin') navigate('/admin');
+      else if (user.role === 'subadmin') navigate('/subadmin');
+      else if (user.role === 'owner') navigate('/dashboard?tab=vehicles');
+      else navigate('/explore');
     }
   }, [user, navigate]);
 
@@ -36,11 +37,10 @@ export default function Auth() {
         await login(email, password);
         // Redirect based on role
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (user.role === 'admin') navigate('/admin');
-        else if (user.role === 'staff') navigate('/staff');
-        else if (user.role === 'owner') navigate('/dashboard');
-        else if (user.role === 'verifiedOwner') navigate('/dashboard-verified');
-        else navigate('/');
+        if (user.role === 'superadmin') navigate('/admin');
+        else if (user.role === 'subadmin') navigate('/subadmin');
+        else if (user.role === 'owner') navigate('/dashboard?tab=vehicles');
+        else navigate('/explore');
       } else {
         const msg = await signup(name, email, password);
         setSuccessMsg(msg || 'Verification email sent! Check your inbox.');

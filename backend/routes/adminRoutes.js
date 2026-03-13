@@ -24,7 +24,7 @@ router.delete("/users/:id", protect, requireSuperAdmin, deleteUser);
 router.get("/vehicles", protect, requireSuperAdmin, getAllVehicles);
 router.get("/bookings", protect, requireSuperAdmin, getAllBookings);
 router.get("/audit-logs", protect, requireSuperAdmin, getAuditLogs);
-router.get("/payments/pending", protect, requireSuperAdmin, getPendingPayments);
-router.post("/payments/verify", protect, requireSuperAdmin, verifyPayment);
+router.get("/payments/pending", protect, requireSubAdmin, getPendingPayments);
+router.post("/payments/verify", protect, requireSubAdmin, verifyPayment);
 
 export default router;
