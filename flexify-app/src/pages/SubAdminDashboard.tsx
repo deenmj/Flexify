@@ -1,660 +1,742 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { notification, Modal, Form, Select, Input, message, Rate } from 'antd';
+import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Table, Tag, Dropdown, Spin } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Car, Shield, CheckCircle, XCircle, Search, 
+  AlertTriangle, FileText, Clock, MessageSquare, 
+  LogOut, ArrowLeft 
+} from 'lucide-react';
 import { subadminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
-import { Users, Car, Shield, CheckCircle, XCircle, Search, AlertTriangle, FileText, Clock, MessageSquare, Eye, EyeOff } from 'lucide-react';
 import './Dashboard.css';
 
+const { Header, Sider, Content } = Layout;
+const { Text, Title } = Typography;
+
 export default function SubAdminDashboard() {
-    const { user } = useAuth();
-    const [stats, setStats] = useState<SubadminStats | null>(null);
-    const [pendingUsers, setPendingUsers] = useState<User[]>([]);
-    const [pendingVehicles, setPendingVehicles] = useState<Vehicle[]>([]);
-    const [reviews, setReviews] = useState<Review[]>([]);
-    const [pendingMakes, setPendingMakes] = useState<VehicleMake[]>([]);
-    const [pendingModels, setPendingModels] = useState<VehicleModel[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation'>('users');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [showModal, setShowModal] = useState(false);
-    const [actionLoading, setActionLoading] = useState<string | null>(null);
-    const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
-    const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
-    const [rejectionModal, setRejectionModal] = useState<{
-        visible: boolean;
-        type: 'KYC' | 'Vehicle' | 'Review';
-        id: string;
-        targetName: string;
-    }>({ visible: false, type: 'KYC', id: '', targetName: '' });
-    const [form] = Form.useForm();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-    useEffect(() => { fetchData(); }, []);
-    useEffect(() => { setCheckedItems([false, false, false, false]); }, [selectedUser]);
+  const [collapsed, setCollapsed] = useState(false);
+  const [stats, setStats] = useState<SubadminStats | null>(null);
+  const [pendingUsers, setPendingUsers] = useState<User[]>([]);
+  const [pendingVehicles, setPendingVehicles] = useState<Vehicle[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [pendingMakes, setPendingMakes] = useState<VehicleMake[]>([]);
+  const [pendingModels, setPendingModels] = useState<VehicleModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation'>('users');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+  const [rejectionModal, setRejectionModal] = useState<{
+    visible: boolean;
+    type: 'KYC' | 'Vehicle' | 'Review';
+    id: string;
+    targetName: string;
+  }>({ visible: false, type: 'KYC', id: '', targetName: '' });
+  const [form] = Form.useForm();
 
-    useEffect(() => {
-        if (stats && (stats.pendingUsers > 0 || stats.pendingVehicles > 0)) {
-            notification.info({
-                message: 'Pending Actions Required',
-                description: `You have ${stats.pendingUsers} users and ${stats.pendingVehicles} vehicles awaiting approval.`,
-                placement: 'topRight',
-                duration: 5,
-            });
-        }
-    }, [stats]);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const [s, u, v, r, m, mo] = await Promise.all([
-                subadminApi.getStats().catch(() => null),
-                subadminApi.getPendingUsers().catch(() => []),
-                subadminApi.getPendingVehicles().catch(() => []),
-                subadminApi.getAllReviews().catch(() => []),
-                subadminApi.getPendingMakes().catch(() => []),
-                subadminApi.getPendingModels().catch(() => []),
-            ]);
-            if (s) setStats(s);
-            setPendingUsers(u);
-            setPendingVehicles(v);
-            setReviews(r);
-            setPendingMakes(m);
-            setPendingModels(mo);
-        } catch (err: any) { message.error(err.message || 'Error fetching data'); }
-        finally { setLoading(false); }
-    };
+  useEffect(() => {
+    setCheckedItems([false, false, false, false]);
+  }, [selectedUser]);
 
-    const handleCheck = (idx: number) => {
-        const updated = [...checkedItems];
-        updated[idx] = !updated[idx];
-        setCheckedItems(updated);
-    };
+  useEffect(() => {
+    if (stats && (stats.pendingUsers > 0 || stats.pendingVehicles > 0)) {
+      notification.info({
+        message: 'Pending Actions Required',
+        description: `You have ${stats.pendingUsers} users and ${stats.pendingVehicles} vehicles awaiting approval.`,
+        placement: 'topRight',
+        duration: 5,
+      });
+    }
+  }, [stats]);
 
-    const allChecked = checkedItems.every(Boolean);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [s, u, v, r, m, mo] = await Promise.all([
+        subadminApi.getStats().catch(() => null),
+        subadminApi.getPendingUsers().catch(() => []),
+        subadminApi.getPendingVehicles().catch(() => []),
+        subadminApi.getAllReviews().catch(() => []),
+        subadminApi.getPendingMakes().catch(() => []),
+        subadminApi.getPendingModels().catch(() => []),
+      ]);
+      if (s) setStats(s);
+      setPendingUsers(u);
+      setPendingVehicles(v);
+      setReviews(r);
+      setPendingMakes(m);
+      setPendingModels(mo);
+    } catch (err: any) {
+      message.error(err.message || 'Error fetching data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleApproveUser = async (userId: string) => {
-        if (!allChecked) return;
-        setActionLoading(userId);
-        try {
-            await subadminApi.approveUser(userId);
-            setPendingUsers((prev: User[]) => prev.filter((u: User) => (u.id || u._id) !== userId));
-            setShowModal(false);
-        } catch (err: any) { message.error(err.message); }
-        finally { setActionLoading(null); }
-    };
+  const handleCheck = (idx: number) => {
+    const updated = [...checkedItems];
+    updated[idx] = !updated[idx];
+    setCheckedItems(updated);
+  };
 
-    const handleRejectUser = async (userId: string) => {
-        const user = pendingUsers.find((u: User) => (u.id || u._id) === userId);
-        setRejectionModal({
-            visible: true,
-            type: 'KYC',
-            id: userId,
-            targetName: user?.name || 'User'
-        });
-    };
+  const allChecked = checkedItems.every(Boolean);
 
-    const submitRejection = async (values: { reason: string; comment?: string }) => {
-        const { type, id } = rejectionModal;
-        setActionLoading(id);
-        try {
-            if (type === 'KYC') {
-                await subadminApi.rejectUser(id, values.reason, values.comment);
-                setPendingUsers((prev: User[]) => prev.filter((u: User) => (u.id || u._id) !== id));
-                setShowModal(false);
-            } else if (type === 'Vehicle') {
-                await subadminApi.rejectVehicle(id, values.reason, values.comment);
-                setPendingVehicles((prev: Vehicle[]) => prev.filter((v: Vehicle) => v._id !== id));
-            } else if (type === 'Review') {
-                await subadminApi.updateReviewStatus(id, 'rejected', values.reason, values.comment);
-                setReviews((prev: Review[]) => prev.map((r: Review) => r._id === id ? { ...r, status: 'rejected' as any } : r));
-            }
-            message.success(`${type} rejected successfully`);
-            setRejectionModal((prev: any) => ({ ...prev, visible: false }));
-            form.resetFields();
-        } catch (err: any) {
-            message.error(err.message || "Failed to reject");
-        } finally {
-            setActionLoading(null);
-        }
-    };
+  const handleApproveUser = async (userId: string) => {
+    if (!allChecked) return;
+    setActionLoading(userId);
+    try {
+      await subadminApi.approveUser(userId);
+      setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
+      setShowModal(false);
+      message.success('User approved successfully');
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
-    const handleApproveVehicle = async (vehicleId: string) => {
-        setActionLoading(vehicleId);
-        try {
-            await subadminApi.approveVehicle(vehicleId);
-            setPendingVehicles((prev: Vehicle[]) => prev.filter((v: Vehicle) => v._id !== vehicleId));
-        } catch (err: any) { message.error(err.message); }
-        finally { setActionLoading(null); }
-    };
+  const handleRejectUser = (userId: string) => {
+    const user = pendingUsers.find(u => (u.id || u._id) === userId);
+    setRejectionModal({
+      visible: true,
+      type: 'KYC',
+      id: userId,
+      targetName: user?.name || 'User'
+    });
+  };
 
-    const handleRejectVehicle = async (vehicleId: string) => {
-        const vehicle = pendingVehicles.find((v: Vehicle) => v._id === vehicleId);
-        setRejectionModal({
-            visible: true,
-            type: 'Vehicle',
-            id: vehicleId,
-            targetName: vehicle?.title || 'Vehicle'
-        });
-    };
+  const submitRejection = async (values: { reason: string; comment?: string }) => {
+    const { type, id } = rejectionModal;
+    setActionLoading(id);
+    try {
+      if (type === 'KYC') {
+        await subadminApi.rejectUser(id, values.reason, values.comment);
+        setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== id));
+        setShowModal(false);
+      } else if (type === 'Vehicle') {
+        await subadminApi.rejectVehicle(id, values.reason, values.comment);
+        setPendingVehicles(prev => prev.filter(v => v._id !== id));
+      } else if (type === 'Review') {
+        await subadminApi.updateReviewStatus(id, 'rejected', values.reason, values.comment);
+        setReviews(prev => prev.map(r => r._id === id ? { ...r, status: 'rejected' as any } : r));
+      }
+      message.success(`${type} rejected successfully`);
+      setRejectionModal(prev => ({ ...prev, visible: false }));
+      form.resetFields();
+    } catch (err: any) {
+      message.error(err.message || "Failed to reject");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
-    const handleToggleReviewStatus = async (reviewId: string, currentStatus: string) => {
-        if (currentStatus === 'visible') {
-            // Logic for hiding if already visible? Or do we want a specific rejection flow?
-            // User request says "When sub-admins reject reviews... require selecting a reason"
-            // So I'll interpret "Hide" as a form of rejection or add a separate Reject button.
-            // Current UI has a "Hide" button which calls this with 'hidden'. 
-            // I'll add a separate rejection flow for reviews or reuse this.
-            
-            const review = reviews.find((r: Review) => r._id === reviewId);
-            setRejectionModal({
-                visible: true,
-                type: 'Review',
-                id: reviewId,
-                targetName: `Review by ${review?.reviewer.name}`
-            });
-            return;
-        }
+  const handleApproveVehicle = async (vehicleId: string) => {
+    setActionLoading(vehicleId);
+    try {
+      await subadminApi.approveVehicle(vehicleId);
+      setPendingVehicles(prev => prev.filter(v => v._id !== vehicleId));
+      message.success('Vehicle approved');
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
-        const newStatus = 'visible';
-        setActionLoading(reviewId);
-        try {
-            await subadminApi.updateReviewStatus(reviewId, newStatus);
-            setReviews((prev: Review[]) => prev.map((r: Review) => r._id === reviewId ? { ...r, status: newStatus as any } : r));
-        } catch (err: any) { message.error(err.message); }
-        finally { setActionLoading(null); }
-    };
+  const handleRejectVehicle = (vehicleId: string) => {
+    const vehicle = pendingVehicles.find(v => v._id === vehicleId);
+    setRejectionModal({
+      visible: true,
+      type: 'Vehicle',
+      id: vehicleId,
+      targetName: vehicle?.title || 'Vehicle'
+    });
+  };
 
-    const handleApproveMake = async (id: string) => {
-        setActionLoading(id);
-        try {
-            await subadminApi.approveMake(id);
-            setPendingMakes((prev: VehicleMake[]) => prev.filter((m: VehicleMake) => m._id !== id));
-        } catch (err: any) { message.error(err.message); }
-        finally { setActionLoading(null); }
-    };
-
-    const handleApproveModel = async (id: string) => {
-        setActionLoading(id);
-        try {
-            await subadminApi.approveModel(id);
-            setPendingModels((prev: VehicleModel[]) => prev.filter((mod: VehicleModel) => mod._id !== id));
-        } catch (err: any) { message.error(err.message); }
-        finally { setActionLoading(null); }
-    };
-
-    const handleDeleteMake = async (id: string) => {
-        if (!window.confirm("Delete this make suggestion?")) return;
-        setActionLoading(id);
-        try {
-            await subadminApi.deleteMake(id);
-            setPendingMakes((prev: VehicleMake[]) => prev.filter((m: VehicleMake) => m._id !== id));
-        } catch (err: any) { message.error(err.message); }
-        finally { setActionLoading(null); }
-    };
-
-    const handleDeleteModel = async (id: string) => {
-        if (!window.confirm("Delete this model suggestion?")) return;
-        setActionLoading(id);
-        try {
-            await subadminApi.deleteModel(id);
-            setPendingModels((prev: VehicleModel[]) => prev.filter((mod: VehicleModel) => mod._id !== id));
-        } catch (err: any) { message.error(err.message); }
-        finally { setActionLoading(null); }
-    };
-
-    const filteredUsers = pendingUsers.filter(u =>
-        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    if (!user || (user.role !== 'subadmin' && user.role !== 'superadmin')) {
-        return (
-            <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
-                <Shield size={48} color="var(--error-color)" style={{ marginBottom: '1rem' }} />
-                <h2>Sub-Admin Access Required</h2>
-                <p>You do not have permission to access this page.</p>
-            </div>
-        );
+  const handleToggleReviewStatus = async (reviewId: string, currentStatus: string) => {
+    if (currentStatus === 'visible') {
+      const review = reviews.find(r => r._id === reviewId);
+      setRejectionModal({
+        visible: true,
+        type: 'Review',
+        id: reviewId,
+        targetName: `Review by ${review?.reviewer.name}`
+      });
+      return;
     }
 
+    const newStatus = 'visible';
+    setActionLoading(reviewId);
+    try {
+      await subadminApi.updateReviewStatus(reviewId, newStatus);
+      setReviews(prev => prev.map(r => r._id === reviewId ? { ...r, status: newStatus as any } : r));
+      message.success('Review is now visible');
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleApproveMake = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await subadminApi.approveMake(id);
+      setPendingMakes(prev => prev.filter(m => m._id !== id));
+      message.success('Vehicle make approved');
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleApproveModel = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await subadminApi.approveModel(id);
+      setPendingModels(prev => prev.filter(mod => mod._id !== id));
+      message.success('Vehicle model approved');
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteMake = async (id: string) => {
+    if (!window.confirm("Delete this make suggestion?")) return;
+    setActionLoading(id);
+    try {
+      await subadminApi.deleteMake(id);
+      setPendingMakes(prev => prev.filter(m => m._id !== id));
+      message.success('Suggestion deleted');
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteModel = async (id: string) => {
+    if (!window.confirm("Delete this model suggestion?")) return;
+    setActionLoading(id);
+    try {
+      await subadminApi.deleteModel(id);
+      setPendingModels(prev => prev.filter(mod => mod._id !== id));
+      message.success('Suggestion deleted');
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const filteredUsers = pendingUsers.filter(u =>
+    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (!user || (user.role !== 'subadmin' && user.role !== 'superadmin')) {
     return (
-        <div className="dashboard-page bg-secondary">
-            <div className="dashboard-header" style={{ background: 'linear-gradient(135deg, #0d9488, #14b8a6)', padding: '5rem 0 4rem' }}>
-                <div className="container">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
-                        <div>
-                            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: '30px', fontSize: '11px', fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Verification Portal</span>
-                            <h1 style={{ marginTop: '0.75rem', fontSize: '2.5rem' }}>Sub-Admin Dashboard</h1>
-                            <p style={{ opacity: 0.9, fontSize: '1.1rem', marginTop: '0.5rem' }}>Manage KYC verifications and vehicle approvals.</p>
-                        </div>
-                        <div style={{ display: 'flex', gap: '2.5rem' }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '24px', fontWeight: 800 }}>{pendingUsers.length}</div>
-                                <div style={{ fontSize: '12px', opacity: 0.8, textTransform: 'uppercase' }}>KYC Pending</div>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '24px', fontWeight: 800 }}>{pendingVehicles.length}</div>
-                                <div style={{ fontSize: '12px', opacity: 0.8, textTransform: 'uppercase' }}>Vehicles Pending</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="container dashboard-content" style={{ marginTop: '-2rem' }}>
-
-                {/* Stats cards */}
-                {stats && (
-                    <div className="dashboard-stats" style={{ marginBottom: '2rem' }}>
-                        <div className="stat-card card shadow-sm">
-                            <div className="stat-icon" style={{ background: '#fff7ed', color: '#ea580c' }}><Clock size={24} /></div>
-                            <div className="stat-info"><span className="stat-number">{stats.pendingUsers}</span><span className="stat-label">Pending KYC</span></div>
-                        </div>
-                        <div className="stat-card card shadow-sm">
-                            <div className="stat-icon" style={{ background: '#fef3c7', color: '#d97706' }}><Car size={24} /></div>
-                            <div className="stat-info"><span className="stat-number">{stats.pendingVehicles}</span><span className="stat-label">Pending Vehicles</span></div>
-                        </div>
-                        <div className="stat-card card shadow-sm">
-                            <div className="stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}><CheckCircle size={24} /></div>
-                            <div className="stat-info"><span className="stat-number">{stats.approvedUsers}</span><span className="stat-label">Approved Users</span></div>
-                        </div>
-                        <div className="stat-card card shadow-sm">
-                            <div className="stat-icon" style={{ background: '#eff6ff', color: '#2563eb' }}><Users size={24} /></div>
-                            <div className="stat-info"><span className="stat-number">{stats.totalVehicles}</span><span className="stat-label">Active Vehicles</span></div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Tabs */}
-                <div className="dashboard-tabs">
-                    <button className={`dashboard-tab ${tab === 'users' ? 'active' : ''}`} onClick={() => setTab('users')}>
-                        <Shield size={16} /> KYC Verifications ({pendingUsers.length})
-                    </button>
-                    <button className={`dashboard-tab ${tab === 'vehicles' ? 'active' : ''}`} onClick={() => setTab('vehicles')}>
-                        <Car size={16} /> Vehicle Approvals ({pendingVehicles.length})
-                    </button>
-                    <button className={`dashboard-tab ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>
-                        <MessageSquare size={16} /> Customer Reviews ({reviews.length})
-                    </button>
-                    <button className={`dashboard-tab ${tab === 'moderation' ? 'active' : ''}`} onClick={() => setTab('moderation')}>
-                        <Clock size={16} /> Suggestions ({pendingMakes.length + pendingModels.length})
-                    </button>
-                </div>
-
-                {/* Search bar */}
-                {tab === 'users' && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
-                        <div style={{ position: 'relative', flex: 1, minWidth: '300px' }}>
-                            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', zIndex: 1 }} />
-                            <input type="text" placeholder="Search by name or email..." className="input-field" style={{ paddingLeft: '40px', borderRadius: '12px', background: 'white' }} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                        </div>
-                        <button className="btn btn-primary" onClick={fetchData}>Refresh</button>
-                    </div>
-                )}
-
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--text-tertiary)' }}>
-                        <div className="loading-spinner" style={{ marginBottom: '1rem' }} />
-                        <p>Loading...</p>
-                    </div>
-                ) : tab === 'users' ? (
-                    <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
-                        {filteredUsers.length === 0 ? (
-                            <div className="dashboard-empty" style={{ padding: '6rem 2rem' }}>
-                                <Shield size={48} strokeWidth={1} />
-                                <h3>All Clear!</h3>
-                                <p>{searchQuery ? `No results for "${searchQuery}".` : 'No pending KYC verifications.'}</p>
-                            </div>
-                        ) : (
-                            <table className="dashboard-table">
-                                <thead>
-                                    <tr><th>User</th><th>Phone</th><th>Status</th><th style={{ textAlign: 'right' }}>Actions</th></tr>
-                                </thead>
-                                <tbody>
-                                    {filteredUsers.map(u => {
-                                        const id = (u.id || u._id)!;
-                                        return (
-                                            <tr key={id}>
-                                                <td>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(45deg, #0d9488, #5eead4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700 }}>{u.name.charAt(0)}</div>
-                                                        <div className="table-vehicle"><strong>{u.name}</strong><span>{u.email}</span></div>
-                                                    </div>
-                                                </td>
-                                                <td>{u.phone || <span style={{ color: '#ef4444', fontSize: '12px' }}>Not provided</span>}</td>
-                                                <td><span className="badge badge-warning">Pending</span></td>
-                                                <td style={{ textAlign: 'right' }}>
-                                                    <button className="btn btn-sm" style={{ background: '#1e293b', color: 'white', borderRadius: '8px', padding: '6px 16px', fontWeight: 700, fontSize: '12px', border: 'none' }} onClick={() => { setSelectedUser(u); setShowModal(true); }}>
-                                                        <Shield size={14} /> Review
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                ) : tab === 'vehicles' ? (
-                    <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
-                        {pendingVehicles.length === 0 ? (
-                            <div className="dashboard-empty" style={{ padding: '6rem 2rem' }}>
-                                <Car size={48} strokeWidth={1} />
-                                <h3>No Pending Vehicles</h3>
-                                <p>All vehicle listings have been reviewed.</p>
-                            </div>
-                        ) : (
-                            <table className="dashboard-table">
-                                <thead><tr><th>Vehicle</th><th>Owner</th><th>Price/day</th><th>Actions</th></tr></thead>
-                                <tbody>
-                                    {pendingVehicles.map(v => {
-                                        const owner = typeof v.owner === 'object' ? v.owner : null;
-                                        return (
-                                            <tr key={v._id}>
-                                                <td><div className="table-vehicle"><strong>{v.title}</strong><span>{v.make} {v.model} ({v.year})</span></div></td>
-                                                <td>{owner ? <div className="table-vehicle"><strong>{owner.name}</strong><span>{owner.email}</span></div> : 'Unknown'}</td>
-                                                <td>LKR {v.pricePerDay.toLocaleString()}</td>
-                                                <td className="table-actions">
-                                                    <button className="btn btn-sm btn-primary" onClick={() => handleApproveVehicle(v._id)} disabled={actionLoading === v._id}>
-                                                        <CheckCircle size={14} /> Approve
-                                                    </button>
-                                                    <button className="btn btn-sm btn-danger" onClick={() => handleRejectVehicle(v._id)} disabled={actionLoading === v._id}>
-                                                        <XCircle size={14} /> Reject
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                ) : tab === 'reviews' ? (
-                    <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
-                        {reviews.length === 0 ? (
-                            <div className="dashboard-empty" style={{ padding: '6rem 2rem' }}>
-                                <MessageSquare size={48} strokeWidth={1} />
-                                <h3>No Reviews Yet</h3>
-                                <p>No guest reviews have been submitted.</p>
-                            </div>
-                        ) : (
-                            <table className="dashboard-table">
-                                <thead>
-                                    <tr>
-                                        <th>Reviewer & Vehicle</th>
-                                        <th>Rating</th>
-                                        <th>Comment</th>
-                                        <th>Status</th>
-                                        <th style={{ textAlign: 'right' }}>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {reviews.map(r => {
-                                        const vehicle = typeof r.vehicle === 'object' ? r.vehicle : null;
-                                        return (
-                                            <tr key={r._id}>
-                                                <td>
-                                                    <div className="table-vehicle">
-                                                        <strong>{r.reviewer.name}</strong>
-                                                        <span>{vehicle ? (vehicle as Vehicle).title : 'Unknown Vehicle'}</span>
-                                                    </div>
-                                                </td>
-                                                <td><Rate disabled defaultValue={r.rating} style={{ fontSize: '14px' }} /></td>
-                                                <td style={{ maxWidth: '300px' }}>
-                                                    <p style={{ fontSize: '13px', margin: 0, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.comment}>
-                                                        {r.comment}
-                                                    </p>
-                                                </td>
-                                                <td>
-                                                    <span className={`badge badge-${r.status === 'visible' ? 'success' : 'danger'}`}>
-                                                        {r.status === 'visible' ? 'Visible' : 'Hidden'}
-                                                    </span>
-                                                </td>
-                                                <td style={{ textAlign: 'right' }}>
-                                                    <button 
-                                                        className={`btn btn-sm ${r.status === 'visible' ? 'btn-danger' : 'btn-primary'}`} 
-                                                        onClick={() => handleToggleReviewStatus(r._id, r.status)}
-                                                        disabled={actionLoading === r._id}
-                                                    >
-                                                        {r.status === 'visible' ? <><EyeOff size={14} /> Hide</> : <><Eye size={14} /> Show</>}
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                ) : (
-                    /* Suggestions Tab */
-                    <div style={{ display: 'grid', gap: '2rem' }}>
-                        <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
-                            <div style={{ padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                <h3 style={{ fontSize: '14px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Car size={16} /> New Makes suggestions ({pendingMakes.length})
-                                </h3>
-                            </div>
-                            {pendingMakes.length === 0 ? (
-                                <div className="dashboard-empty" style={{ padding: '3rem' }}>
-                                    <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>No new vehicle makes pending.</p>
-                                </div>
-                            ) : (
-                                <table className="dashboard-table">
-                                    <thead><tr><th>Make Name</th><th>Suggested By</th><th>Actions</th></tr></thead>
-                                    <tbody>
-                                        {pendingMakes.map((m: VehicleMake) => (
-                                            <tr key={m._id}>
-                                                <td style={{ fontWeight: 700 }}>{m.name}</td>
-                                                <td><span style={{ fontSize: '13px' }}>{(m.createdBy as any)?.name || 'Owner'}</span></td>
-                                                <td className="table-actions">
-                                                    <button className="btn btn-sm btn-primary" onClick={() => handleApproveMake(m._id)} disabled={actionLoading === m._id}><CheckCircle size={14} /> Approve</button>
-                                                    <button className="btn btn-sm btn-danger" onClick={() => handleDeleteMake(m._id)} disabled={actionLoading === m._id}><XCircle size={14} /> Reject</button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-
-                        <div className="card shadow-md" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
-                            <div style={{ padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                <h3 style={{ fontSize: '14px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Car size={16} /> New Models suggestions ({pendingModels.length})
-                                </h3>
-                            </div>
-                            {pendingModels.length === 0 ? (
-                                <div className="dashboard-empty" style={{ padding: '3rem' }}>
-                                    <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>No new vehicle models pending.</p>
-                                </div>
-                            ) : (
-                                <table className="dashboard-table">
-                                    <thead><tr><th>Model Name</th><th>Make</th><th>Suggested By</th><th>Actions</th></tr></thead>
-                                    <tbody>
-                                        {pendingModels.map((mo: VehicleModel) => (
-                                            <tr key={mo._id}>
-                                                <td style={{ fontWeight: 700 }}>{mo.name}</td>
-                                                <td><span className="badge">{(mo.make as any)?.name}</span></td>
-                                                <td><span style={{ fontSize: '13px' }}>{(mo.createdBy as any)?.name || 'Owner'}</span></td>
-                                                <td className="table-actions">
-                                                    <button className="btn btn-sm btn-primary" onClick={() => handleApproveModel(mo._id)} disabled={actionLoading === mo._id}><CheckCircle size={14} /> Approve</button>
-                                                    <button className="btn btn-sm btn-danger" onClick={() => handleDeleteModel(mo._id)} disabled={actionLoading === mo._id}><XCircle size={14} /> Reject</button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* KYC Review Modal */}
-            {showModal && selectedUser && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '1000px', width: '95%', padding: '0', borderRadius: '24px', overflow: 'hidden' }}>
-                        <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ padding: '10px', background: 'var(--primary-color)', color: 'white', borderRadius: '12px' }}><Shield size={24} /></div>
-                                <div>
-                                    <h2 style={{ fontSize: '1.25rem', marginBottom: '0' }}>KYC Verification Review</h2>
-                                    <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: 0 }}>Review documents carefully before approving.</p>
-                                </div>
-                            </div>
-                            <button className="modal-close" onClick={() => setShowModal(false)} style={{ position: 'static', padding: '8px' }}>&times;</button>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 350px) 1fr', height: 'calc(75vh - 140px)', maxHeight: '700px' }}>
-                            {/* Left Panel */}
-                            <div style={{ padding: '2rem', borderRight: '1px solid #e2e8f0', overflowY: 'auto' }}>
-                                <h3 style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-tertiary)', fontWeight: 800, marginBottom: '1.5rem' }}>User Information</h3>
-                                <div style={{ display: 'grid', gap: '1rem' }}>
-                                    <div><label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '4px' }}>Full Name</label><div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#1e293b' }}>{selectedUser.name}</div></div>
-                                    <div><label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '4px' }}>Email</label><div style={{ fontWeight: 600, color: '#475569' }}>{selectedUser.email}</div></div>
-                                    <div><label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '4px' }}>Phone</label><div style={{ fontWeight: 600, color: '#475569' }}>{selectedUser.phone || 'Not provided'}</div></div>
-                                    <div><label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '4px' }}>Address</label><div style={{ fontSize: '13px', lineHeight: '1.6', color: '#475569', background: '#f8fafc', padding: '12px', borderRadius: '12px' }}>{selectedUser.documents?.address || 'Not provided'}</div></div>
-                                    <div><label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '4px' }}>Role</label><span className="badge badge-primary">{selectedUser.role}</span></div>
-                                </div>
-
-                                {/* Checklist */}
-                                <div style={{ padding: '1.25rem', background: '#fff1f2', borderRadius: '16px', border: '1px solid #ffe4e6', marginTop: '1.5rem' }}>
-                                    <h4 style={{ fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', color: '#e11d48', marginBottom: '10px' }}>
-                                        <AlertTriangle size={14} /> Critical Checklist
-                                    </h4>
-                                    <div style={{ display: 'grid', gap: '8px' }}>
-                                        {["Cross-check ID serial numbers", "Verify selfie matches ID photo", "Check for digital editing", "Verify name matches documents"].map((item, idx) => (
-                                            <div key={idx} onClick={() => handleCheck(idx)} style={{ display: 'flex', gap: '8px', fontSize: '11px', color: checkedItems[idx] ? '#065f46' : '#9f1239', fontWeight: 600, cursor: 'pointer', background: checkedItems[idx] ? '#ecfdf5' : 'transparent', padding: '4px 8px', borderRadius: '6px', transition: 'all 0.2s' }}>
-                                                <div style={{ minWidth: '16px', height: '16px', border: `2px solid ${checkedItems[idx] ? '#10b981' : '#fda4af'}`, borderRadius: '4px', background: checkedItems[idx] ? '#10b981' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                                                    {checkedItems[idx] && <CheckCircle size={12} />}
-                                                </div>
-                                                {item}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Right Panel: Documents */}
-                            <div style={{ background: '#f8fafc', padding: '2rem', overflowY: 'auto' }}>
-                                <h3 style={{ fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', marginBottom: '1.5rem' }}>
-                                    <FileText size={18} color="var(--primary-color)" /> Submitted Documents
-                                </h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-                                    {[
-                                        { label: 'NIC Front', field: 'nicFront' },
-                                        { label: 'NIC Back', field: 'nicBack' },
-                                        { label: 'Driving License', field: 'license' },
-                                        { label: 'Selfie / Photo', field: 'selfie' },
-                                    ].map((doc, idx) => {
-                                        const imgUrl = selectedUser.documents?.[doc.field as keyof typeof selectedUser.documents];
-                                        return (
-                                            <div key={idx} style={{ background: 'white', padding: '16px', borderRadius: '20px', boxShadow: '0 4px 20px -5px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
-                                                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>{doc.label}</div>
-                                                <div style={{ width: '100%', height: '220px', background: '#f8fafc', borderRadius: '12px', overflow: 'hidden', cursor: imgUrl ? 'zoom-in' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed #e2e8f0' }} onClick={() => imgUrl && setFullScreenImage(imgUrl)}>
-                                                    {imgUrl ? (
-                                                        <img src={imgUrl} alt={doc.label} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                                    ) : (
-                                                        <div style={{ color: '#cbd5e1', textAlign: 'center' }}>
-                                                            <FileText size={36} strokeWidth={1} style={{ marginBottom: '8px' }} />
-                                                            <p style={{ fontSize: '12px', fontWeight: 600 }}>NOT UPLOADED</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div style={{ padding: '1.5rem 2rem', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="btn" onClick={() => handleRejectUser((selectedUser.id || selectedUser._id)!)} disabled={!!actionLoading} style={{ background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', padding: '0.75rem 1.75rem', borderRadius: '12px', fontWeight: 700 }}>
-                                <XCircle size={18} /> Reject
-                            </button>
-                            <button className="btn" disabled={!!actionLoading || !allChecked} onClick={() => handleApproveUser((selectedUser.id || selectedUser._id)!)} style={{ background: allChecked ? 'linear-gradient(135deg, #0d9488, #14b8a6)' : '#e2e8f0', color: allChecked ? 'white' : '#94a3b8', cursor: allChecked ? 'pointer' : 'not-allowed', padding: '0.75rem 2rem', borderRadius: '12px', fontWeight: 700, border: 'none' }}>
-                                <CheckCircle size={18} /> {allChecked ? 'Approve User' : 'Complete Checklist'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Fullscreen image */}
-            {fullScreenImage && (
-                <div className="modal-overlay" onClick={() => setFullScreenImage(null)} style={{ zIndex: 2000, background: 'rgba(0,0,0,0.95)', cursor: 'zoom-out' }}>
-                    <div style={{ position: 'relative', width: '90%', height: '90%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src={fullScreenImage} alt="Fullscreen" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }} />
-                        <button onClick={() => setFullScreenImage(null)} style={{ position: 'absolute', top: '-40px', right: '0', color: 'white', background: 'transparent', border: 'none', fontSize: '40px', cursor: 'pointer' }}>&times;</button>
-                    </div>
-                </div>
-            )}
-            {/* Rejection Reasons Modal */}
-            <Modal
-                title={`Reject ${rejectionModal.type}: ${rejectionModal.targetName}`}
-                open={rejectionModal.visible}
-                onCancel={() => setRejectionModal(prev => ({ ...prev, visible: false }))}
-                onOk={() => form.submit()}
-                confirmLoading={!!actionLoading}
-                okText="Confirm Rejection"
-                okButtonProps={{ danger: true }}
-            >
-                <Form form={form} layout="vertical" onFinish={submitRejection}>
-                    <Form.Item
-                        name="reason"
-                        label="Select Reason"
-                        rules={[{ required: true, message: 'Please select a reason' }]}
-                    >
-                        <Select placeholder="Select a reason for rejection">
-                            {rejectionModal.type === 'KYC' && [
-                                "Blurry or unclear document/photo",
-                                "Document mismatch or invalid details",
-                                "Expired or unsupported document",
-                                "Selfie does not match ID",
-                                "Incomplete submission",
-                                "Other"
-                            ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
-
-                            {rejectionModal.type === 'Vehicle' && [
-                                "Low quality photos",
-                                "Invalid vehicle specs or photos",
-                                "Suspicious ownership documentation",
-                                "Restricted or unsupported vehicle type",
-                                "Incomplete listing details",
-                                "Other"
-                            ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
-
-                            {rejectionModal.type === 'Review' && [
-                                "Spam or inappropriate content",
-                                "Inappropriate language",
-                                "Irrelevant content",
-                                "Duplicate review",
-                                "Other"
-                            ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
-                        </Select>
-                    </Form.Item>
-
-                    <Form.Item
-                        noStyle
-                        shouldUpdate={(prevValues, currentValues) => prevValues.reason !== currentValues.reason}
-                    >
-                        {({ getFieldValue }) => 
-                            getFieldValue('reason') === 'Other' || rejectionModal.type !== 'Review' ? (
-                                <Form.Item
-                                    name="comment"
-                                    label="Additional Comments (Optional)"
-                                    help="Provide specific details to help the user correct the issue."
-                                >
-                                    <Input.TextArea rows={4} placeholder="Detailed explanation for the user..." />
-                                </Form.Item>
-                            ) : null
-                        }
-                    </Form.Item>
-                </Form>
-            </Modal>
-        </div>
+      <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
+        <Shield size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
+        <h2>Sub-Admin Access Required</h2>
+        <p>You do not have permission to access this page.</p>
+        <Button onClick={() => navigate('/')}>Back to Home</Button>
+      </div>
     );
+  }
+
+  return (
+    <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
+      <Sider 
+        collapsible 
+        collapsed={collapsed} 
+        onCollapse={(value) => setCollapsed(value)}
+        theme="dark"
+        width={280}
+        style={{
+          overflow: 'auto',
+          height: '100vh',
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          zIndex: 10,
+          boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)',
+        }}
+      >
+        <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
+          {collapsed ? 'FX' : 'Flexify Staff'}
+        </div>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[tab]}
+          onClick={({ key }) => setTab(key as any)}
+          items={[
+            { key: 'users', icon: <Shield size={18} />, label: `KYC Verifications (${pendingUsers.length})` },
+            { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
+            { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
+            { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
+          ]}
+        />
+      </Sider>
+
+      <Layout style={{ marginLeft: collapsed ? 80 : 280, transition: 'all 0.2s', minHeight: '100vh' }}>
+        <Header style={{ 
+          padding: '0 24px', 
+          background: '#fff', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          boxShadow: '0 1px 4px rgba(0,21,41,.08)', 
+          zIndex: 1,
+          position: 'sticky',
+          top: 0
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <Title level={4} style={{ margin: 0, color: '#1e293b' }}>
+              {tab === 'users' && 'KYC Review Portal'}
+              {tab === 'vehicles' && 'Vehicle Approvals'}
+              {tab === 'reviews' && 'Review Moderation'}
+              {tab === 'moderation' && 'Platform Content Suggestions'}
+            </Title>
+          </div>
+          <Space size="large">
+            <Button type="text" onClick={() => navigate('/')} icon={<ArrowLeft size={16} />}>Back to Site</Button>
+            <Dropdown menu={{
+              items: [
+                {
+                  key: 'logout',
+                  label: 'Log Out',
+                  icon: <LogOut size={16} />,
+                  danger: true,
+                  onClick: handleLogout
+                }
+              ]
+            }} placement="bottomRight">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px' }}>
+                <Avatar style={{ backgroundColor: '#0d9488' }}>SA</Avatar>
+                <Text strong style={{ color: '#334155' }}>Staff Member</Text>
+              </div>
+            </Dropdown>
+          </Space>
+        </Header>
+
+        <Content style={{ margin: '24px 24px', padding: 32, background: '#fff', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '4rem' }}><Spin size="large" /></div>
+          ) : (
+            <>
+              {/* Quick Stats Header */}
+              {stats && tab === 'users' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                  <Card size="small" style={{ borderRadius: '12px', background: '#fff7ed', border: '1px solid #ffedd5' }} bordered={false}>
+                    <Statistic title="Action Required" value={pendingUsers.length + pendingVehicles.length} prefix={<AlertTriangle size={20} style={{ color: '#ea580c', marginRight: 8 }} />} />
+                  </Card>
+                  <Card size="small" style={{ borderRadius: '12px', background: '#f0fdf4', border: '1px solid #dcfce7' }} bordered={false}>
+                    <Statistic title="Approved Today" value={stats.approvedUsers} prefix={<CheckCircle size={20} style={{ color: '#16a34a', marginRight: 8 }} />} />
+                  </Card>
+                  <Card size="small" style={{ borderRadius: '12px', background: '#eff6ff', border: '1px solid #dbeafe' }} bordered={false}>
+                    <Statistic title="Total Vehicles" value={stats.totalVehicles} prefix={<Car size={20} style={{ color: '#2563eb', marginRight: 8 }} />} />
+                  </Card>
+                </div>
+              )}
+
+              {tab === 'users' && (
+                <div className="animate-fade-in">
+                  <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Title level={5} style={{ margin: 0 }}>Pending KYC Requests</Title>
+                    <Space>
+                      <Input 
+                        prefix={<Search size={16} />} 
+                        placeholder="Search name or email..." 
+                        style={{ width: 300, borderRadius: '8px' }} 
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                      />
+                      <Button type="primary" onClick={fetchData}>Refresh</Button>
+                    </Space>
+                  </div>
+                  
+                  <Table 
+                    dataSource={filteredUsers}
+                    rowKey={u => (u.id || u._id || Math.random()).toString()}
+                    pagination={{ pageSize: 12 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      { 
+                        title: 'User Profile', 
+                        render: (_, u) => (
+                          <Space size="middle">
+                            <Avatar style={{ background: 'linear-gradient(45deg, #0d9488, #2dd4bf)' }}>{u.name.charAt(0)}</Avatar>
+                            <div>
+                              <Text strong>{u.name}</Text><br/>
+                              <Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text>
+                            </div>
+                          </Space>
+                        )
+                      },
+                      { title: 'Phone Number', dataIndex: 'phone', render: p => p || <Text type="danger">Not provided</Text> },
+                      { title: 'Submission Date', dataIndex: 'updatedAt', render: d => d ? new Date(d).toLocaleDateString() : 'Recent' },
+                      { title: 'Status', render: () => <Tag color="warning">PENDING REVIEW</Tag> },
+                      { 
+                        title: 'Action', 
+                        render: (_, u) => (
+                          <Button 
+                            type="primary" 
+                            style={{ background: '#1e293b' }} 
+                            icon={<Shield size={14} />} 
+                            onClick={() => { setSelectedUser(u); setShowModal(true); }}
+                          >
+                            Review KYC
+                          </Button>
+                        )
+                      }
+                    ]}
+                  />
+                </div>
+              )}
+
+              {tab === 'vehicles' && (
+                <div className="animate-fade-in">
+                  <Title level={5} style={{ marginBottom: '1.5rem' }}>Vehicle Listing Approvals</Title>
+                  <Table 
+                    dataSource={pendingVehicles}
+                    rowKey="_id"
+                    pagination={{ pageSize: 12 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      { 
+                        title: 'Vehicle', 
+                        render: (_, v) => (
+                          <div>
+                            <Text strong>{v.title}</Text><br/>
+                            <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
+                          </div>
+                        )
+                      },
+                      { 
+                        title: 'Owner', 
+                        render: (_, v) => {
+                          const owner = typeof v.owner === 'object' ? v.owner : null;
+                          return owner ? <div><Text strong>{owner.name}</Text><br/><Text type="secondary" style={{ fontSize: '12px' }}>{owner.email}</Text></div> : 'Unknown';
+                        }
+                      },
+                      { title: 'Price/Day', dataIndex: 'pricePerDay', render: p => `LKR ${p.toLocaleString()}` },
+                      { 
+                        title: 'Actions', 
+                        render: (_, v) => (
+                          <Space>
+                            <Button type="primary" icon={<CheckCircle size={14} />} onClick={() => handleApproveVehicle(v._id)} loading={actionLoading === v._id}>Approve</Button>
+                            <Button danger icon={<XCircle size={14} />} onClick={() => handleRejectVehicle(v._id)} loading={actionLoading === v._id}>Reject</Button>
+                          </Space>
+                        )
+                      }
+                    ]}
+                  />
+                </div>
+              )}
+
+              {tab === 'reviews' && (
+                <div className="animate-fade-in">
+                  <Title level={5} style={{ marginBottom: '1.5rem' }}>Review Moderation</Title>
+                  <Table 
+                    dataSource={reviews}
+                    rowKey="_id"
+                    pagination={{ pageSize: 12 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      { 
+                        title: 'Reviewer', 
+                        render: (_, r) => (
+                          <div>
+                            <Text strong>{r.reviewer.name}</Text><br/>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>Rating: {r.rating}/5</Text>
+                          </div>
+                        )
+                      },
+                      { title: 'Rating', dataIndex: 'rating', render: r => <Rate disabled defaultValue={r} style={{ fontSize: 14 }} /> },
+                      { title: 'Comment', dataIndex: 'comment', width: '35%', render: c => <Text type="secondary" style={{ fontSize: '13px' }}>{c}</Text> },
+                      { title: 'Status', render: (_, r) => <Tag color={r.status === 'visible' ? 'success' : 'red'}>{r.status.toUpperCase()}</Tag> },
+                      { 
+                        title: 'Actions', 
+                        render: (_, r) => (
+                          <Button 
+                            danger={r.status === 'visible'} 
+                            type={r.status === 'visible' ? 'primary' : 'default'}
+                            onClick={() => handleToggleReviewStatus(r._id, r.status)}
+                          >
+                            {r.status === 'visible' ? 'Hide Review' : 'Restore'}
+                          </Button>
+                        )
+                      }
+                    ]}
+                  />
+                </div>
+              )}
+
+              {tab === 'moderation' && (
+                <div className="animate-fade-in">
+                  <Title level={5} style={{ marginBottom: '1.5rem' }}>Vehicle Content Suggestions</Title>
+                  <Space direction="vertical" style={{ width: '100%' }} size="large">
+                    <Card title="New Brand Suggestions" size="small">
+                      <Table 
+                        dataSource={pendingMakes}
+                        rowKey="_id"
+                        pagination={false}
+                        size="small"
+                        columns={[
+                          { title: 'Brand', dataIndex: 'name', render: n => <Text strong>{n}</Text> },
+                          { title: 'Suggested By', dataIndex: 'createdBy', render: (u: any) => u?.name || 'Owner' },
+                          { 
+                            title: 'Action', 
+                            render: (_, m) => (
+                              <Space>
+                                <Button size="small" type="primary" onClick={() => handleApproveMake(m._id)}>Approve</Button>
+                                <Button size="small" danger onClick={() => handleDeleteMake(m._id)}>Delete</Button>
+                              </Space>
+                            )
+                          }
+                        ]}
+                      />
+                    </Card>
+
+                    <Card title="New Model Suggestions" size="small">
+                      <Table 
+                        dataSource={pendingModels}
+                        rowKey="_id"
+                        pagination={false}
+                        size="small"
+                        columns={[
+                          { title: 'Model', dataIndex: 'name', render: n => <Text strong>{n}</Text> },
+                          { title: 'Brand', dataIndex: 'make', render: (m: any) => <Tag color="blue">{m?.name}</Tag> },
+                          { title: 'Suggested By', dataIndex: 'createdBy', render: (u: any) => u?.name || 'Owner' },
+                          { 
+                            title: 'Action', 
+                            render: (_, mo) => (
+                              <Space>
+                                <Button size="small" type="primary" onClick={() => handleApproveModel(mo._id)}>Approve</Button>
+                                <Button size="small" danger onClick={() => handleDeleteModel(mo._id)}>Delete</Button>
+                              </Space>
+                            )
+                          }
+                        ]}
+                      />
+                    </Card>
+                  </Space>
+                </div>
+              )}
+            </>
+          )}
+        </Content>
+      </Layout>
+
+      {/* KYC Detailed Review Modal */}
+      <Modal
+        open={showModal}
+        onCancel={() => setShowModal(false)}
+        width={1100}
+        footer={null}
+        title={null}
+        style={{ top: 40 }}
+        bodyStyle={{ padding: 0 }}
+      >
+        {selectedUser && (
+          <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr' }}>
+            {/* Sidebar with user info and checklist */}
+            <div style={{ padding: '32px', background: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>
+              <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                <div>
+                  <Avatar size={64} style={{ background: '#0d9488', marginBottom: 16 }}>{selectedUser.name.charAt(0)}</Avatar>
+                  <Title level={4} style={{ margin: 0 }}>{selectedUser.name}</Title>
+                  <Text type="secondary">{selectedUser.email}</Text>
+                </div>
+
+                <div>
+                  <Title level={5} style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b' }}>Contact Info</Title>
+                  <Text strong>{selectedUser.phone || 'Phone not provided'}</Text><br/>
+                  <Text type="secondary" style={{ fontSize: '13px' }}>{selectedUser.documents?.address || 'Address not listed'}</Text>
+                </div>
+
+                <div style={{ padding: '20px', background: '#fff1f2', borderRadius: '12px', border: '1px solid #ffe4e6' }}>
+                  <Text type="danger" strong style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <AlertTriangle size={14} /> Verification Checklist
+                  </Text>
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    {["Cross-check ID numbers", "Photo matches ID", "Check for edits", "Verify name matches"].map((item, idx) => (
+                      <div 
+                        key={idx} 
+                        onClick={() => handleCheck(idx)}
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: 10, 
+                          cursor: 'pointer',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          background: checkedItems[idx] ? '#ecfdf5' : 'transparent',
+                          color: checkedItems[idx] ? '#059669' : '#1f2937',
+                          fontSize: '13px'
+                        }}
+                      >
+                        <div style={{ 
+                          width: 18, 
+                          height: 18, 
+                          border: `2px solid ${checkedItems[idx] ? '#10b981' : '#fda4af'}`,
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: checkedItems[idx] ? '#10b981' : 'white'
+                        }}>
+                          {checkedItems[idx] && <CheckCircle size={12} color="white" />}
+                        </div>
+                        {item}
+                      </div>
+                    ))}
+                  </Space>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: 12 }}>
+                  <Button 
+                    danger 
+                    ghost 
+                    onClick={() => handleRejectUser((selectedUser.id || selectedUser._id)!)}
+                  >
+                    Reject
+                  </Button>
+                  <Button 
+                    type="primary" 
+                    disabled={!allChecked} 
+                    onClick={() => handleApproveUser((selectedUser.id || selectedUser._id)!)}
+                    style={{ background: allChecked ? '#10b981' : '#e2e8f0', borderColor: allChecked ? '#10b981' : '#e2e8f0' }}
+                  >
+                    Approve
+                  </Button>
+                </div>
+              </Space>
+            </div>
+
+            {/* Document display area */}
+            <div style={{ padding: '32px', background: '#ffffff', overflowY: 'auto', maxHeight: '85vh' }}>
+              <Title level={5} style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FileText size={18} /> Documentation Verification
+              </Title>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {[
+                  { label: 'NIC Front View', field: 'nicFront' },
+                  { label: 'NIC Back View', field: 'nicBack' },
+                  { label: 'Driver License', field: 'license' },
+                  { label: 'Live Selfie', field: 'selfie' },
+                ].map((doc, idx) => {
+                  const url = selectedUser.documents?.[doc.field as keyof typeof selectedUser.documents];
+                  return (
+                    <Card key={idx} size="small" title={doc.label} style={{ borderRadius: '12px' }}>
+                      {url ? (
+                        <img 
+                          src={url} 
+                          alt={doc.label} 
+                          style={{ width: '100%', height: '220px', objectFit: 'contain', cursor: 'zoom-in' }} 
+                          onClick={() => setFullScreenImage(url)}
+                        />
+                      ) : (
+                        <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#cbd5e1' }}>
+                          <Text disabled>Not Uploaded</Text>
+                        </div>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Full Resolution Image Viewer */}
+      <Modal
+        open={!!fullScreenImage}
+        onCancel={() => setFullScreenImage(null)}
+        footer={null}
+        width="auto"
+        centered
+        bodyStyle={{ padding: 4 }}
+      >
+        <img src={fullScreenImage || ''} style={{ maxWidth: '100vw', maxHeight: '90vh', objectFit: 'contain' }} alt="Fullscreen Preview" />
+      </Modal>
+
+      {/* Rejection Reasons Modal (Universal) */}
+      <Modal
+        title={`Reject ${rejectionModal.type}: ${rejectionModal.targetName}`}
+        open={rejectionModal.visible}
+        onCancel={() => setRejectionModal(prev => ({ ...prev, visible: false }))}
+        onOk={() => form.submit()}
+        confirmLoading={!!actionLoading}
+        okText="Confirm Rejection"
+        okButtonProps={{ danger: true }}
+      >
+        <Form form={form} layout="vertical" onFinish={submitRejection}>
+          <Form.Item
+            name="reason"
+            label="Select Primary Reason"
+            rules={[{ required: true, message: 'Please select a reason' }]}
+          >
+            <Select placeholder="Why is this being rejected?">
+              {rejectionModal.type === 'KYC' && [
+                "Blurry or unclear document photos",
+                "Document type not supported",
+                "Expired identification",
+                "Selfie does not match ID document",
+                "Information mismatch",
+                "Other"
+              ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
+
+              {rejectionModal.type === 'Vehicle' && [
+                "Listing photos are too low quality",
+                "Invalid document proof for ownership",
+                "Year/Make/Model mismatch in description",
+                "Restricted vehicle category",
+                "Other"
+              ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
+
+              {rejectionModal.type === 'Review' && [
+                "Contains offensive language",
+                "Spam or irrelevant content",
+                "Revealing PII / Contact info",
+                "Other"
+              ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="comment"
+            label="Internal / User Notes"
+            help="This will be sent to the user to help them fix the issue."
+          >
+            <Input.TextArea rows={4} placeholder="Detailed explanation..." />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Layout>
+  );
 }
