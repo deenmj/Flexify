@@ -22,6 +22,7 @@ import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
 import Help from './pages/Help';
 import VerifyUser from './pages/VerifyUser';
+import SubscriptionManagement from './pages/SubscriptionManagement';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -62,6 +63,7 @@ export default function App() {
           <Route path="/verify" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><VerifyUser /></ProtectedRoute></AppLayout>} />
           <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><ListVehicle /></ProtectedRoute></AppLayout>} />
           <Route path="/dashboard" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Dashboard /></ProtectedRoute></AppLayout>} />
+          <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
 
           {/* Admin dashboards */}
           <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />

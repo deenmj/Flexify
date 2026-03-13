@@ -10,6 +10,13 @@ const documentsSchema = new mongoose.Schema({
   address: { type: String, default: "" },
 }, { _id: false });
 
+const subscriptionSchema = new mongoose.Schema({
+  tier: { type: String, enum: ['BASIC', 'PRO'], default: 'BASIC' },
+  status: { type: String, enum: ['trial', 'active', 'expired'], default: 'trial' },
+  startDate: { type: Date, default: Date.now },
+  endDate: { type: Date, default: null },
+}, { _id: false });
+
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
@@ -70,6 +77,12 @@ const userSchema = new mongoose.Schema(
 
     // KYC documents (file paths)
     documents: { type: documentsSchema, default: () => ({}) },
+
+    // Subscription status (for owners)
+    subscription: { 
+      type: subscriptionSchema, 
+      default: () => ({ tier: 'FREE', status: 'ACTIVE', startDate: Date.now(), endDate: null }) 
+    },
 
     // Email verification
     emailVerificationToken: { type: String },

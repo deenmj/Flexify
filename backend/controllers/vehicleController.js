@@ -20,6 +20,22 @@ export const createVehicle = async (req, res) => {
       seats, description, lat, lng, address, serviceType,
     } = req.body;
 
+    // Subscription Check
+    if (owner.role === "owner") {
+      const sub = owner.subscription || { tier: 'BASIC', status: 'trial' };
+      
+      if (sub.status === 'expired') {
+        return res.status(403).json({ message: "Your subscription has expired. Please upgrade/renew to list new vehicles." });
+      }
+
+      if (sub.tier === 'BASIC') {
+        const vehicleCount = await Vehicle.countDocuments({ owner: owner._id });
+        if (vehicleCount >= 2) {
+          return res.status(403).json({ message: "BASIC tier limit reached (2 vehicles). Please upgrade to PRO for unlimited listings." });
+        }
+      }
+    }
+
     if (!title || !make || !model || !pricePerDay) {
       return res.status(400).json({ message: "Missing required fields" });
     }
@@ -233,9 +249,56 @@ export const listVehicles = async (req, res) => {
     else if (sort === "price_high") sortCondition = { pricePerDay: -1 };
     else if (sort === "popular" || sort === "rating") sortCondition = { timesRented: -1 };
 
-    const vehicles = await Vehicle.find(filter)
-      .sort(sortCondition)
-      .populate("owner", "name email profilePic ownerType");
+    // Use aggregation to filter by owner subscription status
+    const vehicles = await Vehicle.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: "users",
+          localField: "owner",
+          foreignField: "_id",
+          as: "ownerInfo"
+        }
+      },
+      { $unwind: "$ownerInfo" },
+      {
+        $match: {
+          "ownerInfo.subscription.status": { $ne: "expired" }
+        }
+      },
+      { $sort: sortCondition },
+      {
+        $project: {
+          _id: 1,
+          owner: {
+            _id: "$ownerInfo._id",
+            name: "$ownerInfo.name",
+            email: "$ownerInfo.email",
+            profilePic: "$ownerInfo.profilePic",
+            ownerType: "$ownerInfo.ownerType",
+            subscription: "$ownerInfo.subscription"
+          },
+          title: 1,
+          make: 1,
+          model: 1,
+          year: 1,
+          photos: 1,
+          location: 1,
+          pricePerDay: 1,
+          transmission: 1,
+          fuelType: 1,
+          seats: 1,
+          description: 1,
+          serviceType: 1,
+          status: 1,
+          isActive: 1,
+          timesRented: 1,
+          averageRating: 1,
+          reviewCount: 1,
+          createdAt: 1
+        }
+      }
+    ]);
 
     res.json(vehicles);
   } catch (err) {

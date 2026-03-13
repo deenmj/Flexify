@@ -25,6 +25,12 @@ export interface User {
   provider?: string;
   status?: string;
   createdAt?: string;
+  subscription?: {
+    tier: 'BASIC' | 'PRO';
+    status: 'trial' | 'active' | 'expired';
+    startDate: string;
+    endDate: string | null;
+  };
 }
 
 export interface Vehicle {
@@ -460,5 +466,18 @@ export const userApi = {
   becomeOwner: () =>
     apiFetch<{ message: string; user: User }>('/users/become-owner', {
       method: 'POST',
+    }),
+};
+
+// =================== OWNER / SUBSCRIPTIONS ===================
+export const ownerApi = {
+  getSubscription: () =>
+    apiFetch<{ subscription: User['subscription'] }>('/auth/me').then(res => res.subscription),
+
+  // Placeholder for future implementation
+  initiateSubscription: (tier: string) =>
+    apiFetch<{ message: string }>('/users/subscription/initiate', {
+      method: 'POST',
+      body: JSON.stringify({ tier }),
     }),
 };

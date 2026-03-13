@@ -135,9 +135,21 @@ router.post("/become-owner", protect, async (req, res) => {
 
     user.role = "owner";
     user.ownerType = "UNVERIFIED";
+    
+    // Initialize 3-month trial
+    const trialEndDate = new Date();
+    trialEndDate.setMonth(trialEndDate.getMonth() + 3);
+    
+    user.subscription = {
+      tier: 'BASIC',
+      status: 'trial',
+      startDate: new Date(),
+      endDate: trialEndDate
+    };
+
     await user.save();
 
-    res.json({ message: "You are now registered as an owner! Submit KYC to get verified.", user });
+    res.json({ message: "You are now registered as an owner! 3-month trial started. Submit KYC to get verified.", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

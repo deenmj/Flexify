@@ -8,6 +8,7 @@ import {
   getAllVehicles,
   getAllBookings,
   getAuditLogs,
+  updateUserSubscription,
 } from "../controllers/adminController.js";
 import { protect, requireSuperAdmin } from "../middleware/authMiddleware.js";
 
@@ -16,6 +17,7 @@ const router = express.Router();
 router.get("/stats", protect, requireSuperAdmin, getAdminStats);
 router.get("/users", protect, requireSuperAdmin, getAllUsers);
 router.patch("/users/:id/role", protect, requireSuperAdmin, updateUserRole);
+router.patch("/users/:id/subscription", protect, requireSuperAdmin, updateUserSubscription);
 router.delete("/users/:id", protect, requireSuperAdmin, deleteUser);
 router.get("/vehicles", protect, requireSuperAdmin, getAllVehicles);
 router.get("/bookings", protect, requireSuperAdmin, getAllBookings);

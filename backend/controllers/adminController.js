@@ -284,3 +284,42 @@ export const getAuditLogs = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+/**
+ * Update user subscription (superadmin manual update)
+ */
+export const updateUserSubscription = async (req, res) => {
+  try {
+    const { tier, status, endDate } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const oldSub = { ...user.subscription };
+    
+    if (tier) user.subscription.tier = tier;
+    if (status) user.subscription.status = status;
+    if (endDate !== undefined) user.subscription.endDate = endDate;
+    
+    // Auto-update status to active if an end date in the future is set manually
+    if (endDate && new Date(endDate) > new Date() && user.subscription.status === 'expired') {
+      user.subscription.status = 'active';
+    }
+    
+    await user.save();
+
+    // AUDIT LOG
+    logAdminAction(req, "subscription_update", user._id, {
+      oldSubscription: oldSub,
+      newSubscription: {
+        tier: user.subscription.tier,
+        status: user.subscription.status,
+        endDate: user.subscription.endDate
+      }
+    });
+
+    res.json({ message: "User subscription updated", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+

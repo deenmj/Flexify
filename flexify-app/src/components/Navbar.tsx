@@ -159,6 +159,11 @@ export default function Navbar() {
                       <Link to="/list-vehicle" className="dropdown-item" onClick={() => setProfileOpen(false)}>
                         <Car size={16} /> List Vehicle
                       </Link>
+                      {user.role === 'owner' && (
+                        <Link to="/subscription" className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                          <Shield size={16} /> My Subscription
+                        </Link>
+                      )}
                     </>
                   )}
                   {isAdminRole && (
