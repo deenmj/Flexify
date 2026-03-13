@@ -24,7 +24,7 @@ export const getAdminStats = async (req, res) => {
     // 2. Aggregate Bookings (Filtered by district via join)
     const bookingAggregation = [
       { $match: timeMatch },
-      { 
+      {
         $lookup: {
           from: "vehicles",
           localField: "vehicle",
@@ -49,12 +49,12 @@ export const getAdminStats = async (req, res) => {
           { $group: { _id: null, total: { $sum: "$totalAmount" } } }
         ],
         successRate: [
-          { 
-            $group: { 
-              _id: null, 
+          {
+            $group: {
+              _id: null,
               confirmed: { $sum: { $cond: [{ $eq: ["$status", "CONFIRMED"] }, 1, 0] } },
               total: { $sum: { $cond: [{ $ne: ["$status", "CANCELLED"] }, 1, 0] } } // Ignore cancelled for success rate
-            } 
+            }
           }
         ],
         byDistrict: [
@@ -97,7 +97,7 @@ export const getAdminStats = async (req, res) => {
     const confirmedCount = bookings.counts.find(c => c._id === "CONFIRMED")?.count || 0;
     const pendingCount = bookings.counts.find(c => c._id === "PENDING")?.count || 0;
     const totalBookingsCount = bookings.counts.reduce((acc, curr) => acc + curr.count, 0);
-    
+
     const successData = bookings.successRate[0] || { confirmed: 0, total: 0 };
     const successRate = successData.total > 0 ? ((successData.confirmed / successData.total) * 100).toFixed(1) : 0;
 

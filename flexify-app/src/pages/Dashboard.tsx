@@ -21,7 +21,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews'>(user?.role === 'user' ? 'bookings' : 'vehicles');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  
+
   // Calendar tab state (owner only)
   const [calendarVehicleId, setCalendarVehicleId] = useState<string>('');
   const [calendarRanges, setCalendarRanges] = useState<BookedRange[]>([]);
@@ -63,22 +63,22 @@ export default function Dashboard() {
   useEffect(() => {
     if (!calendarVehicleId) return;
     setCalendarLoading(true);
-    
+
     Promise.all([
       vehicleApi.getAvailability(calendarVehicleId),
       blackoutApi.getForVehicle(calendarVehicleId)
     ])
-    .then(([availData, blackoutData]) => {
-      setCalendarRanges(availData.bookedRanges);
-      setBlackoutRanges(availData.blackoutRanges);
-      setBlackouts(blackoutData);
-    })
-    .catch(() => {
-      setCalendarRanges([]);
-      setBlackoutRanges([]);
-      setBlackouts([]);
-    })
-    .finally(() => setCalendarLoading(false));
+      .then(([availData, blackoutData]) => {
+        setCalendarRanges(availData.bookedRanges);
+        setBlackoutRanges(availData.blackoutRanges);
+        setBlackouts(blackoutData);
+      })
+      .catch(() => {
+        setCalendarRanges([]);
+        setBlackoutRanges([]);
+        setBlackouts([]);
+      })
+      .finally(() => setCalendarLoading(false));
   }, [calendarVehicleId]);
 
   const handleAddBlackout = async (values: any) => {
@@ -189,10 +189,10 @@ export default function Dashboard() {
     try {
       await reviewApi.create(selectedBookingId, values.rating, values.comment);
       message.success('Review submitted successfully!');
-      
+
       // Update local state to hide review button
       setBookings((prev: any[]) => prev.map(b => b._id === selectedBookingId ? { ...b, isReviewed: true } : b));
-      
+
       setShowReviewModal(false);
       reviewForm.resetFields();
     } catch (err: any) {
@@ -280,8 +280,8 @@ export default function Dashboard() {
     return <span className={`badge ${s.cls}`}>{status}</span>;
   };
 
-  const filteredVehicles = selectedCategory === 'All' 
-    ? vehicles 
+  const filteredVehicles = selectedCategory === 'All'
+    ? vehicles
     : vehicles.filter(v => v.serviceType && v.serviceType.includes(selectedCategory));
 
   return (
@@ -382,8 +382,8 @@ export default function Dashboard() {
               <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>My Vehicles</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Category:</label>
-                <select 
-                  className="input-field" 
+                <select
+                  className="input-field"
                   style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.875rem', height: 'auto' }}
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
@@ -397,7 +397,7 @@ export default function Dashboard() {
                 </select>
               </div>
             </div>
-            
+
             {filteredVehicles.length === 0 ? (
               <div className="dashboard-empty" style={{ paddingTop: '2rem' }}>
                 <Car size={40} strokeWidth={1} />
@@ -535,10 +535,10 @@ export default function Dashboard() {
                 Blackout / Unavailable
               </span>
               <div style={{ marginLeft: 'auto' }}>
-                <Button 
-                  type="primary" 
-                  ghost 
-                  icon={<CalendarOff size={16} />} 
+                <Button
+                  type="primary"
+                  ghost
+                  icon={<CalendarOff size={16} />}
                   onClick={() => setShowBlackoutModal(true)}
                   disabled={!calendarVehicleId || calendarLoading}
                 >
@@ -558,7 +558,7 @@ export default function Dashboard() {
             ) : (
               <div style={{ padding: '0 1rem 1.5rem' }}>
                 <Calendar fullscreen={false} cellRender={(date) => calendarCellRender(date as Dayjs)} />
-                
+
                 {blackouts.length > 0 && (
                   <div style={{ marginTop: '2rem' }}>
                     <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Active Blackout Periods</h4>
@@ -571,10 +571,10 @@ export default function Dashboard() {
                             </div>
                             {b.reason && <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Reason: {b.reason}</div>}
                           </div>
-                          <Button 
-                            danger 
-                            type="text" 
-                            icon={<Trash2 size={16} />} 
+                          <Button
+                            danger
+                            type="text"
+                            icon={<Trash2 size={16} />}
                             onClick={() => handleDeleteBlackout(b._id, b.startDate, b.endDate)}
                           />
                         </div>
@@ -593,19 +593,19 @@ export default function Dashboard() {
               footer={null}
               destroyOnClose
             >
-              <Form 
-                form={blackoutForm} 
-                layout="vertical" 
+              <Form
+                form={blackoutForm}
+                layout="vertical"
                 onFinish={handleAddBlackout}
                 style={{ marginTop: '1.5rem' }}
               >
-                <Form.Item 
-                  name="dates" 
-                  label="Select Dates to Block" 
+                <Form.Item
+                  name="dates"
+                  label="Select Dates to Block"
                   rules={[{ required: true, message: 'Please select dates' }]}
                 >
-                  <RangePicker 
-                    style={{ width: '100%' }} 
+                  <RangePicker
+                    style={{ width: '100%' }}
                     disabledDate={(current) => {
                       if (current && current < dayjs().startOf('day')) return true;
                       // Disable dates that overlap with confirmed bookings so we don't double book a blackout
@@ -684,9 +684,9 @@ export default function Dashboard() {
                       </td>
                       <td>
                         {isVerifiedOwner && r.status === 'visible' && (
-                          <Button 
-                            danger 
-                            size="small" 
+                          <Button
+                            danger
+                            size="small"
                             type="text"
                             onClick={() => {
                               Modal.confirm({
@@ -700,8 +700,8 @@ export default function Dashboard() {
                           </Button>
                         )}
                         {isVerifiedOwner && r.status === 'hidden' && r.hiddenBy === (user._id || user.id) && (
-                          <Button 
-                            type="link" 
+                          <Button
+                            type="link"
                             size="small"
                             onClick={() => handleToggleReviewVisibility(r._id)}
                           >
