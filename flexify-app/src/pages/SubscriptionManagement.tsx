@@ -4,7 +4,8 @@ import { useSocket } from '../SocketContext';
 import { Check, Shield, Zap, AlertCircle, Clock, Info, CreditCard, Landmark, ArrowLeft, Loader2 } from 'lucide-react';
 import { ownerApi } from '../api';
 import './SubscriptionManagement.css';
-import { notification } from 'antd';
+import { notification, message, Button, Tooltip } from 'antd';
+import { CopyOutlined } from '@ant-design/icons';
 
 const PLANS = [
   {
@@ -147,6 +148,49 @@ const SubscriptionManagement: React.FC = () => {
 
   const daysLeft = getTimeRemaining();
 
+  const handleCopy = (text: string, label: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          message.success(`${label} copied!`);
+        })
+        .catch(() => {
+          fallbackCopyTextToClipboard(text, label);
+        });
+    } else {
+      fallbackCopyTextToClipboard(text, label);
+    }
+  };
+
+  const fallbackCopyTextToClipboard = (text: string, label: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    // Ensure textArea is not visible
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        message.success(`${label} copied!`);
+      } else {
+        message.error(`Failed to copy ${label}`);
+      }
+    } catch (err) {
+      console.error('Fallback: Oops, unable to copy', err);
+      message.error(`Failed to copy ${label}`);
+    }
+    document.body.removeChild(textArea);
+  };
+
+  const copyAllDetails = () => {
+    const details = `Bank: Commercial Bank\nAccount Name: Flexify Pvt Ltd\nAccount Number: 8010045622\nReference: ${user?.email}`;
+    handleCopy(details, 'All bank details');
+  };
+
   return (
     <div className="subscription-container">
       <div className="subscription-header">
@@ -287,8 +331,34 @@ const SubscriptionManagement: React.FC = () => {
                 <div className="bank-details">
                   <div className="detail-row"><span>Bank:</span> <strong>Commercial Bank</strong></div>
                   <div className="detail-row"><span>Acc Name:</span> <strong>Flexify Pvt Ltd</strong></div>
-                  <div className="detail-row"><span>Acc Number:</span> <strong>8010045622</strong></div>
+                  <div className="detail-row">
+                    <span>Acc Number:</span> 
+                    <div className="value-with-copy">
+                      <strong>8010045622</strong>
+                      <Tooltip title="Copy account number">
+                        <Button 
+                          type="text" 
+                          size="small" 
+                          icon={<CopyOutlined />} 
+                          className="copy-btn"
+                          onClick={() => handleCopy('8010045622', 'Account number')}
+                        />
+                      </Tooltip>
+                    </div>
+                  </div>
                   <div className="detail-row"><span>Reference:</span> <strong>{user?.email}</strong></div>
+                  
+                  <div className="copy-all-container">
+                    <Button 
+                      type="link" 
+                      size="small" 
+                      icon={<CopyOutlined />} 
+                      onClick={copyAllDetails}
+                      className="copy-all-btn"
+                    >
+                      Copy All Details
+                    </Button>
+                  </div>
                 </div>
                 <button 
                   className="confirm-manual-btn" 
