@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Star, Zap, Users, Globe, DollarSign, Compass, Home } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -57,7 +57,7 @@ export default function Navbar() {
     <>
       <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
         <div className="navbar-inner container">
-          <Link to={isAdminRole ? getDashboardLink()! : '/'} className="navbar-logo">
+          <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo">
             <div className="logo-icon">
               <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" opacity="0.5" />
@@ -70,27 +70,48 @@ export default function Navbar() {
           {/* Desktop Nav — hide for subadmin (they only see their portal) */}
           {!isAdminRole && (
             <div className="navbar-links">
+              <Link to="/home" className="nav-link nav-link-highlight">
+                <Home size={18} /> Home
+              </Link>
+              <Link to="/explore" className="nav-link">
+                <Compass size={18} /> Explore
+              </Link>
               <NavDropdown
-                label="Vehicle Collection"
+                label="Fleet & Brands"
                 items={[
-                  { label: 'Luxury Sedans', href: '/explore?type=luxury' },
-                  { label: 'Compact Cars', href: '/explore?type=compact' },
-                  { label: 'SUVs & Family', href: '/explore?type=suv' },
-                  { label: 'Vans & Minivans', href: '/explore?type=van' },
-                  { label: 'Electric & Hybrid', href: '/explore?type=electric' },
+                  { label: 'Luxury Cars', href: '/explore?type=luxury', icon: Star, desc: 'Premium & luxury sedans' },
+                  { label: 'Daily Compact', href: '/explore?type=compact', icon: Car, desc: 'Budget friendly city cars' },
+                  { label: 'Family SUVs', href: '/explore?type=suv', icon: Users, desc: 'Spacious 7-seater vehicles' },
+                  { label: 'Vans & Buses', href: '/explore?type=van', icon: Globe, desc: 'Large group transportation' },
+                  { label: 'Electric / Hybrid', href: '/explore?type=electric', icon: Zap, desc: 'Eco-friendly modern rides' },
                 ]}
               />
               <NavDropdown
-                label="Services"
+                label="Booking Types"
                 items={[
-                  { label: 'Self Drive Rental', href: '/explore?service=self-drive' },
-                  { label: 'Tours / Chauffeur', href: '/explore?service=chauffeur' },
-                  { label: 'Airport Transfers', href: '/explore?service=transfer' },
-                  { label: 'Weddings & Events', href: '/explore?service=events' },
+                  { label: 'Self Drive', href: '/explore?service=self-drive', icon: User, desc: 'Drive yourself anywhere' },
+                  { label: 'With Chauffeur', href: '/explore?service=chauffeur', icon: Shield, desc: 'Professional drivers' },
+                  { label: 'Airport Transfer', href: '/explore?service=transfer', icon: Car, desc: 'Pickup & drop services' },
+                  { label: 'Special Events', href: '/explore?service=events', icon: Star, desc: 'Weddings & VIP entry' },
                 ]}
               />
-              <Link to="/list-vehicle" className="nav-link">List your Vehicle</Link>
-              <Link to="/about" className="nav-link">About</Link>
+              <NavDropdown
+                label="Host"
+                items={[
+                  { label: 'List your Vehicle', href: '/list-vehicle', icon: Car, desc: 'Start earning today' },
+                  { label: 'Pricing & Tiers', href: '/subscription', icon: DollarSign, desc: 'Subscription plans' },
+                  { label: 'Listing Guide', href: '/help', icon: HelpCircle, desc: 'How to get started' },
+                ]}
+              />
+              <NavDropdown
+                label="Company"
+                items={[
+                  { label: 'About Flexify', href: '/about', icon: Info, desc: 'Our mission and vision' },
+                  { label: 'Help & Support', href: '/help', icon: HelpCircle, desc: 'Need any assistance?' },
+                  { label: 'Contact Us', href: '/contact', icon: Phone, desc: 'Get in touch with us' },
+                  { label: 'Trust & Safety', href: '/faq', icon: Shield, desc: 'How we keep you safe' },
+                ]}
+              />
             </div>
           )}
 
@@ -261,18 +282,24 @@ export default function Navbar() {
   );
 }
 
-function NavDropdown({ label, items }: { label: string; items: { label: string; href: string }[] }) {
+function NavDropdown({ label, items }: { label: string; items: { label: string; href: string; icon?: any; desc?: string }[] }) {
   return (
     <div className="nav-dropdown">
       <button className="nav-link nav-dropdown-trigger">
         {label} <ChevronDown size={14} />
       </button>
       <div className="nav-dropdown-menu">
-        {items.map((item) => (
-          <Link key={item.href} to={item.href} className="nav-dropdown-item">
-            {item.label}
-          </Link>
-        ))}
+        <div className="nav-dropdown-grid">
+          {items.map((item) => (
+            <Link key={item.href} to={item.href} className="nav-dropdown-item">
+              {item.icon && <div className="item-icon"><item.icon size={16} /></div>}
+              <div className="item-content">
+                <span className="item-label">{item.label}</span>
+                {item.desc && <span className="item-desc">{item.desc}</span>}
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

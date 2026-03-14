@@ -41,12 +41,34 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
 
 import { SocketProvider } from './SocketContext';
 
+import { Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+
+function RootRedirect() {
+  const { user, loading } = useAuth();
+  
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #f3f4f6', borderTopColor: '#1890ff' }} />
+    </div>
+  );
+
+  if (!user) return <Navigate to="/explore" replace />;
+  if (user.role === 'superadmin') return <Navigate to="/admin" replace />;
+  if (user.role === 'subadmin') return <Navigate to="/subadmin" replace />;
+  
+  return <Navigate to="/explore" replace />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <SocketProvider>
           <Routes>
+          {/* Landing / Redirection */}
+          <Route path="/" element={<RootRedirect />} />
+          
           {/* Auth pages (no navbar/footer) */}
           <Route path="/auth" element={<AuthLayout><Auth /></AuthLayout>} />
           <Route path="/google-success" element={<AuthLayout><GoogleSuccess /></AuthLayout>} />
@@ -54,20 +76,20 @@ export default function App() {
           <Route path="/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
 
           {/* Public pages */}
-          <Route path="/" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Home /></ProtectedRoute></AppLayout>} />
-          <Route path="/explore" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Explore /></ProtectedRoute></AppLayout>} />
-          <Route path="/vehicles/:id" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><VehicleDetail /></ProtectedRoute></AppLayout>} />
-          <Route path="/about" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><About /></ProtectedRoute></AppLayout>} />
-          <Route path="/faq" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><FAQ /></ProtectedRoute></AppLayout>} />
-          <Route path="/contact" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Contact /></ProtectedRoute></AppLayout>} />
-          <Route path="/help" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Help /></ProtectedRoute></AppLayout>} />
+          <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
+          <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
+          <Route path="/vehicles/:id" element={<AppLayout><VehicleDetail /></AppLayout>} />
+          <Route path="/about" element={<AppLayout><About /></AppLayout>} />
+          <Route path="/faq" element={<AppLayout><FAQ /></AppLayout>} />
+          <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
+          <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
           <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
 
           {/* Protected pages */}
-          <Route path="/profile" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Profile /></ProtectedRoute></AppLayout>} />
-          <Route path="/verify" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><VerifyUser /></ProtectedRoute></AppLayout>} />
-          <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><ListVehicle /></ProtectedRoute></AppLayout>} />
-          <Route path="/dashboard" element={<AppLayout><ProtectedRoute excludeRoles={['subadmin']}><Dashboard /></ProtectedRoute></AppLayout>} />
+          <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
+          <Route path="/verify" element={<AppLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></AppLayout>} />
+          <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute><ListVehicle /></ProtectedRoute></AppLayout>} />
+          <Route path="/dashboard" element={<AppLayout><ProtectedRoute><Dashboard /></ProtectedRoute></AppLayout>} />
           <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
 
           {/* Admin dashboards */}
