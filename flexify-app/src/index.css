@@ -539,6 +539,27 @@ input, textarea, select {
   :root {
     --navbar-height: 64px;
   }
+
+  body {
+    font-size: 14px;
+  }
+
+  /* Global touch targets */
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .btn-sm {
+    min-height: 38px;
+    padding: 0.5rem 0.875rem;
+  }
+
+  /* Ensure all images are responsive */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
 }
 /* ============================================
    MODAL SYSTEM

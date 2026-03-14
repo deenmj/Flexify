@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified } from 'lucide-react';
 import { vehicleApi, type Vehicle, type User } from '../api';
+import { useIsMobile } from '../hooks/useIsMobile';
 import './Home.css';
 
 export default function Home() {
@@ -11,6 +12,7 @@ export default function Home() {
   
   const vehicleScrollRef = useRef<HTMLDivElement>(null);
   const ownerScrollRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     vehicleApi.getAll().then(setVehicles).catch(console.error);
@@ -55,7 +57,7 @@ export default function Home() {
               <Search size={20} className="hero-search-icon" />
               <input
                 type="text"
-                placeholder="Search vehicles, brands, locations..."
+                placeholder={isMobile ? "Vehicles, brands, places…" : "Search vehicles, brands, locations..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="hero-search-input"
@@ -92,39 +94,72 @@ export default function Home() {
               <h2 className="section-title">Top Verified Owners</h2>
               <p className="section-subtitle">Rent from trusted, verified vehicle providers</p>
             </div>
-            <div className="scroll-controls">
-              <button className="scroll-btn" onClick={() => scroll(ownerScrollRef, 'left')}><ChevronLeft size={20} /></button>
-              <button className="scroll-btn" onClick={() => scroll(ownerScrollRef, 'right')}><ChevronRight size={20} /></button>
-            </div>
-          </div>
-          <div className="scroll-container" ref={ownerScrollRef}>
-            {owners.map((owner) => (
-              <div key={owner.id || owner._id} className="owner-card card">
-                <img
-                  src={owner.profilePic ? (owner.profilePic.startsWith('/') ? owner.profilePic : owner.profilePic) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'}
-                  alt={owner.name}
-                  className="owner-avatar"
-                  onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'; }}
-                />
-                <h3 className="owner-name">
-                  {owner.name}
-                  <Verified size={16} className="verified-icon" />
-                </h3>
-                <p className="owner-location">
-                  <MapPin size={14} />
-                  {(owner as any).address || 'Sri Lanka'}
-                </p>
-                <Link to={`/explore?owner=${owner.id || owner._id}`} className="btn btn-secondary btn-sm btn-full">
-                  View Vehicles
-                </Link>
-              </div>
-            ))}
-            {owners.length === 0 && (
-              <div className="empty-state-inline">
-                <p>Verified owners will appear here</p>
+            {!isMobile && (
+              <div className="scroll-controls">
+                <button className="scroll-btn" onClick={() => scroll(ownerScrollRef, 'left')}><ChevronLeft size={20} /></button>
+                <button className="scroll-btn" onClick={() => scroll(ownerScrollRef, 'right')}><ChevronRight size={20} /></button>
               </div>
             )}
           </div>
+          {!isMobile ? (
+            <div className="scroll-container" ref={ownerScrollRef}>
+              {owners.map((owner) => (
+                <div key={owner.id || owner._id} className="owner-card card">
+                  <img
+                    src={owner.profilePic ? (owner.profilePic.startsWith('/') ? owner.profilePic : owner.profilePic) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'}
+                    alt={owner.name}
+                    className="owner-avatar"
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'; }}
+                  />
+                  <h3 className="owner-name">
+                    {owner.name}
+                    <Verified size={16} className="verified-icon" />
+                  </h3>
+                  <p className="owner-location">
+                    <MapPin size={14} />
+                    {(owner as any).address || 'Sri Lanka'}
+                  </p>
+                  <Link to={`/explore?owner=${owner.id || owner._id}`} className="btn btn-secondary btn-sm btn-full">
+                    View Vehicles
+                  </Link>
+                </div>
+              ))}
+              {owners.length === 0 && (
+                <div className="empty-state-inline">
+                  <p>Verified owners will appear here</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mobile-grid">
+              {owners.map((owner) => (
+                <div key={owner.id || owner._id} className="owner-card card">
+                  <img
+                    src={owner.profilePic ? (owner.profilePic.startsWith('/') ? owner.profilePic : owner.profilePic) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'}
+                    alt={owner.name}
+                    className="owner-avatar"
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'; }}
+                  />
+                  <h3 className="owner-name">
+                    {owner.name}
+                    <Verified size={16} className="verified-icon" />
+                  </h3>
+                  <p className="owner-location">
+                    <MapPin size={14} />
+                    {(owner as any).address || 'Sri Lanka'}
+                  </p>
+                  <Link to={`/explore?owner=${owner.id || owner._id}`} className="btn btn-secondary btn-sm btn-full">
+                    View Vehicles
+                  </Link>
+                </div>
+              ))}
+              {owners.length === 0 && (
+                <div className="empty-state-inline">
+                  <p>Verified owners will appear here</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -136,24 +171,42 @@ export default function Home() {
               <h2 className="section-title">Featured Vehicles</h2>
               <p className="section-subtitle">Handpicked rides for every journey</p>
             </div>
-            <div className="scroll-controls">
-              <button className="scroll-btn" onClick={() => scroll(vehicleScrollRef, 'left')}><ChevronLeft size={20} /></button>
-              <button className="scroll-btn" onClick={() => scroll(vehicleScrollRef, 'right')}><ChevronRight size={20} /></button>
-            </div>
-          </div>
-          <div className="scroll-container" ref={vehicleScrollRef}>
-            {vehicles.slice(0, 12).map((vehicle) => (
-              <VehicleCard key={vehicle._id} vehicle={vehicle} />
-            ))}
-            {vehicles.length === 0 && (
-              <>
-                <VehiclePlaceholder title="Family SUV — Toyota" specs="Seats 7 · Automatic" price={45} img="https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60" />
-                <VehiclePlaceholder title="Compact Sedan — Honda" specs="Seats 4 · Manual" price={28} img="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60" />
-                <VehiclePlaceholder title="Luxury Sedan — BMW" specs="Seats 5 · Automatic" price={95} img="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=60" />
-                <VehiclePlaceholder title="Electric — Tesla Model 3" specs="Seats 5 · Auto" price={75} img="https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=60" />
-              </>
+            {!isMobile && (
+              <div className="scroll-controls">
+                <button className="scroll-btn" onClick={() => scroll(vehicleScrollRef, 'left')}><ChevronLeft size={20} /></button>
+                <button className="scroll-btn" onClick={() => scroll(vehicleScrollRef, 'right')}><ChevronRight size={20} /></button>
+              </div>
             )}
           </div>
+          {!isMobile ? (
+            <div className="scroll-container" ref={vehicleScrollRef}>
+              {vehicles.slice(0, 12).map((vehicle) => (
+                <VehicleCard key={vehicle._id} vehicle={vehicle} />
+              ))}
+              {vehicles.length === 0 && (
+                <>
+                  <VehiclePlaceholder title="Family SUV — Toyota" specs="Seats 7 · Automatic" price={45} img="https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60" />
+                  <VehiclePlaceholder title="Compact Sedan — Honda" specs="Seats 4 · Manual" price={28} img="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60" />
+                  <VehiclePlaceholder title="Luxury Sedan — BMW" specs="Seats 5 · Automatic" price={95} img="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=60" />
+                  <VehiclePlaceholder title="Electric — Tesla Model 3" specs="Seats 5 · Auto" price={75} img="https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=60" />
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="mobile-grid">
+              {vehicles.slice(0, 6).map((vehicle) => (
+                <VehicleCard key={vehicle._id} vehicle={vehicle} />
+              ))}
+              {vehicles.length === 0 && (
+                <>
+                  <VehiclePlaceholder title="Family SUV — Toyota" specs="Seats 7 · Automatic" price={45} img="https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60" />
+                  <VehiclePlaceholder title="Compact Sedan — Honda" specs="Seats 4 · Manual" price={28} img="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60" />
+                  <VehiclePlaceholder title="Luxury Sedan — BMW" specs="Seats 5 · Automatic" price={95} img="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=60" />
+                  <VehiclePlaceholder title="Electric — Tesla Model 3" specs="Seats 5 · Auto" price={75} img="https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=60" />
+                </>
+              )}
+            </div>
+          )}
           <div className="section-footer">
             <Link to="/explore" className="btn btn-secondary">
               View All Vehicles <ArrowRight size={16} />

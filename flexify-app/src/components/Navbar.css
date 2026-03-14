@@ -460,3 +460,45 @@
   color: var(--color-error);
   margin-top: 0.5rem;
 }
+
+/* Compact Mobile Navbar */
+@media (max-width: 768px) {
+  .navbar-inner {
+    padding: 0 0.75rem;
+  }
+  .logo-text {
+    font-size: 1.05rem;
+  }
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .navbar-logo {
+    gap: 0.5rem;
+  }
+  .nav-action-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+  .profile-trigger {
+    width: 32px;
+    height: 32px;
+  }
+  .navbar-actions {
+    gap: 0.15rem;
+  }
+  .mobile-menu {
+    width: 85vw;
+    max-width: 320px;
+  }
+  .mobile-link {
+    padding: 0.85rem 0.75rem;
+    font-size: 0.95rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
