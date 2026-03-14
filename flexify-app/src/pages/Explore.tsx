@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, Filter, MapPin, Verified, X, SlidersHorizontal, Star, Locate } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { Collapse } from 'antd';
 import './Explore.css';
 
 const SRI_LANKA_DISTRICTS = [
@@ -39,6 +41,7 @@ export default function Explore() {
     district: searchParams.get('district') || '',
   });
   const [showFilters, setShowFilters] = useState(!!(searchParams.get('type') || searchParams.get('vehicleType') || searchParams.get('service') || searchParams.get('district')));
+  const isMobile = useIsMobile();
 
   const fetchVehicles = async (overrideQuery?: string, overrideType?: string) => {
     setLoading(true);
@@ -132,111 +135,236 @@ export default function Explore() {
       {showFilters && (
         <div className="filters-panel animate-fade-in-down">
           <div className="container">
-            <div className="filters-grid">
-              <div className="input-group">
-                <label>Transmission</label>
-                <select
-                  className="input-field"
-                  value={filters.transmission}
-                  onChange={(e) => setFilters({ ...filters, transmission: e.target.value })}
-                >
-                  <option value="">All</option>
-                  <option value="Automatic">Automatic</option>
-                  <option value="Manual">Manual</option>
-                </select>
-              </div>
-              <div className="input-group">
-                <label>Vehicle Type</label>
-                <select
-                  className="input-field"
-                  value={filters.vehicleType}
-                  onChange={(e) => setFilters({ ...filters, vehicleType: e.target.value })}
-                >
-                  <option value="">All Types</option>
-                  <option value="Car">Car</option>
-                  <option value="SUV">SUV</option>
-                  <option value="Van">Van</option>
-                  <option value="Bike">Bike</option>
-                  <option value="Truck">Truck</option>
-                </select>
-              </div>
-              <div className="input-group">
-                <label>Distance Search</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={handleLocateMe} style={{ flex: '1 0 auto' }}>
-                    <Locate size={14} /> My Location
-                  </button>
-                  <input type="number" className="input-field" placeholder="Radius(km)" value={filters.radius} onChange={(e) => setFilters({ ...filters, radius: e.target.value })} style={{ width: '100px' }} />
-                  {(filters.lat || filters.lng) && <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>📌 {parseFloat(filters.lat).toFixed(2)}, {parseFloat(filters.lng).toFixed(2)}</span>}
+            {isMobile ? (
+              <Collapse
+                ghost
+                expandIconPosition="end"
+                className="mobile-filters-collapse"
+                defaultActiveKey={['basic']}
+              >
+                <Collapse.Panel header="Basic Filters" key="basic">
+                  <div className="filters-grid">
+                    <div className="input-group">
+                      <label>Transmission</label>
+                      <select
+                        className="input-field"
+                        value={filters.transmission}
+                        onChange={(e) => setFilters({ ...filters, transmission: e.target.value })}
+                      >
+                        <option value="">All</option>
+                        <option value="Automatic">Automatic</option>
+                        <option value="Manual">Manual</option>
+                      </select>
+                    </div>
+                    <div className="input-group">
+                      <label>Vehicle Type</label>
+                      <select
+                        className="input-field"
+                        value={filters.vehicleType}
+                        onChange={(e) => setFilters({ ...filters, vehicleType: e.target.value })}
+                      >
+                        <option value="">All Types</option>
+                        <option value="Car">Car</option>
+                        <option value="SUV">SUV</option>
+                        <option value="Van">Van</option>
+                        <option value="Bike">Bike</option>
+                        <option value="Truck">Truck</option>
+                      </select>
+                    </div>
+                    <div className="input-group">
+                      <label>District</label>
+                      <select
+                        className="input-field"
+                        value={filters.district}
+                        onChange={(e) => {
+                          setFilters({ ...filters, district: e.target.value, lat: '', lng: '' });
+                          if (e.target.value) setQuery(e.target.value);
+                        }}
+                      >
+                        <option value="">Anywhere</option>
+                        {SRI_LANKA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    </div>
+                    <div className="input-group">
+                      <label>Sort By</label>
+                      <select
+                        className="input-field"
+                        value={filters.sort}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, sort: e.target.value })}
+                      >
+                        <option value="newest">Newest</option>
+                        <option value="price_low">Price: Low → High</option>
+                        <option value="price_high">Price: High → Low</option>
+                        <option value="popular">Most Popular</option>
+                      </select>
+                    </div>
+                  </div>
+                </Collapse.Panel>
+                <Collapse.Panel header="Advanced Filters" key="advanced">
+                  <div className="filters-grid">
+                    <div className="input-group">
+                      <label>Distance Search</label>
+                      <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.5rem' }}>
+                        <button type="button" className="btn btn-ghost btn-sm" onClick={handleLocateMe} style={{ flex: '1', minHeight: '44px' }}>
+                          <Locate size={14} /> Locate
+                        </button>
+                        <input type="number" className="input-field" placeholder="Radius(km)" value={filters.radius} onChange={(e) => setFilters({ ...filters, radius: e.target.value })} style={{ width: '100px' }} />
+                      </div>
+                      {(filters.lat || filters.lng) && <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '4px' }}>📌 {parseFloat(filters.lat).toFixed(2)}, {parseFloat(filters.lng).toFixed(2)}</span>}
+                    </div>
+                    <div className="input-group">
+                      <label>Min Price</label>
+                      <input
+                        type="number"
+                        className="input-field"
+                        placeholder="0"
+                        value={filters.minPrice}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, minPrice: e.target.value })}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Max Price</label>
+                      <input
+                        type="number"
+                        className="input-field"
+                        placeholder="Unlimited"
+                        value={filters.maxPrice}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, maxPrice: e.target.value })}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Seats</label>
+                      <select
+                        className="input-field"
+                        value={filters.seats}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, seats: e.target.value })}
+                      >
+                        <option value="">Any</option>
+                        <option value="2">2</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="7">7+</option>
+                      </select>
+                    </div>
+                  </div>
+                </Collapse.Panel>
+              </Collapse>
+            ) : (
+              <>
+                <div className="filters-grid">
+                  <div className="input-group">
+                    <label>Transmission</label>
+                    <select
+                      className="input-field"
+                      value={filters.transmission}
+                      onChange={(e) => setFilters({ ...filters, transmission: e.target.value })}
+                    >
+                      <option value="">All</option>
+                      <option value="Automatic">Automatic</option>
+                      <option value="Manual">Manual</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label>Vehicle Type</label>
+                    <select
+                      className="input-field"
+                      value={filters.vehicleType}
+                      onChange={(e) => setFilters({ ...filters, vehicleType: e.target.value })}
+                    >
+                      <option value="">All Types</option>
+                      <option value="Car">Car</option>
+                      <option value="SUV">SUV</option>
+                      <option value="Van">Van</option>
+                      <option value="Bike">Bike</option>
+                      <option value="Truck">Truck</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label>Distance Search</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <button type="button" className="btn btn-ghost btn-sm" onClick={handleLocateMe} style={{ flex: '1 0 auto' }}>
+                        <Locate size={14} /> My Location
+                      </button>
+                      <input type="number" className="input-field" placeholder="Radius(km)" value={filters.radius} onChange={(e) => setFilters({ ...filters, radius: e.target.value })} style={{ width: '100px' }} />
+                      {(filters.lat || filters.lng) && <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>📌 {parseFloat(filters.lat).toFixed(2)}, {parseFloat(filters.lng).toFixed(2)}</span>}
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label>District</label>
+                    <select
+                      className="input-field"
+                      value={filters.district}
+                      onChange={(e) => {
+                        setFilters({ ...filters, district: e.target.value, lat: '', lng: '' });
+                        if (e.target.value) setQuery(e.target.value); // Use query for district if lat/lng not used
+                      }}
+                    >
+                      <option value="">Anywhere</option>
+                      {SRI_LANKA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label>Min Price (LKR/day)</label>
+                    <input
+                      type="number"
+                      className="input-field"
+                      placeholder="0"
+                      value={filters.minPrice}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, minPrice: e.target.value })}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Max Price (LKR/day)</label>
+                    <input
+                      type="number"
+                      className="input-field"
+                      placeholder="500"
+                      value={filters.maxPrice}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, maxPrice: e.target.value })}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Seats</label>
+                    <select
+                      className="input-field"
+                      value={filters.seats}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, seats: e.target.value })}
+                    >
+                      <option value="">Any</option>
+                      <option value="2">2</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="7">7+</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label>Sort By</label>
+                    <select
+                      className="input-field"
+                      value={filters.sort}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, sort: e.target.value })}
+                    >
+                      <option value="newest">Newest</option>
+                      <option value="price_low">Price: Low → High</option>
+                      <option value="price_high">Price: High → Low</option>
+                      <option value="popular">Most Popular</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div className="input-group">
-                <label>District</label>
-                <select
-                  className="input-field"
-                  value={filters.district}
-                  onChange={(e) => {
-                    setFilters({ ...filters, district: e.target.value, lat: '', lng: '' });
-                    if (e.target.value) setQuery(e.target.value); // Use query for district if lat/lng not used
-                  }}
-                >
-                  <option value="">Anywhere</option>
-                  {SRI_LANKA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
-              <div className="input-group">
-                <label>Min Price (LKR/day)</label>
-                <input
-                  type="number"
-                  className="input-field"
-                  placeholder="0"
-                  value={filters.minPrice}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, minPrice: e.target.value })}
-                />
-              </div>
-              <div className="input-group">
-                <label>Max Price (LKR/day)</label>
-                <input
-                  type="number"
-                  className="input-field"
-                  placeholder="500"
-                  value={filters.maxPrice}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, maxPrice: e.target.value })}
-                />
-              </div>
-              <div className="input-group">
-                <label>Seats</label>
-                <select
-                  className="input-field"
-                  value={filters.seats}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, seats: e.target.value })}
-                >
-                  <option value="">Any</option>
-                  <option value="2">2</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="7">7+</option>
-                </select>
-              </div>
-              <div className="input-group">
-                <label>Sort By</label>
-                <select
-                  className="input-field"
-                  value={filters.sort}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, sort: e.target.value })}
-                >
-                  <option value="newest">Newest</option>
-                  <option value="price_low">Price: Low → High</option>
-                  <option value="price_high">Price: High → Low</option>
-                  <option value="popular">Most Popular</option>
-                </select>
-              </div>
-            </div>
-            <div className="filters-actions">
-              <button className="btn btn-ghost btn-sm" onClick={clearFilters}><X size={14} /> Clear All</button>
-              <button className="btn btn-primary btn-sm" onClick={() => fetchVehicles()}><Filter size={14} /> Apply Filters</button>
-            </div>
+                <div className="filters-actions">
+                  <button className="btn btn-ghost btn-sm" onClick={clearFilters}><X size={14} /> Clear All</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => fetchVehicles()}><Filter size={14} /> Apply Filters</button>
+                </div>
+              </>
+            )}
           </div>
+
+          {isMobile && (
+            <div className="mobile-filters-actions-bar">
+              <button className="btn btn-secondary btn-sm" onClick={clearFilters} style={{ flex: 1 }}>Clear</button>
+              <button className="btn btn-primary btn-sm" onClick={() => fetchVehicles()} style={{ flex: 2 }}>Apply Filters</button>
+            </div>
+          )}
         </div>
       )}
 
