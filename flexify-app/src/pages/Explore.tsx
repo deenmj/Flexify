@@ -35,10 +35,10 @@ export default function Explore() {
     lat: '',
     lng: '',
     radius: '10', // default radius 10km
-    sort: 'newest',
-    district: '',
+    sort: searchParams.get('sort') || 'newest',
+    district: searchParams.get('district') || '',
   });
-  const [showFilters, setShowFilters] = useState(!!(searchParams.get('type') || searchParams.get('vehicleType')));
+  const [showFilters, setShowFilters] = useState(!!(searchParams.get('type') || searchParams.get('vehicleType') || searchParams.get('service') || searchParams.get('district')));
 
   const fetchVehicles = async (overrideQuery?: string, overrideType?: string) => {
     setLoading(true);

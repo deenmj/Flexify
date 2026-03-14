@@ -296,11 +296,17 @@ export const listVehicles = async (req, res) => {
       {
         $match: {
           $or: [
+            { "ownerInfo.subscription": null },
+            { "ownerInfo.subscription": { $exists: false } }, // Handle missing field
             { "ownerInfo.subscription.status": "active" },
             { "ownerInfo.subscription.status": "trial" },
             { 
               "ownerInfo.subscription.status": "expired",
               "ownerInfo.subscription.gracePeriodEnd": { $gte: now }
+            },
+            {
+              "ownerInfo.subscription.status": "expired",
+              "ownerInfo.subscription.gracePeriodEnd": { $exists: false } // Fallback if grace missing
             }
           ]
         }
@@ -312,7 +318,8 @@ export const listVehicles = async (req, res) => {
               branches: [
                 { case: { $eq: ["$ownerInfo.subscription.tier", "ENTERPRISE"] }, then: 100 },
                 { case: { $eq: ["$ownerInfo.subscription.tier", "STANDARD"] }, then: 50 },
-                { case: { $eq: ["$ownerInfo.subscription.tier", "BASIC"] }, then: 10 }
+                { case: { $eq: ["$ownerInfo.subscription.tier", "BASIC"] }, then: 10 },
+                { case: { $eq: ["$ownerInfo.subscription.status", "trial"] }, then: 5 }
               ],
               default: 0
             }

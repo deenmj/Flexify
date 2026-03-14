@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Star, Zap, Users, Globe, DollarSign, Compass, Home } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Zap, Users, Globe, DollarSign, Compass, Home } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -79,20 +79,19 @@ export default function Navbar() {
               <NavDropdown
                 label="Fleet & Brands"
                 items={[
-                  { label: 'Luxury Cars', href: '/explore?type=luxury', icon: Star, desc: 'Premium & luxury sedans' },
-                  { label: 'Daily Compact', href: '/explore?type=compact', icon: Car, desc: 'Budget friendly city cars' },
-                  { label: 'Family SUVs', href: '/explore?type=suv', icon: Users, desc: 'Spacious 7-seater vehicles' },
-                  { label: 'Vans & Buses', href: '/explore?type=van', icon: Globe, desc: 'Large group transportation' },
-                  { label: 'Electric / Hybrid', href: '/explore?type=electric', icon: Zap, desc: 'Eco-friendly modern rides' },
+                  { label: 'Premium Cars', href: '/explore?type=Car', icon: Car, desc: 'Standard & luxury sedans' },
+                  { label: 'Family SUVs', href: '/explore?type=SUV', icon: Users, desc: 'Spacious 7-seater vehicles' },
+                  { label: 'Vans & Minivans', href: '/explore?type=Van', icon: Globe, desc: 'Group transportation' },
+                  { label: 'Heavy Trucks', href: '/explore?type=Truck', icon: Zap, desc: 'For heavy cargo needs' },
+                  { label: 'Motorbikes', href: '/explore?type=Bike', icon: Zap, desc: 'Quick city travel' },
                 ]}
               />
               <NavDropdown
-                label="Booking Types"
+                label="Services"
                 items={[
                   { label: 'Self Drive', href: '/explore?service=self-drive', icon: User, desc: 'Drive yourself anywhere' },
-                  { label: 'With Chauffeur', href: '/explore?service=chauffeur', icon: Shield, desc: 'Professional drivers' },
-                  { label: 'Airport Transfer', href: '/explore?service=transfer', icon: Car, desc: 'Pickup & drop services' },
-                  { label: 'Special Events', href: '/explore?service=events', icon: Star, desc: 'Weddings & VIP entry' },
+                  { label: 'With Chauffeur', href: '/explore?service=Chauffeur', icon: Shield, desc: 'Professional drivers' },
+                  { label: 'Airport Transfer', href: '/explore?service=Transfer', icon: Car, desc: 'Pickup & drop services' },
                 ]}
               />
               <NavDropdown
