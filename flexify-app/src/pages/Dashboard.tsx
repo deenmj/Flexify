@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, Modal, message, Select, Tag, Badge, DatePicker, Button, Form, Input, Rate } from 'antd';
+import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate } from 'antd';
 import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review } from '../api';
 import { 
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, 
@@ -21,7 +21,6 @@ dayjs.extend(isBetween);
 export default function Dashboard() {
   const { user } = useAuth();
   const { socket } = useSocket();
-  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -308,8 +307,8 @@ export default function Dashboard() {
   if (!user) return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Please sign in</h2></div>;
 
   const isOwner = user.role === 'owner';
-  const isVerifiedOwner = isOwner && user.ownerType === 'VERIFIED';
-  const isUnverifiedOwner = isOwner && user.ownerType === 'UNVERIFIED';
+  const isVerifiedOwner = isOwner && user.isKycVerified;
+  const isUnverifiedOwner = isOwner && !user.isKycVerified;
 
   const statusBadge = (status: string) => {
     const map: Record<string, { cls: string; icon: any }> = {
@@ -368,8 +367,8 @@ export default function Dashboard() {
           <div className="card" style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', border: '1px solid #fbbf24', padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
             <div style={{ background: '#d97706', color: 'white', padding: '10px', borderRadius: '12px' }}><AlertTriangle size={24} /></div>
             <div>
-              <h3 style={{ color: '#92400e', marginBottom: '4px' }}>Unverified Owner</h3>
-              <p style={{ color: '#a16207' }}>Your vehicle listings require admin approval. Complete KYC verification to list vehicles instantly.</p>
+              <h3 style={{ color: '#92400e', marginBottom: '4px' }}>Verification Required</h3>
+              <p style={{ color: '#a16207' }}>You can list vehicles, but you must complete KYC verification to accept bookings from renters.</p>
             </div>
           </div>
         )}
@@ -491,14 +490,21 @@ export default function Dashboard() {
               </div>
             ) : (
               <table className="dashboard-table">
-                <thead><tr><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th><th>Actions/Details</th></tr></thead>
                 <tbody>
                   {bookings.map(b => {
                     const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
                     const owner = typeof b.owner === 'object' ? b.owner : null;
                     return (
                       <tr key={b._id}>
-                        <td>{vehicle ? (vehicle as Vehicle).title : 'Vehicle'}</td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle'}</div>
+                          {vehicle && (
+                            <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="text-secondary" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                              <Eye size={12} /> View Details
+                            </Link>
+                          )}
+                        </td>
                         <td className="table-dates">{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</td>
                         <td>LKR {b.totalAmount.toLocaleString()}</td>
                         <td>
@@ -529,7 +535,9 @@ export default function Dashboard() {
                           )}
                           {/* Unverified owner sees read-only */}
                           {b.status === 'PENDING' && isUnverifiedOwner && (
-                            <span style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>Awaiting admin action</span>
+                            <span style={{ fontSize: '12px', color: '#f59e0b', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <AlertTriangle size={12} /> Verify account to accept
+                            </span>
                           )}
                           {/* Renter can cancel pending bookings */}
                           {(b.status === 'PENDING') && user?.role === 'user' && (

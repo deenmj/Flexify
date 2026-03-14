@@ -12,7 +12,7 @@ import {
   getPendingPayments,
   verifyPayment,
 } from "../controllers/adminController.js";
-import { protect, requireSuperAdmin } from "../middleware/authMiddleware.js";
+import { protect, requireSuperAdmin, requireSubAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 

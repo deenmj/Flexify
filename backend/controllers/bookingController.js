@@ -128,13 +128,16 @@ export const acceptBooking = async (req, res) => {
       return res.status(400).json({ message: "Booking is not in pending state" });
     }
 
-    // Authorization: vehicle owner (VERIFIED) or subadmin/superadmin
+    // Authorization: vehicle owner (must be KYC VERIFIED) or subadmin/superadmin
     const isOwner = booking.owner._id.toString() === req.user._id.toString();
-    const isVerifiedOwner = isOwner && req.user.role === "owner" && req.user.ownerType === "VERIFIED";
+    const isVerifiedOwner = isOwner && req.user.role === "owner" && req.user.isKycVerified;
     const isAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
 
     if (!isVerifiedOwner && !isAdmin) {
-      return res.status(403).json({ message: "Only verified owners or admins can accept bookings" });
+      return res.status(403).json({ 
+        message: "You must be KYC verified to accept bookings. Please complete your identity verification in the profile section.",
+        verificationNeeded: true
+      });
     }
 
     // Check no overlapping confirmed bookings

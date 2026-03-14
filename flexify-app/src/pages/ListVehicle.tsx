@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel } from '../api';
-import { Select as AntSelect, message } from 'antd';
+import { Select as AntSelect } from 'antd';
 import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -18,7 +17,7 @@ L.Marker.prototype.options.icon = L.icon({
 });
 
 // Local fallback if API fails, though we primarily use dynamic data now
-const FALLBACK_BRANDS: string[] = ['Toyota', 'Honda', 'Suzuki', 'Nissan', 'Kia', 'Hyundai', 'Mitsubishi', 'Perodua', 'Tata', 'Mahindra'];
+
 
 const { Option } = AntSelect;
 
@@ -174,33 +173,7 @@ export default function ListVehicle() {
     );
   }
 
-  if (!user.isKycVerified) {
-    return (
-      <div className="static-page">
-        <section className="static-hero">
-          <div className="container">
-            <h1>Verification Required</h1>
-            <p>You must verify your identity before listing a vehicle</p>
-          </div>
-        </section>
-        <div className="container" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
-          <div className="card" style={{ maxWidth: '600px', margin: '0 auto', padding: '3rem' }}>
-            <div style={{ color: 'var(--primary-color)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-              <Settings size={48} />
-            </div>
-            <h2>Account Verification Needed</h2>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '1rem', marginBottom: '2rem' }}>
-              To ensure the safety of our community, all vehicle owners must be verified by our staff.
-              Please provide your identification documents to get started.
-            </p>
-            <Link to="/verify" className="btn btn-primary btn-full btn-lg">
-              Start Verification
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -237,7 +210,7 @@ export default function ListVehicle() {
 
       await vehicleApi.createWithPhotos(formData);
 
-      setSuccess('Vehicle submitted successfully! ' + (user.ownerType === 'VERIFIED' ? 'Your listing is now active.' : 'It will be reviewed by our team before going live.'));
+      setSuccess('Vehicle submitted successfully! Your listing is now active and visible on the explore page.');
 
       // Reset form
       setForm({ title: '', make: '', model: '', year: '', pricePerDay: '', transmission: 'Automatic', fuelType: 'Petrol', seats: '4', serviceType: '', description: '', address: '', lat: '', lng: '' });

@@ -12,8 +12,8 @@ const documentsSchema = new mongoose.Schema({
 }, { _id: false });
 
 const subscriptionSchema = new mongoose.Schema({
-  tier: { type: String, enum: ['BASIC', 'STANDARD', 'ENTERPRISE'], default: 'BASIC' },
-  status: { type: String, enum: ['trial', 'active', 'expired'], default: 'trial' },
+  tier: { type: String, enum: ['FREE', 'BASIC', 'STANDARD', 'ENTERPRISE'], default: 'FREE' },
+  status: { type: String, enum: ['trial', 'active', 'expired'], default: 'active' },
   startDate: { type: Date, default: Date.now },
   endDate: { type: Date, default: null },
   gracePeriodEnd: { type: Date, default: null },
@@ -84,7 +84,7 @@ const userSchema = new mongoose.Schema(
     // Subscription status (for owners)
     subscription: { 
       type: subscriptionSchema, 
-      default: () => ({ tier: 'FREE', status: 'ACTIVE', startDate: Date.now(), endDate: null }) 
+      default: null
     },
 
     // Email verification

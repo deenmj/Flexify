@@ -20,24 +20,55 @@ export const createVehicle = async (req, res) => {
       seats, description, lat, lng, address, serviceType,
     } = req.body;
 
-    // Subscription Check
+    // Subscription Check & Initialization
     if (owner.role === "owner") {
-      const sub = owner.subscription || { tier: 'BASIC', status: 'trial' };
-      
+      // If no subscription found, start the 3-month trial now
+      if (!owner.subscription || !owner.subscription.status) {
+        const trialEndDate = new Date();
+        trialEndDate.setMonth(trialEndDate.getMonth() + 3);
+        
+        await User.findByIdAndUpdate(owner._id, {
+          subscription: {
+            tier: 'BASIC',
+            status: 'trial',
+            startDate: new Date(),
+            endDate: trialEndDate
+          }
+        });
+        
+        // Update local owner object for subsequent checks
+        owner.subscription = {
+          tier: 'BASIC',
+          status: 'trial',
+          startDate: new Date(),
+          endDate: trialEndDate
+        };
+      }
+
+      const sub = owner.subscription;
       const now = new Date();
-      if (sub.status === 'expired' && (!sub.gracePeriodEnd || now > new Date(sub.gracePeriodEnd))) {
-        return res.status(403).json({ message: "Your subscription has expired and grace period ended. Please upgrade/renew to list new vehicles." });
+      
+      // Check if trial/subscription is expired
+      const isExpired = sub.status === 'expired' || (sub.endDate && now > new Date(sub.endDate));
+      if (isExpired) {
+        const inGrace = sub.gracePeriodEnd && now <= new Date(sub.gracePeriodEnd);
+        if (!inGrace) {
+          return res.status(403).json({ 
+            message: "Your subscription has expired. Please renew to list new vehicles.",
+            subscriptionExpired: true
+          });
+        }
       }
 
       if (sub.tier === 'BASIC') {
         const vehicleCount = await Vehicle.countDocuments({ owner: owner._id });
         if (vehicleCount >= 2) {
-          return res.status(403).json({ message: "BASIC tier limit reached (2 vehicles). Please upgrade to STANDARD or ENTERPRISE for more listings." });
+          return res.status(403).json({ message: "BASIC tier limit reached (2 vehicles). Please upgrade for more listings." });
         }
       } else if (sub.tier === 'STANDARD') {
         const vehicleCount = await Vehicle.countDocuments({ owner: owner._id });
         if (vehicleCount >= 6) {
-          return res.status(403).json({ message: "STANDARD tier limit reached (6 vehicles). Please upgrade to ENTERPRISE for unlimited listings." });
+          return res.status(403).json({ message: "STANDARD tier limit reached (6 vehicles). Please upgrade for more listings." });
         }
       }
     }
@@ -51,15 +82,9 @@ export const createVehicle = async (req, res) => {
       req.files.forEach((f) => photos.push(`/uploads/vehicles/${f.filename}`));
     }
 
-    // Determine status based on owner verification
-    let vehicleStatus = "pending";
-    if (
-      (owner.role === "owner" && owner.ownerType === "VERIFIED") ||
-      owner.role === "subadmin" ||
-      owner.role === "superadmin"
-    ) {
-      vehicleStatus = "active";
-    }
+    // All owner listings are set to 'active' immediately as per user request
+    // Listing verification is moved to the booking approval stage
+    let vehicleStatus = "active";
 
     // Normalization & Dynamic Creation
     let makeId = make;
