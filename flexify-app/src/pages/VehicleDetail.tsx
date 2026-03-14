@@ -6,6 +6,7 @@ import { Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar } fro
 import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review } from '../api';
 import { Users, CheckCircle, Star, ShieldCheck, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import './VehicleDetail.css';
 
 dayjs.extend(isBetween);
@@ -15,6 +16,7 @@ export default function VehicleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -170,6 +172,18 @@ export default function VehicleDetail() {
     }
   };
 
+  const handleBookingTrigger = () => {
+    if (!user) {
+      navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
+      return;
+    }
+    if (!user.isKycVerified) {
+      navigate('/verify');
+      return;
+    }
+    setShowBookingModal(true);
+  };
+
   if (loading) {
     return <div className="detail-loading">Loading vehicle details...</div>;
   }
@@ -232,9 +246,9 @@ export default function VehicleDetail() {
                   <p className="detail-subtitle">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
                 </div>
                 <div className="detail-rating">
-                  <Star size={20} fill="#f59e0b" color="#f59e0b" />
+                  <Star size={16} fill="#f59e0b" color="#f59e0b" />
                   <span className="rating-score">{vehicle.averageRating || 'New'}</span>
-                  <span className="rating-count">({vehicle.reviewCount || 0} reviews)</span>
+                  <span className="rating-count">({vehicle.reviewCount || 0})</span>
                 </div>
               </div>
 
@@ -356,17 +370,7 @@ export default function VehicleDetail() {
 
               <button
                 className="btn btn-primary btn-lg btn-full"
-                onClick={() => {
-                  if (!user) {
-                    navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
-                    return;
-                  }
-                  if (!user.isKycVerified) {
-                    navigate('/verify');
-                    return;
-                  }
-                  setShowBookingModal(true);
-                }}
+                onClick={handleBookingTrigger}
                 style={{ marginTop: '1.5rem', height: '54px', fontSize: '1.1rem' }}
               >
                 Book Now
@@ -413,14 +417,28 @@ export default function VehicleDetail() {
         </div>
       </div>
 
+      {/* MOBILE STICKY BOOKING BAR */}
+      {isMobile && !showBookingModal && !createdBooking && (
+        <div className="mobile-booking-bar animate-slide-up">
+          <div className="mobile-bar-price">
+            <span className="bar-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
+            <span className="bar-unit">/day</span>
+          </div>
+          <button className="btn btn-primary btn-md" onClick={handleBookingTrigger}>
+            Book Now
+          </button>
+        </div>
+      )}
+
       {/* BOOKING MODAL */}
       <Modal
         open={showBookingModal}
         onCancel={() => { setShowBookingModal(false); setCreatedBooking(null); setDateRange(null); }}
         footer={null}
         centered
-        width={520}
+        width={isMobile ? '95%' : 520}
         destroyOnClose
+        className="booking-modal"
       >
         {createdBooking ? (
           <div className="booking-success-view animate-fade-in" style={{ textAlign: 'center', padding: '1rem 0' }}>

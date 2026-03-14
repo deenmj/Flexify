@@ -10,7 +10,7 @@
 
 @media (min-width: 992px) {
   .detail-grid {
-    grid-template-columns: 2.5fr 1fr;
+    grid-template-columns: 2.5fr 1.15fr;
     gap: 3rem;
   }
 }
@@ -187,6 +187,94 @@
   flex-direction: column;
 }
 
+@media (max-width: 768px) {
+  .detail-main-img {
+    height: 300px;
+    border-radius: 12px;
+  }
+  .detail-thumb {
+    width: 80px;
+    height: 60px;
+  }
+  .detail-title {
+    font-size: 1.5rem;
+  }
+  .detail-overview {
+    padding: 1.25rem !important;
+    margin-top: 1.5rem !important;
+  }
+  .detail-rating {
+    padding: 0.35rem 0.75rem;
+  }
+  .rating-score {
+    font-size: 0.95rem;
+  }
+  .detail-specs-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .detail-availability,
+  .detail-reviews {
+    padding: 1.25rem !important;
+  }
+  .booking-panel {
+    padding: 1.5rem;
+  }
+  .booking-price-header h2 {
+    font-size: 1.75rem;
+  }
+
+  .mobile-booking-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    border-top: 1px solid var(--border-color);
+  }
+  .mobile-bar-price {
+    display: flex;
+    flex-direction: column;
+  }
+  .bar-amount {
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: var(--text-primary);
+  }
+  .bar-unit {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+  .vehicle-detail-page {
+    padding-bottom: 80px;
+  }
+  
+  /* Hide sidebar elements that are duplicated in sticky bar */
+  .detail-sidebar .booking-panel h2,
+  .detail-sidebar .booking-panel .booking-price-header {
+    display: none;
+  }
+  .detail-sidebar .booking-panel {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 /* Modal specific overrides */
 .booking-modal {
   max-width: 500px;
@@ -247,4 +335,3 @@
   border-radius: 16px;
   padding: 2rem;
 }
-

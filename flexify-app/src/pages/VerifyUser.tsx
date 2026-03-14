@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { userApi } from '../api';
-import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck, FileText, Info } from 'lucide-react';
+import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Checkbox, Modal, Button, Typography, Space } from 'antd';
+import { Checkbox, Modal, Button, Typography } from 'antd';
 
 const { Title: AntTitle, Paragraph, Text: AntText } = Typography;
 
 export default function VerifyUser() {
   const { user, refreshUser } = useAuth();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -80,8 +82,8 @@ export default function VerifyUser() {
         <div style={{ background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', border: '1px solid #6ee7b7', borderRadius: '16px', padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
           <div style={{ background: '#10b981', padding: '14px', borderRadius: '14px', color: 'white' }}><CheckCircle size={28} /></div>
           <div>
-            <h3 style={{ color: '#065f46', margin: 0 }}>Identity Verified</h3>
-            <p style={{ color: '#047857', margin: '4px 0 0' }}>Your KYC documents have been approved. You can now book vehicles and access all features.</p>
+            <h3 style={{ color: '#065f46', margin: 0, fontSize: isMobile ? '1.1rem' : '1.25rem' }}>Identity Verified</h3>
+            <p style={{ color: '#047857', margin: '4px 0 0', fontSize: isMobile ? '0.85rem' : '1rem' }}>Your KYC documents have been approved. You can now book vehicles and access all features.</p>
           </div>
         </div>
       );
@@ -126,7 +128,7 @@ export default function VerifyUser() {
   return (
     <div style={{ background: '#f8fafc', minHeight: '100vh', paddingTop: '2rem' }}>
       <div className="container" style={{ maxWidth: '800px', paddingBottom: '4rem' }}>
-        <Link to="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#64748b', textDecoration: 'none', fontWeight: 600, marginBottom: '1.5rem' }}>
+        <Link to="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#64748b', textDecoration: 'none', fontWeight: 600, marginBottom: '1.5rem', fontSize: isMobile ? '0.85rem' : '1rem' }}>
           <ArrowLeft size={18} /> Back to Dashboard
         </Link>
 
@@ -134,8 +136,8 @@ export default function VerifyUser() {
           <div style={{ background: 'linear-gradient(135deg, #1890ff, #096dd9)', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: 'white' }}>
             <Shield size={32} />
           </div>
-          <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#1e293b' }}>KYC Verification</h1>
-          <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto' }}>
+          <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: '0.5rem', color: '#1e293b' }}>KYC Verification</h1>
+          <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto', fontSize: isMobile ? '0.9rem' : '1rem' }}>
             Verify your identity to unlock booking features. Upload your documents below for review.
           </p>
         </div>
@@ -144,11 +146,11 @@ export default function VerifyUser() {
 
         {canSubmit && (
           <form onSubmit={handleSubmit}>
-            <div className="card" style={{ padding: '2rem', borderRadius: '16px', marginBottom: '1.5rem' }}>
+            <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem', borderRadius: '16px', marginBottom: '1.5rem' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', color: '#334155' }}>
                 <UserCheck size={20} color="#1890ff" /> Personal Information
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#475569' }}>Full Name</label>
                   <input className="input-field" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="As shown on NIC" required />
@@ -168,11 +170,11 @@ export default function VerifyUser() {
               </div>
             </div>
 
-            <div className="card" style={{ padding: '2rem', borderRadius: '16px', marginBottom: '1.5rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', color: '#334155' }}>
+            <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem', borderRadius: '16px', marginBottom: '1.5rem' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem', color: '#334155' }}>
                 <Upload size={20} color="#1890ff" /> Upload Documents
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1rem' : '1.5rem' }}>
                 {fileFields.map((f) => (
                   <div key={f.key} style={{
                     border: previews[f.key] ? '2px solid #1890ff' : '2px dashed #e2e8f0',
