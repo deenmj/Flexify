@@ -4,7 +4,7 @@ import { useSocket } from '../SocketContext';
 import { Check, Shield, Zap, AlertCircle, Clock, Info, CreditCard, Landmark, ArrowLeft, Loader2 } from 'lucide-react';
 import { ownerApi } from '../api';
 import './SubscriptionManagement.css';
-import { notification, Modal } from 'antd';
+import { notification } from 'antd';
 
 const PLANS = [
   {
@@ -303,7 +303,7 @@ const SubscriptionManagement: React.FC = () => {
           
           {/* Hidden PayHere Form */}
           {payhereParams && (
-            <form id="payhere-form" method="post" action="https://sandbox.payhere.lk/pay/checkout">
+            <form id="payhere-form" method="post" action={payhereParams.payhere_url}>
                 <input type="hidden" name="merchant_id" value={payhereParams.merchant_id} />
                 <input type="hidden" name="return_url" value={payhereParams.return_url} />
                 <input type="hidden" name="cancel_url" value={payhereParams.cancel_url} />

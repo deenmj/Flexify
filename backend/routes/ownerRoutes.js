@@ -85,6 +85,7 @@ router.post("/payhere-params", protect, async (req, res) => {
       currency,
       amount,
       hash,
+      payhere_url: process.env.PAYHERE_ENV === 'live' ? 'https://www.payhere.lk/pay/checkout' : 'https://sandbox.payhere.lk/pay/checkout',
       first_name: req.user.name.split(" ")[0],
       last_name: req.user.name.split(" ").slice(1).join(" ") || "User",
       email: req.user.email,
