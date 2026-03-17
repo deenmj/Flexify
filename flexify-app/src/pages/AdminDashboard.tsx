@@ -10,8 +10,8 @@ const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
 
 const SRI_LANKA_DISTRICTS = [
-  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 'Galle', 'Matara', 'Hambantota', 
-  'Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu', 'Batticaloa', 'Ampara', 'Trincomalee', 
+  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 'Galle', 'Matara', 'Hambantota',
+  'Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu', 'Batticaloa', 'Ampara', 'Trincomalee',
   'Kurunegala', 'Puttalam', 'Anuradhapura', 'Polonnaruwa', 'Badulla', 'Moneragala', 'Ratnapura', 'Kegalle'
 ];
 
@@ -30,7 +30,7 @@ export default function AdminDashboard() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [district, setDistrict] = useState<string>('All Sri Lanka');
   const [timeRange, setTimeRange] = useState<string>('30d');
-  
+
   const [roleEditUser, setRoleEditUser] = useState<string | null>(null);
   const [newRole, setNewRole] = useState('');
   const [newOwnerType, setNewOwnerType] = useState('UNVERIFIED');
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (user?.role !== 'superadmin') return;
-    
+
     // Initial full load
     setLoading(true);
     Promise.all([
@@ -120,18 +120,18 @@ export default function AdminDashboard() {
   const handleVerifyPayment = async (paymentId: string, status: 'approved' | 'rejected') => {
     let reason = '';
     if (status === 'rejected') {
-        reason = window.prompt('Enter rejection reason:') || 'Payment details incorrect';
+      reason = window.prompt('Enter rejection reason:') || 'Payment details incorrect';
     }
-    
+
     try {
-        const res = await adminApi.verifyPayment(paymentId, status, reason);
-        setPendingPayments(prev => prev.filter(p => p._id !== paymentId));
-        alert(res.message);
-        // Refresh users since subscription might have updated
-        const u = await adminApi.getAllUsers();
-        setAllUsers(u);
+      const res = await adminApi.verifyPayment(paymentId, status, reason);
+      setPendingPayments(prev => prev.filter(p => p._id !== paymentId));
+      alert(res.message);
+      // Refresh users since subscription might have updated
+      const u = await adminApi.getAllUsers();
+      setAllUsers(u);
     } catch (err: any) {
-        alert(err.message);
+      alert(err.message);
     }
   };
 
@@ -142,9 +142,9 @@ export default function AdminDashboard() {
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
-      <Sider 
-        collapsible 
-        collapsed={collapsed} 
+      <Sider
+        collapsible
+        collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
         theme="dark"
         width={260}
@@ -178,13 +178,13 @@ export default function AdminDashboard() {
       </Sider>
 
       <Layout style={{ marginLeft: collapsed ? 80 : 260, transition: 'all 0.2s', minHeight: '100vh' }}>
-        <Header style={{ 
-          padding: '0 24px', 
-          background: '#fff', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          boxShadow: '0 1px 4px rgba(0,21,41,.08)', 
+        <Header style={{
+          padding: '0 24px',
+          background: '#fff',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 1px 4px rgba(0,21,41,.08)',
           zIndex: 1,
           position: 'sticky',
           top: 0
@@ -232,18 +232,18 @@ export default function AdminDashboard() {
                       <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>Analyze trends by district and time range.</p>
                     </div>
                     <Space>
-                      <Select 
-                        value={district} 
-                        onChange={setDistrict} 
+                      <Select
+                        value={district}
+                        onChange={setDistrict}
                         style={{ width: 180 }}
                         suffixIcon={<MapPin size={14} />}
                       >
                         <Select.Option value="All Sri Lanka">All Sri Lanka</Select.Option>
                         {SRI_LANKA_DISTRICTS.map(d => <Select.Option key={d} value={d}>{d}</Select.Option>)}
                       </Select>
-                      <Select 
-                        value={timeRange} 
-                        onChange={setTimeRange} 
+                      <Select
+                        value={timeRange}
+                        onChange={setTimeRange}
                         style={{ width: 140 }}
                         suffixIcon={<TrendingUp size={14} />}
                       >
@@ -261,30 +261,30 @@ export default function AdminDashboard() {
                     <>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
                         <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #f8fafc, #f1f5f9)' }} bordered={false}>
-                          <Statistic 
-                            title="Total Users" 
-                            value={stats.totalUsers} 
+                          <Statistic
+                            title="Total Users"
+                            value={stats.totalUsers}
                             prefix={<Users size={20} style={{ color: '#3b82f6', marginRight: 8 }} />}
                           />
                         </Card>
                         <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #f8fafc, #f1f5f9)' }} bordered={false}>
-                          <Statistic 
-                            title={`Vehicles (${district})`} 
-                            value={stats.totalVehicles} 
+                          <Statistic
+                            title={`Vehicles (${district})`}
+                            value={stats.totalVehicles}
                             prefix={<Car size={20} style={{ color: '#10b981', marginRight: 8 }} />}
                           />
                         </Card>
                         <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #f8fafc, #f1f5f9)' }} bordered={false}>
-                          <Statistic 
-                            title={`Bookings (${timeRange})`} 
-                            value={stats.bookings.total} 
+                          <Statistic
+                            title={`Bookings (${timeRange})`}
+                            value={stats.bookings.total}
                             prefix={<Calendar size={20} style={{ color: '#f59e0b', marginRight: 8 }} />}
                           />
                         </Card>
                         <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #f8fafc, #f1f5f9)' }} bordered={false}>
-                          <Statistic 
-                            title="Total Earnings" 
-                            value={stats.totalEarnings} 
+                          <Statistic
+                            title="Total Earnings"
+                            value={stats.totalEarnings}
                             prefix={<span style={{ fontWeight: 'bold', color: '#8b5cf6', marginRight: 8 }}>LKR</span>}
                           />
                         </Card>
@@ -317,11 +317,11 @@ export default function AdminDashboard() {
                             </div>
                           ) : <Text type="secondary">No data for this filter.</Text>}
                         </Card>
-                        
+
                         <Card title={<Space><MapPin size={18} /> Booking Distribution</Space>} bordered={false} style={{ border: '1px solid #f1f5f9', borderRadius: '12px' }}>
                           <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '8px' }}>
                             {Object.entries(stats.bookings.byDistrict).length > 0 ? (
-                              Object.entries(stats.bookings.byDistrict).sort((a,b) => b[1] - a[1]).map(([dist, count]) => (
+                              Object.entries(stats.bookings.byDistrict).sort((a, b) => b[1] - a[1]).map(([dist, count]) => (
                                 <div key={dist} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f8fafc' }}>
                                   <Text>{dist}</Text>
                                   <Text strong>{count}</Text>
@@ -339,28 +339,32 @@ export default function AdminDashboard() {
                       <div style={{ background: '#fee2e2', color: '#ef4444', padding: '8px', borderRadius: '8px' }}><History size={20} /></div>
                       <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Recent Admin Actions (Audit Log)</h3>
                     </div>
-                    
-                    <Table 
-                      dataSource={auditLogs} 
+
+                    <Table
+                      dataSource={auditLogs}
                       rowKey="_id"
                       pagination={{ pageSize: 5 }}
                       size="middle"
                       style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                       columns={[
                         { title: 'Date & Time', dataIndex: 'timestamp', render: t => <Text type="secondary" style={{ fontSize: '13px' }}>{new Date(t).toLocaleString()}</Text> },
-                        { title: 'Action', dataIndex: 'action', render: a => {
-                          const colors: any = { role_change: 'purple', user_delete: 'red', user_promote: 'green' };
-                          return <Tag color={colors[a] || 'blue'}>{a.replace('_', ' ').toUpperCase()}</Tag>
-                        }},
-                        { title: 'Performed By', dataIndex: 'performedBy', render: (p: any) => p ? <div style={{ fontSize: '13px' }}><strong>{p.name}</strong><br/><Text type="secondary" style={{ fontSize: '11px' }}>{p.email}</Text></div> : 'System' },
-                        { title: 'Target User', dataIndex: 'targetUser', render: (tu: any) => tu ? <div style={{ fontSize: '13px' }}>{tu.name}<br/><Text type="secondary" style={{ fontSize: '11px' }}>{tu.email}</Text></div> : 'N/A' },
-                        { title: 'Details', dataIndex: 'details', render: (d: any) => (
-                          <Tooltip title={JSON.stringify(d, null, 2)}>
-                            <span style={{ fontSize: '12px', color: '#64748b', cursor: 'help' }}>
-                              {d.oldRole ? `Role: ${d.oldRole} → ${d.newRole}` : d.reason || 'View details'}
-                            </span>
-                          </Tooltip>
-                        )}
+                        {
+                          title: 'Action', dataIndex: 'action', render: a => {
+                            const colors: any = { role_change: 'purple', user_delete: 'red', user_promote: 'green' };
+                            return <Tag color={colors[a] || 'blue'}>{a.replace('_', ' ').toUpperCase()}</Tag>
+                          }
+                        },
+                        { title: 'Performed By', dataIndex: 'performedBy', render: (p: any) => p ? <div style={{ fontSize: '13px' }}><strong>{p.name}</strong><br /><Text type="secondary" style={{ fontSize: '11px' }}>{p.email}</Text></div> : 'System' },
+                        { title: 'Target User', dataIndex: 'targetUser', render: (tu: any) => tu ? <div style={{ fontSize: '13px' }}>{tu.name}<br /><Text type="secondary" style={{ fontSize: '11px' }}>{tu.email}</Text></div> : 'N/A' },
+                        {
+                          title: 'Details', dataIndex: 'details', render: (d: any) => (
+                            <Tooltip title={JSON.stringify(d, null, 2)}>
+                              <span style={{ fontSize: '12px', color: '#64748b', cursor: 'help' }}>
+                                {d.oldRole ? `Role: ${d.oldRole} → ${d.newRole}` : d.reason || 'View details'}
+                              </span>
+                            </Tooltip>
+                          )
+                        }
                       ]}
                     />
                   </div>
@@ -372,45 +376,47 @@ export default function AdminDashboard() {
                   <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
                     <input type="text" placeholder="Search users by name, email, or role..." className="input-field" style={{ borderRadius: '8px', maxWidth: '300px' }} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                   </div>
-                  <Table 
+                  <Table
                     dataSource={filteredUsers}
                     rowKey={u => (u.id || u._id || Math.random()).toString()}
                     pagination={{ pageSize: 15 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { title: 'User', render: (_, u) => <div><strong>{u.name}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text></div> },
+                      { title: 'User', render: (_, u) => <div><strong>{u.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text></div> },
                       { title: 'Role', render: (_, u) => roleBadge(u) },
-                      { title: 'KYC', render: (_, u) => u.isKycVerified ? <Tag icon={<CheckCircle size={12}/>} color="success">Verified</Tag> : <Tag color="warning">{u.verificationStatus || 'Not submitted'}</Tag> },
+                      { title: 'KYC', render: (_, u) => u.isKycVerified ? <Tag icon={<CheckCircle size={12} />} color="success">Verified</Tag> : <Tag color="warning">{u.verificationStatus || 'Not submitted'}</Tag> },
                       { title: 'Status', render: (_, u) => <Tag color={u.status === 'active' ? 'blue' : 'default'}>{u.status || 'active'}</Tag> },
-                      { title: 'Actions', render: (_, u) => {
-                        const id = (u.id || u._id)!;
-                        if (roleEditUser === id) {
+                      {
+                        title: 'Actions', render: (_, u) => {
+                          const id = (u.id || u._id)!;
+                          if (roleEditUser === id) {
+                            return (
+                              <Space>
+                                <Select size="small" value={newRole} onChange={setNewRole} style={{ width: 110 }}>
+                                  <Select.Option value="user">User</Select.Option>
+                                  <Select.Option value="owner">Owner</Select.Option>
+                                  <Select.Option value="subadmin">Subadmin</Select.Option>
+                                  <Select.Option value="superadmin">Superadmin</Select.Option>
+                                </Select>
+                                {newRole === 'owner' && (
+                                  <Select size="small" value={newOwnerType} onChange={setNewOwnerType} style={{ width: 110 }}>
+                                    <Select.Option value="UNVERIFIED">Unverified</Select.Option>
+                                    <Select.Option value="VERIFIED">Verified</Select.Option>
+                                  </Select>
+                                )}
+                                <Button size="small" type="primary" onClick={() => handleUpdateRole(id)}>Save</Button>
+                                <Button size="small" onClick={() => setRoleEditUser(null)}>Cancel</Button>
+                              </Space>
+                            );
+                          }
                           return (
                             <Space>
-                              <Select size="small" value={newRole} onChange={setNewRole} style={{ width: 110 }}>
-                                <Select.Option value="user">User</Select.Option>
-                                <Select.Option value="owner">Owner</Select.Option>
-                                <Select.Option value="subadmin">Subadmin</Select.Option>
-                                <Select.Option value="superadmin">Superadmin</Select.Option>
-                              </Select>
-                              {newRole === 'owner' && (
-                                <Select size="small" value={newOwnerType} onChange={setNewOwnerType} style={{ width: 110 }}>
-                                  <Select.Option value="UNVERIFIED">Unverified</Select.Option>
-                                  <Select.Option value="VERIFIED">Verified</Select.Option>
-                                </Select>
-                              )}
-                              <Button size="small" type="primary" onClick={() => handleUpdateRole(id)}>Save</Button>
-                              <Button size="small" onClick={() => setRoleEditUser(null)}>Cancel</Button>
+                              <Button size="small" type="text" onClick={() => { setRoleEditUser(id); setNewRole(u.role); setNewOwnerType(u.ownerType || 'UNVERIFIED'); }} icon={<Edit2 size={14} />} />
+                              <Button size="small" type="text" danger onClick={() => handleDeleteUser(id)} icon={<Trash2 size={14} />} />
                             </Space>
                           );
                         }
-                        return (
-                          <Space>
-                            <Button size="small" type="text" onClick={() => { setRoleEditUser(id); setNewRole(u.role); setNewOwnerType(u.ownerType || 'UNVERIFIED'); }} icon={<Edit2 size={14} />} />
-                            <Button size="small" type="text" danger onClick={() => handleDeleteUser(id)} icon={<Trash2 size={14} />} />
-                          </Space>
-                        );
-                      }}
+                      }
                     ]}
                   />
                 </div>
@@ -418,17 +424,19 @@ export default function AdminDashboard() {
 
               {tab === 'vehicles' && (
                 <div className="animate-fade-in">
-                  <Table 
+                  <Table
                     dataSource={allVehicles}
                     rowKey="_id"
                     pagination={{ pageSize: 15 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { title: 'Vehicle', render: (_, v) => <div><strong>{v.title}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model}</Text></div> },
-                      { title: 'Owner', render: (_, v) => {
-                        const owner = typeof v.owner === 'object' ? v.owner : null;
-                        return owner ? <div><strong>{owner.name}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{owner.email}</Text></div> : 'Unknown';
-                      }},
+                      { title: 'Vehicle', render: (_, v) => <div><strong>{v.title}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model}</Text></div> },
+                      {
+                        title: 'Owner', render: (_, v) => {
+                          const owner = typeof v.owner === 'object' ? v.owner : null;
+                          return owner ? <div><strong>{owner.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{owner.email}</Text></div> : 'Unknown';
+                        }
+                      },
                       { title: 'Price/day', dataIndex: 'pricePerDay', render: p => `LKR ${(p || 0).toLocaleString()}` },
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'active' ? 'green' : s === 'pending' ? 'orange' : 'red'}>{s}</Tag> }
                     ]}
@@ -438,14 +446,14 @@ export default function AdminDashboard() {
 
               {tab === 'bookings' && (
                 <div className="animate-fade-in">
-                  <Table 
+                  <Table
                     dataSource={allBookings}
                     rowKey="_id"
                     pagination={{ pageSize: 15 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { title: 'Renter', render: (_, b) => { const r = typeof b.user === 'object' ? b.user : null; return r ? (r as User).name : 'User'; }},
-                      { title: 'Vehicle', render: (_, b) => { const v = typeof b.vehicle === 'object' ? b.vehicle : null; return v ? (v as Vehicle).title : 'Vehicle'; }},
+                      { title: 'Renter', render: (_, b) => { const r = typeof b.user === 'object' ? b.user : null; return r ? (r as User).name : 'User'; } },
+                      { title: 'Vehicle', render: (_, b) => { const v = typeof b.vehicle === 'object' ? b.vehicle : null; return v ? (v as Vehicle).title : 'Vehicle'; } },
                       { title: 'Dates', render: (_, b) => <Text style={{ fontSize: '13px' }}>{b.startDate ? new Date(b.startDate).toLocaleDateString() : 'N/A'} — {b.endDate ? new Date(b.endDate).toLocaleDateString() : 'N/A'}</Text> },
                       { title: 'Amount', dataIndex: 'totalAmount', render: a => `LKR ${(a || 0).toLocaleString()}` },
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> }
@@ -456,24 +464,26 @@ export default function AdminDashboard() {
 
               {tab === 'payments' && (
                 <div className="animate-fade-in">
-                  <Table 
+                  <Table
                     dataSource={pendingPayments}
                     rowKey="_id"
                     pagination={{ pageSize: 15 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
+                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
                       { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
                       { title: 'Duration', dataIndex: 'duration' },
                       { title: 'Amount', dataIndex: 'amount', render: (a: number) => `LKR ${a?.toLocaleString()}` },
                       { title: 'Reference', dataIndex: 'reference' },
                       { title: 'Date', dataIndex: 'createdAt', render: (d: string) => new Date(d).toLocaleString() },
-                      { title: 'Actions', render: (_, p: any) => (
-                        <Space>
-                          <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
-                          <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
-                        </Space>
-                      )}
+                      {
+                        title: 'Actions', render: (_, p: any) => (
+                          <Space>
+                            <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
+                            <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
+                          </Space>
+                        )
+                      }
                     ]}
                   />
                 </div>
@@ -481,24 +491,26 @@ export default function AdminDashboard() {
 
               {tab === 'payments' && (
                 <div className="animate-fade-in">
-                  <Table 
+                  <Table
                     dataSource={pendingPayments}
                     rowKey="_id"
                     pagination={{ pageSize: 15 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
+                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
                       { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
                       { title: 'Duration', dataIndex: 'duration' },
                       { title: 'Amount', dataIndex: 'amount', render: (a: number) => `LKR ${a?.toLocaleString()}` },
                       { title: 'Reference', dataIndex: 'reference' },
                       { title: 'Date', dataIndex: 'createdAt', render: (d: string) => new Date(d).toLocaleString() },
-                      { title: 'Actions', render: (_, p: any) => (
-                        <Space>
-                          <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
-                          <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
-                        </Space>
-                      )}
+                      {
+                        title: 'Actions', render: (_, p: any) => (
+                          <Space>
+                            <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
+                            <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
+                          </Space>
+                        )
+                      }
                     ]}
                   />
                 </div>

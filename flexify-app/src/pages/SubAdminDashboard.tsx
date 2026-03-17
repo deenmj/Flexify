@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Table, Tag, Dropdown, Spin } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Car, Shield, CheckCircle, XCircle, Search, 
-  AlertTriangle, FileText, Clock, MessageSquare, 
-  LogOut, ArrowLeft 
+import {
+  Car, Shield, CheckCircle, XCircle, Search,
+  AlertTriangle, FileText, Clock, MessageSquare,
+  LogOut, ArrowLeft
 } from 'lucide-react';
 import { subadminApi, adminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { DollarSign } from 'lucide-react';
@@ -271,18 +271,18 @@ export default function SubAdminDashboard() {
   const handleVerifyPayment = async (paymentId: string, status: 'approved' | 'rejected') => {
     let reason = '';
     if (status === 'rejected') {
-        reason = window.prompt('Enter rejection reason:') || 'Payment details incorrect';
+      reason = window.prompt('Enter rejection reason:') || 'Payment details incorrect';
     }
-    
+
     setActionLoading(paymentId);
     try {
-        const res = await adminApi.verifyPayment(paymentId, status, reason);
-        setPendingPayments(prev => prev.filter(p => p._id !== paymentId));
-        message.success(res.message);
+      const res = await adminApi.verifyPayment(paymentId, status, reason);
+      setPendingPayments(prev => prev.filter(p => p._id !== paymentId));
+      message.success(res.message);
     } catch (err: any) {
-        message.error(err.message);
+      message.error(err.message);
     } finally {
-        setActionLoading(null);
+      setActionLoading(null);
     }
   };
 
@@ -309,9 +309,9 @@ export default function SubAdminDashboard() {
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
-      <Sider 
-        collapsible 
-        collapsed={collapsed} 
+      <Sider
+        collapsible
+        collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
         theme="dark"
         width={280}
@@ -345,13 +345,13 @@ export default function SubAdminDashboard() {
       </Sider>
 
       <Layout style={{ marginLeft: collapsed ? 80 : 280, transition: 'all 0.2s', minHeight: '100vh' }}>
-        <Header style={{ 
-          padding: '0 24px', 
-          background: '#fff', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          boxShadow: '0 1px 4px rgba(0,21,41,.08)', 
+        <Header style={{
+          padding: '0 24px',
+          background: '#fff',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 1px 4px rgba(0,21,41,.08)',
           zIndex: 1,
           position: 'sticky',
           top: 0
@@ -415,30 +415,30 @@ export default function SubAdminDashboard() {
                   <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Title level={5} style={{ margin: 0 }}>Pending KYC Requests</Title>
                     <Space>
-                      <Input 
-                        prefix={<Search size={16} />} 
-                        placeholder="Search name or email..." 
-                        style={{ width: 300, borderRadius: '8px' }} 
+                      <Input
+                        prefix={<Search size={16} />}
+                        placeholder="Search name or email..."
+                        style={{ width: 300, borderRadius: '8px' }}
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                       />
                       <Button type="primary" onClick={fetchData}>Refresh</Button>
                     </Space>
                   </div>
-                  
-                  <Table 
+
+                  <Table
                     dataSource={filteredUsers}
                     rowKey={u => (u.id || u._id || Math.random()).toString()}
                     pagination={{ pageSize: 12 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { 
-                        title: 'User Profile', 
+                      {
+                        title: 'User Profile',
                         render: (_, u) => (
                           <Space size="middle">
                             <Avatar style={{ background: 'linear-gradient(45deg, #0d9488, #2dd4bf)' }}>{u.name.charAt(0)}</Avatar>
                             <div>
-                              <Text strong>{u.name}</Text><br/>
+                              <Text strong>{u.name}</Text><br />
                               <Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text>
                             </div>
                           </Space>
@@ -447,13 +447,13 @@ export default function SubAdminDashboard() {
                       { title: 'Phone Number', dataIndex: 'phone', render: p => p || <Text type="danger">Not provided</Text> },
                       { title: 'Submission Date', dataIndex: 'updatedAt', render: d => d ? new Date(d).toLocaleDateString() : 'Recent' },
                       { title: 'Status', render: () => <Tag color="warning">PENDING REVIEW</Tag> },
-                      { 
-                        title: 'Action', 
+                      {
+                        title: 'Action',
                         render: (_, u) => (
-                          <Button 
-                            type="primary" 
-                            style={{ background: '#1e293b' }} 
-                            icon={<Shield size={14} />} 
+                          <Button
+                            type="primary"
+                            style={{ background: '#1e293b' }}
+                            icon={<Shield size={14} />}
                             onClick={() => { setSelectedUser(u); setShowModal(true); }}
                           >
                             Review KYC
@@ -468,31 +468,31 @@ export default function SubAdminDashboard() {
               {tab === 'vehicles' && (
                 <div className="animate-fade-in">
                   <Title level={5} style={{ marginBottom: '1.5rem' }}>Vehicle Listing Approvals</Title>
-                  <Table 
+                  <Table
                     dataSource={pendingVehicles}
                     rowKey="_id"
                     pagination={{ pageSize: 12 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { 
-                        title: 'Vehicle', 
+                      {
+                        title: 'Vehicle',
                         render: (_, v) => (
                           <div>
-                            <Text strong>{v.title}</Text><br/>
+                            <Text strong>{v.title}</Text><br />
                             <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
                           </div>
                         )
                       },
-                      { 
-                        title: 'Owner', 
+                      {
+                        title: 'Owner',
                         render: (_, v) => {
                           const owner = typeof v.owner === 'object' ? v.owner : null;
-                          return owner ? <div><Text strong>{owner.name}</Text><br/><Text type="secondary" style={{ fontSize: '12px' }}>{owner.email}</Text></div> : 'Unknown';
+                          return owner ? <div><Text strong>{owner.name}</Text><br /><Text type="secondary" style={{ fontSize: '12px' }}>{owner.email}</Text></div> : 'Unknown';
                         }
                       },
                       { title: 'Price/Day', dataIndex: 'pricePerDay', render: p => `LKR ${p.toLocaleString()}` },
-                      { 
-                        title: 'Actions', 
+                      {
+                        title: 'Actions',
                         render: (_, v) => (
                           <Space>
                             <Button type="primary" icon={<CheckCircle size={14} />} onClick={() => handleApproveVehicle(v._id)} loading={actionLoading === v._id}>Approve</Button>
@@ -508,17 +508,17 @@ export default function SubAdminDashboard() {
               {tab === 'reviews' && (
                 <div className="animate-fade-in">
                   <Title level={5} style={{ marginBottom: '1.5rem' }}>Review Moderation</Title>
-                  <Table 
+                  <Table
                     dataSource={reviews}
                     rowKey="_id"
                     pagination={{ pageSize: 12 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { 
-                        title: 'Reviewer', 
+                      {
+                        title: 'Reviewer',
                         render: (_, r) => (
                           <div>
-                            <Text strong>{r.reviewer.name}</Text><br/>
+                            <Text strong>{r.reviewer.name}</Text><br />
                             <Text type="secondary" style={{ fontSize: '12px' }}>Rating: {r.rating}/5</Text>
                           </div>
                         )
@@ -526,11 +526,11 @@ export default function SubAdminDashboard() {
                       { title: 'Rating', dataIndex: 'rating', render: r => <Rate disabled defaultValue={r} style={{ fontSize: 14 }} /> },
                       { title: 'Comment', dataIndex: 'comment', width: '35%', render: c => <Text type="secondary" style={{ fontSize: '13px' }}>{c}</Text> },
                       { title: 'Status', render: (_, r) => <Tag color={r.status === 'visible' ? 'success' : 'red'}>{r.status.toUpperCase()}</Tag> },
-                      { 
-                        title: 'Actions', 
+                      {
+                        title: 'Actions',
                         render: (_, r) => (
-                          <Button 
-                            danger={r.status === 'visible'} 
+                          <Button
+                            danger={r.status === 'visible'}
                             type={r.status === 'visible' ? 'primary' : 'default'}
                             onClick={() => handleToggleReviewStatus(r._id, r.status)}
                           >
@@ -548,7 +548,7 @@ export default function SubAdminDashboard() {
                   <Title level={5} style={{ marginBottom: '1.5rem' }}>Vehicle Content Suggestions</Title>
                   <Space direction="vertical" style={{ width: '100%' }} size="large">
                     <Card title="New Brand Suggestions" size="small">
-                      <Table 
+                      <Table
                         dataSource={pendingMakes}
                         rowKey="_id"
                         pagination={false}
@@ -556,8 +556,8 @@ export default function SubAdminDashboard() {
                         columns={[
                           { title: 'Brand', dataIndex: 'name', render: n => <Text strong>{n}</Text> },
                           { title: 'Suggested By', dataIndex: 'createdBy', render: (u: any) => u?.name || 'Owner' },
-                          { 
-                            title: 'Action', 
+                          {
+                            title: 'Action',
                             render: (_, m) => (
                               <Space>
                                 <Button size="small" type="primary" onClick={() => handleApproveMake(m._id)}>Approve</Button>
@@ -570,7 +570,7 @@ export default function SubAdminDashboard() {
                     </Card>
 
                     <Card title="New Model Suggestions" size="small">
-                      <Table 
+                      <Table
                         dataSource={pendingModels}
                         rowKey="_id"
                         pagination={false}
@@ -579,8 +579,8 @@ export default function SubAdminDashboard() {
                           { title: 'Model', dataIndex: 'name', render: n => <Text strong>{n}</Text> },
                           { title: 'Brand', dataIndex: 'make', render: (m: any) => <Tag color="blue">{m?.name}</Tag> },
                           { title: 'Suggested By', dataIndex: 'createdBy', render: (u: any) => u?.name || 'Owner' },
-                          { 
-                            title: 'Action', 
+                          {
+                            title: 'Action',
                             render: (_, mo) => (
                               <Space>
                                 <Button size="small" type="primary" onClick={() => handleApproveModel(mo._id)}>Approve</Button>
@@ -601,34 +601,38 @@ export default function SubAdminDashboard() {
                     <Title level={5} style={{ margin: 0 }}>Pending Subscription Payments</Title>
                     <Button type="primary" onClick={fetchData}>Refresh</Button>
                   </div>
-                  <Table 
+                  <Table
                     dataSource={pendingPayments}
                     rowKey="_id"
                     pagination={{ pageSize: 12 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br/><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
+                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
                       { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
                       { title: 'Method', dataIndex: 'method', render: (m: string) => <Tag color={m === 'PAYHERE' ? 'green' : 'orange'}>{m || 'MANUAL'}</Tag> },
                       { title: 'Amount', dataIndex: 'amount', render: (a: number) => <Text strong>LKR {a?.toLocaleString()}</Text> },
-                      { title: 'Transaction/Ref', render: (_, p: any) => (
-                        <div>
-                          <Text copyable fontSize="12px">{p.transactionId || p.reference}</Text>
-                          {p.paidAt && <div style={{ fontSize: '11px', color: '#94a3b8' }}>Paid: {new Date(p.paidAt).toLocaleString()}</div>}
-                        </div>
-                      )},
-                      { title: 'Action', render: (_, p: any) => (
-                        <Space>
-                          {p.status === 'approved' ? (
-                            <Tag color="success">Verified</Tag>
-                          ) : (
-                            <>
-                              <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')} loading={actionLoading === p._id}>Approve</Button>
-                              <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')} loading={actionLoading === p._id}>Reject</Button>
-                            </>
-                          )}
-                        </Space>
-                      )}
+                      {
+                        title: 'Transaction/Ref', render: (_, p: any) => (
+                          <div>
+                            <Text copyable fontSize="12px">{p.transactionId || p.reference}</Text>
+                            {p.paidAt && <div style={{ fontSize: '11px', color: '#94a3b8' }}>Paid: {new Date(p.paidAt).toLocaleString()}</div>}
+                          </div>
+                        )
+                      },
+                      {
+                        title: 'Action', render: (_, p: any) => (
+                          <Space>
+                            {p.status === 'approved' ? (
+                              <Tag color="success">Verified</Tag>
+                            ) : (
+                              <>
+                                <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')} loading={actionLoading === p._id}>Approve</Button>
+                                <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')} loading={actionLoading === p._id}>Reject</Button>
+                              </>
+                            )}
+                          </Space>
+                        )
+                      }
                     ]}
                   />
                 </div>
@@ -661,7 +665,7 @@ export default function SubAdminDashboard() {
 
                 <div>
                   <Title level={5} style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b' }}>Contact Info</Title>
-                  <Text strong>{selectedUser.phone || 'Phone not provided'}</Text><br/>
+                  <Text strong>{selectedUser.phone || 'Phone not provided'}</Text><br />
                   <Text type="secondary" style={{ fontSize: '13px' }}>{selectedUser.documents?.address || 'Address not listed'}</Text>
                 </div>
 
@@ -671,13 +675,13 @@ export default function SubAdminDashboard() {
                   </Text>
                   <Space direction="vertical" style={{ width: '100%' }}>
                     {["Cross-check ID numbers", "Photo matches ID", "Check for edits", "Verify name matches"].map((item, idx) => (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         onClick={() => handleCheck(idx)}
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: 10, 
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
                           cursor: 'pointer',
                           padding: '6px',
                           borderRadius: '6px',
@@ -686,9 +690,9 @@ export default function SubAdminDashboard() {
                           fontSize: '13px'
                         }}
                       >
-                        <div style={{ 
-                          width: 18, 
-                          height: 18, 
+                        <div style={{
+                          width: 18,
+                          height: 18,
                           border: `2px solid ${checkedItems[idx] ? '#10b981' : '#fda4af'}`,
                           borderRadius: '4px',
                           display: 'flex',
@@ -705,16 +709,16 @@ export default function SubAdminDashboard() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: 12 }}>
-                  <Button 
-                    danger 
-                    ghost 
+                  <Button
+                    danger
+                    ghost
                     onClick={() => handleRejectUser((selectedUser.id || selectedUser._id)!)}
                   >
                     Reject
                   </Button>
-                  <Button 
-                    type="primary" 
-                    disabled={!allChecked} 
+                  <Button
+                    type="primary"
+                    disabled={!allChecked}
                     onClick={() => handleApproveUser((selectedUser.id || selectedUser._id)!)}
                     style={{ background: allChecked ? '#10b981' : '#e2e8f0', borderColor: allChecked ? '#10b981' : '#e2e8f0' }}
                   >
@@ -729,7 +733,7 @@ export default function SubAdminDashboard() {
               <Title level={5} style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <FileText size={18} /> Documentation Verification
               </Title>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 {[
                   { label: 'NIC Front View', field: 'nicFront' },
@@ -741,10 +745,10 @@ export default function SubAdminDashboard() {
                   return (
                     <Card key={idx} size="small" title={doc.label} style={{ borderRadius: '12px' }}>
                       {url ? (
-                        <img 
-                          src={url} 
-                          alt={doc.label} 
-                          style={{ width: '100%', height: '220px', objectFit: 'contain', cursor: 'zoom-in' }} 
+                        <img
+                          src={url}
+                          alt={doc.label}
+                          style={{ width: '100%', height: '220px', objectFit: 'contain', cursor: 'zoom-in' }}
                           onClick={() => setFullScreenImage(url)}
                         />
                       ) : (

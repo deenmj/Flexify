@@ -1,8 +1,10 @@
+import { Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import LoadingScreen from './components/LoadingScreen';
 
 // Pages
 import Home from './pages/Home';
@@ -46,17 +48,13 @@ import { useAuth } from './context/AuthContext';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
-  
-  if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #f3f4f6', borderTopColor: '#1890ff' }} />
-    </div>
-  );
+
+  if (loading) return <LoadingScreen message="Preparing your dashboard..." />;
 
   if (!user) return <Navigate to="/explore" replace />;
   if (user.role === 'superadmin') return <Navigate to="/admin" replace />;
   if (user.role === 'subadmin') return <Navigate to="/subadmin" replace />;
-  
+
   return <Navigate to="/explore" replace />;
 }
 
@@ -65,37 +63,39 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <SocketProvider>
-          <Routes>
-          {/* Landing / Redirection */}
-          <Route path="/" element={<RootRedirect />} />
-          
-          {/* Auth pages (no navbar/footer) */}
-          <Route path="/auth" element={<AuthLayout><Auth /></AuthLayout>} />
-          <Route path="/google-success" element={<AuthLayout><GoogleSuccess /></AuthLayout>} />
-          <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
-          <Route path="/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
+          <Suspense fallback={<LoadingScreen message="Loading page..." />}>
+            <Routes>
+              {/* Landing / Redirection */}
+              <Route path="/" element={<RootRedirect />} />
 
-          {/* Public pages */}
-          <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
-          <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
-          <Route path="/vehicles/:id" element={<AppLayout><VehicleDetail /></AppLayout>} />
-          <Route path="/about" element={<AppLayout><About /></AppLayout>} />
-          <Route path="/faq" element={<AppLayout><FAQ /></AppLayout>} />
-          <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
-          <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
-          <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
+              {/* Auth pages (no navbar/footer) */}
+              <Route path="/auth" element={<AuthLayout><Auth /></AuthLayout>} />
+              <Route path="/google-success" element={<AuthLayout><GoogleSuccess /></AuthLayout>} />
+              <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
+              <Route path="/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
 
-          {/* Protected pages */}
-          <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
-          <Route path="/verify" element={<AppLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></AppLayout>} />
-          <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute><ListVehicle /></ProtectedRoute></AppLayout>} />
-          <Route path="/dashboard" element={<AppLayout><ProtectedRoute><Dashboard /></ProtectedRoute></AppLayout>} />
-          <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
+              {/* Public pages */}
+              <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
+              <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
+              <Route path="/vehicles/:id" element={<AppLayout><VehicleDetail /></AppLayout>} />
+              <Route path="/about" element={<AppLayout><About /></AppLayout>} />
+              <Route path="/faq" element={<AppLayout><FAQ /></AppLayout>} />
+              <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
+              <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
+              <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
 
-          {/* Admin dashboards */}
-          <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
-          <Route path="/subadmin" element={<AppLayout><ProtectedRoute roles={['subadmin', 'superadmin']}><SubAdminDashboard /></ProtectedRoute></AppLayout>} />
-          </Routes>
+              {/* Protected pages */}
+              <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
+              <Route path="/verify" element={<AppLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></AppLayout>} />
+              <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute><ListVehicle /></ProtectedRoute></AppLayout>} />
+              <Route path="/dashboard" element={<AppLayout><ProtectedRoute><Dashboard /></ProtectedRoute></AppLayout>} />
+              <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
+
+              {/* Admin dashboards */}
+              <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
+              <Route path="/subadmin" element={<AppLayout><ProtectedRoute roles={['subadmin', 'superadmin']}><SubAdminDashboard /></ProtectedRoute></AppLayout>} />
+            </Routes>
+          </Suspense>
         </SocketProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -73,10 +73,10 @@ export default function Explore() {
   useEffect(() => {
     const urlType = searchParams.get('type') || searchParams.get('vehicleType') || '';
     const urlQuery = searchParams.get('q') || '';
-    
+
     setQuery(urlQuery);
     setFilters((prev: Filters) => ({ ...prev, vehicleType: urlType }));
-    
+
     if (urlType) setShowFilters(true);
 
     fetchVehicles(urlQuery, urlType);

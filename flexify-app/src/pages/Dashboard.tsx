@@ -5,10 +5,10 @@ import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate } from 'antd';
 import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review } from '../api';
-import { 
-  Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle, 
-  Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle, 
-  CalendarOff, Star, MessageSquare 
+import {
+  Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
+  Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle,
+  CalendarOff, Star, MessageSquare
 } from 'lucide-react';
 import { notification } from 'antd';
 

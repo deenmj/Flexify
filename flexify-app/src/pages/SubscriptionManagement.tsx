@@ -34,7 +34,7 @@ const PLANS = [
       'Priority email support',
       'Standard analytics'
     ],
-    icon: <Zap className="plan-icon" style={{ color: '#f59e0b'}} />,
+    icon: <Zap className="plan-icon" style={{ color: '#f59e0b' }} />,
     color: '#f59e0b',
     limit: '6 Vehicles'
   },
@@ -100,10 +100,10 @@ const SubscriptionManagement: React.FC = () => {
     try {
       const duration = (selectedTier.id === 'ENTERPRISE' && is6Month) ? 'BI_ANNUAL' : 'MONTHLY';
       const amount = (selectedTier.id === 'ENTERPRISE' && is6Month) ? selectedTier.price6 : selectedTier.price;
-      
+
       const params = await ownerApi.getPayHereParams(selectedTier.id, duration, amount);
       setPayhereParams(params);
-      
+
       setTimeout(() => {
         (document.getElementById('payhere-form') as HTMLFormElement).submit();
       }, 100);
@@ -119,14 +119,14 @@ const SubscriptionManagement: React.FC = () => {
     try {
       const duration = (selectedTier.id === 'ENTERPRISE' && is6Month) ? 'BI_ANNUAL' : 'MONTHLY';
       const amount = (selectedTier.id === 'ENTERPRISE' && is6Month) ? selectedTier.price6 : selectedTier.price;
-      
+
       const res = await ownerApi.initiateSubscription(
-          selectedTier.id, 
-          duration, 
-          amount, 
-          user?.email || 'Unknown'
+        selectedTier.id,
+        duration,
+        amount,
+        user?.email || 'Unknown'
       );
-      
+
       setMessage({ type: 'success', text: res.message });
       setShowPayment(false);
       await refreshUser();
@@ -203,12 +203,12 @@ const SubscriptionManagement: React.FC = () => {
           {isTrial ? <Clock size={24} /> : isExpired ? <AlertCircle size={24} /> : <Shield size={24} />}
           <div>
             <h3>
-              {isTrial ? 'Free Trial Active' : isExpired ? 'Subscription Expired' : 'Subscription Active'} 
+              {isTrial ? 'Free Trial Active' : isExpired ? 'Subscription Expired' : 'Subscription Active'}
               <span className="tier-badge">{sub.tier}</span>
             </h3>
             <p>
-              {isExpired 
-                ? 'Your listings are currently hidden (or will be soon after grace period).' 
+              {isExpired
+                ? 'Your listings are currently hidden (or will be soon after grace period).'
                 : `Your ${isTrial ? 'trial' : 'subscription'} ends in ${daysLeft} days (${new Date(sub.endDate!).toLocaleDateString()}).`}
             </p>
           </div>
@@ -225,48 +225,48 @@ const SubscriptionManagement: React.FC = () => {
       {!showPayment ? (
         <div className="plans-grid">
           {PLANS.map((plan) => (
-            <div 
-              key={plan.id} 
+            <div
+              key={plan.id}
               className={`plan-card ${plan.id === sub.tier && !isExpired ? 'active' : ''}`}
               style={{ '--accent-color': plan.color } as React.CSSProperties}
             >
               {plan.id === sub.tier && !isExpired && <div className="current-label">Active</div>}
               <div className="plan-icon-wrapper">{plan.icon}</div>
               <h2 className="plan-name">{plan.name}</h2>
-              
+
               {plan.id === 'ENTERPRISE' ? (
-                  <div className="enterprise-toggle-container">
-                      <div className="toggle-switch">
-                          <button 
-                            className={!is6Month ? 'active' : ''} 
-                            onClick={() => setIs6Month(false)}
-                          >Monthly</button>
-                          <button 
-                            className={is6Month ? 'active' : ''} 
-                            onClick={() => setIs6Month(true)}
-                          >6-Months</button>
-                      </div>
-                      <div className="plan-price">
-                        LKR {is6Month ? plan.price6!.toLocaleString() : plan.price.toLocaleString()}
-                        <span className="duration">/{is6Month ? '6mo' : 'mo'}</span>
-                      </div>
-                      {is6Month && <div className="save-badge">Save 14%</div>}
+                <div className="enterprise-toggle-container">
+                  <div className="toggle-switch">
+                    <button
+                      className={!is6Month ? 'active' : ''}
+                      onClick={() => setIs6Month(false)}
+                    >Monthly</button>
+                    <button
+                      className={is6Month ? 'active' : ''}
+                      onClick={() => setIs6Month(true)}
+                    >6-Months</button>
                   </div>
+                  <div className="plan-price">
+                    LKR {is6Month ? plan.price6!.toLocaleString() : plan.price.toLocaleString()}
+                    <span className="duration">/{is6Month ? '6mo' : 'mo'}</span>
+                  </div>
+                  {is6Month && <div className="save-badge">Save 14%</div>}
+                </div>
               ) : (
                 <div className="plan-price">LKR {plan.price.toLocaleString()}<span className="duration">/mo</span></div>
               )}
 
               <p className="plan-desc">{plan.description}</p>
               <div className="plan-limit-info"><Info size={14} /> {plan.limit}</div>
-              
+
               <ul className="plan-features">
                 {plan.features.map((feature, idx) => (
                   <li key={idx}><Check size={16} /> {feature}</li>
                 ))}
               </ul>
 
-              <button 
-                className="plan-button" 
+              <button
+                className="plan-button"
                 disabled={loading || (plan.id === sub.tier && !isExpired)}
                 onClick={() => handleRequestUpgrade(plan)}
               >
@@ -278,7 +278,7 @@ const SubscriptionManagement: React.FC = () => {
       ) : (
         <div className="payment-selection-container animate-scale-in">
           <button className="back-link" onClick={() => setShowPayment(false)}><ArrowLeft size={16} /> Back to plans</button>
-          
+
           <div className="payment-checkout-card">
             <div className="checkout-summary">
               <h2>Checkout: {selectedTier.name}</h2>
@@ -290,35 +290,35 @@ const SubscriptionManagement: React.FC = () => {
             </div>
 
             <div className="method-selector">
-                <div 
-                  className={`method-option ${paymentMethod === 'CARD' ? 'selected' : ''}`}
-                  onClick={() => setPaymentMethod('CARD')}
-                >
-                  <CreditCard size={20} />
-                  <div>
-                    <strong>Online Payment</strong>
-                    <p>Card, Genie, Vishwa, etc. (Instant Activation)</p>
-                  </div>
-                  <div className="radio-circle"></div>
+              <div
+                className={`method-option ${paymentMethod === 'CARD' ? 'selected' : ''}`}
+                onClick={() => setPaymentMethod('CARD')}
+              >
+                <CreditCard size={20} />
+                <div>
+                  <strong>Online Payment</strong>
+                  <p>Card, Genie, Vishwa, etc. (Instant Activation)</p>
                 </div>
+                <div className="radio-circle"></div>
+              </div>
 
-                <div 
-                  className={`method-option ${paymentMethod === 'BANK' ? 'selected' : ''}`}
-                  onClick={() => setPaymentMethod('BANK')}
-                >
-                  <Landmark size={20} />
-                  <div>
-                    <strong>Bank Transfer</strong>
-                    <p>Manual verification (Takes 2-4 hours)</p>
-                  </div>
-                  <div className="radio-circle"></div>
+              <div
+                className={`method-option ${paymentMethod === 'BANK' ? 'selected' : ''}`}
+                onClick={() => setPaymentMethod('BANK')}
+              >
+                <Landmark size={20} />
+                <div>
+                  <strong>Bank Transfer</strong>
+                  <p>Manual verification (Takes 2-4 hours)</p>
                 </div>
+                <div className="radio-circle"></div>
+              </div>
             </div>
 
             {paymentMethod === 'CARD' ? (
               <div className="card-payment-info">
-                <button 
-                  className="pay-now-btn" 
+                <button
+                  className="pay-now-btn"
                   onClick={handlePayHere}
                   disabled={loading}
                 >
@@ -332,14 +332,14 @@ const SubscriptionManagement: React.FC = () => {
                   <div className="detail-row"><span>Bank:</span> <strong>Commercial Bank</strong></div>
                   <div className="detail-row"><span>Acc Name:</span> <strong>Flexify Pvt Ltd</strong></div>
                   <div className="detail-row">
-                    <span>Acc Number:</span> 
+                    <span>Acc Number:</span>
                     <div className="value-with-copy">
                       <strong>8010045622</strong>
                       <Tooltip title="Copy account number">
-                        <Button 
-                          type="text" 
-                          size="small" 
-                          icon={<CopyOutlined />} 
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={<CopyOutlined />}
                           className="copy-btn"
                           onClick={() => handleCopy('8010045622', 'Account number')}
                         />
@@ -347,12 +347,12 @@ const SubscriptionManagement: React.FC = () => {
                     </div>
                   </div>
                   <div className="detail-row"><span>Reference:</span> <strong>{user?.email}</strong></div>
-                  
+
                   <div className="copy-all-container">
-                    <Button 
-                      type="link" 
-                      size="small" 
-                      icon={<CopyOutlined />} 
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<CopyOutlined />}
                       onClick={copyAllDetails}
                       className="copy-all-btn"
                     >
@@ -360,8 +360,8 @@ const SubscriptionManagement: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-                <button 
-                  className="confirm-manual-btn" 
+                <button
+                  className="confirm-manual-btn"
                   onClick={confirmManualPayment}
                   disabled={loading}
                 >
@@ -370,26 +370,26 @@ const SubscriptionManagement: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {/* Hidden PayHere Form */}
           {payhereParams && (
             <form id="payhere-form" method="post" action={payhereParams.payhere_url}>
-                <input type="hidden" name="merchant_id" value={payhereParams.merchant_id} />
-                <input type="hidden" name="return_url" value={payhereParams.return_url} />
-                <input type="hidden" name="cancel_url" value={payhereParams.cancel_url} />
-                <input type="hidden" name="notify_url" value={payhereParams.notify_url} />
-                <input type="hidden" name="order_id" value={payhereParams.order_id} />
-                <input type="hidden" name="items" value={payhereParams.items} />
-                <input type="hidden" name="currency" value={payhereParams.currency} />
-                <input type="hidden" name="amount" value={payhereParams.amount} />
-                <input type="hidden" name="first_name" value={payhereParams.first_name} />
-                <input type="hidden" name="last_name" value={payhereParams.last_name} />
-                <input type="hidden" name="email" value={payhereParams.email} />
-                <input type="hidden" name="phone" value={payhereParams.phone} />
-                <input type="hidden" name="address" value={payhereParams.address} />
-                <input type="hidden" name="city" value={payhereParams.city} />
-                <input type="hidden" name="country" value={payhereParams.country} />
-                <input type="hidden" name="hash" value={payhereParams.hash} />
+              <input type="hidden" name="merchant_id" value={payhereParams.merchant_id} />
+              <input type="hidden" name="return_url" value={payhereParams.return_url} />
+              <input type="hidden" name="cancel_url" value={payhereParams.cancel_url} />
+              <input type="hidden" name="notify_url" value={payhereParams.notify_url} />
+              <input type="hidden" name="order_id" value={payhereParams.order_id} />
+              <input type="hidden" name="items" value={payhereParams.items} />
+              <input type="hidden" name="currency" value={payhereParams.currency} />
+              <input type="hidden" name="amount" value={payhereParams.amount} />
+              <input type="hidden" name="first_name" value={payhereParams.first_name} />
+              <input type="hidden" name="last_name" value={payhereParams.last_name} />
+              <input type="hidden" name="email" value={payhereParams.email} />
+              <input type="hidden" name="phone" value={payhereParams.phone} />
+              <input type="hidden" name="address" value={payhereParams.address} />
+              <input type="hidden" name="city" value={payhereParams.city} />
+              <input type="hidden" name="country" value={payhereParams.country} />
+              <input type="hidden" name="hash" value={payhereParams.hash} />
             </form>
           )}
         </div>

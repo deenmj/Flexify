@@ -65,16 +65,16 @@ export default function VehicleDetail() {
       vehicleApi.getAvailability(id),
       reviewApi.getForVehicle(id)
     ])
-    .then(([availData, reviewData]) => {
-      setBookedRanges(availData.bookedRanges);
-      setBlackoutRanges(availData.blackoutRanges);
-      setReviews(reviewData);
-    })
-    .catch(() => { /* silently fail */ })
-    .finally(() => {
-      setAvailLoading(false);
-      setReviewsLoading(false);
-    });
+      .then(([availData, reviewData]) => {
+        setBookedRanges(availData.bookedRanges);
+        setBlackoutRanges(availData.blackoutRanges);
+        setReviews(reviewData);
+      })
+      .catch(() => { /* silently fail */ })
+      .finally(() => {
+        setAvailLoading(false);
+        setReviewsLoading(false);
+      });
   }, [id]);
 
   // Helper: is a date within a booked range?
@@ -164,7 +164,7 @@ export default function VehicleDetail() {
           setBookedRanges(data.bookedRanges);
           setBlackoutRanges(data.blackoutRanges);
         })
-        .catch(() => {});
+        .catch(() => { });
     } catch (err: any) {
       message.error(err.message || 'Failed to submit booking');
     } finally {
@@ -320,7 +320,7 @@ export default function VehicleDetail() {
               <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <MessageSquare size={20} /> Guest Reviews ({reviews.length})
               </h3>
-              
+
               <List
                 loading={reviewsLoading}
                 itemLayout="horizontal"
