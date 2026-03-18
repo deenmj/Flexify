@@ -93,14 +93,16 @@
   margin: -1rem 0;
 }
 
-.mobile-filters-collapse .ant-collapse-header {
+.mobile-filters-collapse .ant-collapse-header,
+.desktop-filters-collapse .ant-collapse-header {
   padding: 1.25rem 0 !important;
   font-weight: 700 !important;
   color: var(--text-primary) !important;
   border-bottom: 1px solid var(--border-color-light) !important;
 }
 
-.mobile-filters-collapse .ant-collapse-content-box {
+.mobile-filters-collapse .ant-collapse-content-box,
+.desktop-filters-collapse .ant-collapse-content-box {
   padding: 1.5rem 0 !important;
 }
 

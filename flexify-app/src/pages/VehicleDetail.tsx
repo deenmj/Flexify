@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar } from 'antd';
+import { Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review } from '../api';
-import { Users, CheckCircle, Star, ShieldCheck, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare } from 'lucide-react';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './VehicleDetail.css';
@@ -200,7 +200,8 @@ export default function VehicleDetail() {
     );
   }
 
-  const displayImages = (vehicle.photos && vehicle.photos.length > 0) ? vehicle.photos : ['https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'];
+  const validPhotos = vehicle.photos?.filter(p => p && p.trim() !== '');
+  const displayImages = (validPhotos && validPhotos.length > 0) ? validPhotos : ['https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'];
   const owner = typeof vehicle.owner === 'object' ? vehicle.owner : null;
 
   // Calculate days & total from RangePicker
@@ -220,6 +221,7 @@ export default function VehicleDetail() {
               <img
                 src={displayImages[activeImage]}
                 alt={vehicle.title}
+                loading="lazy"
                 className="detail-main-img animate-fade-in"
                 onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'; }}
               />
@@ -392,27 +394,32 @@ export default function VehicleDetail() {
               </div>
             </div>
 
-            <div className="owner-panel card" style={{ marginTop: '1.5rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Hosted By</h3>
+            <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.5rem' }} style={{ marginTop: '1.5rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Hosted By</h3>
               {owner ? (
                 <div className="owner-profile-preview">
-                  <img
-                    src={owner.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
-                    alt={owner.name}
-                    className="owner-avatar"
-                  />
-                  <div className="owner-info-text">
+                  <Badge
+                    count={owner.ownerType === 'VERIFIED' ? <CheckCircle size={14} style={{ color: '#10b981', background: '#fff', borderRadius: '50%' }} /> : 0}
+                    offset={[-4, 44]}
+                  >
+                    <Avatar
+                      src={owner.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
+                      alt={owner.name}
+                      size={64}
+                      style={{ border: '2px solid var(--primary-color)' }}
+                    />
+                  </Badge>
+                  <div className="owner-info-text" style={{ display: 'flex', flexDirection: 'column' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <strong>{owner.name}</strong>
-                      {owner.ownerType === 'VERIFIED' && <ShieldCheck size={16} className="text-success" />}
+                      <strong style={{ fontSize: '1.1rem' }}>{owner.name}</strong>
                     </div>
-                    <span style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>Joined {new Date().getFullYear()}</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Joined 2026</span>
                   </div>
                 </div>
               ) : (
                 <div style={{ color: 'var(--text-tertiary)' }}>Unknown Owner</div>
               )}
-            </div>
+            </Card>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, Filter, MapPin, Verified, X, SlidersHorizontal, Star, Locate } from 'lucide-react';
+import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Collapse } from 'antd';
@@ -138,6 +138,7 @@ export default function Explore() {
             {isMobile ? (
               <Collapse
                 ghost
+                accordion
                 expandIconPosition="end"
                 className="mobile-filters-collapse"
                 defaultActiveKey={['basic']}
@@ -250,8 +251,15 @@ export default function Explore() {
                 </Collapse.Panel>
               </Collapse>
             ) : (
-              <>
-                <div className="filters-grid">
+              <Collapse
+                accordion
+                ghost
+                expandIconPosition="end"
+                className="desktop-filters-collapse"
+                defaultActiveKey={['all_filters']}
+              >
+                <Collapse.Panel header="Filter Options" key="all_filters">
+                  <div className="filters-grid">
                   <div className="input-group">
                     <label>Transmission</label>
                     <select
@@ -351,11 +359,8 @@ export default function Explore() {
                     </select>
                   </div>
                 </div>
-                <div className="filters-actions">
-                  <button className="btn btn-ghost btn-sm" onClick={clearFilters}><X size={14} /> Clear All</button>
-                  <button className="btn btn-primary btn-sm" onClick={() => fetchVehicles()}><Filter size={14} /> Apply Filters</button>
-                </div>
-              </>
+                </Collapse.Panel>
+              </Collapse>
             )}
           </div>
 
@@ -411,10 +416,11 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
     <div className="explore-vehicle-card card">
       <div className="explore-vehicle-img-wrap">
         <img
-          src={vehicle.photos?.[0] || 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'}
+          src={vehicle.photos?.[0] && vehicle.photos[0].trim() !== '' ? vehicle.photos[0] : 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'}
           alt={vehicle.title}
+          loading="lazy"
           className="explore-vehicle-img"
-          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'; }}
+          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'; }}
         />
         <div className="explore-vehicle-badges">
           {vehicle.transmission && <span className="badge badge-primary">{vehicle.transmission}</span>}
