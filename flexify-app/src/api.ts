@@ -132,6 +132,17 @@ export interface VehicleModel {
   createdBy?: User | string;
 }
 
+export interface BankDetailsData {
+  _id?: string;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  referenceEmail: string;
+  notes?: string;
+  updatedAt?: string;
+  updatedBy?: string | User;
+}
+
 export interface AuthResponse {
   token: string;
   user: User;
@@ -495,4 +506,15 @@ export const ownerApi = {
     }),
 
   getStats: () => apiFetch<any>('/owner/stats')
+};
+
+// =================== BANK DETAILS ===================
+export const bankDetailsApi = {
+  get: () => apiFetch<BankDetailsData>('/bank-details'),
+
+  update: (data: Partial<BankDetailsData>) =>
+    apiFetch<BankDetailsData>('/bank-details', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };

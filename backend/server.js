@@ -110,6 +110,7 @@ import subadminRoutes from "./routes/subadminRoutes.js";
 import blackoutRoutes from "./routes/blackoutRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import ownerRoutes from "./routes/ownerRoutes.js";
+import bankDetailsRoutes from "./routes/bankDetailsRoutes.js";
 
 import { protect } from "./middleware/authMiddleware.js";
 
@@ -126,6 +127,7 @@ app.use("/api/subadmin", subadminRoutes);
 app.use("/api/blackouts", blackoutRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/owner", ownerRoutes);
+app.use("/api/bank-details", bankDetailsRoutes);
 
 // Catch-all to serve React app
 app.get("*", (req, res) => {

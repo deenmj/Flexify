@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../SocketContext';
 import { Check, Shield, Zap, AlertCircle, Clock, Info, CreditCard, Landmark, ArrowLeft, Loader2 } from 'lucide-react';
-import { ownerApi } from '../api';
+import { ownerApi, bankDetailsApi, type BankDetailsData } from '../api';
 import './SubscriptionManagement.css';
 import { notification, message, Button, Tooltip } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
@@ -67,6 +67,7 @@ const SubscriptionManagement: React.FC = () => {
   const [is6Month, setIs6Month] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'CARD' | 'BANK'>('CARD');
   const [payhereParams, setPayhereParams] = useState<any>(null);
+  const [bankDetails, setBankDetails] = useState<BankDetailsData | null>(null);
 
   const sub = user?.subscription || { tier: 'BASIC', status: 'trial', endDate: null };
   const isTrial = sub.status === 'trial';
@@ -88,7 +89,11 @@ const SubscriptionManagement: React.FC = () => {
         socket.off('subscriptionActivated');
       };
     }
-  }, [socket]);
+  }, [socket, refreshUser]);
+
+  useEffect(() => {
+    bankDetailsApi.get().then(setBankDetails).catch(console.error);
+  }, []);
 
   const handleRequestUpgrade = (plan: any) => {
     setSelectedTier(plan);
@@ -187,7 +192,8 @@ const SubscriptionManagement: React.FC = () => {
   };
 
   const copyAllDetails = () => {
-    const details = `Bank: Commercial Bank\nAccount Name: Flexify Pvt Ltd\nAccount Number: 8010045622\nReference: ${user?.email}`;
+    if (!bankDetails) return;
+    const details = `Bank: ${bankDetails.bankName}\nAccount Name: ${bankDetails.accountName}\nAccount Number: ${bankDetails.accountNumber}\nReference: ${user?.email}`;
     handleCopy(details, 'All bank details');
   };
 
@@ -329,24 +335,29 @@ const SubscriptionManagement: React.FC = () => {
             ) : (
               <div className="bank-payment-info">
                 <div className="bank-details">
-                  <div className="detail-row"><span>Bank:</span> <strong>Commercial Bank</strong></div>
-                  <div className="detail-row"><span>Acc Name:</span> <strong>Flexify Pvt Ltd</strong></div>
+                  <div className="detail-row"><span>Bank:</span> <strong>{bankDetails ? bankDetails.bankName : 'Loading...'}</strong></div>
+                  <div className="detail-row"><span>Acc Name:</span> <strong>{bankDetails ? bankDetails.accountName : 'Loading...'}</strong></div>
                   <div className="detail-row">
                     <span>Acc Number:</span>
                     <div className="value-with-copy">
-                      <strong>8010045622</strong>
+                      <strong>{bankDetails ? bankDetails.accountNumber : '...'}</strong>
                       <Tooltip title="Copy account number">
                         <Button
                           type="text"
                           size="small"
                           icon={<CopyOutlined />}
                           className="copy-btn"
-                          onClick={() => handleCopy('8010045622', 'Account number')}
+                          disabled={!bankDetails}
+                          onClick={() => handleCopy(bankDetails?.accountNumber || '', 'Account number')}
                         />
                       </Tooltip>
                     </div>
                   </div>
                   <div className="detail-row"><span>Reference:</span> <strong>{user?.email}</strong></div>
+                  
+                  {bankDetails?.notes && (
+                    <div className="detail-row"><span>Notes:</span> <strong style={{color: '#f59e0b'}}>{bankDetails.notes}</strong></div>
+                  )}
 
                   <div className="copy-all-container">
                     <Button
@@ -355,6 +366,7 @@ const SubscriptionManagement: React.FC = () => {
                       icon={<CopyOutlined />}
                       onClick={copyAllDetails}
                       className="copy-all-btn"
+                      disabled={!bankDetails}
                     >
                       Copy All Details
                     </Button>

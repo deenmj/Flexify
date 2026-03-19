@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin } from 'lucide-react';
-import { Table, Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown } from 'antd';
+import { adminApi, bankDetailsApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData } from '../api';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark } from 'lucide-react';
+import { Table, Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
@@ -25,9 +25,11 @@ export default function AdminDashboard() {
   const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
-  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments'>('overview');
+  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings'>('overview');
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [bankDetails, setBankDetails] = useState<BankDetailsData | null>(null);
+  const [bankDetailsLoading, setBankDetailsLoading] = useState(false);
   const [district, setDistrict] = useState<string>('All Sri Lanka');
   const [timeRange, setTimeRange] = useState<string>('30d');
 
@@ -75,6 +77,32 @@ export default function AdminDashboard() {
     if (loading) return;
     fetchStats();
   }, [district, timeRange, fetchStats]);
+
+  useEffect(() => {
+    if (tab === 'bank-settings' && !bankDetails) {
+      setBankDetailsLoading(true);
+      bankDetailsApi.get()
+        .then(setBankDetails)
+        .catch(err => {
+          console.error('Failed to load bank details', err);
+          message.error('Could not load bank details');
+        })
+        .finally(() => setBankDetailsLoading(false));
+    }
+  }, [tab, bankDetails]);
+
+  const handleBankDetailsUpdate = async (values: Partial<BankDetailsData>) => {
+    try {
+      setBankDetailsLoading(true);
+      const updated = await bankDetailsApi.update(values);
+      setBankDetails(updated);
+      message.success('Bank details updated successfully!');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update bank details');
+    } finally {
+      setBankDetailsLoading(false);
+    }
+  };
 
   const handleUpdateRole = async (userId: string) => {
     try {
@@ -173,6 +201,7 @@ export default function AdminDashboard() {
             { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${allVehicles.length})` },
             { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
             { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
+            { key: 'bank-settings', icon: <Landmark size={18} />, label: `Bank Settings` },
           ]}
         />
       </Sider>
@@ -196,6 +225,7 @@ export default function AdminDashboard() {
               {tab === 'vehicles' && 'Vehicle Directory'}
               {tab === 'bookings' && 'Booking Records'}
               {tab === 'payments' && 'Subscription Payments'}
+              {tab === 'bank-settings' && 'Bank Settings Configuration'}
             </Title>
           </div>
           <Space size="large">
@@ -513,6 +543,41 @@ export default function AdminDashboard() {
                       }
                     ]}
                   />
+                </div>
+              )}
+
+              {tab === 'bank-settings' && (
+                <div className="animate-fade-in" style={{ maxWidth: '600px' }}>
+                  <Card title="Bank Details Configuration" bordered={false} style={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    {bankDetailsLoading && !bankDetails ? (
+                      <div style={{ textAlign: 'center', padding: '2rem' }}><Spin size="large" /></div>
+                    ) : (
+                      <Form
+                        layout="vertical"
+                        initialValues={bankDetails || {}}
+                        onFinish={handleBankDetailsUpdate}
+                      >
+                        <Form.Item name="bankName" label="Bank Name" rules={[{ required: true }]}>
+                          <Input size="large" placeholder="Commercial Bank" />
+                        </Form.Item>
+                        <Form.Item name="accountName" label="Account Name" rules={[{ required: true }]}>
+                          <Input size="large" placeholder="Flexify Pvt Ltd" />
+                        </Form.Item>
+                        <Form.Item name="accountNumber" label="Account Number" rules={[{ required: true }]}>
+                          <Input size="large" placeholder="8010045622" />
+                        </Form.Item>
+                        <Form.Item name="referenceEmail" label="Reference Email (for clarifications)" rules={[{ required: true, type: 'email' }]}>
+                          <Input size="large" placeholder="luxury@flexify.com" />
+                        </Form.Item>
+                        <Form.Item name="notes" label="Additional Notes (e.g., branch name, message to users)">
+                          <Input.TextArea rows={3} placeholder="Any specific instructions for manual transfers..." />
+                        </Form.Item>
+                        <Button type="primary" htmlType="submit" size="large" loading={bankDetailsLoading} block>
+                          Save Changes
+                        </Button>
+                      </Form>
+                    )}
+                  </Card>
                 </div>
               )}
             </>
