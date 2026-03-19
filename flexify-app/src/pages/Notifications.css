@@ -1,0 +1,85 @@
+.notifications-page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.notifications-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: #f8fafc;
+}
+
+.notification-item.unread {
+  background-color: #f0f7ff;
+}
+
+.notification-icon-wrapper {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e2e8f0;
+  margin-right: 1.5rem;
+  color: #475569;
+}
+
+.icon-calendar { color: #f59e0b; background-color: #fef3c7; border-radius: 50%; padding: 6px; width: 36px; height: 36px; }
+.icon-subscription { color: #10b981; background-color: #d1fae5; border-radius: 50%; padding: 6px; width: 36px; height: 36px; }
+.icon-kyc { color: #3b82f6; background-color: #dbeafe; border-radius: 50%; padding: 6px; width: 36px; height: 36px; }
+.icon-system { color: #8b5cf6; background-color: #ede9fe; border-radius: 50%; padding: 6px; width: 36px; height: 36px; }
+
+.notification-content {
+  flex-grow: 1;
+}
+
+.notification-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.notification-title {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.notification-time {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.notification-message {
+  font-size: 0.95rem;
+  color: #64748b;
+  display: block;
+}
+
+.loading-container {
+  padding: 4rem;
+  text-align: center;
+}

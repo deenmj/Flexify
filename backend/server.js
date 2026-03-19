@@ -111,6 +111,7 @@ import blackoutRoutes from "./routes/blackoutRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import ownerRoutes from "./routes/ownerRoutes.js";
 import bankDetailsRoutes from "./routes/bankDetailsRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 import { protect } from "./middleware/authMiddleware.js";
 
@@ -128,6 +129,7 @@ app.use("/api/blackouts", blackoutRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/owner", ownerRoutes);
 app.use("/api/bank-details", bankDetailsRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Catch-all to serve React app
 app.get("*", (req, res) => {

@@ -26,6 +26,7 @@ import Help from './pages/Help';
 import VerifyUser from './pages/VerifyUser';
 import SubscriptionManagement from './pages/SubscriptionManagement';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Notifications from './pages/Notifications';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -89,6 +90,7 @@ export default function App() {
               <Route path="/verify" element={<AppLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></AppLayout>} />
               <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute><ListVehicle /></ProtectedRoute></AppLayout>} />
               <Route path="/dashboard" element={<AppLayout><ProtectedRoute><Dashboard /></ProtectedRoute></AppLayout>} />
+              <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
               <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
 
               {/* Admin dashboards */}

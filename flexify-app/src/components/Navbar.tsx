@@ -2,15 +2,39 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Zap, Users, Globe, DollarSign, Compass, Home } from 'lucide-react';
+import { Badge } from 'antd';
+import { useSocket } from '../context/SocketContext';
+import { notificationApi } from '../api';
 import './Navbar.css';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { socket } = useSocket();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      notificationApi.getUnreadCount()
+        .then(res => setUnreadCount(res.unreadCount))
+        .catch(console.error);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewNotification = () => {
+      setUnreadCount(prev => prev + 1);
+    };
+    socket.on('newNotification', handleNewNotification);
+    return () => {
+      socket.off('newNotification', handleNewNotification);
+    };
+  }, [socket]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -121,9 +145,10 @@ export default function Navbar() {
                 <Link to="/explore" className="nav-action-btn" title="Search">
                   <Search size={20} />
                 </Link>
-                <button className="nav-action-btn notification-btn" title="Notifications">
-                  <Bell size={20} />
-                  <span className="notification-dot" />
+                <button className="nav-action-btn notification-btn" title="Notifications" onClick={() => navigate('/notifications')}>
+                  <Badge count={unreadCount} size="small" offset={[-2, 2]}>
+                    <Bell size={20} style={{ color: 'inherit' }} />
+                  </Badge>
                 </button>
               </>
             )}

@@ -143,6 +143,17 @@ export interface BankDetailsData {
   updatedBy?: string | User;
 }
 
+export interface NotificationItem {
+  _id: string;
+  user: string;
+  title: string;
+  message: string;
+  type: 'booking_request' | 'booking_update' | 'subscription' | 'kyc' | 'system';
+  relatedId?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export interface AuthResponse {
   token: string;
   user: User;
@@ -517,4 +528,16 @@ export const bankDetailsApi = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+};
+
+// =================== NOTIFICATIONS ===================
+export const notificationApi = {
+  get: (page = 1, limit = 20) =>
+    apiFetch<{ notifications: NotificationItem[]; total: number; page: number; pages: number }>(`/notifications?page=${page}&limit=${limit}`),
+
+  getUnreadCount: () => apiFetch<{ unreadCount: number }>('/notifications/unread'),
+
+  markAsRead: (id: string) => apiFetch<NotificationItem>(`/notifications/${id}/read`, { method: 'PATCH' }),
+
+  markAllAsRead: () => apiFetch<{ message: string }>('/notifications/mark-all-read', { method: 'POST' }),
 };
