@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate } from 'antd';
+import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col } from 'antd';
 import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review } from '../api';
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
@@ -43,6 +43,33 @@ export default function Dashboard() {
   const [reviewForm] = Form.useForm();
   const [submittingReview, setSubmittingReview] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+
+  // Review Renter Modal state
+  const [showRenterModal, setShowRenterModal] = useState(false);
+  const [selectedRenter, setSelectedRenter] = useState<any>(null);
+  const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+
+  // Highlight logic from URL
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    const targetTab = searchParams.get('tab');
+    
+    if (targetTab === 'bookings') {
+      setTab('bookings');
+    }
+
+    if (highlightId) {
+      setTimeout(() => {
+        const element = document.getElementById(`booking-${highlightId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('highlight-row');
+          setTimeout(() => element.classList.remove('highlight-row'), 3000);
+        }
+      }, 500);
+    }
+  }, [searchParams, bookings.length]);
 
   useEffect(() => {
     const promises: Promise<any>[] = [
@@ -187,11 +214,25 @@ export default function Dashboard() {
   };
 
   const handleAcceptBooking = async (id: string) => {
-    try {
-      await bookingApi.accept(id);
-      setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CONFIRMED' } : bk));
-      message.success('Booking confirmed! Email notifications sent.');
-    } catch (err: any) { message.error(err.message || 'Failed to accept booking'); }
+    const previousBookings = [...bookings];
+    
+    // 1. Instant Optimistic UI Update
+    setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CONFIRMED' } : bk));
+    message.success('Booking confirmed!');
+
+    // 2. Short delay for "feel" then API call
+    setTimeout(async () => {
+      try {
+        await bookingApi.accept(id);
+        // Refresh to get full populated data (like owner phone etc)
+        const updated = await bookingApi.getMy();
+        setBookings(updated);
+      } catch (err: any) {
+        // Rollback on failure
+        setBookings(previousBookings);
+        message.error(err.message || 'Failed to confirm booking');
+      }
+    }, 300);
   };
 
   const handleRejectBooking = async (id: string) => {
@@ -496,7 +537,7 @@ export default function Dashboard() {
                     const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
                     const owner = typeof b.owner === 'object' ? b.owner : null;
                     return (
-                      <tr key={b._id}>
+                      <tr key={b._id} id={`booking-${b._id}`}>
                         <td>
                           <div style={{ fontWeight: 600 }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle'}</div>
                           {vehicle && (
@@ -522,16 +563,31 @@ export default function Dashboard() {
                           )}
                         </td>
                         <td className="table-actions">
+                          {/* Review Renter Button (Owner Only) */}
+                          {b.status === 'PENDING' && isOwner && (
+                            <button 
+                              className="btn btn-sm btn-ghost" 
+                              style={{ color: '#1890ff', border: '1px solid #1890ff' }}
+                              onClick={() => {
+                                setSelectedRenter(typeof b.user === 'object' ? b.user : null);
+                                setActiveBookingId(b._id);
+                                setShowRenterModal(true);
+                              }}
+                            >
+                              <Eye size={14} /> Review Renter
+                            </button>
+                          )}
+
                           {/* Owner accept/reject — only for verified owners */}
                           {b.status === 'PENDING' && isVerifiedOwner && (
-                            <>
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
                               <button className="btn btn-sm btn-primary" onClick={() => handleAcceptBooking(b._id)}>
                                 <CheckCircle size={14} /> Accept
                               </button>
                               <button className="btn btn-sm btn-danger" onClick={() => handleRejectBooking(b._id)}>
                                 <XCircle size={14} /> Reject
                               </button>
-                            </>
+                            </div>
                           )}
                           {/* Unverified owner sees read-only */}
                           {b.status === 'PENDING' && isUnverifiedOwner && (
@@ -794,6 +850,100 @@ export default function Dashboard() {
             Submit Review
           </Button>
         </Form>
+      </Modal>
+
+      {/* RENTER REVIEW MODAL */}
+      <Modal
+        title="Renter Verification Details"
+        open={showRenterModal}
+        onCancel={() => setShowRenterModal(false)}
+        footer={[
+          <Button key="close" onClick={() => setShowRenterModal(false)}>Close</Button>,
+          <Button 
+            key="reject" 
+            danger 
+            onClick={() => {
+              if (activeBookingId) handleRejectBooking(activeBookingId);
+              setShowRenterModal(false);
+            }}
+          >
+            Reject Booking
+          </Button>,
+          <Button 
+            key="approve" 
+            type="primary" 
+            style={{ background: '#16a34a', borderColor: '#16a34a' }}
+            onClick={() => {
+              if (activeBookingId) handleAcceptBooking(activeBookingId);
+              setShowRenterModal(false);
+            }}
+          >
+            Approve Booking
+          </Button>
+        ]}
+        width={700}
+        destroyOnClose
+      >
+        {selectedRenter ? (
+          <div className="renter-review-content" style={{ padding: '10px 0' }}>
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', alignItems: 'center', background: '#f8fafc', padding: '15px', borderRadius: '12px' }}>
+              <img 
+                src={selectedRenter.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(selectedRenter.name || 'User') + '&background=1890ff&color=fff'} 
+                alt="Profile" 
+                style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              />
+              <div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem' }}>{selectedRenter.name}</h3>
+                <p style={{ margin: '0', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}><Phone size={14} /> {selectedRenter.phone || 'No phone provided'}</p>
+                <p style={{ margin: '0', color: 'var(--text-secondary)' }}>{selectedRenter.email}</p>
+              </div>
+            </div>
+
+            <Row gutter={[20, 20]}>
+              <Col span={24}>
+                <div style={{ padding: '12px', background: '#eff6ff', borderRadius: '8px', borderLeft: '4px solid #1890ff' }}>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: '0.9rem', color: '#1e40af' }}>Address</p>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.95rem' }}>{selectedRenter.documents?.address || selectedRenter.address || 'Not provided'}</p>
+                </div>
+              </Col>
+              
+              <Col span={12}>
+                <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIC Front</p>
+                <Image 
+                  src={selectedRenter.documents?.nicFront} 
+                  fallback="https://via.placeholder.com/400x250?text=NIC+Front+Not+Available"
+                  style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
+                />
+              </Col>
+              <Col span={12}>
+                <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIC Back</p>
+                <Image 
+                  src={selectedRenter.documents?.nicBack} 
+                  fallback="https://via.placeholder.com/400x250?text=NIC+Back+Not+Available"
+                  style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
+                />
+              </Col>
+              <Col span={12}>
+                <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Driving License</p>
+                <Image 
+                  src={selectedRenter.documents?.license} 
+                  fallback="https://via.placeholder.com/400x250?text=License+Not+Available"
+                  style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
+                />
+              </Col>
+              <Col span={12}>
+                <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Selfie Verification</p>
+                <Image 
+                  src={selectedRenter.documents?.selfie} 
+                  fallback="https://via.placeholder.com/400x250?text=Selfie+Not+Available"
+                  style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
+                />
+              </Col>
+            </Row>
+          </div>
+        ) : (
+          <p>Loading renter details...</p>
+        )}
       </Modal>
     </div>
   );

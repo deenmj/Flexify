@@ -3,6 +3,7 @@ import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
 import Blackout from "../models/Blackout.js";
 import sendEmail from "../utils/sendEmail.js";
+import { createNotification } from "./notificationController.js";
 
 /**
  * Create booking — only KYC verified users can book
@@ -85,6 +86,16 @@ export const createBooking = async (req, res) => {
         endDate: e,
         totalAmount
       });
+
+      // PERSISTENT NOTIFICATION (for bell icon & history)
+      await createNotification(
+        io,
+        vehicle.owner._id,
+        "New Booking Request",
+        `${req.user.name} wants to rent your ${vehicle.title}.`,
+        "booking_request",
+        booking._id
+      );
     }
 
     // Send email to owner
@@ -322,7 +333,7 @@ export const getMyBookings = async (req, res) => {
         path: "owner",
         select: "name email phone profilePic",
       })
-      .populate("user", "name email phone")
+      .populate("user", "name email phone documents address profilePic") // Populating documents and address
       .sort({ createdAt: -1 });
 
     // Mask owner phone unless booking is CONFIRMED
