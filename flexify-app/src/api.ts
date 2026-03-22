@@ -378,11 +378,25 @@ export const adminApi = {
 
   getAllUsers: () => apiFetch<User[]>('/admin/users'),
 
+  updateUser: (userId: string, data: { name?: string; email?: string; phone?: string }) =>
+    apiFetch<{ message: string; user: User }>(`/admin/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
   updateUserRole: (userId: string, role: string, ownerType?: string) =>
     apiFetch<{ message: string; user: User }>(`/admin/users/${userId}/role`, {
       method: 'PATCH',
       body: JSON.stringify({ role, ownerType }),
     }),
+
+  updateUserStatus: (userId: string, status: string) =>
+    apiFetch<{ message: string; user: User }>(`/admin/users/${userId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
+  getUserKyc: (userId: string) => apiFetch<User>(`/admin/users/${userId}/kyc`),
 
   deleteUser: (userId: string) =>
     apiFetch<{ message: string }>(`/admin/users/${userId}`, { method: 'DELETE' }),

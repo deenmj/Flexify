@@ -3,8 +3,11 @@ import express from "express";
 import {
   getAdminStats,
   getAllUsers,
+  updateUserInfo,
   updateUserRole,
+  updateUserStatus,
   deleteUser,
+  getUserKyc,
   getAllVehicles,
   getAllBookings,
   getAuditLogs,
@@ -18,7 +21,10 @@ const router = express.Router();
 
 router.get("/stats", protect, requireSuperAdmin, getAdminStats);
 router.get("/users", protect, requireSuperAdmin, getAllUsers);
+router.put("/users/:id", protect, requireSuperAdmin, updateUserInfo);
 router.patch("/users/:id/role", protect, requireSuperAdmin, updateUserRole);
+router.patch("/users/:id/status", protect, requireSuperAdmin, updateUserStatus);
+router.get("/users/:id/kyc", protect, requireSuperAdmin, getUserKyc);
 router.patch("/users/:id/subscription", protect, requireSuperAdmin, updateUserSubscription);
 router.delete("/users/:id", protect, requireSuperAdmin, deleteUser);
 router.get("/vehicles", protect, requireSuperAdmin, getAllVehicles);

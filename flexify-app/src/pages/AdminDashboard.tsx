@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, bankDetailsApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark } from 'lucide-react';
-import { Table, Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message } from 'antd';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, XCircle } from 'lucide-react';
+import { Table, Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
@@ -33,11 +33,18 @@ export default function AdminDashboard() {
   const [district, setDistrict] = useState<string>('All Sri Lanka');
   const [timeRange, setTimeRange] = useState<string>('30d');
 
-  const [roleEditUser, setRoleEditUser] = useState<string | null>(null);
-  const [newRole, setNewRole] = useState('');
-  const [newOwnerType, setNewOwnerType] = useState('UNVERIFIED');
   const [searchQuery, setSearchQuery] = useState('');
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+
+  // Modals
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [kycUser, setKycUser] = useState<User | null>(null);
+  const [isKycModalOpen, setIsKycModalOpen] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [editForm] = Form.useForm();
+  const [roleForm] = Form.useForm();
 
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
@@ -104,21 +111,95 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleUpdateRole = async (userId: string) => {
+  const handleEditUser = async (values: any) => {
+    if (!editingUser) return;
+    setActionLoadingId(editingUser._id || editingUser.id!);
     try {
-      const result = await adminApi.updateUserRole(userId, newRole, newRole === 'owner' ? newOwnerType : undefined);
-      setAllUsers((prev: User[]) => prev.map((u: User) => (u.id || u._id) === userId ? { ...u, ...result.user } : u));
-      setRoleEditUser(null);
-      alert(result.message);
-    } catch (err: any) { alert(err.message); }
+      const result = await adminApi.updateUser(editingUser._id || editingUser.id!, values);
+      setAllUsers((prev) => prev.map((u) => (u.id || u._id) === result.user.id || (u.id || u._id) === result.user._id ? { ...u, ...result.user } : u));
+      message.success('User updated successfully');
+      setIsEditModalOpen(false);
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm('Are you sure you want to delete this user permanently?')) return;
+  const handleUpdateRole = async (values: any) => {
+    if (!editingUser) return;
+    const userId = editingUser._id || editingUser.id!;
+    setActionLoadingId(userId);
     try {
-      await adminApi.deleteUser(userId);
-      setAllUsers((prev: User[]) => prev.filter((u: User) => (u.id || u._id) !== userId));
-    } catch (err: any) { alert(err.message); }
+      const result = await adminApi.updateUserRole(userId, values.role, values.ownerType);
+      setAllUsers((prev: User[]) => prev.map((u: User) => (u.id || u._id) === userId ? { ...u, ...result.user } : u));
+      message.success('Role updated successfully');
+      setIsRoleModalOpen(false);
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleToggleStatus = async (user: User) => {
+    const id = (user.id || user._id)!;
+    const newStatus = user.status === 'blocked' ? 'active' : 'blocked';
+    
+    Modal.confirm({
+      title: `${newStatus === 'blocked' ? 'Ban' : 'Restore'} User`,
+      content: `Are you sure you want to ${newStatus === 'blocked' ? 'ban' : 'restore'} ${user.name}?`,
+      okText: 'Yes',
+      okType: newStatus === 'blocked' ? 'danger' : 'primary',
+      onOk: async () => {
+        try {
+          setActionLoadingId(id);
+          const result = await adminApi.updateUserStatus(id, newStatus);
+          setAllUsers(prev => prev.map(u => (u.id || u._id) === id ? { ...u, status: result.user.status } : u));
+          message.success(`User ${newStatus === 'blocked' ? 'banned' : 'restored'}`);
+        } catch (err: any) {
+          message.error(err.message);
+        } finally {
+          setActionLoadingId(null);
+        }
+      }
+    });
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    const id = (user.id || user._id)!;
+    Modal.confirm({
+      title: 'Delete User Permanently',
+      content: `Are you sure you want to delete ${user.name}? This action cannot be undone.`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          setActionLoadingId(id);
+          await adminApi.deleteUser(id);
+          setAllUsers((prev: User[]) => prev.filter((u: User) => (u.id || u._id) !== id));
+          message.success('User deleted permanently');
+        } catch (err: any) {
+          message.error(err.message);
+        } finally {
+          setActionLoadingId(null);
+        }
+      }
+    });
+  };
+
+  const handleViewKyc = async (user: User) => {
+    const id = (user.id || user._id)!;
+    try {
+      setActionLoadingId(id);
+      const data = await adminApi.getUserKyc(id);
+      setKycUser(data);
+      setIsKycModalOpen(true);
+    } catch (err: any) {
+      message.error(err.message || 'Failed to fetch KYC data');
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
   const filteredUsers = allUsers.filter(u =>
@@ -412,37 +493,48 @@ export default function AdminDashboard() {
                     pagination={{ pageSize: 15 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { title: 'User', render: (_, u) => <div><strong>{u.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text></div> },
+                      { title: 'User', render: (_, u) => <Space><Avatar size="small" src={u.profilePic} style={{ backgroundColor: '#7c3aed' }}>{u.name.charAt(0)}</Avatar><div><strong>{u.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text></div></Space> },
                       { title: 'Role', render: (_, u) => roleBadge(u) },
-                      { title: 'KYC', render: (_, u) => u.isKycVerified ? <Tag icon={<CheckCircle size={12} />} color="success">Verified</Tag> : <Tag color="warning">{u.verificationStatus || 'Not submitted'}</Tag> },
-                      { title: 'Status', render: (_, u) => <Tag color={u.status === 'active' ? 'blue' : 'default'}>{u.status || 'active'}</Tag> },
+                      { title: 'KYC', render: (_, u) => u.isKycVerified ? <Tag icon={<CheckCircle size={12} />} color="success">Verified</Tag> : <Tag color={u.verificationStatus === 'pending' ? 'processing' : 'warning'}>{u.verificationStatus || 'Not submitted'}</Tag> },
+                      { 
+                        title: 'Status', 
+                        render: (_, u) => (
+                          <Tag 
+                            color={u.status === 'active' ? 'blue' : u.status === 'blocked' ? 'red' : 'default'}
+                            icon={u.status === 'blocked' ? <Ban size={12} /> : null}
+                          >
+                            {(u.status || 'active').toUpperCase()}
+                          </Tag>
+                        ) 
+                      },
                       {
-                        title: 'Actions', render: (_, u) => {
+                        title: 'Actions', 
+                        render: (_, u) => {
                           const id = (u.id || u._id)!;
-                          if (roleEditUser === id) {
-                            return (
-                              <Space>
-                                <Select size="small" value={newRole} onChange={setNewRole} style={{ width: 110 }}>
-                                  <Select.Option value="user">User</Select.Option>
-                                  <Select.Option value="owner">Owner</Select.Option>
-                                  <Select.Option value="subadmin">Subadmin</Select.Option>
-                                  <Select.Option value="superadmin">Superadmin</Select.Option>
-                                </Select>
-                                {newRole === 'owner' && (
-                                  <Select size="small" value={newOwnerType} onChange={setNewOwnerType} style={{ width: 110 }}>
-                                    <Select.Option value="UNVERIFIED">Unverified</Select.Option>
-                                    <Select.Option value="VERIFIED">Verified</Select.Option>
-                                  </Select>
-                                )}
-                                <Button size="small" type="primary" onClick={() => handleUpdateRole(id)}>Save</Button>
-                                <Button size="small" onClick={() => setRoleEditUser(null)}>Cancel</Button>
-                              </Space>
-                            );
-                          }
+                          const isSuper = user.role === 'superadmin';
                           return (
                             <Space>
-                              <Button size="small" type="text" onClick={() => { setRoleEditUser(id); setNewRole(u.role); setNewOwnerType(u.ownerType || 'UNVERIFIED'); }} icon={<Edit2 size={14} />} />
-                              <Button size="small" type="text" danger onClick={() => handleDeleteUser(id)} icon={<Trash2 size={14} />} />
+                              {isSuper ? (
+                                <>
+                                  <Tooltip title="Edit Profile">
+                                    <Button size="small" type="text" onClick={() => { setEditingUser(u); editForm.setFieldsValue(u); setIsEditModalOpen(true); }} icon={<Edit2 size={14} />} />
+                                  </Tooltip>
+                                  <Tooltip title="Change Role">
+                                    <Button size="small" type="text" onClick={() => { setEditingUser(u); roleForm.setFieldsValue({ role: u.role, ownerType: u.ownerType || 'UNVERIFIED' }); setIsRoleModalOpen(true); }} icon={<ShieldAlert size={14} />} />
+                                  </Tooltip>
+                                  <Tooltip title={u.status === 'blocked' ? "Restore User" : "Ban User"}>
+                                    <Button size="small" type="text" danger={u.status !== 'blocked'} onClick={() => handleToggleStatus(u)} icon={<Ban size={14} />} />
+                                  </Tooltip>
+                                  <Tooltip title="View KYC Documents">
+                                    <Button size="small" type="text" onClick={() => handleViewKyc(u)} loading={actionLoadingId === id} icon={<FileText size={14} />} />
+                                  </Tooltip>
+                                  <Tooltip title="Delete Permanently">
+                                    <Button size="small" type="text" danger onClick={() => handleDeleteUser(u)} icon={<Trash2 size={14} />} />
+                                  </Tooltip>
+                                </>
+                              ) : (
+                                <Text type="secondary" style={{ fontSize: '12px' }}>Read Only</Text>
+                              )}
                             </Space>
                           );
                         }
@@ -584,6 +676,111 @@ export default function AdminDashboard() {
           )}
         </Content>
       </Layout>
+      {/* MODALS */}
+      
+      {/* Edit User Modal */}
+      <Modal
+        title="Edit User Profile"
+        open={isEditModalOpen}
+        onCancel={() => setIsEditModalOpen(false)}
+        onOk={() => editForm.submit()}
+        confirmLoading={!!actionLoadingId}
+      >
+        <Form form={editForm} layout="vertical" onFinish={handleEditUser}>
+          <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="email" label="Email Address" rules={[{ required: true, type: 'email' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="phone" label="Phone Number">
+            <Input />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Role Change Modal */}
+      <Modal
+        title="Change User Role & Permissions"
+        open={isRoleModalOpen}
+        onCancel={() => setIsRoleModalOpen(false)}
+        onOk={() => roleForm.submit()}
+        confirmLoading={!!actionLoadingId}
+      >
+        <Form form={roleForm} layout="vertical" onFinish={handleUpdateRole}>
+          <Form.Item name="role" label="Account Role" rules={[{ required: true }]}>
+            <Select>
+              <Select.Option value="user">USER</Select.Option>
+              <Select.Option value="owner">OWNER</Select.Option>
+              <Select.Option value="subadmin">SUB-ADMIN</Select.Option>
+              <Select.Option value="superadmin">SUPER-ADMIN</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.role !== currentValues.role}
+          >
+            {({ getFieldValue }) =>
+              getFieldValue('role') === 'owner' ? (
+                <Form.Item name="ownerType" label="Verification Type" rules={[{ required: true }]}>
+                  <Select>
+                    <Select.Option value="UNVERIFIED">Unverified Only</Select.Option>
+                    <Select.Option value="VERIFIED">Verified Owner</Select.Option>
+                  </Select>
+                </Form.Item>
+              ) : null
+            }
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* View KYC Modal */}
+      <Modal
+        title={kycUser ? `KYC Documents: ${kycUser.name || 'User'}` : "KYC Verification Documents"}
+        open={isKycModalOpen}
+        onCancel={() => setIsKycModalOpen(false)}
+        width={900}
+        footer={[
+          <Button key="close" onClick={() => setIsKycModalOpen(false)}>Close</Button>
+        ]}
+      >
+        {kycUser ? (
+          <div style={{ padding: '1rem' }}>
+            <Row gutter={[16, 24]}>
+              <Col span={12}>
+                <Card size="small" title="NIC Front">
+                  {kycUser.documents?.nicFront ? <img src={kycUser.documents.nicFront} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card size="small" title="NIC Back">
+                  {kycUser.documents?.nicBack ? <img src={kycUser.documents.nicBack} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card size="small" title="Driving License">
+                  {kycUser.documents?.license ? <img src={kycUser.documents.license} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card size="small" title="Live Selfie">
+                  {kycUser.documents?.selfie ? <img src={kycUser.documents.selfie} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                </Card>
+              </Col>
+            </Row>
+            <Divider />
+            <div>
+              <Text strong>Verification Status: </Text>
+              <Tag color={kycUser.isKycVerified ? 'success' : 'warning'}>{kycUser.verificationStatus?.toUpperCase()}</Tag>
+            </div>
+            <div style={{ marginTop: '0.5rem' }}>
+              <Text strong>Residential Address: </Text>
+              <Text>{kycUser.documents?.address || 'Not provided'}</Text>
+            </div>
+          </div>
+        ) : <Spin />}
+      </Modal>
+
     </Layout>
   );
 }

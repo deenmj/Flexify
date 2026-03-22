@@ -227,6 +227,70 @@ export const deleteUser = async (req, res) => {
 };
 
 /**
+ * Update basic user info (superadmin)
+ */
+export const updateUserInfo = async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (phone !== undefined) user.phone = phone;
+
+    await user.save();
+    
+    logAdminAction(req, "user_info_update", user._id, { name, email, phone });
+    res.json({ message: "User details updated", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Ban/Unban user (superadmin)
+ */
+export const updateUserStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: "Cannot ban yourself" });
+    }
+
+    const validStatuses = ["active", "blocked", "deleted"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const oldStatus = user.status;
+    user.status = status;
+    await user.save();
+
+    logAdminAction(req, "user_status_change", user._id, { oldStatus, newStatus: status });
+    res.json({ message: `User status set to ${status}`, user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Get user KYC documents (superadmin)
+ */
+export const getUserKyc = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("documents verificationStatus isKycVerified");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
  * Get ALL vehicles (superadmin)
  */
 export const getAllVehicles = async (req, res) => {
