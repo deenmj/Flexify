@@ -106,7 +106,7 @@ export default function Explore() {
   return (
     <div className="explore-page">
       {/* Search Header */}
-      <section className="explore-header">
+      <section className="explore-header section-padding">
         <div className="container" style={{ position: 'relative' }}>
           {/* Custom back button removed */}
           <h1 className="explore-title">Explore Vehicles</h1>
@@ -374,7 +374,7 @@ export default function Explore() {
       )}
 
       {/* Results */}
-      <section className="explore-results">
+      <section className="explore-results section-padding">
         <div className="container">
           <p className="results-count">{vehicles.length} vehicles found</p>
           {loading ? (

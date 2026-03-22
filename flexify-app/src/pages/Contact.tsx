@@ -14,7 +14,7 @@ export default function Contact() {
 
   return (
     <div className="static-page">
-      <section className="static-hero">
+      <section className="static-hero section-padding">
         <div className="container" style={{ textAlign: 'left' }}>
           <Link to="/profile" className="premium-back-btn" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>
             <ArrowLeft size={18} />
@@ -24,7 +24,7 @@ export default function Contact() {
           <p>We're here to help you with anything you need</p>
         </div>
       </section>
-      <section className="static-content container">
+      <section className="static-content container section-padding">
         <div className="contact-grid">
           <div className="contact-info">
             <h2>Get in Touch</h2>

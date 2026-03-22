@@ -90,7 +90,7 @@
   --font-size-5xl: 3rem;
 
   /* Container */
-  --container-max: 1280px;
+  --container-max: 1400px;
   --navbar-height: 72px;
 }
 
@@ -160,7 +160,11 @@ select {
   width: 100%;
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 var(--space-lg);
+  padding: 0 2rem;
+}
+
+.section-padding {
+  padding: 4rem 0;
 }
 
 .page-wrapper {
@@ -645,7 +649,11 @@ select {
    ============================================ */
 @media (max-width: 768px) {
   .container {
-    padding: 0 var(--space-md);
+    padding: 0 1rem;
+  }
+
+  .section-padding {
+    padding: 2.5rem 0;
   }
 
   :root {
@@ -658,13 +666,21 @@ select {
 
   /* Global touch targets */
   .btn {
-    min-height: 44px;
+    min-height: 48px;
     min-width: 44px;
   }
 
   .btn-sm {
-    min-height: 38px;
+    min-height: 40px;
     padding: 0.5rem 0.875rem;
+  }
+
+  .social-icon, .nav-action-btn, .mobile-menu-btn button {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   /* Ensure all images are responsive */

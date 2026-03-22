@@ -8,7 +8,6 @@
 
 .static-hero {
   background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
-  padding: 4rem 0 3rem;
   text-align: center;
   color: white;
 }
@@ -25,7 +24,7 @@
 }
 
 .static-content {
-  padding: 3rem 0 5rem;
+  padding: 0;
 }
 
 /* About */
@@ -44,7 +43,6 @@
   .static-hero h1 { font-size: 2rem; }
   .static-hero p { font-size: var(--font-size-base); }
   .about-values { grid-template-columns: 1fr; }
-  .static-content { padding: 2rem 0 3rem; }
   .about-text h2 { font-size: 1.75rem; }
 }
 

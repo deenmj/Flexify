@@ -229,7 +229,7 @@
 
 /* Sections */
 .section {
-  padding: 5rem 0;
+  padding: 0;
 }
 
 .section-header {
@@ -619,7 +619,7 @@
     margin-bottom: 1.5rem;
   }
   .section {
-    padding: 3rem 0;
+    padding: 0;
   }
   .section-header {
     flex-direction: column;

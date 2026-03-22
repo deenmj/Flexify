@@ -373,7 +373,7 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page page-wrapper bg-secondary">
 
-      <div className="dashboard-header">
+      <div className="dashboard-header section-padding">
         <div className="container" style={{ position: 'relative' }}>
           <h1>My Dashboard</h1>
           <p>Welcome, {user.name}! Manage your {user.role === 'user' ? 'rentals' : 'vehicles and bookings'}.</p>
@@ -415,7 +415,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="container dashboard-content">
+      <div className="container dashboard-content section-padding" style={{ paddingTop: 0 }}>
         {/* Stats */}
         {isOwner && (
           <div className="dashboard-stats">

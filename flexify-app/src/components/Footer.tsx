@@ -43,7 +43,7 @@ export default function Footer() {
 
   return (
     <footer className="footer">
-      <div className="footer-main container">
+      <div className="footer-main container section-padding">
         <div className="footer-grid">
           <div className="footer-brand">
             <h2 className="footer-logo">Flexify</h2>
@@ -81,7 +81,9 @@ export default function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} Flexify. All rights reserved.</p>
+        <div className="container" style={{ display: 'flex', justifyContent: 'center' }}>
+          <p>© {new Date().getFullYear()} Flexify. All rights reserved.</p>
+        </div>
       </div>
     </footer>
   );

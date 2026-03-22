@@ -87,7 +87,7 @@ export default function Home() {
       </section>
 
       {/* Verified Owners */}
-      <section className="section owners-section">
+      <section className="owners-section section-padding">
         <div className="container">
           <div className="section-header">
             <div>
@@ -164,7 +164,7 @@ export default function Home() {
       </section>
 
       {/* Featured Vehicles */}
-      <section className="section vehicles-section">
+      <section className="vehicles-section section-padding">
         <div className="container">
           <div className="section-header">
             <div>
@@ -216,7 +216,7 @@ export default function Home() {
       </section>
 
       {/* Categories */}
-      <section className="section categories-section">
+      <section className="categories-section section-padding">
         <div className="container">
           <h2 className="section-title text-center">Browse by Category</h2>
           <p className="section-subtitle text-center">Find the perfect vehicle type for your needs</p>
@@ -233,7 +233,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="section features-section">
+      <section className="features-section section-padding">
         <div className="container">
           <h2 className="section-title text-center">Your Journey, Your Way</h2>
           <p className="section-subtitle text-center">We make vehicle renting seamless and personalized</p>
@@ -264,7 +264,7 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="cta-section">
+      <section className="cta-section section-padding">
         <div className="container">
           <div className="cta-card">
             <h2>Ready to List Your Vehicle?</h2>
