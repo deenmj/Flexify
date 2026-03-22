@@ -58,7 +58,7 @@ export default function Notifications() {
         switch (type) {
           case 'booking_request':
           case 'booking_update':
-            navigate('/dashboard'); // Assuming bookings are in dashboard
+            navigate(`/dashboard?tab=bookings&highlight=${relatedId}`);
             break;
           case 'subscription':
             navigate('/subscription');
