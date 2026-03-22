@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge } from 'antd';
+import { Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare } from 'lucide-react';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './VehicleDetail.css';
@@ -98,9 +98,37 @@ export default function VehicleDetail() {
 
   // Disable dates in the RangePicker (past, confirmed ranges, and blackouts)
   const disabledDate = useCallback((current: Dayjs) => {
-    if (current.isBefore(dayjs(), 'day')) return true;
+    if (current && current.isBefore(dayjs(), 'day')) return true;
     return isDateBooked(current, 'CONFIRMED') || isDateBlackedOut(current);
   }, [isDateBooked, isDateBlackedOut]);
+
+  // Tooltip & Styling for RangePicker cells
+  const pickerCellRender = useCallback((current: Dayjs | any) => {
+    // antd 5 cellRender might pass string/number/Dayjs depending on view, 
+    // but in DatePicker it should be Dayjs. We cast to satisfy TS.
+    const date = dayjs(current);
+    const isBooked = isDateBooked(date, 'CONFIRMED');
+    const isBlackout = isDateBlackedOut(date);
+    
+    if (isBooked || isBlackout) {
+      return (
+        <Tooltip title={isBooked ? "Already booked" : "Owner unavailable (blackout)"}>
+          <div className="ant-picker-cell-inner disabled-cell-inner">{date.date()}</div>
+        </Tooltip>
+      );
+    }
+    return <div className="ant-picker-cell-inner">{date.date()}</div>;
+  }, [isDateBooked, isDateBlackedOut]);
+
+  // Verify if the entire range is available
+  const isRangeBlocked = (start: Dayjs, end: Dayjs) => {
+    let curr = start;
+    while (curr.isBefore(end) || curr.isSame(end, 'day')) {
+      if (disabledDate(curr)) return true;
+      curr = curr.add(1, 'day');
+    }
+    return false;
+  };
 
   // Calendar cell renderer for the availability calendar
   const dateCellRender = useCallback((date: Dayjs) => {
@@ -145,6 +173,11 @@ export default function VehicleDetail() {
 
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       message.error('Please select pickup and return dates');
+      return;
+    }
+
+    if (isRangeBlocked(dateRange[0], dateRange[1])) {
+      message.error('Selected dates are already booked. Please choose different dates.');
       return;
     }
 
@@ -359,6 +392,16 @@ export default function VehicleDetail() {
                 <span>/ day</span>
               </div>
 
+              {(bookedRanges.length > 0 || blackoutRanges.length > 0) && (
+                <Tag 
+                  color="orange" 
+                  icon={<AlertTriangle size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
+                  style={{ marginTop: '0.75rem', borderRadius: '4px', padding: '2px 8px' }}
+                >
+                  Partially booked – check availability
+                </Tag>
+              )}
+
               {user && !user.isKycVerified && (
                 <div className="verification-alert box-highlight" style={{ background: '#fff7ed', border: '1px solid #fdba74', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
                   <Shield size={20} style={{ color: '#ea580c', flexShrink: 0 }} />
@@ -492,11 +535,23 @@ export default function VehicleDetail() {
                     value={dateRange}
                     onChange={(dates) => setDateRange(dates)}
                     disabledDate={disabledDate}
+                    cellRender={pickerCellRender}
                     format="YYYY-MM-DD"
                     style={{ width: '100%', height: '44px' }}
                     placeholder={['Pickup Date', 'Return Date']}
                     size="large"
                   />
+                </div>
+
+                <div className="avail-legend modal-legend" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '-0.5rem' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                    <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#f5f5f5', border: '1px solid #d9d9d9' }}></span>
+                    Booked / Blackout
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                    <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'transparent', border: '1px solid var(--primary-color)' }}></span>
+                    Your selection
+                  </span>
                 </div>
 
                 {days > 0 && (
