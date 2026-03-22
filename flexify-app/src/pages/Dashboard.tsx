@@ -13,7 +13,7 @@ import {
 import { notification } from 'antd';
 
 const { RangePicker } = DatePicker;
-import { useSocket } from '../SocketContext';
+import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
 
 dayjs.extend(isBetween);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { notificationApi, NotificationItem } from '../api';
+import { notificationApi, type NotificationItem } from '../api';
 import { useSocket } from '../context/SocketContext';
 import { List, Typography, Badge, Button, Spin, Card } from 'antd';
 import { Bell, Calendar, Shield, CreditCard, Info } from 'lucide-react';

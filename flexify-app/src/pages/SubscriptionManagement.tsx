@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useSocket } from '../SocketContext';
+import { useSocket } from '../context/SocketContext';
 import { Check, Shield, Zap, AlertCircle, Clock, Info, CreditCard, Landmark, ArrowLeft, Loader2 } from 'lucide-react';
 import { ownerApi, bankDetailsApi, type BankDetailsData } from '../api';
 import './SubscriptionManagement.css';

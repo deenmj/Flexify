@@ -42,7 +42,7 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-import { SocketProvider } from './SocketContext';
+import { SocketProvider } from './context/SocketContext';
 
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';

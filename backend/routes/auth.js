@@ -25,6 +25,7 @@ const loginLimiter = rateLimit({
   message: { message: "Too many login attempts. Please try again after 15 minutes." },
   standardHeaders: true,
   legacyHeaders: false,
+  skipSuccessfulRequests: true, // Only count failed login attempts
 });
 
 const forgotPasswordLimiter = rateLimit({
@@ -127,7 +128,7 @@ router.post("/signup", async (req, res) => {
 /* =========================================================
    LOGIN
 ========================================================= */
-router.post("/login", loginLimiter, async (req, res) => {
+router.post("/login", loginLimiter, async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -170,7 +171,7 @@ router.post("/login", loginLimiter, async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 });
 
@@ -196,9 +197,13 @@ router.get("/verify-email/:token", async (req, res) => {
 /* =========================================================
    CURRENT USER
 ========================================================= */
-router.get("/me", protect, async (req, res) => {
-  const user = await User.findById(req.user._id).select("-password");
-  res.json(user);
+router.get("/me", protect, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
 });
 
 /* =========================================================

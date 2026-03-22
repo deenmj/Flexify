@@ -235,9 +235,17 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
     },
   });
 
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch (err) {
+    const textResponse = await res.text().catch(() => 'No text response');
+    console.error(`[Fetch Parse Error] Status: ${res.status}`, textResponse);
+    throw new Error('Server returned an invalid or non-JSON response. Please try again.');
+  }
+
   if (!res.ok) {
-    throw new Error(data.message || 'Request failed');
+    throw new Error(data?.message || 'Request failed');
   }
   return data;
 }

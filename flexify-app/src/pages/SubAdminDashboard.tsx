@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { subadminApi, adminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { DollarSign } from 'lucide-react';
-import { useSocket } from '../SocketContext';
+import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
