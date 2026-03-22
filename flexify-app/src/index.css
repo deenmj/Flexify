@@ -649,7 +649,7 @@ select {
    ============================================ */
 @media (max-width: 768px) {
   .container {
-    padding: 0 1rem;
+    padding: 0 1.5rem;
   }
 
   .section-padding {
@@ -667,20 +667,21 @@ select {
   /* Global touch targets */
   .btn {
     min-height: 48px;
-    min-width: 44px;
+    min-width: 48px;
   }
 
   .btn-sm {
-    min-height: 40px;
-    padding: 0.5rem 0.875rem;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
   }
 
-  .social-icon, .nav-action-btn, .mobile-menu-btn button {
+  /* Force touch targets for icons and buttons */
+  .social-icon, .nav-action-btn, .mobile-menu-btn button, .footer-links a {
     min-width: 44px;
     min-height: 44px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
+    padding: 8px 0;
   }
 
   /* Ensure all images are responsive */

@@ -36,7 +36,8 @@
 }
 
 @media (max-width: 768px) {
-  .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .about-text { padding: 0 1.5rem; }
 }
 
 @media (max-width: 480px) {
@@ -150,7 +151,13 @@
 }
 
 @media (max-width: 768px) {
-  .contact-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .contact-grid { 
+    grid-template-columns: 1fr; 
+    gap: 3rem; 
+  }
+  .contact-info, .contact-form {
+    padding: 0 1.5rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -174,7 +181,7 @@
 .contact-details {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .contact-detail-item {

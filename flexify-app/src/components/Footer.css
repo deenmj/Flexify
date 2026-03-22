@@ -93,54 +93,57 @@
 
 /* Mobile Footer Overrides */
 @media (max-width: 768px) {
-  .footer-main {
-    padding: 3rem 0;
+  /* Footer Overrides */
+  .footer-grid {
+    padding: 0 1.5rem;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
   }
   .footer-brand {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 2rem;
+    text-align: left;
+    align-items: flex-start;
   }
   .footer-desc {
     max-width: 100%;
   }
   .footer-socials {
-    justify-content: center;
-    gap: 1.25rem;
+    justify-content: flex-start;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
   }
   .social-icon {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
   }
   
   /* Footer Collapse Customization */
   .footer-mobile-collapse {
-    margin-top: 1rem;
+    margin: 1.5rem 0 0;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
   .footer-mobile-collapse .ant-collapse-header {
-    padding: 1rem 0 !important;
+    padding: 1.25rem 0 !important;
     color: white !important;
-    font-size: 0.9rem !important;
-    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
   .footer-mobile-collapse .ant-collapse-content-box {
-    padding: 0 0 1rem 0 !important;
+    padding: 0 0 1.5rem 0 !important;
   }
   .footer-links {
-    gap: 0.75rem;
+    gap: 1rem;
   }
   .footer-links a {
-    font-size: 0.95rem;
-    padding: 0.25rem 0;
-    display: block;
+    font-size: 1rem;
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
   }
   .footer-bottom {
-    font-size: 10px;
-    padding: 1.5rem 0;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    font-size: 11px;
   }
 }
