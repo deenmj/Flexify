@@ -85,12 +85,15 @@ app.use(cors({
 }));
 
 // Global rate limiter — max 100 requests per 15 minutes per IP
+// Global rate limiter — disabled for now
+/*
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   message: { message: "Too many requests, please try again later." },
 });
 app.use(globalLimiter);
+*/
 
 app.use(express.json());
 app.use(passport.initialize());
