@@ -46,7 +46,7 @@ function LocationMarker({ position, setPosition }: any) {
 }
 
 export default function ListVehicle() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -209,7 +209,7 @@ export default function ListVehicle() {
       });
 
       await vehicleApi.createWithPhotos(formData);
-
+      await refreshUser();
       setSuccess('Vehicle submitted successfully! Your listing is now active and visible on the explore page.');
 
       // Reset form

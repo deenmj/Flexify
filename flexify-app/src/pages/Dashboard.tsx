@@ -8,7 +8,7 @@ import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Book
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
   Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle,
-  CalendarOff, Star, MessageSquare
+  CalendarOff, Star, MessageSquare, Zap
 } from 'lucide-react';
 import { notification } from 'antd';
 
@@ -25,7 +25,7 @@ export default function Dashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews'>(user?.role === 'user' ? 'bookings' : 'vehicles');
+  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'subscription'>(user?.role === 'user' ? 'bookings' : 'vehicles');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   // Calendar tab state (owner only)
@@ -458,6 +458,11 @@ export default function Dashboard() {
               <Star size={16} /> Reviews
             </button>
           )}
+          {isOwner && (
+            <button className={`dashboard-tab ${tab === 'subscription' ? 'active' : ''}`} onClick={() => setTab('subscription')}>
+              <Shield size={16} /> My Subscription
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -737,7 +742,7 @@ export default function Dashboard() {
               </Form>
             </Modal>
           </div>
-        ) : (
+        ) : tab === 'reviews' ? (
           /* ===== REVIEWS TAB (Owner Only) ===== */
           <div className="dashboard-table-wrap card">
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
@@ -828,7 +833,67 @@ export default function Dashboard() {
               </table>
             )}
           </div>
-        )}
+        ) : tab === 'subscription' ? (
+          /* ===== SUBSCRIPTION TAB (Owner Only) ===== */
+          <div className="animate-fade-in">
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '2rem', borderBottom: '1px solid var(--border-color)' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Shield size={24} style={{ color: '#1890ff' }} /> Manage My Subscription
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                  Monitor your plan status and vehicle listing limits.
+                </p>
+              </div>
+              
+              <div style={{ padding: '2rem' }}>
+                {user.subscription?.status === 'trial' && (
+                  <div className="trial-alert" style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '1.2rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '2rem' }}>
+                    <Zap size={24} style={{ color: '#1890ff' }} />
+                    <div>
+                      <h4 style={{ margin: 0, color: '#1e40af', fontWeight: 600 }}>Trial Period Active</h4>
+                      <p style={{ margin: 0, color: '#1e40af', fontSize: '0.9rem' }}>
+                        Your free trial is active. 
+                        <strong> {user.subscription.endDate ? Math.ceil((new Date(user.subscription.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : '?'} days remaining.</strong>
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="subscription-tab-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                  <div className="sub-current-plan" style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    <p style={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', marginBottom: '8px' }}>Current Tier</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+                      <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>{user.subscription?.tier || 'BASIC'}</span>
+                      <Tag color="processing" style={{ borderRadius: '6px' }}>{user.subscription?.status?.toUpperCase() || 'TRIAL'}</Tag>
+                    </div>
+                    <Link to="/subscription" className="btn btn-primary btn-sm" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                      Upgrade/Renew Plan
+                    </Link>
+                  </div>
+
+                  <div className="sub-limits" style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    <p style={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', marginBottom: '8px' }}>Listing Capacity</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <span>Current Vehicles:</span>
+                      <span style={{ fontWeight: 600 }}>{vehicles.length} Listings</span>
+                    </div>
+                    <div style={{ height: '8px', width: '100%', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
+                      <div style={{ 
+                        height: '100%', 
+                        background: '#1890ff', 
+                        width: `${Math.min((vehicles.length / (user.subscription?.tier === 'BASIC' ? 2 : user.subscription?.tier === 'STANDARD' ? 6 : 999)) * 100, 100)}%` 
+                      }}></div>
+                    </div>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                      Limit: {user.subscription?.tier === 'BASIC' ? '2' : user.subscription?.tier === 'STANDARD' ? '6' : 'Unlimited'} Vehicles
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* REVIEW MODAL */}

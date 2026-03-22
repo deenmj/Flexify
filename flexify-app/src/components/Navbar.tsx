@@ -278,6 +278,9 @@ export default function Navbar() {
                   {user && getDashboardLink() && (
                     <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>Dashboard</Link>
                   )}
+                  {user?.role === 'owner' && (
+                    <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}>My Subscription</Link>
+                  )}
                   {user && !user.isKycVerified && (
                     <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
                       <Shield size={18} /> Verify Identity

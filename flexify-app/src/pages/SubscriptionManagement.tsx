@@ -61,7 +61,7 @@ const SubscriptionManagement: React.FC = () => {
   const { user, refreshUser } = useAuth();
   const { socket } = useSocket();
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [selectedTier, setSelectedTier] = useState<any>(null);
   const [is6Month, setIs6Month] = useState(false);
@@ -113,7 +113,7 @@ const SubscriptionManagement: React.FC = () => {
         (document.getElementById('payhere-form') as HTMLFormElement).submit();
       }, 100);
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Failed to initiate payment' });
+      setStatusMessage({ type: 'error', text: err.message || 'Failed to initiate payment' });
       setLoading(false);
     }
   };
@@ -132,11 +132,11 @@ const SubscriptionManagement: React.FC = () => {
         user?.email || 'Unknown'
       );
 
-      setMessage({ type: 'success', text: res.message });
+      setStatusMessage({ type: 'success', text: res.message });
       setShowPayment(false);
       await refreshUser();
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Failed to send request' });
+      setStatusMessage({ type: 'error', text: err.message || 'Failed to send request' });
     } finally {
       setLoading(false);
     }
@@ -221,10 +221,10 @@ const SubscriptionManagement: React.FC = () => {
         </div>
       </div>
 
-      {message && (
-        <div className={`message-banner ${message.type}`}>
-          {message.type === 'error' ? <AlertCircle size={20} /> : <Check size={20} />}
-          <span>{message.text}</span>
+      {statusMessage && (
+        <div className={`message-banner ${statusMessage.type}`}>
+          {statusMessage.type === 'error' ? <AlertCircle size={20} /> : <Check size={20} />}
+          <span>{statusMessage.text}</span>
         </div>
       )}
 
