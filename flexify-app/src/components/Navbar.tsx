@@ -93,8 +93,8 @@ export default function Navbar() {
             <span className="logo-text">Flexify</span>
           </Link>
 
-          {/* Desktop Nav — hide for superadmin only; staff sees full nav */}
-          {!isSuperAdmin && (
+          {/* Desktop Nav — All roles see full nav now */}
+          <div>
             <div className="navbar-links">
               <Link to="/home" className="nav-link nav-link-highlight">
                 <Home size={18} /> Home
@@ -138,7 +138,7 @@ export default function Navbar() {
                 ]}
               />
             </div>
-          )}
+          </div>
 
           {/* Right side */}
           <div className="navbar-actions">
@@ -267,35 +267,28 @@ export default function Navbar() {
                   </div>
                 </div>
               )}
-              {isSuperAdmin ? (
-                <>
-                  <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>Admin Dashboard</Link>
-                </>
-              ) : (
-                <>
-                  <Link to="/" className="mobile-link" onClick={() => setMobileOpen(false)}>Home</Link>
-                  <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}>Explore Vehicles</Link>
-                  <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}>List your Vehicle</Link>
-                  <Link to="/about" className="mobile-link" onClick={() => setMobileOpen(false)}>About Us</Link>
-                  <Link to="/faq" className="mobile-link" onClick={() => setMobileOpen(false)}>FAQ</Link>
-                  <Link to="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}>Contact</Link>
-                  {user && getDashboardLink() && (
-                    <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>
-                      {isStaff ? 'Staff Dashboard' : 'Dashboard'}
-                    </Link>
-                  )}
-                  {isStaff && (
-                    <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}>My Vehicles & Bookings</Link>
-                  )}
-                  {user?.role === 'owner' && (
-                    <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}>My Subscription</Link>
-                  )}
-                  {user && !user.isKycVerified && !isStaff && (
-                    <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                      <Shield size={18} /> Verify Identity
-                    </Link>
-                  )}
-                </>
+              {user && (
+                <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>
+                  {isSuperAdmin ? 'Admin Dashboard' : isStaff ? 'Staff Dashboard' : 'Dashboard'}
+                </Link>
+              )}
+              <Link to="/home" className="mobile-link" onClick={() => setMobileOpen(false)}>Home</Link>
+              <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}>Explore Vehicles</Link>
+              <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}>List your Vehicle</Link>
+              <Link to="/about" className="mobile-link" onClick={() => setMobileOpen(false)}>About Us</Link>
+              <Link to="/faq" className="mobile-link" onClick={() => setMobileOpen(false)}>FAQ</Link>
+              <Link to="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}>Contact</Link>
+              
+              {isStaff && (
+                <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}>My Vehicles & Bookings</Link>
+              )}
+              {user?.role === 'owner' && (
+                <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}>My Subscription</Link>
+              )}
+              {user && !user.isKycVerified && !isAdminRole && (
+                <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
+                  <Shield size={18} /> Verify Identity
+                </Link>
               )}
               {user ? (
                 <button className="mobile-link mobile-logout" onClick={() => { handleLogout(); setMobileOpen(false); }}>
