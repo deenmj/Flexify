@@ -347,9 +347,11 @@ export default function Dashboard() {
 
   if (!user) return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Please sign in</h2></div>;
 
-  const isOwner = user.role === 'owner';
-  const isVerifiedOwner = isOwner && user.isKycVerified;
-  const isUnverifiedOwner = isOwner && !user.isKycVerified;
+  // Staff (subadmin) behaves like a verified owner in the dashboard
+  const isStaff = user.role === 'subadmin';
+  const isOwner = user.role === 'owner' || isStaff;
+  const isVerifiedOwner = (isOwner && user.isKycVerified) || isStaff;
+  const isUnverifiedOwner = user.role === 'owner' && !user.isKycVerified && !isStaff;
 
   const statusBadge = (status: string) => {
     const map: Record<string, { cls: string; icon: any }> = {
@@ -381,8 +383,8 @@ export default function Dashboard() {
       </div>
 
       <div className="container" style={{ marginTop: '2rem' }}>
-        {/* KYC verification banner */}
-        {!user.isKycVerified && (
+        {/* KYC verification banner — not for staff (auto-verified) */}
+        {!user.isKycVerified && !isStaff && (
           <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <div style={{ background: '#ff7e33', color: 'white', padding: '10px', borderRadius: '12px' }}><Shield size={24} /></div>
@@ -458,7 +460,7 @@ export default function Dashboard() {
               <Star size={16} /> Reviews
             </button>
           )}
-          {isOwner && (
+          {isOwner && !isStaff && (
             <button className={`dashboard-tab ${tab === 'subscription' ? 'active' : ''}`} onClick={() => setTab('subscription')}>
               <Shield size={16} /> My Subscription
             </button>

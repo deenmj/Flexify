@@ -322,6 +322,9 @@ export const getMyBookings = async (req, res) => {
     if (req.user.role === "owner") {
       // Owners see bookings for their vehicles
       filter = { owner: req.user._id };
+    } else if (req.user.role === "subadmin" || req.user.role === "superadmin") {
+      // Staff sees bookings as both owner (their vehicles) AND renter
+      filter = { $or: [{ owner: req.user._id }, { user: req.user._id }] };
     } else {
       // Users (renters) see their own bookings
       filter = { user: req.user._id };

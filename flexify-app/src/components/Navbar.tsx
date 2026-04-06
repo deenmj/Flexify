@@ -75,7 +75,9 @@ export default function Navbar() {
   };
 
   const badge = getRoleBadge();
-  const isAdminRole = user?.role === 'subadmin' || user?.role === 'superadmin';
+  const isSuperAdmin = user?.role === 'superadmin';
+  const isStaff = user?.role === 'subadmin';
+  const isAdminRole = isSuperAdmin || isStaff;
 
   return (
     <>
@@ -91,8 +93,8 @@ export default function Navbar() {
             <span className="logo-text">Flexify</span>
           </Link>
 
-          {/* Desktop Nav — hide for subadmin (they only see their portal) */}
-          {!isAdminRole && (
+          {/* Desktop Nav — hide for superadmin only; staff sees full nav */}
+          {!isSuperAdmin && (
             <div className="navbar-links">
               <Link to="/home" className="nav-link nav-link-highlight">
                 <Home size={18} /> Home
@@ -140,7 +142,7 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="navbar-actions">
-            {!isAdminRole && (
+            {!isSuperAdmin && (
               <>
                 <Link to="/explore" className="nav-action-btn" title="Search">
                   <Search size={20} />
@@ -191,29 +193,27 @@ export default function Navbar() {
                     </div>
                   </div>
                   <div className="profile-dropdown-divider" />
-                  {!isAdminRole && (
-                    <>
-                      <Link to="/profile" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                        <User size={16} /> My Profile
-                      </Link>
-                      {getDashboardLink() && (
-                        <Link to={getDashboardLink()!} className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                          <LayoutDashboard size={16} /> Dashboard
-                        </Link>
-                      )}
-                      <Link to="/list-vehicle" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                        <Car size={16} /> List Vehicle
-                      </Link>
-                      {user.role === 'owner' && (
-                        <Link to="/subscription" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                          <Shield size={16} /> My Subscription
-                        </Link>
-                      )}
-                    </>
-                  )}
-                  {isAdminRole && (
+                  <Link to="/profile" className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                    <User size={16} /> My Profile
+                  </Link>
+                  {getDashboardLink() && (
                     <Link to={getDashboardLink()!} className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                      <LayoutDashboard size={16} /> Dashboard
+                      <LayoutDashboard size={16} /> {isStaff ? 'Staff Dashboard' : isSuperAdmin ? 'Admin Dashboard' : 'Dashboard'}
+                    </Link>
+                  )}
+                  {isStaff && (
+                    <Link to="/dashboard" className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                      <Car size={16} /> My Vehicles & Bookings
+                    </Link>
+                  )}
+                  {!isSuperAdmin && (
+                    <Link to="/list-vehicle" className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                      <Car size={16} /> List Vehicle
+                    </Link>
+                  )}
+                  {user.role === 'owner' && (
+                    <Link to="/subscription" className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                      <Shield size={16} /> My Subscription
                     </Link>
                   )}
                   {user && !user.isKycVerified && !isAdminRole && (
@@ -267,7 +267,11 @@ export default function Navbar() {
                   </div>
                 </div>
               )}
-              {!isAdminRole ? (
+              {isSuperAdmin ? (
+                <>
+                  <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>Admin Dashboard</Link>
+                </>
+              ) : (
                 <>
                   <Link to="/" className="mobile-link" onClick={() => setMobileOpen(false)}>Home</Link>
                   <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}>Explore Vehicles</Link>
@@ -276,22 +280,21 @@ export default function Navbar() {
                   <Link to="/faq" className="mobile-link" onClick={() => setMobileOpen(false)}>FAQ</Link>
                   <Link to="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}>Contact</Link>
                   {user && getDashboardLink() && (
-                    <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                    <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>
+                      {isStaff ? 'Staff Dashboard' : 'Dashboard'}
+                    </Link>
+                  )}
+                  {isStaff && (
+                    <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}>My Vehicles & Bookings</Link>
                   )}
                   {user?.role === 'owner' && (
                     <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}>My Subscription</Link>
                   )}
-                  {user && !user.isKycVerified && (
+                  {user && !user.isKycVerified && !isStaff && (
                     <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
                       <Shield size={18} /> Verify Identity
                     </Link>
                   )}
-                </>
-              ) : (
-                <>
-                  <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>
-                    {user?.role === 'superadmin' ? 'Admin Dashboard' : 'Verification Portal'}
-                  </Link>
                 </>
               )}
               {user ? (

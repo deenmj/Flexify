@@ -20,7 +20,7 @@ export const createVehicle = async (req, res) => {
       seats, description, lat, lng, address, serviceType,
     } = req.body;
 
-    // Subscription Check & Initialization
+    // Subscription Check & Initialization — only for owners (staff/admins get free unlimited access)
     if (owner.role === "owner") {
       // If no subscription found, start the 3-month trial now
       if (!owner.subscription || !owner.subscription.status) {
@@ -72,6 +72,7 @@ export const createVehicle = async (req, res) => {
         }
       }
     }
+    // Subadmins and superadmins skip all subscription checks — free unlimited access
 
     if (!title || !make || !model || !pricePerDay) {
       return res.status(400).json({ message: "Missing required fields" });
