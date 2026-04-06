@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified } from 'lucide-react';
 import { vehicleApi, type Vehicle, type User } from '../api';
+import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './Home.css';
 
 export default function Home() {
+  const { user } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [owners] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,8 +17,16 @@ export default function Home() {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    vehicleApi.getAll().then(setVehicles).catch(console.error);
-  }, []);
+    vehicleApi.getAll().then((data) => {
+      const filteredVehicles = user 
+        ? data.filter(v => {
+            const ownerId = typeof v.owner === 'object' ? (v.owner as any)._id : v.owner;
+            return ownerId !== user._id;
+          })
+        : data;
+      setVehicles(filteredVehicles);
+    }).catch(console.error);
+  }, [user]);
   
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, dir: 'left' | 'right') => {
     if (ref.current) {

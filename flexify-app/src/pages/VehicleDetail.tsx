@@ -413,13 +413,21 @@ export default function VehicleDetail() {
                 </div>
               )}
 
-              <button
-                className="btn btn-primary btn-lg btn-full"
-                onClick={handleBookingTrigger}
-                style={{ marginTop: '1.5rem', height: '54px', fontSize: '1.1rem' }}
-              >
-                Book Now
-              </button>
+              {user && user._id === (owner?._id || vehicle.owner) ? (
+                <div className="box-highlight" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
+                  <p style={{ fontWeight: 600, color: '#475569', marginBottom: '4px' }}>This is your vehicle</p>
+                  <p style={{ color: '#64748b', fontSize: '0.875rem' }}>You cannot book your own listing.</p>
+                  <Link to="/dashboard" className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }}>Go to Dashboard</Link>
+                </div>
+              ) : (
+                <button
+                  className="btn btn-primary btn-lg btn-full"
+                  onClick={handleBookingTrigger}
+                  style={{ marginTop: '1.5rem', height: '54px', fontSize: '1.1rem' }}
+                >
+                  Book Now
+                </button>
+              )}
 
               <div className="booking-perks">
                 <div className="perk">
@@ -468,7 +476,7 @@ export default function VehicleDetail() {
       </div>
 
       {/* MOBILE STICKY BOOKING BAR */}
-      {isMobile && !showBookingModal && !createdBooking && (
+      {isMobile && !showBookingModal && !createdBooking && (!user || user._id !== (owner?._id || vehicle.owner)) && (
         <div className="mobile-booking-bar animate-slide-up">
           <div className="mobile-bar-price">
             <span className="bar-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>

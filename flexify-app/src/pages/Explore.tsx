@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
+import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Collapse } from 'antd';
 import './Explore.css';
@@ -24,6 +25,7 @@ interface Filters {
 }
 
 export default function Explore() {
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +64,13 @@ export default function Explore() {
       if (filters.sort) params.sort = filters.sort;
 
       const data = await vehicleApi.getAll(params);
-      setVehicles(data);
+      
+      // Filter out user's own vehicles so they can't book their own listings
+      const filteredData = user 
+        ? data.filter((v: any) => v.owner?._id !== user._id && v.owner !== user._id)
+        : data;
+        
+      setVehicles(filteredData);
     } catch (err) {
       console.error(err);
     } finally {
