@@ -563,3 +563,13 @@ export const notificationApi = {
 
   markAllAsRead: () => apiFetch<{ message: string }>('/notifications/mark-all-read', { method: 'POST' }),
 };
+
+export const settingsApi = {
+  getContactDetails: () => apiFetch<{ email: string; phone: string; address: string; workingHours: string; }>('/settings/contact'),
+  updateContactDetails: (data: { email: string; phone: string; address: string; workingHours: string; }) => 
+    apiFetch<any>('/settings/contact', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+};
+
