@@ -9,19 +9,37 @@ import { sendSubadminAlert } from "../utils/notifier.js";
 
 const router = express.Router();
 
-// Ensure upload folder exists
-const uploadDir = path.join(process.cwd(), "uploads", "verification");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+// Ensure upload folders exist
+const verificationDir = path.join(process.cwd(), "uploads", "verification");
+const avatarsDir = path.join(process.cwd(), "uploads", "avatars");
+if (!fs.existsSync(verificationDir)) fs.mkdirSync(verificationDir, { recursive: true });
+if (!fs.existsSync(avatarsDir)) fs.mkdirSync(avatarsDir, { recursive: true });
 
-// Multer setup
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
+// Multer for KYC verification documents
+const kycStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, verificationDir),
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
   },
 });
-const upload = multer({
-  storage,
+const kycUpload = multer({
+  storage: kycStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) cb(null, true);
+    else cb(new Error("Only image files are allowed"), false);
+  },
+});
+
+// Multer for profile picture uploads (separate from KYC)
+const profileStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, avatarsDir),
+  filename: (req, file, cb) => {
+    cb(null, `avatar-${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
+  },
+});
+const profileUpload = multer({
+  storage: profileStorage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) cb(null, true);
@@ -36,7 +54,7 @@ const upload = multer({
 router.post(
   "/verify",
   protect,
-  upload.fields([
+  kycUpload.fields([
     { name: "nicFront", maxCount: 1 },
     { name: "nicBack", maxCount: 1 },
     { name: "license", maxCount: 1 },
@@ -69,10 +87,7 @@ router.post(
       if (req.body.fullName) user.name = req.body.fullName;
       if (req.body.phone) user.phone = req.body.phone;
 
-      // Set profilePic from selfie
-      if (files.selfie) {
-        user.profilePic = `/uploads/verification/${files.selfie[0].filename}`;
-      }
+      // NOTE: Do NOT set profilePic from KYC selfie — profile pic is separate
 
       await user.save();
 
@@ -93,7 +108,7 @@ router.post(
 router.put(
   "/update-profile",
   protect,
-  upload.fields([{ name: "profilePic", maxCount: 1 }]),
+  profileUpload.fields([{ name: "profilePic", maxCount: 1 }]),
   async (req, res) => {
     try {
       const user = await User.findById(req.user._id);
@@ -106,7 +121,7 @@ router.put(
       if (req.body.address) user.address = req.body.address;
 
       if (files.profilePic) {
-        user.profilePic = `/uploads/verification/${files.profilePic[0].filename}`;
+        user.profilePic = `/uploads/avatars/${files.profilePic[0].filename}`;
       }
 
       await user.save();

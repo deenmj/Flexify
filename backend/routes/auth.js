@@ -19,17 +19,21 @@ const router = express.Router();
 /* =========================================================
    RATE LIMITERS
 ========================================================= */
-const loginLimiter = (req, res, next) => next(); 
-const forgotPasswordLimiter = (req, res, next) => next();
-
-/*
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,                    // 5 attempts per window
-...
+  max: 5,                    // 5 login attempts per window
+  message: { message: "Too many login attempts. Please try again in 15 minutes." },
+  standardHeaders: true,
   legacyHeaders: false,
 });
-*/
+
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3,                    // 3 forgot-password attempts per window
+  message: { message: "Too many password reset requests. Please try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 /* =========================================================
    PASSWORD VALIDATION HELPER

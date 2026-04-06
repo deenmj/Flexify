@@ -4,6 +4,7 @@ import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/Booking.js";
 import User from "../models/User.js";
 import AuditLog from "../models/AuditLog.js";
+import Payment from "../models/Payment.js";
 import { logAdminAction } from "../utils/auditLogger.js";
 
 
@@ -282,7 +283,7 @@ export const updateUserStatus = async (req, res) => {
  */
 export const getUserKyc = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("documents verificationStatus isKycVerified");
+    const user = await User.findById(req.params.id).select("name phone documents verificationStatus isKycVerified rejectionReason rejectionComment");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {

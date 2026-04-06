@@ -611,32 +611,6 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {tab === 'payments' && (
-                <div className="animate-fade-in">
-                  <Table
-                    dataSource={pendingPayments}
-                    rowKey="_id"
-                    pagination={{ pageSize: 15 }}
-                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
-                    columns={[
-                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
-                      { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
-                      { title: 'Duration', dataIndex: 'duration' },
-                      { title: 'Amount', dataIndex: 'amount', render: (a: number) => `LKR ${a?.toLocaleString()}` },
-                      { title: 'Reference', dataIndex: 'reference' },
-                      { title: 'Date', dataIndex: 'createdAt', render: (d: string) => new Date(d).toLocaleString() },
-                      {
-                        title: 'Actions', render: (_, p: any) => (
-                          <Space>
-                            <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
-                            <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
-                          </Space>
-                        )
-                      }
-                    ]}
-                  />
-                </div>
-              )}
 
               {tab === 'bank-settings' && (
                 <div className="animate-fade-in" style={{ maxWidth: '600px' }}>

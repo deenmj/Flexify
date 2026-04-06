@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel } from '../api';
-import { Select as AntSelect } from 'antd';
+import { Select as AntSelect, message } from 'antd';
 import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -147,13 +147,15 @@ export default function ListVehicle() {
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
+      message.loading({ content: 'Getting your location...', key: 'locate', duration: 10 });
       navigator.geolocation.getCurrentPosition((pos) => {
         setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        message.success({ content: 'Location found! Pin dropped on the map.', key: 'locate', duration: 3 });
       }, () => {
-        alert("Failed to access your location. Please check your browser permissions.");
+        message.error({ content: 'Failed to access your location. Please check your browser permissions.', key: 'locate', duration: 5 });
       });
     } else {
-      alert("Geolocation is not supported by your browser.");
+      message.error({ content: 'Geolocation is not supported by your browser.', key: 'locate', duration: 5 });
     }
   };
 
