@@ -5,8 +5,11 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingScreen from './components/LoadingScreen';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { BetaFeedbackButton, WelcomeModal } from './components/BetaFeatures';
 
 // Pages
+import NotFound from './pages/NotFound';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import GoogleSuccess from './pages/GoogleSuccess';
@@ -64,8 +67,9 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <SocketProvider>
-          <Suspense fallback={<LoadingScreen message="Loading page..." />}>
-            <Routes>
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingScreen message="Loading page..." />}>
+              <Routes>
               {/* Landing / Redirection */}
               <Route path="/" element={<RootRedirect />} />
 
@@ -96,8 +100,14 @@ export default function App() {
               {/* Admin dashboards */}
               <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
               <Route path="/subadmin" element={<AppLayout><ProtectedRoute roles={['subadmin', 'superadmin']}><SubAdminDashboard /></ProtectedRoute></AppLayout>} />
+              
+              {/* Catch-all 404 Route */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          </ErrorBoundary>
+          <BetaFeedbackButton />
+          <WelcomeModal />
         </SocketProvider>
       </AuthProvider>
     </BrowserRouter>

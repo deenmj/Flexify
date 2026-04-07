@@ -129,14 +129,14 @@ export default function ListVehicle() {
 
   // Sync internal Make/Model states to form output dynamically
   useEffect(() => {
-    let finalMake = selectedMake === 'Other' ? customMake : selectedMake;
-    let finalModel = selectedModel === 'Other' ? customModel : selectedModel;
+    const finalMake = selectedMake === 'Other' ? customMake : selectedMake;
+    const finalModel = selectedModel === 'Other' ? customModel : selectedModel;
     setForm(prev => ({ ...prev, make: finalMake, model: finalModel }));
   }, [selectedMake, customMake, selectedModel, customModel]);
 
   useEffect(() => {
-    let finalPlace = selectedPlace === 'Other' ? customPlace : selectedPlace;
-    let finalAddress = [finalPlace, selectedDistrict, 'Sri Lanka'].filter(Boolean).join(', ');
+    const finalPlace = selectedPlace === 'Other' ? customPlace : selectedPlace;
+    const finalAddress = [finalPlace, selectedDistrict, 'Sri Lanka'].filter(Boolean).join(', ');
     setForm(prev => ({ ...prev, address: finalAddress }));
   }, [selectedDistrict, selectedPlace, customPlace]);
 

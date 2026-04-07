@@ -1,0 +1,51 @@
+
+> flexify-app@0.0.0 lint
+> eslint .
+
+
+D:\Projects\Flexify\flexify-app\src\api.ts
+  241:12  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Flexify\flexify-app\src\context\SocketContext.tsx
+  45:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Projects\Flexify\flexify-app\src\context\SocketContext.tsx:45:7
+  43 |       });
+  44 |
+> 45 |       setSocket(newSocket);
+     |       ^^^^^^^^^ Avoid calling setState() directly within an effect
+  46 |
+  47 |       return () => {
+  48 |         newSocket.disconnect();  react-hooks/set-state-in-effect
+
+D:\Projects\Flexify\flexify-app\src\hooks\useIsMobile.ts
+  16:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Projects\Flexify\flexify-app\src\hooks\useIsMobile.ts:16:5
+  14 |     
+  15 |     // Set initial value
+> 16 |     setIsMobile(mql.matches);
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  17 |
+  18 |     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+  19 |     mql.addEventListener('change', handler);  react-hooks/set-state-in-effect
+
+D:\Projects\Flexify\flexify-app\src\pages\AdminDashboard.tsx
+   4:163  warning  'XCircle' is defined but never used                                                                                            @typescript-eslint/no-unused-vars
+  81:6    warning  React Hook useEffect has missing dependencies: 'district' and 'timeRange'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  86:6    warning  React Hook useEffect has a missing dependency: 'loading'. Either include it or remove the dependency array                     react-hooks/exhaustive-deps
+
+Ô£û 6 problems (2 errors, 4 warnings)
+

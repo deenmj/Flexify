@@ -55,7 +55,7 @@ export default function SubAdminDashboard() {
   useEffect(() => {
     if (socket) {
       socket.on('pendingUpdate', (data: any) => {
-        console.log('🔄 Live Update Received:', data);
+
         fetchData(); // Refresh all data when something changes
         notification.info({
           message: 'Real-time Update',
@@ -614,7 +614,7 @@ export default function SubAdminDashboard() {
                       {
                         title: 'Transaction/Ref', render: (_, p: any) => (
                           <div>
-                            <Text copyable fontSize="12px">{p.transactionId || p.reference}</Text>
+                            <Text copyable style={{ fontSize: '12px' }}>{p.transactionId || p.reference}</Text>
                             {p.paidAt && <div style={{ fontSize: '11px', color: '#94a3b8' }}>Paid: {new Date(p.paidAt).toLocaleString()}</div>}
                           </div>
                         )

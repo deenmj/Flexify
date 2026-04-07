@@ -42,6 +42,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.error('Socket connection error:', err.message);
       });
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSocket(newSocket);
 
       return () => {

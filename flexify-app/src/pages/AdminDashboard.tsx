@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, bankDetailsApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, XCircle } from 'lucide-react';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText } from 'lucide-react';
 import { Table, Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
@@ -78,11 +78,13 @@ export default function AdminDashboard() {
       if (logs?.logs) setAuditLogs(logs.logs);
       setPendingPayments(p);
     }).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => {
     if (loading) return;
     fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [district, timeRange, fetchStats]);
 
   useEffect(() => {
