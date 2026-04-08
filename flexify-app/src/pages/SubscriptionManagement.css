@@ -457,3 +457,56 @@
 .plan-price span.duration {
     margin-left: 2px;
 }
+
+/* Receipt Upload Section */
+.receipt-upload-section {
+    padding: 0 2rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.upload-label {
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.required {
+    color: #ef4444;
+}
+
+.upload-trigger-btn {
+    height: 48px !important;
+    border-radius: 12px !important;
+    border: 2px dashed #cbd5e1 !important;
+    width: 200px !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    transition: all 0.2s !important;
+}
+
+.upload-trigger-btn:hover {
+    border-color: #0d9488 !important;
+    color: #0d9488 !important;
+    background: #f0fdfa !important;
+}
+
+.file-preview-info {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f0fdfa;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #0d9488;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 1px solid #ccfbf1;
+}
+
+.upload-hint {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 0.5rem;
+}

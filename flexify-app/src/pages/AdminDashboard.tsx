@@ -679,6 +679,18 @@ export default function AdminDashboard() {
                       { title: 'Duration', dataIndex: 'duration' },
                       { title: 'Amount', dataIndex: 'amount', render: (a: number) => `LKR ${a?.toLocaleString()}` },
                       { title: 'Reference', dataIndex: 'reference' },
+                      { 
+                        title: 'Receipt', 
+                        render: (_, p: any) => p.receiptImage ? (
+                          <Button 
+                            size="small" 
+                            icon={<FileText size={14} />} 
+                            onClick={() => window.open(`http://localhost:5000${p.receiptImage}`, '_blank')}
+                          >
+                            View
+                          </Button>
+                        ) : <Text type="secondary">N/A</Text>
+                      },
                       { title: 'Date', dataIndex: 'createdAt', render: (d: string) => new Date(d).toLocaleString() },
                       {
                         title: 'Actions', render: (_, p: any) => (

@@ -4,13 +4,36 @@ import User from "../models/User.js";
 import Payment from "../models/Payment.js";
 import { logAdminAction } from "../utils/auditLogger.js";
 import crypto from "crypto";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router = express.Router();
+
+// Ensure receipts folder exists
+const receiptsDir = path.join(process.cwd(), "uploads", "receipts");
+if (!fs.existsSync(receiptsDir)) fs.mkdirSync(receiptsDir, { recursive: true });
+
+// Multer for payment receipts
+const receiptStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, receiptsDir),
+  filename: (req, file, cb) => {
+    cb(null, `receipt-${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
+  },
+});
+const paymentUpload = multer({
+  storage: receiptStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/") || file.mimetype === "application/pdf") cb(null, true);
+    else cb(new Error("Only image or PDF files are allowed"), false);
+  },
+});
 
 /**
  * Request subscription upgrade or renewal
  */
-router.post("/subscribe", protect, async (req, res) => {
+router.post("/subscribe", protect, paymentUpload.single("receipt"), async (req, res) => {
   try {
     const { tier, duration, amount, reference } = req.body;
     if (!['BASIC', 'STANDARD', 'ENTERPRISE'].includes(tier)) {
@@ -26,6 +49,8 @@ router.post("/subscribe", protect, async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    const receiptPath = req.file ? `/uploads/receipts/${req.file.filename}` : null;
+
     // Create a pending payment record
     const payment = await Payment.create({
         user: user._id,
@@ -33,7 +58,8 @@ router.post("/subscribe", protect, async (req, res) => {
         duration,
         amount,
         reference,
-        status: "pending"
+        status: "pending",
+        receiptImage: receiptPath
     });
     
     res.json({ 

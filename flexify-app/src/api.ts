@@ -493,7 +493,6 @@ export const reviewApi = {
     }),
 };
 
-// =================== USER ===================
 export const userApi = {
   submitKyc: (formData: FormData) =>
     fetch(`${API_BASE_URL}/users/verify`, {
@@ -534,10 +533,15 @@ export const ownerApi = {
   getSubscription: () =>
     apiFetch<{ subscription: User['subscription'] }>('/auth/me').then(res => res.subscription),
 
-  initiateSubscription: (tier: string, duration: string, amount: number, reference: string) =>
-    apiFetch<{ message: string }>('/owner/subscribe', {
+  initiateSubscription: (formData: FormData) =>
+    fetch(`${API_BASE_URL}/owner/subscribe`, {
       method: 'POST',
-      body: JSON.stringify({ tier, duration, amount, reference })
+      headers: authHeadersOnly(),
+      body: formData,
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Subscription failed');
+      return data;
     }),
 
   getPayHereParams: (tier: string, duration: string, amount: number) =>

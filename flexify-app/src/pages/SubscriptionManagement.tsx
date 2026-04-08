@@ -4,14 +4,14 @@ import { useSocket } from '../context/SocketContext';
 import { Check, Shield, Zap, AlertCircle, Clock, Info, CreditCard, Landmark, ArrowLeft, Loader2 } from 'lucide-react';
 import { ownerApi, bankDetailsApi, type BankDetailsData } from '../api';
 import './SubscriptionManagement.css';
-import { notification, message, Button, Tooltip } from 'antd';
-import { CopyOutlined } from '@ant-design/icons';
+import { notification, message, Button, Tooltip, Upload } from 'antd';
+import { CopyOutlined, UploadOutlined, FileImageOutlined } from '@ant-design/icons';
 
 const PLANS = [
   {
     id: 'BASIC',
     name: 'Basic',
-    price: 1000,
+    price: 1500,
     description: 'Perfect for casual owners',
     features: [
       'Up to 2 vehicle listings',
@@ -26,7 +26,7 @@ const PLANS = [
   {
     id: 'STANDARD',
     name: 'Standard',
-    price: 2500,
+    price: 3500,
     description: 'Recommended for active owners',
     features: [
       'Up to 6 vehicle listings',
@@ -41,8 +41,8 @@ const PLANS = [
   {
     id: 'ENTERPRISE',
     name: 'Enterprise',
-    price: 3500,
-    price6: 18000,
+    price: 5000,
+    price6: 25000,
     description: 'For professional fleet owners',
     features: [
       'Unlimited vehicle listings',
@@ -68,6 +68,7 @@ const SubscriptionManagement: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<'CARD' | 'BANK'>('CARD');
   const [payhereParams, setPayhereParams] = useState<any>(null);
   const [bankDetails, setBankDetails] = useState<BankDetailsData | null>(null);
+  const [receiptFile, setReceiptFile] = useState<any>(null);
 
   const sub = user?.subscription || { tier: 'BASIC', status: 'trial', endDate: null };
   const isTrial = sub.status === 'trial';
@@ -120,20 +121,28 @@ const SubscriptionManagement: React.FC = () => {
 
   const confirmManualPayment = async () => {
     if (!selectedTier) return;
+    if (!receiptFile) {
+      message.error('Please upload your payment receipt');
+      return;
+    }
+
     setLoading(true);
     try {
       const duration = (selectedTier.id === 'ENTERPRISE' && is6Month) ? 'BI_ANNUAL' : 'MONTHLY';
       const amount = (selectedTier.id === 'ENTERPRISE' && is6Month) ? selectedTier.price6 : selectedTier.price;
 
-      const res = await ownerApi.initiateSubscription(
-        selectedTier.id,
-        duration,
-        amount,
-        user?.email || 'Unknown'
-      );
+      const formData = new FormData();
+      formData.append('tier', selectedTier.id);
+      formData.append('duration', duration);
+      formData.append('amount', amount.toString());
+      formData.append('reference', user?.email || 'Unknown');
+      formData.append('receipt', receiptFile);
+
+      const res = await ownerApi.initiateSubscription(formData);
 
       setStatusMessage({ type: 'success', text: res.message });
       setShowPayment(false);
+      setReceiptFile(null);
       await refreshUser();
     } catch (err: any) {
       setStatusMessage({ type: 'error', text: err.message || 'Failed to send request' });
@@ -372,6 +381,40 @@ const SubscriptionManagement: React.FC = () => {
                     </Button>
                   </div>
                 </div>
+
+                <div className="receipt-upload-section">
+                  <p className="upload-label">Upload Payment Receipt <span className="required">*</span></p>
+                  <Upload
+                    beforeUpload={(file) => {
+                      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'application/pdf';
+                      if (!isJpgOrPng) {
+                        message.error('You can only upload JPG/PNG images or PDF files!');
+                      }
+                      const isLt5M = file.size / 1024 / 1024 < 5;
+                      if (!isLt5M) {
+                        message.error('Image must be smaller than 5MB!');
+                      }
+                      if (isJpgOrPng && isLt5M) {
+                        setReceiptFile(file);
+                      }
+                      return false;
+                    }}
+                    fileList={receiptFile ? [receiptFile] : []}
+                    onRemove={() => setReceiptFile(null)}
+                    maxCount={1}
+                  >
+                    <Button icon={<UploadOutlined />} className="upload-trigger-btn">
+                      {receiptFile ? 'Change Receipt' : 'Choose File'}
+                    </Button>
+                  </Upload>
+                  {receiptFile && (
+                    <div className="file-preview-info">
+                      <FileImageOutlined /> <span>{receiptFile.name}</span>
+                    </div>
+                  )}
+                  <p className="upload-hint">Format: JPG, PNG, PDF (Max 5MB)</p>
+                </div>
+
                 <button
                   className="confirm-manual-btn"
                   onClick={confirmManualPayment}

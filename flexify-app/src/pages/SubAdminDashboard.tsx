@@ -710,6 +710,18 @@ export default function SubAdminDashboard() {
                           </div>
                         )
                       },
+                      { 
+                        title: 'Receipt', 
+                        render: (_, p: any) => p.receiptImage ? (
+                          <Button 
+                            size="small" 
+                            icon={<FileText size={14} />} 
+                            onClick={() => window.open(`http://localhost:5000${p.receiptImage}`, '_blank')}
+                          >
+                            View
+                          </Button>
+                        ) : <Text type="secondary">N/A</Text>
+                      },
                       {
                         title: 'Action', render: (_, p: any) => (
                           <Space>

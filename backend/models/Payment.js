@@ -46,6 +46,10 @@ const paymentSchema = new mongoose.Schema(
     rejectionReason: {
         type: String,
         default: null
+    },
+    receiptImage: {
+        type: String,
+        default: null
     }
   },
   { timestamps: true }
