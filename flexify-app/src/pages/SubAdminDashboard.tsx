@@ -487,7 +487,7 @@ export default function SubAdminDashboard() {
                     <Statistic title="Action Required" value={pendingUsers.length + pendingVehicles.length} prefix={<AlertTriangle size={20} style={{ color: '#ea580c', marginRight: 8 }} />} />
                   </Card>
                   <Card size="small" style={{ borderRadius: '12px', background: '#f0fdf4', border: '1px solid #dcfce7' }} bordered={false}>
-                    <Statistic title="Approved Today" value={stats.approvedUsers} prefix={<CheckCircle size={20} style={{ color: '#16a34a', marginRight: 8 }} />} />
+                    <Statistic title="Approved Today" value={stats.approvedToday} prefix={<CheckCircle size={20} style={{ color: '#16a34a', marginRight: 8 }} />} />
                   </Card>
                   <Card size="small" style={{ borderRadius: '12px', background: '#eff6ff', border: '1px solid #dbeafe' }} bordered={false}>
                     <Statistic title="Total Vehicles" value={stats.totalVehicles} prefix={<Car size={20} style={{ color: '#2563eb', marginRight: 8 }} />} />

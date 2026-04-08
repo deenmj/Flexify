@@ -6,7 +6,6 @@ import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingScreen from './components/LoadingScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { BetaFeedbackButton, WelcomeModal } from './components/BetaFeatures';
 
 // Pages
 import NotFound from './pages/NotFound';
@@ -106,8 +105,6 @@ export default function App() {
             </Routes>
           </Suspense>
           </ErrorBoundary>
-          <BetaFeedbackButton />
-          <WelcomeModal />
         </SocketProvider>
       </AuthProvider>
     </BrowserRouter>

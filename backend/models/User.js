@@ -77,6 +77,7 @@ const userSchema = new mongoose.Schema(
     rejectionReason: { type: String, default: null },
     rejectionComment: { type: String, default: null },
     rejectedAt: { type: Date, default: null },
+    kycVerifiedAt: { type: Date, default: null },
 
     // KYC documents (file paths)
     documents: { type: documentsSchema, default: () => ({}) },

@@ -485,3 +485,38 @@ export const getModels = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+/**
+ * Public: Get platform-wide statistics for Home/About pages
+ */
+export const getPublicStats = async (req, res) => {
+  try {
+    const totalActiveVehicles = await Vehicle.countDocuments({ status: "active", isActive: true });
+    const totalVerifiedOwners = await User.countDocuments({ role: "owner", ownerType: "VERIFIED" });
+    const totalVerifiedUsers = await User.countDocuments({ isKycVerified: true });
+    
+    // Distinct districts/locations
+    const result = await Vehicle.aggregate([
+      { $match: { status: "active", isActive: true } },
+      { $group: { _id: "$location.address" } }
+    ]);
+    const totalDistricts = result.length > 0 ? result.length : 0;
+
+    // Average rating
+    const ratingResult = await Vehicle.aggregate([
+      { $match: { status: "active", isActive: true, averageRating: { $gt: 0 } } },
+      { $group: { _id: null, avg: { $avg: "$averageRating" } } }
+    ]);
+    const averageRating = ratingResult.length > 0 ? parseFloat(ratingResult[0].avg.toFixed(1)) : 0;
+
+    res.json({
+      totalActiveVehicles,
+      totalVerifiedOwners,
+      totalVerifiedUsers,
+      totalDistricts,
+      averageRating
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
