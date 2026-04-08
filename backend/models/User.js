@@ -96,6 +96,8 @@ const userSchema = new mongoose.Schema(
     passwordResetExpires: { type: Date },
 
     profilePic: { type: String, default: "" },
+    notificationEmail: { type: String, default: "" },
+    isNotificationEmailActive: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

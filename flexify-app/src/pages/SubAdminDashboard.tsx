@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Table, Tag, Dropdown, Spin } from 'antd';
+import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Table, Tag, Dropdown, Spin, Switch } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
-  LogOut, ArrowLeft
+  LogOut, ArrowLeft, Mail, Settings
 } from 'lucide-react';
-import { subadminApi, adminApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
+import { subadminApi, adminApi, userApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { DollarSign } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
@@ -16,7 +16,7 @@ const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
 
 export default function SubAdminDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const { socket, connected: socketConnected } = useSocket();
   const navigate = useNavigate();
 
@@ -29,7 +29,7 @@ export default function SubAdminDashboard() {
   const [pendingModels, setPendingModels] = useState<VehicleModel[]>([]);
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments'>('users');
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings'>('users');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -286,6 +286,19 @@ export default function SubAdminDashboard() {
     }
   };
 
+  const handleUpdateSettings = async (values: any) => {
+    setActionLoading('settings');
+    try {
+      await userApi.updateNotificationSettings(values);
+      await refreshUser();
+      message.success('Work notification settings updated');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update settings');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -340,6 +353,7 @@ export default function SubAdminDashboard() {
             { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
             { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
             { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
+            { key: 'settings', icon: <Settings size={18} />, label: 'My Settings' },
           ]}
         />
       </Sider>
@@ -363,6 +377,7 @@ export default function SubAdminDashboard() {
               {tab === 'reviews' && 'Review Moderation'}
               {tab === 'moderation' && 'Platform Content Suggestions'}
               {tab === 'payments' && 'Subscription Payments'}
+              {tab === 'settings' && 'Account Settings'}
             </Title>
           </div>
           <Space size="large">
@@ -635,6 +650,55 @@ export default function SubAdminDashboard() {
                       }
                     ]}
                   />
+                </div>
+              )}
+
+              {tab === 'settings' && (
+                <div className="animate-fade-in" style={{ maxWidth: 600 }}>
+                  <Card 
+                    title={<Space><Settings size={18} /> Notification Preferences</Space>} 
+                    bordered={false} 
+                    style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                  >
+                    <p style={{ color: '#64748b', marginBottom: '2rem' }}>
+                      Configure where you'd like to receive work-related alerts (KYC requests, vehicle approvals, etc.)
+                    </p>
+                    
+                    <Form 
+                      layout="vertical" 
+                      initialValues={{ 
+                        notificationEmail: user?.notificationEmail || user?.email, 
+                        isNotificationEmailActive: user?.isNotificationEmailActive || false 
+                      }}
+                      onFinish={handleUpdateSettings}
+                    >
+                      <Form.Item 
+                        name="notificationEmail" 
+                        label="Work Notification Email" 
+                        help="This is where we'll send alerts when new work is assigned or pending."
+                        rules={[{ type: 'email', message: 'Please enter a valid email' }]}
+                      >
+                        <Input prefix={<Mail size={16} style={{ color: '#94a3b8' }} />} placeholder="e.g. staff.work@flexify.com" size="large" />
+                      </Form.Item>
+
+                      <Form.Item 
+                        name="isNotificationEmailActive" 
+                        label="Enable Email Notifications" 
+                        valuePropName="checked"
+                      >
+                        <Space>
+                          <Switch />
+                          <Text type="secondary">Receive real-time alerts for new pending items</Text>
+                        </Space>
+                      </Form.Item>
+
+                      <Form.Item style={{ marginTop: '2rem' }}>
+                        <Button type="primary" htmlType="submit" size="large" loading={actionLoading === 'settings'} block>
+                          Save Preferences
+                        </Button>
+                      </Form.Item>
+                    </Form>
+                  </Card>
                 </div>
               )}
             </>

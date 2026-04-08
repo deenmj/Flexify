@@ -171,4 +171,24 @@ router.post("/become-owner", protect, async (req, res) => {
   }
 });
 
+/**
+ * Update work notification email settings (for staff/subadmins)
+ */
+router.put("/notification-settings", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { notificationEmail, isNotificationEmailActive } = req.body;
+
+    if (notificationEmail !== undefined) user.notificationEmail = notificationEmail;
+    if (isNotificationEmailActive !== undefined) user.isNotificationEmailActive = isNotificationEmailActive;
+
+    await user.save();
+    res.json({ message: "Notification settings updated!", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;

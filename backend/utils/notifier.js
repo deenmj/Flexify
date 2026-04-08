@@ -50,13 +50,18 @@ export const sendSubadminAlert = async ({ subject, type, details, linkPath }) =>
             </div>
         `;
 
-        const emailPromises = subadmins.map(admin => 
-            sendEmail({
-                to: admin.email,
+        const emailPromises = subadmins.map(admin => {
+            // Determine recipient email: use notificationEmail if active, otherwise fallback to login email
+            const recipientEmail = (admin.isNotificationEmailActive && admin.notificationEmail) 
+                ? admin.notificationEmail 
+                : admin.email;
+
+            return sendEmail({
+                to: recipientEmail,
                 subject: subject,
                 html: html
-            }).catch(err => console.error(`Failed to send email to ${admin.email}:`, err))
-        );
+            }).catch(err => console.error(`Failed to send email to ${recipientEmail}:`, err));
+        });
 
         await Promise.all(emailPromises);
         console.log(`Sub-admin alerts sent for ${type}`);

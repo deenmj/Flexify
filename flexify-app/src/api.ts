@@ -22,6 +22,8 @@ export interface User {
     address?: string;
   };
   profilePic: string;
+  notificationEmail?: string;
+  isNotificationEmailActive?: boolean;
   provider?: string;
   status?: string;
   createdAt?: string;
@@ -518,6 +520,12 @@ export const userApi = {
   becomeOwner: () =>
     apiFetch<{ message: string; user: User }>('/users/become-owner', {
       method: 'POST',
+    }),
+
+  updateNotificationSettings: (data: { notificationEmail?: string; isNotificationEmailActive?: boolean }) =>
+    apiFetch<{ message: string; user: User }>('/users/notification-settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
     }),
 };
 
