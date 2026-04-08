@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Typography, Space, Tag } from 'antd';
-import { Rocket, MessageSquare, Heart, Shield, Zap } from 'lucide-react';
+import { Modal, Button, Typography, Space, Tag, Form, Input, Select, message } from 'antd';
+import { Rocket, MessageSquare, Heart, Shield, Zap, Send } from 'lucide-react';
+import { feedbackApi } from '../api';
+import { useAuth } from '../context/AuthContext';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 export function BetaBadge() {
   return (
@@ -13,25 +15,123 @@ export function BetaBadge() {
 }
 
 export function BetaFeedbackButton() {
+  const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
+
+  const handleSubmit = async (values: any) => {
+    setLoading(true);
+    try {
+      await feedbackApi.submit({
+        ...values,
+        deviceInfo: {
+          url: window.location.href,
+          userAgent: navigator.userAgent,
+          screenSize: `${window.innerWidth}x${window.innerHeight}`
+        }
+      });
+      message.success('Thank you! Your feedback has been submitted.');
+      setIsOpen(false);
+      form.resetFields();
+    } catch (err: any) {
+      message.error('Failed to submit feedback. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
-      <Button 
-        type="primary" 
-        shape="round" 
-        size="large" 
-        icon={<MessageSquare size={18} style={{ marginRight: '8px' }} />}
-        onClick={() => window.open('https://forms.gle/your-google-form-id', '_blank')}
-        style={{ 
-          background: '#0d9488', 
-          borderColor: '#0d9488', 
-          boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)',
-          display: 'flex',
-          alignItems: 'center'
-        }}
+    <>
+      <div style={{ position: 'fixed', bottom: '24px', left: '24px', zIndex: 1000 }}>
+        <Button 
+          type="primary" 
+          shape="round" 
+          size="large" 
+          icon={<MessageSquare size={18} style={{ marginRight: '8px' }} />}
+          onClick={() => setIsOpen(true)}
+          style={{ 
+            background: 'var(--primary-color, #0d9488)', 
+            borderColor: 'var(--primary-color, #0d9488)', 
+            boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            height: '46px',
+            padding: '0 20px',
+            fontWeight: 600
+          }}
+        >
+          Feedback
+        </Button>
+      </div>
+
+      <Modal
+        title={
+          <Space>
+            <MessageSquare size={18} style={{ color: '#0d9488' }} />
+            <span>Submit Feedback</span>
+            <BetaBadge />
+          </Space>
+        }
+        open={isOpen}
+        onCancel={() => setIsOpen(false)}
+        footer={null}
+        width={450}
+        centered
       >
-        Feedback
-      </Button>
-    </div>
+        <Paragraph type="secondary" style={{ fontSize: '13px' }}>
+          Spotted a bug? Have a suggestion? We'd love to hear from you as we improve the platform.
+        </Paragraph>
+
+        <Form 
+          form={form} 
+          layout="vertical" 
+          onFinish={handleSubmit}
+          initialValues={{ type: 'suggestion', contactEmail: user?.email }}
+        >
+          <Form.Item 
+            name="type" 
+            label="Feedback Type" 
+            rules={[{ required: true }]}
+          >
+            <Select options={[
+              { value: 'bug', label: '🪲 Report a Bug' },
+              { value: 'suggestion', label: '💡 Suggestion' },
+              { value: 'general', label: '💬 General Inquiry' },
+            ]} />
+          </Form.Item>
+
+          <Form.Item 
+            name="message" 
+            label="Message" 
+            rules={[{ required: true, message: 'Please enter your feedback' }]}
+          >
+            <Input.TextArea rows={4} placeholder="Describe the issue or share your idea..." />
+          </Form.Item>
+
+          <Form.Item 
+            name="contactEmail" 
+            label="Reply Email (Optional)"
+          >
+            <Input placeholder="email@example.com" />
+          </Form.Item>
+
+          <div style={{ marginTop: '24px' }}>
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={loading} 
+              block 
+              size="large" 
+              icon={<Send size={16} />}
+              style={{ background: '#0d9488', borderColor: '#0d9488', height: '48px', borderRadius: '8px' }}
+            >
+              Submit Feedback
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+    </>
   );
 }
 

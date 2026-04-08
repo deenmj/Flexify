@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Table, Tag, Dropdown, Spin, Switch } from 'antd';
+import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Table, Tag, Dropdown, Spin, Switch, Drawer, Grid } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
-  LogOut, ArrowLeft, Mail, Settings
+  LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon
 } from 'lucide-react';
-import { subadminApi, adminApi, userApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
+import { subadminApi, adminApi, userApi, feedbackApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { DollarSign } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
@@ -19,8 +19,11 @@ export default function SubAdminDashboard() {
   const { user, logout, refreshUser } = useAuth();
   const { socket, connected: socketConnected } = useSocket();
   const navigate = useNavigate();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
 
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [stats, setStats] = useState<SubadminStats | null>(null);
   const [pendingUsers, setPendingUsers] = useState<User[]>([]);
   const [pendingVehicles, setPendingVehicles] = useState<Vehicle[]>([]);
@@ -29,11 +32,13 @@ export default function SubAdminDashboard() {
   const [pendingModels, setPendingModels] = useState<VehicleModel[]>([]);
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings'>('users');
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback'>('users');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [feedbacksLoading, setFeedbacksLoading] = useState(false);
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [rejectionModal, setRejectionModal] = useState<{
@@ -81,6 +86,16 @@ export default function SubAdminDashboard() {
       });
     }
   }, [stats]);
+
+  useEffect(() => {
+    if (tab === 'feedback') {
+      setFeedbacksLoading(true);
+      feedbackApi.getAll()
+        .then(setFeedbacks)
+        .catch(() => message.error('Failed to load feedback'))
+        .finally(() => setFeedbacksLoading(false));
+    }
+  }, [tab]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -322,45 +337,80 @@ export default function SubAdminDashboard() {
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={(value) => setCollapsed(value)}
-        theme="dark"
-        width={280}
-        style={{
-          overflow: 'auto',
-          height: '100vh',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          zIndex: 10,
-          boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)',
-        }}
-      >
-        <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
-          {collapsed ? 'FX' : 'Flexify Staff'}
-        </div>
-        <Menu
+      {!isMobile ? (
+        <Sider
+          collapsible
+          collapsed={collapsed}
+          onCollapse={(value) => setCollapsed(value)}
           theme="dark"
-          mode="inline"
-          selectedKeys={[tab]}
-          onClick={({ key }) => setTab(key as any)}
-          items={[
-            { key: 'users', icon: <Shield size={18} />, label: `KYC Verifications (${pendingUsers.length})` },
-            { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
-            { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
-            { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
-            { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
-            { key: 'settings', icon: <Settings size={18} />, label: 'My Settings' },
-          ]}
-        />
-      </Sider>
+          width={280}
+          style={{
+            overflow: 'auto',
+            height: '100vh',
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            zIndex: 10,
+            boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)',
+          }}
+        >
+          <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
+            {collapsed ? 'FX' : 'Flexify Staff'}
+          </div>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[tab]}
+            onClick={({ key }) => setTab(key as any)}
+            items={[
+              { key: 'users', icon: <Shield size={18} />, label: `KYC Verifications (${pendingUsers.length})` },
+              { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
+              { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
+              { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
+              { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
+              { key: 'settings', icon: <Settings size={18} />, label: 'My Settings' },
+              { key: 'feedback', icon: <MessageSquare size={18} />, label: `User Feedback` },
+            ]}
+          />
+        </Sider>
+      ) : (
+        <Drawer
+          placement="left"
+          onClose={() => setMobileMenuOpen(false)}
+          open={mobileMenuOpen}
+          styles={{ body: { padding: 0 } }}
+          width={280}
+          closable={false}
+          bodyStyle={{ background: '#001529' }}
+        >
+          <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
+            Flexify Staff
+          </div>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[tab]}
+            onClick={({ key }) => {
+              setTab(key as any);
+              setMobileMenuOpen(false);
+            }}
+            items={[
+              { key: 'users', icon: <Shield size={18} />, label: `KYC (${pendingUsers.length})` },
+              { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${pendingVehicles.length})` },
+              { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
+              { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions` },
+              { key: 'payments', icon: <DollarSign size={18} />, label: `Payments` },
+              { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
+              { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
+            ]}
+          />
+        </Drawer>
+      )}
 
-      <Layout style={{ marginLeft: collapsed ? 80 : 280, transition: 'all 0.2s', minHeight: '100vh' }}>
+      <Layout style={{ marginLeft: isMobile ? 0 : (collapsed ? 80 : 280), transition: 'all 0.2s', minHeight: '100vh' }}>
         <Header style={{
-          padding: '0 24px',
+          padding: isMobile ? '0 16px' : '0 24px',
           background: '#fff',
           display: 'flex',
           justifyContent: 'space-between',
@@ -371,23 +421,36 @@ export default function SubAdminDashboard() {
           top: 0
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Title level={4} style={{ margin: 0, color: '#1e293b' }}>
-              {tab === 'users' && 'KYC Review Portal'}
+            {isMobile && (
+              <Button 
+                type="text" 
+                icon={<MenuIcon size={20} />} 
+                onClick={() => setMobileMenuOpen(true)} 
+              />
+            )}
+            <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1e293b' }}>
+              {tab === 'users' && 'KYC Verification'}
               {tab === 'vehicles' && 'Vehicle Approvals'}
               {tab === 'reviews' && 'Review Moderation'}
               {tab === 'moderation' && 'Platform Content Suggestions'}
               {tab === 'payments' && 'Subscription Payments'}
               {tab === 'settings' && 'Account Settings'}
+              {tab === 'feedback' && 'Member Feedback'}
             </Title>
           </div>
-          <Space size="large">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: socketConnected ? '#10b981' : '#ef4444' }}></div>
-              <Text type="secondary" style={{ fontSize: 12 }}>{socketConnected ? 'Live' : 'Offline'}</Text>
-            </div>
-            <Button type="text" onClick={() => navigate('/')} icon={<ArrowLeft size={16} />}>Back to Site</Button>
+          <Space size={isMobile ? "small" : "large"}>
+            {!isMobile && (
+              <Button type="text" onClick={() => navigate('/')} icon={<ArrowLeft size={16} />}>Back to Site</Button>
+            )}
             <Dropdown menu={{
               items: [
+                {
+                  key: 'socket-status',
+                  label: `Backend: ${socketConnected ? 'Live' : 'Offline'}`,
+                  disabled: true,
+                  icon: <div style={{ width: 8, height: 8, borderRadius: '50%', background: socketConnected ? '#10b981' : '#ef4444' }}></div>
+                },
+                { type: 'divider' },
                 {
                   key: 'logout',
                   label: 'Log Out',
@@ -398,14 +461,21 @@ export default function SubAdminDashboard() {
               ]
             }} placement="bottomRight">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px' }}>
-                <Avatar style={{ backgroundColor: '#0d9488' }}>SA</Avatar>
-                <Text strong style={{ color: '#334155' }}>Staff Member</Text>
+                <Avatar style={{ backgroundColor: '#0d9488' }}>{user?.name.charAt(0)}</Avatar>
+                {!isMobile && <Text strong style={{ color: '#334155' }}>Staff</Text>}
               </div>
             </Dropdown>
           </Space>
         </Header>
 
-        <Content style={{ margin: '24px 24px', padding: 32, background: '#fff', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+        <Content style={{ 
+          margin: isMobile ? '12px 12px' : '24px 24px', 
+          padding: isMobile ? 12 : 32, 
+          background: '#fff', 
+          borderRadius: '12px', 
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+          overflowX: 'auto'
+        }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '4rem' }}><Spin size="large" /></div>
           ) : (
@@ -442,6 +512,7 @@ export default function SubAdminDashboard() {
                   </div>
 
                   <Table
+                    scroll={{ x: true }}
                     dataSource={filteredUsers}
                     rowKey={u => (u.id || u._id || Math.random()).toString()}
                     pagination={{ pageSize: 12 }}
@@ -484,6 +555,7 @@ export default function SubAdminDashboard() {
                 <div className="animate-fade-in">
                   <Title level={5} style={{ marginBottom: '1.5rem' }}>Vehicle Listing Approvals</Title>
                   <Table
+                    scroll={{ x: true }}
                     dataSource={pendingVehicles}
                     rowKey="_id"
                     pagination={{ pageSize: 12 }}
@@ -524,6 +596,7 @@ export default function SubAdminDashboard() {
                 <div className="animate-fade-in">
                   <Title level={5} style={{ marginBottom: '1.5rem' }}>Review Moderation</Title>
                   <Table
+                    scroll={{ x: true }}
                     dataSource={reviews}
                     rowKey="_id"
                     pagination={{ pageSize: 12 }}
@@ -564,6 +637,7 @@ export default function SubAdminDashboard() {
                   <Space direction="vertical" style={{ width: '100%' }} size="large">
                     <Card title="New Brand Suggestions" size="small">
                       <Table
+                    scroll={{ x: true }}
                         dataSource={pendingMakes}
                         rowKey="_id"
                         pagination={false}
@@ -586,6 +660,7 @@ export default function SubAdminDashboard() {
 
                     <Card title="New Model Suggestions" size="small">
                       <Table
+                    scroll={{ x: true }}
                         dataSource={pendingModels}
                         rowKey="_id"
                         pagination={false}
@@ -617,6 +692,7 @@ export default function SubAdminDashboard() {
                     <Button type="primary" onClick={fetchData}>Refresh</Button>
                   </div>
                   <Table
+                    scroll={{ x: true }}
                     dataSource={pendingPayments}
                     rowKey="_id"
                     pagination={{ pageSize: 12 }}
@@ -699,6 +775,46 @@ export default function SubAdminDashboard() {
                       </Form.Item>
                     </Form>
                   </Card>
+                </div>
+              )}
+
+              {tab === 'feedback' && (
+                <div className="animate-fade-in">
+                  <Table
+                    scroll={{ x: true }}
+                    dataSource={feedbacks}
+                    loading={feedbacksLoading}
+                    rowKey="_id"
+                    pagination={{ pageSize: 15 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      { 
+                        title: 'Type', 
+                        dataIndex: 'type', 
+                        render: t => (
+                          <Tag color={t === 'bug' ? 'red' : t === 'suggestion' ? 'blue' : 'default'}>
+                            {t?.toUpperCase()}
+                          </Tag>
+                        ) 
+                      },
+                      { 
+                        title: 'Message', 
+                        dataIndex: 'message', 
+                        width: '40%',
+                        render: m => <Text style={{ fontSize: '13px' }}>{m}</Text> 
+                      },
+                      { 
+                        title: 'Guest Email', 
+                        dataIndex: 'contactEmail', 
+                        render: (e, record) => e || record.user?.email || 'N/A' 
+                      },
+                      { 
+                        title: 'Date', 
+                        dataIndex: 'createdAt', 
+                        render: d => new Date(d).toLocaleString() 
+                      }
+                    ]}
+                  />
                 </div>
               )}
             </>

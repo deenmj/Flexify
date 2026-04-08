@@ -113,6 +113,7 @@ import ownerRoutes from "./routes/ownerRoutes.js";
 import bankDetailsRoutes from "./routes/bankDetailsRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
 
 import { protect } from "./middleware/authMiddleware.js";
 
@@ -132,6 +133,7 @@ app.use("/api/owner", ownerRoutes);
 app.use("/api/bank-details", bankDetailsRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 // Catch-all to serve React app
 app.get("*", (req, res) => {

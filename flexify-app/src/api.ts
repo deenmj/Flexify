@@ -581,3 +581,12 @@ export const settingsApi = {
     }),
 };
 
+export const feedbackApi = {
+  submit: (data: { type: string; message: string; contactEmail?: string; deviceInfo?: any }) =>
+    apiFetch<{ message: string }>('/feedback', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  getAll: () => apiFetch<any[]>('/feedback'),
+};

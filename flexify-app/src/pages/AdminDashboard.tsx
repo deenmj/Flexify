@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, bankDetailsApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText } from 'lucide-react';
-import { Table, Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider } from 'antd';
+import { adminApi, bankDetailsApi, feedbackApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData } from '../api';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon } from 'lucide-react';
+import { Table, Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
@@ -17,15 +18,19 @@ const SRI_LANKA_DISTRICTS = [
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
+  const { connected: socketConnected } = useSocket();
   const navigate = useNavigate();
 
   const [collapsed, setCollapsed] = useState(false);
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
-  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings'>('overview');
+  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings' | 'feedback'>('overview');
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(false);
   const [bankDetails, setBankDetails] = useState<BankDetailsData | null>(null);
@@ -35,6 +40,8 @@ export default function AdminDashboard() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [feedbacksLoading, setFeedbacksLoading] = useState(false);
 
   // Modals
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -99,6 +106,16 @@ export default function AdminDashboard() {
         .finally(() => setBankDetailsLoading(false));
     }
   }, [tab, bankDetails]);
+
+  useEffect(() => {
+    if (tab === 'feedback') {
+      setFeedbacksLoading(true);
+      feedbackApi.getAll()
+        .then(setFeedbacks)
+        .catch(() => message.error('Failed to load feedback'))
+        .finally(() => setFeedbacksLoading(false));
+    }
+  }, [tab]);
 
   const handleBankDetailsUpdate = async (values: Partial<BankDetailsData>) => {
     try {
@@ -253,45 +270,80 @@ export default function AdminDashboard() {
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={(value) => setCollapsed(value)}
-        theme="dark"
-        width={260}
-        style={{
-          overflow: 'auto',
-          height: '100vh',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          zIndex: 10,
-          boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)',
-        }}
-      >
-        <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
-          {collapsed ? 'FX' : 'Flexify Admin'}
-        </div>
-        <Menu
+      {!isMobile ? (
+        <Sider
+          collapsible
+          collapsed={collapsed}
+          onCollapse={(value) => setCollapsed(value)}
           theme="dark"
-          mode="inline"
-          selectedKeys={[tab]}
-          onClick={({ key }) => setTab(key as any)}
-          items={[
-            { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
-            { key: 'users', icon: <Users size={18} />, label: `Users (${allUsers.length})` },
-            { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${allVehicles.length})` },
-            { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
-            { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
-            { key: 'bank-settings', icon: <Landmark size={18} />, label: `Bank Settings` },
-          ]}
-        />
-      </Sider>
+          width={260}
+          style={{
+            overflow: 'auto',
+            height: '100vh',
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            zIndex: 10,
+            boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)',
+          }}
+        >
+          <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
+            {collapsed ? 'FX' : 'Flexify Admin'}
+          </div>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[tab]}
+            onClick={({ key }) => setTab(key as any)}
+            items={[
+              { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
+              { key: 'users', icon: <Users size={18} />, label: `Users (${allUsers.length})` },
+              { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${allVehicles.length})` },
+              { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
+              { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
+              { key: 'bank-settings', icon: <Landmark size={18} />, label: `Bank Settings` },
+              { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
+            ]}
+          />
+        </Sider>
+      ) : (
+        <Drawer
+          placement="left"
+          onClose={() => setMobileMenuOpen(false)}
+          open={mobileMenuOpen}
+          styles={{ body: { padding: 0 } }}
+          width={260}
+          closable={false}
+          bodyStyle={{ background: '#001529' }}
+        >
+          <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
+            Flexify Admin
+          </div>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[tab]}
+            onClick={({ key }) => {
+              setTab(key as any);
+              setMobileMenuOpen(false);
+            }}
+            items={[
+              { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
+              { key: 'users', icon: <Users size={18} />, label: 'Users' },
+              { key: 'vehicles', icon: <Car size={18} />, label: 'Vehicles' },
+              { key: 'bookings', icon: <Calendar size={18} />, label: 'Bookings' },
+              { key: 'payments', icon: <DollarSign size={18} />, label: 'Payments' },
+              { key: 'bank-settings', icon: <Landmark size={18} />, label: 'Settings' },
+              { key: 'feedback', icon: <MessageSquare size={18} />, label: 'Feedback' },
+            ]}
+          />
+        </Drawer>
+      )}
 
-      <Layout style={{ marginLeft: collapsed ? 80 : 260, transition: 'all 0.2s', minHeight: '100vh' }}>
+      <Layout style={{ marginLeft: isMobile ? 0 : (collapsed ? 80 : 260), transition: 'all 0.2s', minHeight: '100vh' }}>
         <Header style={{
-          padding: '0 24px',
+          padding: isMobile ? '0 16px' : '0 24px',
           background: '#fff',
           display: 'flex',
           justifyContent: 'space-between',
@@ -302,19 +354,35 @@ export default function AdminDashboard() {
           top: 0
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Title level={4} style={{ margin: 0, color: '#1e293b' }}>
+            {isMobile && (
+              <Button 
+                type="text" 
+                icon={<MenuIcon size={20} />} 
+                onClick={() => setMobileMenuOpen(true)} 
+              />
+            )}
+            <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1e293b' }}>
               {tab === 'overview' && 'Dashboard Overview'}
               {tab === 'users' && 'User Management'}
               {tab === 'vehicles' && 'Vehicle Directory'}
-              {tab === 'bookings' && 'Booking Records'}
               {tab === 'payments' && 'Subscription Payments'}
               {tab === 'bank-settings' && 'Bank Settings Configuration'}
+              {tab === 'feedback' && 'User Feedback & Bug Reports'}
             </Title>
           </div>
-          <Space size="large">
-            <Button type="text" onClick={() => navigate('/')} icon={<ArrowLeft size={16} />}>Back to Site</Button>
+          <Space size={isMobile ? "small" : "large"}>
+            {!isMobile && (
+              <Button type="text" onClick={() => navigate('/')} icon={<ArrowLeft size={16} />}>Back to Site</Button>
+            )}
             <Dropdown menu={{
               items: [
+                {
+                  key: 'socket-status',
+                  label: `Backend: ${socketConnected ? 'Live' : 'Offline'}`,
+                  disabled: true,
+                  icon: <div style={{ width: 8, height: 8, borderRadius: '50%', background: socketConnected ? '#10b981' : '#ef4444' }}></div>
+                },
+                { type: 'divider' },
                 {
                   key: 'logout',
                   label: 'Log Out',
@@ -326,13 +394,20 @@ export default function AdminDashboard() {
             }} placement="bottomRight">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px' }}>
                 <Avatar style={{ backgroundColor: '#7c3aed' }}>SA</Avatar>
-                <Text strong style={{ color: '#334155' }}>Super Admin</Text>
+                {!isMobile && <Text strong style={{ color: '#334155' }}>Super Admin</Text>}
               </div>
             </Dropdown>
           </Space>
         </Header>
 
-        <Content style={{ margin: '24px 24px', padding: 32, background: '#fff', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
+        <Content style={{ 
+          margin: isMobile ? '12px 12px' : '24px 24px', 
+          padding: isMobile ? 12 : 32, 
+          background: '#fff', 
+          borderRadius: '12px', 
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+          overflowX: 'auto'
+        }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '4rem' }}><Spin size="large" /></div>
           ) : (
@@ -454,6 +529,7 @@ export default function AdminDashboard() {
                     </div>
 
                     <Table
+                    scroll={{ x: true }}
                       dataSource={auditLogs}
                       rowKey="_id"
                       pagination={{ pageSize: 5 }}
@@ -490,6 +566,7 @@ export default function AdminDashboard() {
                     <input type="text" placeholder="Search users by name, email, or role..." className="input-field" style={{ borderRadius: '8px', maxWidth: '300px' }} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                   </div>
                   <Table
+                    scroll={{ x: true }}
                     dataSource={filteredUsers}
                     rowKey={u => (u.id || u._id || Math.random()).toString()}
                     pagination={{ pageSize: 15 }}
@@ -549,6 +626,7 @@ export default function AdminDashboard() {
               {tab === 'vehicles' && (
                 <div className="animate-fade-in">
                   <Table
+                    scroll={{ x: true }}
                     dataSource={allVehicles}
                     rowKey="_id"
                     pagination={{ pageSize: 15 }}
@@ -571,6 +649,7 @@ export default function AdminDashboard() {
               {tab === 'bookings' && (
                 <div className="animate-fade-in">
                   <Table
+                    scroll={{ x: true }}
                     dataSource={allBookings}
                     rowKey="_id"
                     pagination={{ pageSize: 15 }}
@@ -589,6 +668,7 @@ export default function AdminDashboard() {
               {tab === 'payments' && (
                 <div className="animate-fade-in">
                   <Table
+                    scroll={{ x: true }}
                     dataSource={pendingPayments}
                     rowKey="_id"
                     pagination={{ pageSize: 15 }}
@@ -646,6 +726,64 @@ export default function AdminDashboard() {
                       </Form>
                     )}
                   </Card>
+                </div>
+              )}
+
+              {tab === 'feedback' && (
+                <div className="animate-fade-in">
+                  <Table
+                    scroll={{ x: true }}
+                    dataSource={feedbacks}
+                    loading={feedbacksLoading}
+                    rowKey="_id"
+                    pagination={{ pageSize: 15 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      { 
+                        title: 'Type', 
+                        dataIndex: 'type', 
+                        render: t => (
+                          <Tag color={t === 'bug' ? 'red' : t === 'suggestion' ? 'blue' : 'default'}>
+                            {t?.toUpperCase()}
+                          </Tag>
+                        ) 
+                      },
+                      { 
+                        title: 'Message', 
+                        dataIndex: 'message', 
+                        width: '40%',
+                        render: m => <Text style={{ fontSize: '13px' }}>{m}</Text> 
+                      },
+                      { 
+                        title: 'User / Contact', 
+                        render: (_, record) => (
+                          <div style={{ fontSize: '13px' }}>
+                            {record.user ? record.user.name : record.contactEmail || 'Guest'}
+                            <br />
+                            <Text type="secondary" style={{ fontSize: '11px' }}>
+                              {record.user ? record.user.email : 'No email provided'}
+                            </Text>
+                          </div>
+                        )
+                      },
+                      { 
+                        title: 'Device Info', 
+                        dataIndex: 'deviceInfo', 
+                        render: d => d ? (
+                          <Tooltip title={JSON.stringify(d, null, 2)}>
+                            <Text type="secondary" style={{ fontSize: '11px', cursor: 'help' }}>
+                              {d.screenSize} | {d.userAgent.substring(0, 20)}...
+                            </Text>
+                          </Tooltip>
+                        ) : 'N/A'
+                      },
+                      { 
+                        title: 'Date', 
+                        dataIndex: 'createdAt', 
+                        render: d => new Date(d).toLocaleString() 
+                      }
+                    ]}
+                  />
                 </div>
               )}
             </>
