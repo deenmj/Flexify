@@ -43,6 +43,7 @@ export const approveUserKyc = async (req, res) => {
 
         user.isKycVerified = true;
         user.verificationStatus = "approved";
+        user.kycVerifiedAt = new Date();
 
         // If user is an owner, promote to VERIFIED owner
         if (user.role === "owner" && user.ownerType === "UNVERIFIED") {
@@ -195,14 +196,20 @@ export const rejectVehicle = async (req, res) => {
  */
 export const getSubadminStats = async (req, res) => {
     try {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
         const pendingUsers = await User.countDocuments({ verificationStatus: "pending" });
         const pendingVehicles = await Vehicle.countDocuments({ status: "pending" });
         const pendingMakes = await VehicleMake.countDocuments({ approved: false });
         const pendingModels = await VehicleModel.countDocuments({ approved: false });
-        const approvedUsers = await User.countDocuments({ verificationStatus: "approved" });
+        const approvedToday = await User.countDocuments({ 
+            verificationStatus: "approved",
+            kycVerifiedAt: { $gte: todayStart }
+        });
         const totalVehicles = await Vehicle.countDocuments({ status: "active" });
 
-        res.json({ pendingUsers, pendingVehicles, pendingMakes, pendingModels, approvedUsers, totalVehicles });
+        res.json({ pendingUsers, pendingVehicles, pendingMakes, pendingModels, approvedToday, totalVehicles });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

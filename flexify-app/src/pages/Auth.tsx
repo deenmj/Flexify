@@ -9,7 +9,6 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,9 +42,6 @@ export default function Auth() {
         else if (user.role === 'owner') navigate('/dashboard?tab=vehicles');
         else navigate('/explore');
       } else {
-        if (inviteCode !== 'FLEXIFY-BETA') {
-          throw new Error('Invalid Beta Invite Code. Only invited testers can sign up at this stage.');
-        }
         const msg = await signup(name, email, password);
         setSuccessMsg(msg || 'Verification email sent! Check your inbox.');
         setMode('login');
@@ -118,24 +114,6 @@ export default function Auth() {
                     placeholder="Enter your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-            
-            {mode === 'signup' && (
-              <div className="input-group">
-                <label htmlFor="auth-invite">Beta Invite Code</label>
-                <div className="input-with-icon">
-                  <Lock size={18} className="input-icon" />
-                  <input
-                    id="auth-invite"
-                    type="text"
-                    className="input-field"
-                    placeholder="Enter invite code"
-                    value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value)}
                     required
                   />
                 </div>

@@ -210,7 +210,7 @@ export interface SubadminStats {
   pendingVehicles: number;
   pendingMakes: number;
   pendingModels: number;
-  approvedUsers: number;
+  approvedToday: number;
   totalVehicles: number;
 }
 
