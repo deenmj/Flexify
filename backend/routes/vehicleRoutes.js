@@ -13,11 +13,13 @@ import {
   getVehicleAvailability,
   getMakes,
   getModels,
+  getPublicStats,
 } from "../controllers/vehicleController.js";
 
 const router = express.Router();
 
 // Public
+router.get("/stats/public", getPublicStats);
 router.get("/", listVehicles);
 router.get("/makes", getMakes);
 router.get("/models/:makeId", getModels);

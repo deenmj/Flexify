@@ -1,7 +1,15 @@
+import { useState, useEffect } from 'react';
 import { Shield, Award, TrendingUp, Target, Zap, Clock } from 'lucide-react';
+import { vehicleApi, type PublicStats } from '../api';
 import './StaticPages.css';
 
 export default function About() {
+  const [stats, setStats] = useState<PublicStats | null>(null);
+
+  useEffect(() => {
+    vehicleApi.getPublicStats().then(setStats).catch(console.error);
+  }, []);
+
   return (
     <div className="static-page">
       {/* Hero Section */}
@@ -22,19 +30,19 @@ export default function About() {
         {/* Key Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', marginBottom: '5rem', textAlign: 'center' }}>
           <div className="card" style={{ padding: '2rem', background: 'var(--bg-primary)', border: '1px solid var(--border-color-light)', borderRadius: '16px' }}>
-            <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>50K+</h2>
+            <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>{stats?.totalActiveVehicles || 0}</h2>
             <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Active Vehicles</p>
           </div>
           <div className="card" style={{ padding: '2rem', background: 'var(--bg-primary)', border: '1px solid var(--border-color-light)', borderRadius: '16px' }}>
-            <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>1M+</h2>
+            <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>{stats?.totalVerifiedUsers || 0}</h2>
             <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Verified Users</p>
           </div>
           <div className="card" style={{ padding: '2rem', background: 'var(--bg-primary)', border: '1px solid var(--border-color-light)', borderRadius: '16px' }}>
-            <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>120+</h2>
-            <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Cities Worldwide</p>
+            <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>{stats?.totalDistricts || 0}</h2>
+            <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Districts in Sri Lanka</p>
           </div>
           <div className="card" style={{ padding: '2rem', background: 'var(--bg-primary)', border: '1px solid var(--border-color-light)', borderRadius: '16px' }}>
-            <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>4.9/5</h2>
+            <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>{stats?.averageRating ? stats.averageRating + '/5' : 'New'}</h2>
             <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Average Rating</p>
           </div>
         </div>

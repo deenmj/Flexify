@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car } from 'lucide-react';
-import { vehicleApi, type Vehicle, type User } from '../api';
+import { vehicleApi, type Vehicle, type User, type PublicStats } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './Home.css';
@@ -11,6 +11,7 @@ export default function Home() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [owners] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [stats, setStats] = useState<PublicStats | null>(null);
   
   const vehicleScrollRef = useRef<HTMLDivElement>(null);
   const ownerScrollRef = useRef<HTMLDivElement>(null);
@@ -26,6 +27,8 @@ export default function Home() {
         : data;
       setVehicles(filteredVehicles);
     }).catch(console.error);
+
+    vehicleApi.getPublicStats().then(setStats).catch(console.error);
   }, [user]);
   
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, dir: 'left' | 'right') => {
@@ -38,8 +41,8 @@ export default function Home() {
   const categories = [
     { name: 'Cars', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Car' },
     { name: 'SUVs', img: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=800&q=60', link: '/explore?type=SUV' },
-    { name: 'Vans', img: 'https://images.unsplash.com/photo-1518600506278-4e8ef466b810?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Van' },
-    { name: 'Trucks', img: 'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Truck' },
+    { name: 'Vans', img: 'https://images.unsplash.com/photo-1650807486050-a142ea418b19?auto=format&fit=crop&q=80', link: '/explore?type=Van' },
+    { name: 'Trucks', img: 'https://images.unsplash.com/photo-1631377875413-b1e3e660bfa2?auto=format&fit=crop&q=80', link: '/explore?type=Truck' },
     { name: 'Bikes', img: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Bike' },
   ];
 
@@ -53,7 +56,7 @@ export default function Home() {
         </div>
         <div className="hero-content container">
           <div className="hero-badge animate-fade-in">
-            <Star size={14} /> Trusted by 10,000+ renters
+            <Star size={14} /> Trusted Peer-to-Peer Rental
           </div>
           <h1 className="hero-title animate-fade-in-up">
             Rent Your Perfect <br />
@@ -79,17 +82,17 @@ export default function Home() {
           </div>
           <div className="hero-stats animate-fade-in-up">
             <div className="hero-stat">
-              <span className="hero-stat-number">150+</span>
+              <span className="hero-stat-number">{stats?.totalActiveVehicles || 0}</span>
               <span className="hero-stat-label">Vehicles</span>
             </div>
             <div className="hero-stat-divider" />
             <div className="hero-stat">
-              <span className="hero-stat-number">50+</span>
+              <span className="hero-stat-number">{stats?.totalVerifiedOwners || 0}</span>
               <span className="hero-stat-label">Verified Owners</span>
             </div>
             <div className="hero-stat-divider" />
             <div className="hero-stat">
-              <span className="hero-stat-number">25+</span>
+              <span className="hero-stat-number">{stats?.totalDistricts || 0}</span>
               <span className="hero-stat-label">Districts</span>
             </div>
           </div>
