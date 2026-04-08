@@ -772,3 +772,50 @@ select {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
 }
+
+/* Professional Modern Scrollbars - Globally replaces the ugly native sliders with arrows */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+::-webkit-scrollbar-button {
+  display: none !important; /* Removes the left/right and up/down arrow buttons completely */
+}
+
+/* Premium Mobile Action Buttons */
+.mobile-action-bar .ant-space {
+  gap: 10px !important;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.mobile-action-bar .ant-btn {
+  background: white !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+  border-radius: 8px !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease;
+}
+.mobile-action-bar .ant-btn:active {
+  transform: scale(0.95);
+  background: #f8fafc !important;
+}
+.mobile-action-bar .ant-btn.ant-btn-dangerous {
+  background: #fff5f5 !important;
+  border-color: #fecaca !important;
+  color: #ef4444 !important;
+}
