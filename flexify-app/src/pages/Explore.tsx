@@ -384,7 +384,9 @@ export default function Explore() {
       {/* Results */}
       <section className="explore-results section-padding">
         <div className="container">
-          <p className="results-count">{vehicles.length} vehicles found</p>
+          {vehicles.length > 0 && !loading && (
+            <p className="results-count">{vehicles.length} vehicles found</p>
+          )}
           {loading ? (
             <div className="explore-grid">
               {[...Array(6)].map((_, i) => (
