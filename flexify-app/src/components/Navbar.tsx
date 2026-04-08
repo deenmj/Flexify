@@ -5,7 +5,10 @@ import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search,
 import { Badge } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { notificationApi } from '../api';
+<<<<<<< HEAD
 // import { BetaBadge } from './BetaFeatures';
+=======
+>>>>>>> f6ea5336b3c6f79b3c39c4d302b3e6e3ecfaa633
 import './Navbar.css';
 
 export default function Navbar() {

@@ -56,7 +56,7 @@ export default function Home() {
         </div>
         <div className="hero-content container">
           <div className="hero-badge animate-fade-in">
-            <Star size={14} /> Trusted by 10,000+ renters
+            <Star size={14} /> Trusted Peer-to-Peer Rental
           </div>
           <h1 className="hero-title animate-fade-in-up">
             Rent Your Perfect <br />
