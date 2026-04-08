@@ -497,13 +497,13 @@ export default function SubAdminDashboard() {
 
               {tab === 'users' && (
                 <div className="animate-fade-in">
-                  <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center' }}>
                     <Title level={5} style={{ margin: 0 }}>Pending KYC Requests</Title>
-                    <Space>
+                    <Space style={{ width: isMobile ? '100%' : 'auto' }}>
                       <Input
                         prefix={<Search size={16} />}
                         placeholder="Search name or email..."
-                        style={{ width: 300, borderRadius: '8px' }}
+                        style={{ width: isMobile ? 'calc(100vw - 150px)' : 300, borderRadius: '8px' }}
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                       />
@@ -687,7 +687,7 @@ export default function SubAdminDashboard() {
 
               {tab === 'payments' && (
                 <div className="animate-fade-in">
-                  <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center' }}>
                     <Title level={5} style={{ margin: 0 }}>Pending Subscription Payments</Title>
                     <Button type="primary" onClick={fetchData}>Refresh</Button>
                   </div>

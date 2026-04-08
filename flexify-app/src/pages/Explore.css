@@ -38,6 +38,9 @@
 }
 
 @media (max-width: 480px) {
+  .explore-header {
+    padding-bottom: 2.5rem;
+  }
   .explore-search-icon {
     margin-left: 0.4rem;
   }
