@@ -32,4 +32,20 @@ router.get("/", protect, async (req, res) => {
   res.json(feedbacks);
 });
 
+// Admin delete
+router.delete("/:id", protect, async (req, res) => {
+  try {
+    if (req.user.role !== "superadmin" && req.user.role !== "subadmin") {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+    const feedback = await Feedback.findByIdAndDelete(req.params.id);
+    if (!feedback) {
+      return res.status(404).json({ message: "Feedback not found" });
+    }
+    res.json({ message: "Feedback deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

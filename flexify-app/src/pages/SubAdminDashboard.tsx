@@ -319,6 +319,20 @@ export default function SubAdminDashboard() {
     navigate('/');
   };
 
+  const handleDeleteFeedback = async (id: string) => {
+    if (!window.confirm("Delete this feedback?")) return;
+    setActionLoading(id);
+    try {
+      await feedbackApi.delete(id);
+      setFeedbacks(prev => prev.filter(f => f._id !== id));
+      message.success('Feedback deleted');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to delete');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filteredUsers = pendingUsers.filter(u =>
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -482,15 +496,23 @@ export default function SubAdminDashboard() {
             <>
               {/* Quick Stats Header */}
               {stats && tab === 'users' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                  <Card size="small" style={{ borderRadius: '12px', background: '#fff7ed', border: '1px solid #ffedd5' }} bordered={false}>
-                    <Statistic title="Action Required" value={pendingUsers.length + pendingVehicles.length} prefix={<AlertTriangle size={20} style={{ color: '#ea580c', marginRight: 8 }} />} />
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: isMobile ? 'row' : 'row', 
+                  flexWrap: isMobile ? 'nowrap' : 'wrap', 
+                  overflowX: isMobile ? 'auto' : 'visible', 
+                  gap: isMobile ? '0.75rem' : '1.5rem', 
+                  marginBottom: '2.5rem',
+                  paddingBottom: isMobile ? '0.5rem' : '0' 
+                }} className="hide-scroll">
+                  <Card size="small" style={{ borderRadius: '12px', background: '#fff7ed', border: '1px solid #ffedd5', flex: isMobile ? '0 0 auto' : '1 1 200px', minWidth: isMobile ? '135px' : '200px' }} bordered={false}>
+                    <Statistic title="Action Required" value={pendingUsers.length + pendingVehicles.length} valueStyle={{ fontSize: isMobile ? '1.25rem' : '1.5rem' }} prefix={<AlertTriangle size={isMobile ? 16 : 20} style={{ color: '#ea580c', marginRight: 8 }} />} />
                   </Card>
-                  <Card size="small" style={{ borderRadius: '12px', background: '#f0fdf4', border: '1px solid #dcfce7' }} bordered={false}>
-                    <Statistic title="Approved Today" value={stats.approvedToday} prefix={<CheckCircle size={20} style={{ color: '#16a34a', marginRight: 8 }} />} />
+                  <Card size="small" style={{ borderRadius: '12px', background: '#f0fdf4', border: '1px solid #dcfce7', flex: isMobile ? '0 0 auto' : '1 1 200px', minWidth: isMobile ? '135px' : '200px' }} bordered={false}>
+                    <Statistic title="Approved Today" value={stats.approvedToday} valueStyle={{ fontSize: isMobile ? '1.25rem' : '1.5rem' }} prefix={<CheckCircle size={isMobile ? 16 : 20} style={{ color: '#16a34a', marginRight: 8 }} />} />
                   </Card>
-                  <Card size="small" style={{ borderRadius: '12px', background: '#eff6ff', border: '1px solid #dbeafe' }} bordered={false}>
-                    <Statistic title="Total Vehicles" value={stats.totalVehicles} prefix={<Car size={20} style={{ color: '#2563eb', marginRight: 8 }} />} />
+                  <Card size="small" style={{ borderRadius: '12px', background: '#eff6ff', border: '1px solid #dbeafe', flex: isMobile ? '0 0 auto' : '1 1 200px', minWidth: isMobile ? '135px' : '200px' }} bordered={false}>
+                    <Statistic title="Total Vehicles" value={stats.totalVehicles} valueStyle={{ fontSize: isMobile ? '1.25rem' : '1.5rem' }} prefix={<Car size={isMobile ? 16 : 20} style={{ color: '#2563eb', marginRight: 8 }} />} />
                   </Card>
                 </div>
               )}
@@ -499,16 +521,16 @@ export default function SubAdminDashboard() {
                 <div className="animate-fade-in">
                   <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center' }}>
                     <Title level={5} style={{ margin: 0 }}>Pending KYC Requests</Title>
-                    <Space style={{ width: isMobile ? '100%' : 'auto' }}>
+                    <div style={{ display: 'flex', width: isMobile ? '100%' : 'auto', gap: '8px' }}>
                       <Input
                         prefix={<Search size={16} />}
                         placeholder="Search name or email..."
-                        style={{ width: isMobile ? 'calc(100vw - 150px)' : 300, borderRadius: '8px' }}
+                        style={{ flex: 1, minWidth: isMobile ? 0 : 300, borderRadius: '8px' }}
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                       />
                       <Button type="primary" onClick={fetchData}>Refresh</Button>
-                    </Space>
+                    </div>
                   </div>
 
                   <Table
@@ -824,6 +846,12 @@ export default function SubAdminDashboard() {
                         title: 'Date', 
                         dataIndex: 'createdAt', 
                         render: d => new Date(d).toLocaleString() 
+                      },
+                      {
+                        title: 'Action',
+                        render: (_, record) => (
+                          <Button size="small" danger onClick={() => handleDeleteFeedback(record._id)} loading={actionLoading === record._id}>Delete</Button>
+                        )
                       }
                     ]}
                   />

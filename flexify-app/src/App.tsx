@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingScreen from './components/LoadingScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import GlobalFeedback from './components/GlobalFeedback';
 
 // Pages
 import NotFound from './pages/NotFound';
@@ -36,6 +37,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       <Navbar />
       <main className="main-content">{children}</main>
       <Footer />
+      <GlobalFeedback />
     </div>
   );
 }

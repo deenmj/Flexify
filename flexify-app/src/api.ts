@@ -601,6 +601,7 @@ export const feedbackApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  
   getAll: () => apiFetch<any[]>('/feedback'),
+  
+  delete: (id: string) => apiFetch<{ message: string }>(`/feedback/${id}`, { method: 'DELETE' })
 };
