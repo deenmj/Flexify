@@ -5,7 +5,7 @@ import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search,
 import { Badge } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { notificationApi } from '../api';
-import { BetaBadge } from './BetaFeatures';
+// import { BetaBadge } from './BetaFeatures';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -92,7 +92,6 @@ export default function Navbar() {
               </svg>
             </div>
             <span className="logo-text">Flexify</span>
-            <BetaBadge />
           </Link>
 
           {/* Desktop Nav — All roles see full nav now */}

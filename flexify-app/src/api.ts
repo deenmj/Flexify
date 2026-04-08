@@ -210,8 +210,16 @@ export interface SubadminStats {
   pendingVehicles: number;
   pendingMakes: number;
   pendingModels: number;
-  approvedUsers: number;
+  approvedToday: number;
   totalVehicles: number;
+}
+
+export interface PublicStats {
+  totalActiveVehicles: number;
+  totalVerifiedOwners: number;
+  totalVerifiedUsers: number;
+  totalDistricts: number;
+  averageRating: number;
 }
 
 // =================== HELPERS ===================
@@ -291,6 +299,8 @@ export const vehicleApi = {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
     return apiFetch<Vehicle[]>(`/vehicles${query}`);
   },
+
+  getPublicStats: () => apiFetch<PublicStats>('/vehicles/stats/public'),
 
   getById: (id: string) => apiFetch<Vehicle>(`/vehicles/${id}`),
 
