@@ -51,10 +51,10 @@ export default function Footer() {
               Your trusted platform for renting, selling, and discovering vehicles worldwide. Premium car rental experience.
             </p>
             <div className="footer-socials">
-              <a href="#" aria-label="Facebook" className="social-icon"><Facebook size={24} /></a>
-              <a href="#" aria-label="Instagram" className="social-icon"><Instagram size={24} /></a>
-              <a href="#" aria-label="YouTube" className="social-icon"><Youtube size={24} /></a>
-              <a href="#" aria-label="Twitter" className="social-icon"><Twitter size={24} /></a>
+              <a href="#" aria-label="Facebook" className="social-icon"><Facebook size={16} /></a>
+              <a href="#" aria-label="Instagram" className="social-icon"><Instagram size={16} /></a>
+              <a href="#" aria-label="YouTube" className="social-icon"><Youtube size={16} /></a>
+              <a href="#" aria-label="Twitter" className="social-icon"><Twitter size={16} /></a>
             </div>
           </div>
 

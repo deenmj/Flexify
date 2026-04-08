@@ -5,7 +5,7 @@
 }
 
 .footer-main {
-  padding: 4rem 0 2rem;
+  padding: 3rem 0 1.5rem;
 }
 
 .footer-grid {
@@ -93,57 +93,76 @@
 
 /* Mobile Footer Overrides */
 @media (max-width: 768px) {
-  /* Footer Overrides */
+  .footer-main {
+    padding: 1.5rem 0 0.75rem;
+  }
   .footer-grid {
-    padding: 0 1.5rem;
+    padding: 0 1rem;
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: 1rem;
   }
   .footer-brand {
     text-align: left;
     align-items: flex-start;
   }
+  .footer-logo {
+    font-size: 1.1rem;
+    margin-bottom: 0.35rem;
+  }
   .footer-desc {
     max-width: 100%;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
   }
   .footer-socials {
     justify-content: flex-start;
-    gap: 1.5rem;
-    margin-top: 0.5rem;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
   }
   .social-icon {
-    width: 48px;
-    height: 48px;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+  }
+  .social-icon svg {
+    width: 14px;
+    height: 14px;
   }
   
   /* Footer Collapse Customization */
   .footer-mobile-collapse {
-    margin: 1.5rem 0 0;
+    margin: 0.5rem 0 0;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
   .footer-mobile-collapse .ant-collapse-header {
-    padding: 1.25rem 0 !important;
+    padding: 0.75rem 0 !important;
     color: white !important;
-    font-size: 0.95rem !important;
-    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
   }
   .footer-mobile-collapse .ant-collapse-content-box {
-    padding: 0 0 1.5rem 0 !important;
+    padding: 0 0 0.75rem 0 !important;
   }
   .footer-links {
-    gap: 1rem;
+    gap: 0.35rem;
   }
   .footer-links a {
-    font-size: 1rem;
-    padding: 0.5rem 0;
+    font-size: 0.75rem;
+    padding: 0.3rem 0;
     display: flex;
     align-items: center;
   }
   .footer-bottom {
-    padding: 2rem 1.5rem;
+    padding: 0.75rem 1rem;
     text-align: center;
-    font-size: 11px;
+    font-size: 0.6rem;
+  }
+  .footer-heading {
+    font-size: 0.7rem;
+    margin-bottom: 0.5rem;
   }
 }

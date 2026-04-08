@@ -464,41 +464,79 @@
 /* Compact Mobile Navbar */
 @media (max-width: 768px) {
   .navbar-inner {
-    padding: 0 0.75rem;
+    padding: 0 0.5rem;
   }
   .logo-text {
-    font-size: 1.05rem;
+    font-size: 0.9rem;
   }
   .logo-icon {
+    width: 22px;
+    height: 22px;
+  }
+  .navbar-logo {
+    gap: 0.35rem;
+  }
+  .nav-action-btn {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+  }
+  .nav-action-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  .profile-trigger {
     width: 28px;
     height: 28px;
   }
-  .navbar-logo {
-    gap: 0.5rem;
-  }
-  .nav-action-btn {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
-  }
-  .profile-trigger {
-    width: 32px;
-    height: 32px;
-  }
   .navbar-actions {
-    gap: 0.15rem;
+    gap: 0.1rem;
+  }
+  .mobile-menu-btn {
+    padding: 0.25rem;
+  }
+  .mobile-menu-btn svg {
+    width: 20px;
+    height: 20px;
   }
   .mobile-menu {
-    width: 85vw;
-    max-width: 320px;
+    width: 80vw;
+    max-width: 280px;
+  }
+  .mobile-menu-header {
+    padding: 0.75rem 1rem;
+  }
+  .mobile-menu-body {
+    padding: 0.75rem 1rem;
+  }
+  .mobile-user-info {
+    gap: 0.5rem;
+    padding: 0.625rem 0;
+    margin-bottom: 0.25rem;
+  }
+  .mobile-avatar {
+    width: 34px;
+    height: 34px;
+  }
+  .mobile-user-name {
+    font-size: 0.8rem;
+  }
+  .mobile-user-role {
+    font-size: 0.65rem;
   }
   .mobile-link {
-    padding: 0.85rem 0.75rem;
-    font-size: 0.95rem;
-    min-height: 44px;
+    padding: 0.6rem 0.5rem;
+    font-size: 0.8rem;
+    min-height: 36px;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
+  }
+  .notification-dot {
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
   }
 }

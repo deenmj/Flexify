@@ -649,39 +649,71 @@ select {
    ============================================ */
 @media (max-width: 768px) {
   .container {
-    padding: 0 1.5rem;
+    padding: 0 1rem;
   }
 
   .section-padding {
-    padding: 2.5rem 0;
+    padding: 1.75rem 0;
   }
 
   :root {
-    --navbar-height: 64px;
+    --navbar-height: 52px;
+    --font-size-xs: 0.65rem;
+    --font-size-sm: 0.775rem;
+    --font-size-base: 0.85rem;
+    --font-size-lg: 0.95rem;
+    --font-size-xl: 1.05rem;
+    --font-size-2xl: 1.2rem;
+    --font-size-3xl: 1.4rem;
+    --font-size-4xl: 1.7rem;
+    --font-size-5xl: 2.1rem;
   }
 
   body {
-    font-size: 14px;
+    font-size: 13px;
   }
 
-  /* Global touch targets */
+  /* Compact buttons on mobile */
   .btn {
-    min-height: 48px;
-    min-width: 48px;
+    min-height: 38px;
+    min-width: 38px;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
   }
 
   .btn-sm {
-    min-height: 44px;
-    padding: 0.5rem 1rem;
+    min-height: 32px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.7rem;
   }
 
-  /* Force touch targets for icons and buttons */
-  .social-icon, .nav-action-btn, .mobile-menu-btn button, .footer-links a {
-    min-width: 44px;
-    min-height: 44px;
+  .btn-lg {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8rem;
+  }
+
+  /* Reasonable touch targets for interactive elements */
+  .social-icon, .nav-action-btn, .mobile-menu-btn button {
+    min-width: 36px;
+    min-height: 36px;
     display: inline-flex;
     align-items: center;
-    padding: 8px 0;
+  }
+
+  .footer-links a {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.8rem;
+  }
+
+  /* Card system compact */
+  .card {
+    border-radius: var(--radius-lg);
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
   }
 
   /* Ensure all images are responsive */

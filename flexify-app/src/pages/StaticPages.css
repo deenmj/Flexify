@@ -36,15 +36,20 @@
 }
 
 @media (max-width: 768px) {
-  .about-grid { grid-template-columns: 1fr; gap: 3rem; }
-  .about-text { padding: 0 1.5rem; }
+  .about-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .about-text { padding: 0 0.75rem; }
+  .static-hero h1 { font-size: 1.25rem; }
+  .static-hero p { font-size: 0.75rem; }
+  .about-values { grid-template-columns: 1fr; gap: 0.5rem; }
+  .about-value-card { padding: 1rem; }
+  .about-value-card h3 { font-size: 0.8rem; }
+  .about-value-card p { font-size: 0.7rem; }
+  .about-text h2 { font-size: 1.1rem; }
+  .about-text p { font-size: 0.75rem; line-height: 1.6; }
 }
 
 @media (max-width: 480px) {
-  .static-hero h1 { font-size: 2rem; }
-  .static-hero p { font-size: var(--font-size-base); }
   .about-values { grid-template-columns: 1fr; }
-  .about-text h2 { font-size: 1.75rem; }
 }
 
 .about-text h2 {
@@ -153,17 +158,33 @@
 @media (max-width: 768px) {
   .contact-grid { 
     grid-template-columns: 1fr; 
-    gap: 3rem; 
+    gap: 1.5rem; 
   }
   .contact-info, .contact-form {
-    padding: 0 1.5rem;
+    padding: 0 0.75rem;
   }
-}
-
-@media (max-width: 480px) {
-  .contact-form { padding: 1.25rem; }
-  .faq-question { padding: 1rem; font-size: var(--font-size-sm); }
-  .faq-answer { padding: 0 1rem 1rem; }
+  .contact-info h2 { font-size: 1.1rem; }
+  .contact-info > p { font-size: 0.75rem; }
+  .contact-details { gap: 1rem; }
+  .contact-detail-item h4 { font-size: 0.8rem; }
+  .contact-detail-item p { font-size: 0.7rem; }
+  .contact-form { padding: 1rem; gap: 0.75rem; }
+  .help-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .help-card { padding: 1rem; }
+  .help-card-icon { width: 40px; height: 40px; margin-bottom: 0.5rem; }
+  .help-card h3 { font-size: 0.8rem; }
+  .help-card p { font-size: 0.7rem; }
+  .faq-question { padding: 0.75rem; font-size: 0.8rem; }
+  .faq-answer { padding: 0 0.75rem 0.75rem; }
+  .faq-answer p { font-size: 0.7rem; }
+  .static-header { margin-bottom: 1.5rem; }
+  .static-header h1 { font-size: 1.25rem; }
+  .static-header .icon-wrapper { width: 44px; height: 44px; margin-bottom: 0.5rem; }
+  .static-content h2 { font-size: 0.95rem; margin-bottom: 0.75rem; }
+  .static-content h3 { font-size: 0.8rem; margin: 0.75rem 0 0.35rem; }
+  .static-content p { font-size: 0.75rem; line-height: 1.6; margin-bottom: 0.5rem; }
+  .static-content hr { margin: 1.5rem 0; }
+  .back-link { font-size: 0.75rem; margin-bottom: 1rem; }
 }
 
 .contact-info h2 {
