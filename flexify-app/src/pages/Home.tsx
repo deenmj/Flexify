@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car } from 'lucide-react';
 import { vehicleApi, type Vehicle, type User } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -194,12 +194,11 @@ export default function Home() {
                 <VehicleCard key={vehicle._id} vehicle={vehicle} />
               ))}
               {vehicles.length === 0 && (
-                <>
-                  <VehiclePlaceholder title="Family SUV — Toyota" specs="Seats 7 · Automatic" price={45} img="https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60" />
-                  <VehiclePlaceholder title="Compact Sedan — Honda" specs="Seats 4 · Manual" price={28} img="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60" />
-                  <VehiclePlaceholder title="Luxury Sedan — BMW" specs="Seats 5 · Automatic" price={95} img="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=60" />
-                  <VehiclePlaceholder title="Electric — Tesla Model 3" specs="Seats 5 · Auto" price={75} img="https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=60" />
-                </>
+                <div className="empty-state-card" style={{ width: '100%', textAlign: 'center', padding: '3rem', background: 'rgba(255,255,255,0.05)', borderRadius: '1rem', border: '1px dashed var(--border-color)' }}>
+                  <Car size={40} style={{ color: 'var(--text-tertiary)', marginBottom: '1rem' }} />
+                  <p style={{ color: 'var(--text-secondary)', margin: 0 }}>No featured vehicles available yet.</p>
+                  <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>List your vehicle to see it here!</p>
+                </div>
               )}
             </div>
           ) : (
@@ -208,12 +207,9 @@ export default function Home() {
                 <VehicleCard key={vehicle._id} vehicle={vehicle} />
               ))}
               {vehicles.length === 0 && (
-                <>
-                  <VehiclePlaceholder title="Family SUV — Toyota" specs="Seats 7 · Automatic" price={45} img="https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60" />
-                  <VehiclePlaceholder title="Compact Sedan — Honda" specs="Seats 4 · Manual" price={28} img="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60" />
-                  <VehiclePlaceholder title="Luxury Sedan — BMW" specs="Seats 5 · Automatic" price={95} img="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=60" />
-                  <VehiclePlaceholder title="Electric — Tesla Model 3" specs="Seats 5 · Auto" price={75} img="https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=60" />
-                </>
+                <div className="empty-state-card" style={{ width: '100%', textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '1rem', border: '1px dashed var(--border-color)' }}>
+                  <p style={{ color: 'var(--text-secondary)', margin: 0 }}>No featured vehicles available yet.</p>
+                </div>
               )}
             </div>
           )}
@@ -331,25 +327,4 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   );
 }
 
-function VehiclePlaceholder({ title, specs, price, img }: { title: string; specs: string; price: number; img: string }) {
-  return (
-    <div className="vehicle-card card">
-      <div className="vehicle-img-wrap">
-        <img src={img} alt={title} className="vehicle-img" />
-      </div>
-      <div className="vehicle-info">
-        <h3 className="vehicle-title">{title}</h3>
-        <div className="vehicle-specs"><span>{specs}</span></div>
-        <div className="vehicle-footer">
-          <div className="vehicle-price">
-            <span className="price-amount">LKR {price.toLocaleString()}</span>
-            <span className="price-unit">/day</span>
-          </div>
-        </div>
-        <Link to="/explore" className="btn btn-secondary btn-sm btn-full">
-          View Now
-        </Link>
-      </div>
-    </div>
-  );
-}
+
