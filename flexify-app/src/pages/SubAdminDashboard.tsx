@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Table, Tag, Dropdown, Spin, Switch, Drawer, Grid } from 'antd';
+import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid } from 'antd';
+import Table from '../components/ResponsiveTable';
 import { useNavigate } from 'react-router-dom';
 import {
   Car, Shield, CheckCircle, XCircle, Search,
