@@ -21,17 +21,25 @@ L.Marker.prototype.options.icon = L.icon({
 
 const { Option } = AntSelect;
 
-const SRI_LANKA_DISTRICTS: Record<string, string[]> = {
-  Colombo: ['Colombo', 'Dehiwala', 'Mount Lavinia', 'Moratuwa', 'Maharagama', 'Nugegoda', 'Battaramulla', 'Malabe', 'Kottawa', 'Homagama'],
-  Gampaha: ['Gampaha', 'Negombo', 'Kelaniya', 'Wattala', 'Kadawatha', 'Minuwangoda', 'Nittambuwa', 'Katunayake', 'Ragama', 'Ja-Ela'],
-  Kalutara: ['Kalutara', 'Panadura', 'Horana', 'Matugama', 'Beruwala', 'Aluthgama', 'Bandaragama'],
-  Kandy: ['Kandy', 'Peradeniya', 'Gampola', 'Nawalapitiya', 'Kadugannawa', 'Katugastota'],
-  Galle: ['Galle', 'Hikkaduwa', 'Ambalangoda', 'Elpitiya', 'Karapitiya', 'Unawatuna'],
-  Matara: ['Matara', 'Weligama', 'Dikwella', 'Akuressa', 'Deniyaya'],
-  Kurunegala: ['Kurunegala', 'Kuliyapitiya', 'Narammala', 'Pannala', 'Mawathagama'],
-  Jaffna: ['Jaffna', 'Chavakachcheri', 'Point Pedro', 'Nallur', 'Kopay'],
-  Other: []
+const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
+  'Western': ['Colombo', 'Gampaha', 'Kalutara'],
+  'Central': ['Kandy', 'Matale', 'Nuwara Eliya'],
+  'Southern': ['Galle', 'Matara', 'Hambantota'],
+  'Northern': ['Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu'],
+  'Eastern': ['Trincomalee', 'Batticaloa', 'Ampara'],
+  'North Western': ['Kurunegala', 'Puttalam'],
+  'North Central': ['Anuradhapura', 'Polonnaruwa'],
+  'Uva': ['Badulla', 'Moneragala'],
+  'Sabaragamuwa': ['Ratnapura', 'Kegalle']
 };
+
+const VEHICLE_FEATURES = [
+  { id: 'ac', label: 'A/C', icon: '❄️' },
+  { id: 'bluetooth', label: 'Bluetooth', icon: '📶' },
+  { id: 'gps', label: 'GPS', icon: '📍' },
+  { id: 'sparewheel', label: 'Spare Wheel', icon: '🛞' },
+  { id: 'sunroof', label: 'Sunroof', icon: '☀️' }
+];
 
 function LocationMarker({ position, setPosition }: any) {
   useMapEvents({
@@ -65,7 +73,15 @@ export default function ListVehicle() {
     description: '',
     address: '',
     lat: '',
-    lng: ''
+    lng: '',
+    engineCapacity: '',
+    fuelConsumption: '',
+    features: [] as string[],
+    province: '',
+    district: '',
+    city: '',
+    pricePerWeek: '',
+    pricePerMonth: ''
   });
 
   // Derived state for make/model selection
@@ -73,10 +89,6 @@ export default function ListVehicle() {
   const [customMake, setCustomMake] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [customModel, setCustomModel] = useState('');
-
-  const [selectedDistrict, setSelectedDistrict] = useState('');
-  const [selectedPlace, setSelectedPlace] = useState('');
-  const [customPlace, setCustomPlace] = useState('');
 
   const [photos, setPhotos] = useState<File[]>([]);
 
@@ -135,10 +147,9 @@ export default function ListVehicle() {
   }, [selectedMake, customMake, selectedModel, customModel]);
 
   useEffect(() => {
-    const finalPlace = selectedPlace === 'Other' ? customPlace : selectedPlace;
-    const finalAddress = [finalPlace, selectedDistrict, 'Sri Lanka'].filter(Boolean).join(', ');
+    const finalAddress = [form.city, form.district, form.province, 'Sri Lanka'].filter(Boolean).join(', ');
     setForm(prev => ({ ...prev, address: finalAddress }));
-  }, [selectedDistrict, selectedPlace, customPlace]);
+  }, [form.province, form.district, form.city]);
 
   // Sync position to lat/lng logically
   useEffect(() => {
@@ -148,15 +159,67 @@ export default function ListVehicle() {
   const handleGetLocation = () => {
     if (navigator.geolocation) {
       message.loading({ content: 'Getting your location...', key: 'locate', duration: 10 });
-      navigator.geolocation.getCurrentPosition((pos) => {
-        setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        message.success({ content: 'Location found! Pin dropped on the map.', key: 'locate', duration: 3 });
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setPosition({ lat: latitude, lng: longitude });
+        
+        try {
+          // Reverse Geocoding via Nominatim (Free OpenStreetMap API)
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+          const data = await response.json();
+          
+          if (data && data.address) {
+            const addr = data.address;
+            const city = addr.city || addr.town || addr.village || addr.suburb || '';
+            const district = addr.state_district || addr.county || '';
+            const state = addr.state || ''; // Province in Sri Lanka
+
+            // Auto-fill logic
+            let matchedProvince = '';
+            let matchedDistrict = '';
+
+            // Clean up district name (Nominatim often adds "District" suffix)
+            const cleanDistrict = district.replace(' District', '').trim();
+
+            Object.entries(SRI_LANKA_LOCATIONS).forEach(([prov, dists]) => {
+              if (state.includes(prov) || dists.some(d => cleanDistrict.includes(d))) {
+                matchedProvince = prov;
+                if (dists.some(d => cleanDistrict.includes(d))) {
+                  matchedDistrict = dists.find(d => cleanDistrict.includes(d)) || '';
+                }
+              }
+            });
+
+            setForm(prev => ({
+              ...prev,
+              province: matchedProvince || prev.province,
+              district: matchedDistrict || prev.district,
+              city: city || prev.city
+            }));
+            
+            message.success({ content: `Location found: ${city || 'Your Area'}`, key: 'locate', duration: 3 });
+          } else {
+            message.success({ content: 'Location found!', key: 'locate', duration: 3 });
+          }
+        } catch (err) {
+          console.error("Geocoding error", err);
+          message.success({ content: 'Location found! (Could not determine address automatically)', key: 'locate', duration: 3 });
+        }
       }, () => {
         message.error({ content: 'Failed to access your location. Please check your browser permissions.', key: 'locate', duration: 5 });
       });
     } else {
       message.error({ content: 'Geolocation is not supported by your browser.', key: 'locate', duration: 5 });
     }
+  };
+
+  const handleFeatureToggle = (featureId: string) => {
+    setForm(prev => ({
+      ...prev,
+      features: prev.features.includes(featureId)
+        ? prev.features.filter(id => id !== featureId)
+        : [...prev.features, featureId]
+    }));
   };
 
   if (!user) {
@@ -202,10 +265,9 @@ export default function ListVehicle() {
         formData.append(key, value);
       });
 
-      // Append location fields from state
-      formData.append('district', selectedDistrict === 'Other' ? customPlace : selectedDistrict);
-      formData.append('city', selectedPlace === 'Other' ? customPlace : selectedPlace);
-
+      // Append complex fields
+      formData.append('features', JSON.stringify(form.features));
+      
       photos.forEach(photo => {
         formData.append('photos', photo);
       });
@@ -215,14 +277,18 @@ export default function ListVehicle() {
       setSuccess('Vehicle submitted successfully! Your listing is now active and visible on the explore page.');
 
       // Reset form
-      setForm({ title: '', make: '', model: '', year: '', pricePerDay: '', transmission: 'Automatic', fuelType: 'Petrol', seats: '4', serviceType: '', description: '', address: '', lat: '', lng: '' });
+      setForm({
+        title: '', make: '', model: '', year: '', pricePerDay: '',
+        transmission: 'Automatic', fuelType: 'Petrol', seats: '4',
+        serviceType: '', description: '', address: '', lat: '', lng: '',
+        engineCapacity: '', fuelConsumption: '', features: [],
+        province: '', district: '', city: '',
+        pricePerWeek: '', pricePerMonth: ''
+      });
       setSelectedMake('');
       setCustomMake('');
       setSelectedModel('');
       setCustomModel('');
-      setSelectedDistrict('');
-      setSelectedPlace('');
-      setCustomPlace('');
       setPhotos([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
       window.scrollTo(0, 0);
@@ -240,264 +306,277 @@ export default function ListVehicle() {
     <div className="list-vehicle-page">
       <section className="static-hero">
         <div className="container" style={{ position: 'relative' }}>
-          {/* Custom back button removed */}
           <h1>List Your Vehicle</h1>
           <p>Start earning by sharing your vehicle with renters</p>
         </div>
       </section>
+
       <section className="container list-vehicle-content">
-        <div className="list-vehicle-card card">
+        <div className="list-vehicle-wrapper">
           {error && <div className="auth-message error">{error}</div>}
           {success && <div className="auth-message success">{success}</div>}
-          <form onSubmit={handleSubmit} className="list-vehicle-form">
-            <div className="form-row">
-              <div className="input-group">
-                <label><Car size={14} /> Vehicle Title</label>
-                <input className="input-field" placeholder="e.g. Spacious Family SUV" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+
+          <form onSubmit={handleSubmit} className="list-vehicle-form-refined">
+            
+            {/* SECTION 1: BASIC INFORMATION */}
+            <div className="form-card animate-fade-in-up">
+              <div className="form-card-header">
+                <Car size={20} />
+                <h3>Basic Information</h3>
+              </div>
+              <div className="form-card-body">
+                <div className="input-group full-width">
+                  <label>Vehicle Title</label>
+                  <input className="input-field" placeholder="e.g. Spacious Family SUV" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+                </div>
+                
+                <div className="form-grid-2">
+                  <div className="input-group">
+                    <label>Make</label>
+                    <AntSelect
+                      showSearch
+                      className="antd-select-full"
+                      placeholder="Select Brand"
+                      value={selectedMake || undefined}
+                      onChange={(val: string) => {
+                        setSelectedMake(val);
+                        setSelectedModel(''); 
+                      }}
+                      loading={loadingMakes}
+                    >
+                      {makes.map((m: VehicleMake) => (
+                        <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>
+                      ))}
+                      <Option value="Other" label="Other / Suggest New">Other / Suggest New</Option>
+                    </AntSelect>
+                    {selectedMake === 'Other' && (
+                      <input className="input-field mt-2" placeholder="Custom Make..." value={customMake} onChange={(e) => setCustomMake(e.target.value)} required />
+                    )}
+                  </div>
+                  <div className="input-group">
+                    <label>Model</label>
+                    <AntSelect
+                      showSearch
+                      className="antd-select-full"
+                      placeholder="Select Model"
+                      value={selectedModel || undefined}
+                      onChange={(val: string) => setSelectedModel(val)}
+                      loading={loadingModels}
+                      disabled={!selectedMake || (selectedMake === 'Other' && !customMake)}
+                    >
+                      {models.map((m: VehicleModel) => (
+                        <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>
+                      ))}
+                      <Option value="Other" label="Other / Suggest New">Other / Suggest New</Option>
+                    </AntSelect>
+                    {(selectedModel === 'Other' || selectedMake === 'Other') && (
+                      <input className="input-field mt-2" placeholder="Custom Model..." value={customModel} onChange={(e) => setCustomModel(e.target.value)} required />
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-grid-3">
+                  <div className="input-group">
+                    <label>Year</label>
+                    <input type="number" className="input-field" placeholder="2023" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required />
+                  </div>
+                  <div className="input-group">
+                    <label>Category</label>
+                    <select className="input-field" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })} required>
+                      <option value="">Select Category</option>
+                      <option value="Car">Car</option>
+                      <option value="SUV">SUV</option>
+                      <option value="Van">Van</option>
+                      <option value="Bike">Bike</option>
+                      <option value="Truck">Truck</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label>Price / Day (LKR)</label>
+                    <input type="number" className="input-field" placeholder="LKR / day" value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })} required />
+                  </div>
+                </div>
+
+                <div className="form-grid-2">
+                  <div className="input-group">
+                    <label>Price / Week (Optional)</label>
+                    <input type="number" className="input-field" placeholder="LKR / week" value={form.pricePerWeek} onChange={(e) => setForm({ ...form, pricePerWeek: e.target.value })} />
+                  </div>
+                  <div className="input-group">
+                    <label>Price / Month (Optional)</label>
+                    <input type="number" className="input-field" placeholder="LKR / month" value={form.pricePerMonth} onChange={(e) => setForm({ ...form, pricePerMonth: e.target.value })} />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* MAKE AND MODEL OVERHAUL */}
-            <div className="form-row">
-              <div className="input-group">
-                <label><Settings size={14} /> Make</label>
-                <AntSelect
-                  showSearch
-                  className="antd-select-full"
-                  placeholder="Select or Search Brand"
-                  value={selectedMake || undefined}
-                  onChange={(val: string) => {
-                    setSelectedMake(val);
-                    setSelectedModel(''); 
-                  }}
-                  loading={loadingMakes}
-                  filterOption={(input: string, option: any) =>
-                    (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                  }
-                >
-                  {makes.map((m: VehicleMake) => (
-                    <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>
-                  ))}
-                  <Option value="Other" label="Other / Suggest New">Other / Suggest New</Option>
-                </AntSelect>
-                {selectedMake === 'Other' && (
-                  <input
-                    className="input-field animate-fade-in"
-                    placeholder="Enter custom Make..."
-                    value={customMake}
-                    onChange={(e) => setCustomMake(e.target.value)}
-                    style={{ marginTop: '0.5rem' }}
-                    required
-                  />
-                )}
+            {/* SECTION 2: TECHNICAL SPECS */}
+            <div className="form-card animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <div className="form-card-header">
+                <Settings size={20} />
+                <h3>Technical Specifications</h3>
               </div>
-              <div className="input-group">
-                <label><PenTool size={14} /> Model</label>
-                <AntSelect
-                  showSearch
-                  className="antd-select-full"
-                  placeholder="Select Model"
-                  value={selectedModel || undefined}
-                  onChange={(val: string) => setSelectedModel(val)}
-                  loading={loadingModels}
-                  disabled={!selectedMake || (selectedMake === 'Other' && !customMake)}
-                  filterOption={(input: string, option: any) =>
-                    (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                  }
-                >
-                  {models.map((m: VehicleModel) => (
-                    <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>
-                  ))}
-                  <Option value="Other" label="Other / Suggest New">Other / Suggest New</Option>
-                </AntSelect>
-                {(selectedModel === 'Other' || selectedMake === 'Other') && (
-                  <input
-                    className="input-field animate-fade-in"
-                    placeholder="Enter custom Model..."
-                    value={customModel}
-                    onChange={(e) => setCustomModel(e.target.value)}
-                    style={{ marginTop: '0.5rem' }}
-                    required
-                  />
-                )}
+              <div className="form-card-body">
+                <div className="form-grid-2">
+                  <div className="input-group">
+                    <label>Transmission</label>
+                    <select className="input-field" value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })} required>
+                      <option value="Automatic">Automatic</option>
+                      <option value="Manual">Manual</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label>Fuel Type</label>
+                    <select className="input-field" value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })} required>
+                      <option value="Petrol">Petrol</option>
+                      <option value="Diesel">Diesel</option>
+                      <option value="Electric">Electric</option>
+                      <option value="Hybrid">Hybrid</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-grid-3">
+                  <div className="input-group">
+                    <label>Seats</label>
+                    <select className="input-field" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })} required>
+                      <option value="2">2</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="7">7</option>
+                      <option value="8">8+</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label>Engine Capacity</label>
+                    <input className="input-field" placeholder="e.g. 1500cc" value={form.engineCapacity} onChange={(e) => setForm({ ...form, engineCapacity: e.target.value })} />
+                  </div>
+                  <div className="input-group">
+                    <label>Consumption</label>
+                    <input className="input-field" placeholder="e.g. 15km/L" value={form.fuelConsumption} onChange={(e) => setForm({ ...form, fuelConsumption: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="features-group">
+                  <label>Features & Amenities</label>
+                  <div className="features-grid">
+                    {VEHICLE_FEATURES.map(feature => (
+                      <div 
+                        key={feature.id} 
+                        className={`feature-item ${form.features.includes(feature.id) ? 'active' : ''}`}
+                        onClick={() => handleFeatureToggle(feature.id)}
+                      >
+                        <span className="feature-icon">{feature.icon}</span>
+                        <span className="feature-label">{feature.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="input-group">
-                <label>Year</label>
-                <input type="number" className="input-field" placeholder="2023" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required />
-              </div>
-              <div className="input-group">
-                <label><DollarSign size={14} /> Price per Day (LKR)</label>
-                <input type="number" className="input-field" placeholder="45" value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })} required />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="input-group">
-                <label>Vehicle Category</label>
-                <select className="input-field" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })} required>
-                  <option value="">Select Category</option>
-                  <option value="Car">Car</option>
-                  <option value="SUV">SUV</option>
-                  <option value="Van">Van</option>
-                  <option value="Bike">Bike</option>
-                  <option value="Truck">Truck</option>
-                </select>
-              </div>
-              <div className="input-group">
-                <label>Transmission</label>
-                <select className="input-field" value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })} required>
-                  <option value="Automatic">Automatic</option>
-                  <option value="Manual">Manual</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="input-group">
-                <label>Fuel Type</label>
-                <select className="input-field" value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })} required>
-                  <option value="Petrol">Petrol</option>
-                  <option value="Diesel">Diesel</option>
-                  <option value="Electric">Electric</option>
-                  <option value="Hybrid">Hybrid</option>
-                </select>
-              </div>
-              <div className="input-group">
-                <label><Users size={14} /> Seats</label>
-                <select className="input-field" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })} required>
-                  <option value="2">2</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="7">7</option>
-                  <option value="8">8+</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row" style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-              <div className="input-group" style={{ flex: 1 }}>
-                <label><MapPin size={14} /> District</label>
-                <select
-                  className="input-field"
-                  value={selectedDistrict}
-                  onChange={(e) => {
-                    setSelectedDistrict(e.target.value);
-                    setSelectedPlace('');
-                  }}
-                  required
-                >
-                  <option value="">Select District</option>
-                  {Object.keys(SRI_LANKA_DISTRICTS).map(d => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="input-group" style={{ flex: 1 }}>
-                <label><Locate size={14} /> City / Place</label>
-                <select
-                  className="input-field"
-                  value={selectedPlace}
-                  onChange={(e) => setSelectedPlace(e.target.value)}
-                  required={selectedDistrict !== 'Other'}
-                  disabled={!selectedDistrict || selectedDistrict === 'Other'}
-                >
-                  <option value="">Select Place</option>
-                  {selectedDistrict && selectedDistrict !== 'Other' && SRI_LANKA_DISTRICTS[selectedDistrict].map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                  <option value="Other">Add Place / Other</option>
-                </select>
-                {(selectedPlace === 'Other' || selectedDistrict === 'Other') && (
-                  <input
-                    className="input-field animate-fade-in"
-                    placeholder="Enter custom place..."
-                    value={customPlace}
-                    onChange={(e) => setCustomPlace(e.target.value)}
-                    style={{ marginTop: '0.5rem' }}
-                    required
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="input-group" style={{ marginBottom: '1.5rem', position: 'relative' }}>
-              <label style={{ marginBottom: '0.5rem' }}>Pinpoint EXACT Location (Sri Lanka ONLY)  <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>(Tap map to drop pin)</span></label>
-
-              <div style={{ height: '350px', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative', zIndex: 0 }}>
-                {/* PickMe Style Float Button */}
-                <button
-                  type="button"
-                  onClick={handleGetLocation}
-                  style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000, background: '#fff', border: 'none', borderRadius: '8px', padding: '10px 15px', boxShadow: '0 2px 10px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600, color: 'var(--primary-color)' }}
-                >
-                  <Locate size={16} /> Locate Me
+            {/* SECTION 3: LOCATION DETAILS */}
+            <div className="form-card animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <div className="form-card-header">
+                <MapPin size={20} />
+                <h3>Location Details</h3>
+                <button type="button" className="btn btn-ghost btn-sm locate-me-btn" onClick={handleGetLocation}>
+                  <Locate size={14} /> Locate Me
                 </button>
+              </div>
+              <div className="form-card-body">
+                <div className="form-grid-3">
+                  <div className="input-group">
+                    <label>Province</label>
+                    <select 
+                      className="input-field" 
+                      value={form.province} 
+                      onChange={(e) => setForm({ ...form, province: e.target.value, district: '' })} 
+                      required
+                    >
+                      <option value="">Select Province</option>
+                      {Object.keys(SRI_LANKA_LOCATIONS).map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label>District</label>
+                    <select 
+                      className="input-field" 
+                      value={form.district} 
+                      onChange={(e) => setForm({ ...form, district: e.target.value })} 
+                      disabled={!form.province}
+                      required
+                    >
+                      <option value="">Select District</option>
+                      {form.province && SRI_LANKA_LOCATIONS[form.province].map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label>City / Town</label>
+                    <input 
+                      className="input-field" 
+                      placeholder="Enter City" 
+                      value={form.city} 
+                      onChange={(e) => setForm({ ...form, city: e.target.value })} 
+                      required 
+                    />
+                  </div>
+                </div>
+                {form.address && (
+                  <p className="address-preview">
+                    <strong>Full Address:</strong> {form.address}
+                  </p>
+                )}
+              </div>
+            </div>
 
-                <MapContainer
-                  key={`${position.lat === 7.8731 ? 'init' : 'located'}`}
-                  center={[position.lat, position.lng]}
-                  zoom={position.lat === 7.8731 ? 7 : 14}
-                  style={{ height: '100%', width: '100%' }}
-                  maxBounds={[[5.9, 79.5], [9.9, 81.9]]}
-                  maxBoundsViscosity={1.0}
-                  minZoom={7}
+            {/* SECTION 4: MEDIA & DESCRIPTION */}
+            <div className="form-card animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <div className="form-card-header">
+                <Image size={20} />
+                <h3>Media & Description</h3>
+              </div>
+              <div className="form-card-body">
+                <div className="input-group full-width">
+                  <label>Description</label>
+                  <textarea className="input-field" rows={4} placeholder="Describe your vehicle's condition, features, and any other details..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                </div>
+
+                <div 
+                  className="upload-dropzone"
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
-                  <LocationMarker position={position} setPosition={setPosition} />
-                </MapContainer>
+                  <Image size={32} />
+                  <p>Click to upload vehicle photos</p>
+                  <p className="sub-text">PNG, JPG up to 10MB</p>
+                  <input type="file" multiple accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handlePhotoChange} />
+                </div>
+                
+                {photos.length > 0 && (
+                  <div className="photo-preview-list">
+                    {photos.map((p, i) => (
+                      <div key={i} className="photo-tag">
+                        <span>{p.name}</span>
+                        <button type="button" onClick={(e) => {
+                          e.stopPropagation();
+                          setPhotos(prev => prev.filter((_, index) => index !== i));
+                        }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="input-group">
-              <label><FileText size={14} /> Description</label>
-              <textarea className="input-field" rows={4} placeholder="Describe your vehicle..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            </div>
-
-            <div className="input-group">
-              <label><Image size={14} /> Vehicle Photos</label>
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  border: '2px dashed var(--border-color)',
-                  padding: '2.5rem',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  backgroundColor: 'var(--bg-secondary)',
-                  transition: 'all 0.2s ease'
-                }}
-                className="photo-upload-zone"
-              >
-                <div style={{ pointerEvents: 'none' }}>
-                  <Image size={32} style={{ color: 'var(--primary-color)', marginBottom: '0.5rem', display: 'inline-block' }} />
-                  <p style={{ fontWeight: '500', marginBottom: '4px' }}>Click to upload vehicle photos</p>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', margin: '0' }}>PNG, JPG, JPEG up to 10MB</p>
+            <button type="submit" className="btn btn-primary btn-lg btn-full submit-vehicle-btn" disabled={loading}>
+              {loading ? (
+                <div className="loading-spinner-wrapper">
+                  <div className="spinner-small"></div>
+                  Listing Vehicle...
                 </div>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handlePhotoChange}
-                  ref={fileInputRef}
-                  required={photos.length === 0}
-                />
-              </div>
-              {photos.length > 0 && (
-                <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {photos.map((p, i) => (
-                    <span key={i} className="badge badge-primary">{p.name}</span>
-                  ))}
-                </div>
+              ) : (
+                <>Create Listing <ArrowRight size={18} /></>
               )}
-            </div>
-
-            <button type="submit" className="btn btn-primary btn-lg btn-full" disabled={loading} style={{ marginTop: '1rem' }}>
-              {loading ? <span className="spinner" /> : <> Create Listing <ArrowRight size={18} /></>}
             </button>
           </form>
         </div>

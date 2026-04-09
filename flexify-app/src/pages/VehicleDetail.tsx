@@ -4,7 +4,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle } from 'lucide-react';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './VehicleDetail.css';
@@ -241,7 +241,23 @@ export default function VehicleDetail() {
   const days = dateRange && dateRange[0] && dateRange[1]
     ? dateRange[1].diff(dateRange[0], 'day') || 1
     : 0;
-  const totalAmount = days * vehicle.pricePerDay;
+    
+  let totalAmount = 0;
+  if (days > 0 && vehicle) {
+    if (days >= 30 && vehicle.pricePerMonth) {
+      // Calculate by months + remaining days
+      const months = Math.floor(days / 30);
+      const remainingDays = days % 30;
+      totalAmount = (months * vehicle.pricePerMonth) + (remainingDays * vehicle.pricePerDay);
+    } else if (days >= 7 && vehicle.pricePerWeek) {
+      // Calculate by weeks + remaining days
+      const weeks = Math.floor(days / 7);
+      const remainingDays = days % 7;
+      totalAmount = (weeks * vehicle.pricePerWeek) + (remainingDays * vehicle.pricePerDay);
+    } else {
+      totalAmount = days * vehicle.pricePerDay;
+    }
+  }
 
   return (
     <div className="vehicle-detail-page">
@@ -287,38 +303,73 @@ export default function VehicleDetail() {
                 </div>
               </div>
 
+              <div className="location-context">
+                <MapPin size={16} /> 
+                <span>{vehicle.city}, {vehicle.district}, {vehicle.province}</span>
+              </div>
+
               <p className="detail-desc" style={{ marginTop: '1.5rem', fontSize: '1.05rem', lineHeight: '1.6', color: 'var(--text-secondary)' }}>
                 {vehicle.description || "No description provided for this vehicle. Enjoy a premium, comfortable ride perfect for your specified needs."}
               </p>
 
-              <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.25rem' }}>Full Specifications</h3>
+              <h3 style={{ marginTop: '2.5rem', marginBottom: '1.25rem', fontSize: '1.25rem' }}>Technical Specifications</h3>
               <div className="detail-specs-grid">
                 <div className="spec-item">
                   <span className="spec-label">Transmission</span>
-                  <span className="spec-value">{vehicle.transmission || 'Automatic'}</span>
+                  <span className="spec-value">{vehicle.transmission}</span>
                 </div>
                 <div className="spec-item">
                   <span className="spec-label">Fuel Type</span>
-                  <span className="spec-value">{vehicle.fuelType || 'Petrol'}</span>
+                  <span className="spec-value">{vehicle.fuelType}</span>
                 </div>
                 <div className="spec-item">
                   <span className="spec-label">Seats</span>
                   <span className="spec-value">
                     <Users size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                    {vehicle.seats || 4}
+                    {vehicle.seats} Seats
                   </span>
                 </div>
                 <div className="spec-item">
-                  <span className="spec-label">Location Area</span>
+                  <span className="spec-label">Engine Capacity</span>
                   <span className="spec-value">
-                    {vehicle.location?.address || 'Not specified'}
+                    <Zap size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                    {vehicle.engineCapacity || 'N/A'}
+                  </span>
+                </div>
+                <div className="spec-item">
+                  <span className="spec-label">Consumption</span>
+                  <span className="spec-value">
+                    <Gauge size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                    {vehicle.fuelConsumption || 'N/A'}
                   </span>
                 </div>
                 <div className="spec-item">
                   <span className="spec-label">Category</span>
-                  <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard Rental'}</span>
+                  <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
                 </div>
               </div>
+
+              {vehicle.features && vehicle.features.length > 0 && (
+                <div className="detail-features-section">
+                  <h3 style={{ marginTop: '2.5rem', marginBottom: '1.25rem', fontSize: '1.25rem' }}>Features & Amenities</h3>
+                  <div className="detail-features-grid">
+                    {vehicle.features.map(f => {
+                      const featureMap: Record<string, string> = {
+                        ac: '❄️ A/C',
+                        bluetooth: '📶 Bluetooth',
+                        gps: '📍 GPS',
+                        sparewheel: '🛞 Spare Wheel',
+                        sunroof: '☀️ Sunroof'
+                      };
+                      return (
+                        <div key={f} className="detail-feature-tag">
+                          {featureMap[f] || f}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* AVAILABILITY CALENDAR */}
@@ -391,6 +442,21 @@ export default function VehicleDetail() {
                 <h2>LKR {vehicle.pricePerDay.toLocaleString()}</h2>
                 <span>/ day</span>
               </div>
+
+              {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
+                <div className="bulk-pricing-options" style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {vehicle.pricePerWeek && (
+                    <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: 'var(--color-success)', fontWeight: 600 }}>
+                      LKR {vehicle.pricePerWeek.toLocaleString()} / week
+                    </div>
+                  )}
+                  {vehicle.pricePerMonth && (
+                    <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: 'var(--color-success)', fontWeight: 600 }}>
+                      LKR {vehicle.pricePerMonth.toLocaleString()} / month
+                    </div>
+                  )}
+                </div>
+              )}
 
               {(bookedRanges.length > 0 || blackoutRanges.length > 0) && (
                 <Tag 
@@ -564,9 +630,39 @@ export default function VehicleDetail() {
 
                 {days > 0 && (
                   <div className="booking-summary box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginTop: '0.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-                      <span>LKR {vehicle.pricePerDay.toLocaleString()} x {days} day{days > 1 ? 's' : ''}</span>
-                      <span>LKR {totalAmount.toLocaleString()}</span>
+                    <div className="summary-details" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      {days >= 30 && vehicle.pricePerMonth ? (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Monthly Rate x {Math.floor(days / 30)}</span>
+                            <span>LKR {(Math.floor(days / 30) * vehicle.pricePerMonth).toLocaleString()}</span>
+                          </div>
+                          {days % 30 > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span>Daily Rate x {days % 30} days</span>
+                              <span>LKR {( (days % 30) * vehicle.pricePerDay).toLocaleString()}</span>
+                            </div>
+                          )}
+                        </>
+                      ) : days >= 7 && vehicle.pricePerWeek ? (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Weekly Rate x {Math.floor(days / 7)}</span>
+                            <span>LKR {(Math.floor(days / 7) * vehicle.pricePerWeek).toLocaleString()}</span>
+                          </div>
+                          {days % 7 > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span>Daily Rate x {days % 7} days</span>
+                              <span>LKR {( (days % 7) * vehicle.pricePerDay).toLocaleString()}</span>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Daily Rate x {days} days</span>
+                          <span>LKR {(days * vehicle.pricePerDay).toLocaleString()}</span>
+                        </div>
+                      )}
                     </div>
                     <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1rem 0' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1.1rem' }}>

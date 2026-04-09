@@ -18,6 +18,8 @@ export const createVehicle = async (req, res) => {
     const {
       title, make, model, year, pricePerDay, transmission, fuelType,
       seats, description, lat, lng, address, serviceType,
+      engineCapacity, fuelConsumption, features, province, district, city,
+      pricePerWeek, pricePerMonth
     } = req.body;
 
     // Subscription Check & Initialization — only for owners (staff/admins get free unlimited access)
@@ -155,6 +157,8 @@ export const createVehicle = async (req, res) => {
         address: address || "",
       },
       pricePerDay: parseFloat(pricePerDay),
+      pricePerWeek: pricePerWeek ? parseFloat(pricePerWeek) : null,
+      pricePerMonth: pricePerMonth ? parseFloat(pricePerMonth) : null,
       transmission,
       fuelType,
       seats: parseInt(seats),
@@ -162,6 +166,14 @@ export const createVehicle = async (req, res) => {
       serviceType: serviceType ? (Array.isArray(serviceType) ? serviceType : [serviceType]) : [],
       status: vehicleStatus,
       isActive: true,
+      
+      // New fields
+      engineCapacity,
+      fuelConsumption,
+      features: features ? (typeof features === 'string' ? JSON.parse(features) : features) : [],
+      province,
+      district,
+      city,
     });
 
     res.status(201).json(vehicle);
@@ -185,8 +197,21 @@ export const updateVehicle = async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    const { title, make, model, year, pricePerDay, transmission, fuelType, seats, description, lat, lng, address } = req.body;
-    const updates = { title, make, model, year, pricePerDay, transmission, fuelType, seats, description };
+    const { 
+      title, make, model, year, pricePerDay, transmission, fuelType, seats, description, 
+      lat, lng, address, engineCapacity, fuelConsumption, features, province, district, city,
+      pricePerWeek, pricePerMonth
+    } = req.body;
+    
+    const updates = { 
+      title, make, model, year, pricePerDay, transmission, fuelType, seats, description,
+      engineCapacity, fuelConsumption, province, district, city,
+      pricePerWeek, pricePerMonth
+    };
+
+    if (features) {
+      updates.features = typeof features === 'string' ? JSON.parse(features) : features;
+    }
 
     if (lat && lng) {
       updates.location = {
@@ -237,7 +262,7 @@ export const deleteVehicle = async (req, res) => {
  */
 export const listVehicles = async (req, res) => {
   try {
-    const { q, transmission, minPrice, maxPrice, seats, vehicleType, lat, lng, radius, sort } = req.query;
+    const { q, transmission, minPrice, maxPrice, seats, vehicleType, lat, lng, radius, sort, province, district } = req.query;
 
     let filter = {
       status: "active",
@@ -264,6 +289,9 @@ export const listVehicles = async (req, res) => {
     if (vehicleType) {
       filter.serviceType = vehicleType;
     }
+
+    if (province) filter.province = province;
+    if (district) filter.district = district;
 
     // Geolocation filter
     if (lat && lng && radius) {
@@ -346,6 +374,8 @@ export const listVehicles = async (req, res) => {
           photos: 1,
           location: 1,
           pricePerDay: 1,
+          pricePerWeek: 1,
+          pricePerMonth: 1,
           transmission: 1,
           fuelType: 1,
           seats: 1,
@@ -356,6 +386,12 @@ export const listVehicles = async (req, res) => {
           timesRented: 1,
           averageRating: 1,
           reviewCount: 1,
+          engineCapacity: 1,
+          fuelConsumption: 1,
+          features: 1,
+          province: 1,
+          district: 1,
+          city: 1,
           createdAt: 1
         }
       }

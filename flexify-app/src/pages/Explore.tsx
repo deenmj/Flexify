@@ -6,9 +6,17 @@ import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './Explore.css';
 
-const SRI_LANKA_DISTRICTS = [
-  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Galle', 'Matara', 'Kurunegala', 'Jaffna', 'Other'
-];
+const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
+  'Western': ['Colombo', 'Gampaha', 'Kalutara'],
+  'Central': ['Kandy', 'Matale', 'Nuwara Eliya'],
+  'Southern': ['Galle', 'Matara', 'Hambantota'],
+  'Northern': ['Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu'],
+  'Eastern': ['Trincomalee', 'Batticaloa', 'Ampara'],
+  'North Western': ['Kurunegala', 'Puttalam'],
+  'North Central': ['Anuradhapura', 'Polonnaruwa'],
+  'Uva': ['Badulla', 'Moneragala'],
+  'Sabaragamuwa': ['Ratnapura', 'Kegalle']
+};
 
 interface Filters {
   transmission: string;
@@ -20,6 +28,7 @@ interface Filters {
   lng: string;
   radius: string;
   sort: string;
+  province: string;
   district: string;
 }
 
@@ -39,6 +48,7 @@ export default function Explore() {
     lng: '',
     radius: '10', // default radius 10km
     sort: searchParams.get('sort') || 'newest',
+    province: searchParams.get('province') || '',
     district: searchParams.get('district') || '',
   });
   const [showFilters, setShowFilters] = useState(!!(searchParams.get('type') || searchParams.get('vehicleType') || searchParams.get('service') || searchParams.get('district')));
@@ -60,6 +70,8 @@ export default function Explore() {
       if (filters.lat) params.lat = filters.lat;
       if (filters.lng) params.lng = filters.lng;
       if (filters.radius) params.radius = filters.radius;
+      if (filters.province) params.province = filters.province;
+      if (filters.district) params.district = filters.district;
       if (filters.sort) params.sort = filters.sort;
 
       const data = await vehicleApi.getAll(params);
@@ -96,14 +108,14 @@ export default function Explore() {
   };
 
   const clearFilters = () => {
-    setFilters({ transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', lat: '', lng: '', radius: '10', sort: 'newest', district: '' });
+    setFilters({ transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', lat: '', lng: '', radius: '10', sort: 'newest', province: '', district: '' });
     setQuery('');
   };
 
   const handleLocateMe = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
-        setFilters({ ...filters, lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString(), district: '' });
+        setFilters({ ...filters, lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString(), province: '', district: '' });
       }, () => {
         alert("Failed to get location. Please enable location permissions.");
       });
@@ -205,17 +217,30 @@ export default function Explore() {
                 </select>
               </div>
               <div className="input-group">
+                <label>Province</label>
+                <select
+                  className="input-field"
+                  value={filters.province}
+                  onChange={(e) => {
+                    setFilters({ ...filters, province: e.target.value, district: '', lat: '', lng: '' });
+                  }}
+                >
+                  <option value="">Anywhere</option>
+                  {Object.keys(SRI_LANKA_LOCATIONS).map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div className="input-group">
                 <label>District</label>
                 <select
                   className="input-field"
                   value={filters.district}
                   onChange={(e) => {
                     setFilters({ ...filters, district: e.target.value, lat: '', lng: '' });
-                    if (e.target.value) setQuery(e.target.value);
                   }}
+                  disabled={!filters.province}
                 >
-                  <option value="">Anywhere</option>
-                  {SRI_LANKA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                  <option value="">Any District</option>
+                  {filters.province && SRI_LANKA_LOCATIONS[filters.province as keyof typeof SRI_LANKA_LOCATIONS].map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               <div className="input-group">
@@ -349,11 +374,11 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
         </div>
         <p className="explore-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
         <div className="explore-vehicle-specs">
-          {vehicle.seats && <span>🪑 {vehicle.seats} seats</span>}
-          {vehicle.location?.address && (
-            <span><MapPin size={12} /> {vehicle.location.address}</span>
+          <span>🪑 {vehicle.seats} seats</span>
+          {vehicle.engineCapacity && <span>⚡ {vehicle.engineCapacity}</span>}
+          {(vehicle.city || vehicle.district) && (
+            <span><MapPin size={12} /> {vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
           )}
-          {vehicle.transmission && <span>🕹️ {vehicle.transmission}</span>}
         </div>
         <div className="explore-vehicle-footer">
           <div className="explore-vehicle-price">

@@ -19,6 +19,8 @@ const vehicleSchema = new mongoose.Schema(
     },
 
     pricePerDay: { type: Number, required: true },
+    pricePerWeek: { type: Number, default: null },
+    pricePerMonth: { type: Number, default: null },
     transmission: { type: String, enum: ["Automatic", "Manual"], required: true },
     fuelType: { type: String, required: true },
     seats: { type: Number, required: true },
@@ -40,7 +42,16 @@ const vehicleSchema = new mongoose.Schema(
     serviceType: { type: [String], default: [] },
     averageRating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
+    
+    // Additional specs
+    features: { type: [String], default: [] },
+    engineCapacity: { type: String, default: null },
+    fuelConsumption: { type: String, default: null },
+    
+    // Location Details
+    province: { type: String, default: null, index: true },
     district: { type: String, default: null, index: true },
+    city: { type: String, default: null, index: true },
   },
   { timestamps: true }
 );

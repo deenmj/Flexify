@@ -43,6 +43,8 @@ export interface Vehicle {
   model: string;
   year: number;
   pricePerDay: number;
+  pricePerWeek?: number;
+  pricePerMonth?: number;
   location?: {
     type?: string;
     coordinates?: number[];
@@ -59,6 +61,12 @@ export interface Vehicle {
   timesRented?: number;
   averageRating?: number;
   reviewCount?: number;
+  features?: string[];
+  engineCapacity?: string;
+  fuelConsumption?: string;
+  province?: string;
+  city?: string;
+  district?: string;
   createdAt?: string;
 }
 
