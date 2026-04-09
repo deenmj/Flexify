@@ -49,7 +49,7 @@ const seedData = async () => {
       { email: 'staff1@flexify.com' },
       {
         name: 'John Staff',
-        password,
+        password: await bcrypt.hash('Staff@123', 10),
         role: 'subadmin',
         verified: true,
         isKycVerified: true,
@@ -64,7 +64,7 @@ const seedData = async () => {
       { email: 'staff2@flexify.com' },
       {
         name: 'Jane Staff',
-        password,
+        password: await bcrypt.hash('Staff@123', 10),
         role: 'subadmin',
         verified: true,
         isKycVerified: true,
