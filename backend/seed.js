@@ -24,50 +24,48 @@ const seedProductionAdmins = async () => {
     console.log("Cleared existing users...");
 
     // 1. SUPERADMIN
-    await User.create({
+    const admin = {
       name: "Super Admin",
       email: "admin@flexify.com",
-      password: "password123",
+      password: "Admin@123",
       role: "superadmin",
-      verified: true,
-      isKycVerified: true,
-      verificationStatus: "approved",
       status: "active",
-      phone: "+94 77 000 0001",
-    });
+      verificationStatus: "approved",
+      profilePic: "https://i.pravatar.cc/150?img=11",
+      createdAt: new Date(),
+    };
 
-    // 2. STAFF 1
-    await User.create({
-      name: "Staff Member 1",
+    const staff1 = {
+      name: "John Staff",
       email: "staff1@flexify.com",
-      password: "password123",
+      password: "staff@123",
       role: "subadmin",
-      verified: true,
-      isKycVerified: true,
-      verificationStatus: "approved",
       status: "active",
-      phone: "+94 77 000 0002",
-    });
+      permissions: ["users_read", "bookings_read"],
+      verificationStatus: "approved",
+      profilePic: "https://i.pravatar.cc/150?img=12",
+      createdAt: new Date(),
+    };
 
-    // 3. STAFF 2
-    await User.create({
-      name: "Staff Member 2",
+    const staff2 = {
+      name: "Jane Staff",
       email: "staff2@flexify.com",
-      password: "password123",
+      password: "staff@123",
       role: "subadmin",
-      verified: true,
-      isKycVerified: true,
-      verificationStatus: "approved",
       status: "active",
-      phone: "+94 77 000 0003",
-    });
+      permissions: ["vehicles_read", "payments_read"],
+      verificationStatus: "approved",
+      profilePic: "https://i.pravatar.cc/150?img=5",
+      createdAt: new Date(),
+    };
 
-    console.log("\n========================================");
-    console.log("Production Admin Accounts Created!");
-    console.log("========================================");
-    console.log("SUPERADMIN: admin@flexify.com   | password123");
-    console.log("STAFF 1:    staff1@flexify.com  | password123");
-    console.log("STAFF 2:    staff2@flexify.com  | password123");
+    await User.insertMany([admin, staff1, staff2]);
+
+    console.log("✅ Main Admin & Staff accounts seeded successfully!");
+    console.log("-----------------------------------------");
+    console.log("SUPERADMIN: admin@flexify.com   | Admin@123");
+    console.log("STAFF 1:    staff1@flexify.com  | staff@123");
+    console.log("STAFF 2:    staff2@flexify.com  | staff@123");
     console.log("──────────────────────────────────────\n");
 
     process.exit(0);

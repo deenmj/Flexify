@@ -120,9 +120,7 @@ app.use(globalLimiter);
 app.use(express.json());
 app.use(passport.initialize());
 
-app.use(express.static(path.join(process.cwd(), "..", "flexify-app", "dist")));
-
-// Static uploads
+// Static uploads (No longer serving React frontend as it is on Vercel)// Static uploads
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Routes
@@ -160,9 +158,9 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/feedback", feedbackRoutes);
 
-// Catch-all to serve React app
-app.get("*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "..", "flexify-app", "dist", "index.html"));
+// 404 handler for unknown routes
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "API Route Not Found" });
 });
 
 // Global error handler
