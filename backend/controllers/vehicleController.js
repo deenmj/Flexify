@@ -1,6 +1,6 @@
 // backend/controllers/vehicleController.js
 import Vehicle from "../models/Vehicle.js";
-import Booking from "../models/Booking.js";
+import Booking from "../models/booking.js";
 import Blackout from "../models/Blackout.js";
 import User from "../models/User.js";
 import VehicleMake from "../models/VehicleMake.js";

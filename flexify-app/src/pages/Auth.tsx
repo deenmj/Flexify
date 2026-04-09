@@ -55,7 +55,7 @@ export default function Auth() {
 
   const handleGoogleLogin = () => {
     // Explicitly navigate to the backend to start the OAuth sequence
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const API_URL = import.meta.env.VITE_API_URL || 'https://flexify-rental-production.up.railway.app';
     window.location.href = `${API_URL}/api/auth/google`;
   };
 

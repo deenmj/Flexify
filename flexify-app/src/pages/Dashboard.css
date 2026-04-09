@@ -9,8 +9,11 @@
 }
 
 .dashboard-header h1 {
-  font-size: var(--font-size-2xl);
+  font-size: 1.75rem;
   font-weight: 800;
+  background: linear-gradient(to right, #ffffff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .dashboard-header p {
@@ -162,10 +165,80 @@
 }
 
 @media (max-width: 480px) {
-  .dashboard-stats { grid-template-columns: 1fr; }
-  .dashboard-tabs { flex-direction: column; width: 100%; }
-  .dashboard-tab { justify-content: center; width: 100%; }
-  .dashboard-table th, .dashboard-table td { padding: 0.75rem 0.5rem; }
+  .dashboard-header {
+    padding: 1.5rem 0;
+  }
+  .dashboard-header h1 {
+    font-size: 1.25rem;
+  }
+  .dashboard-header p {
+    font-size: 0.75rem;
+  }
+  .dashboard-stats { 
+    grid-template-columns: 1fr; 
+    gap: 0.5rem;
+  }
+  .stat-card {
+    padding: 1rem;
+  }
+  .stat-number {
+    font-size: 1.25rem;
+  }
+  .stat-label {
+    font-size: 0.7rem;
+  }
+  .dashboard-tabs { 
+    flex-direction: row; 
+    overflow-x: auto;
+    width: 100%;
+    padding: 2px;
+  }
+  .dashboard-tab { 
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+  
+  /* Modern Card Layout for Mobile Bookings */
+  .dashboard-table thead {
+    display: none;
+  }
+  .dashboard-table, .dashboard-table tbody, .dashboard-table tr, .dashboard-table td {
+    display: block;
+    width: 100%;
+  }
+  .dashboard-table tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: white;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .dashboard-table td {
+    border: none;
+    padding: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    border-bottom: 1px dashed #f1f5f9;
+  }
+  .dashboard-table td:last-child {
+    border-bottom: none;
+    padding-top: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .dashboard-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--text-tertiary);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+  }
 }
 
 /* ===== Dashboard Calendar Tab ===== */

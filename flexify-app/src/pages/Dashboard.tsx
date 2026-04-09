@@ -503,14 +503,14 @@ export default function Dashboard() {
                 <tbody>
                   {filteredVehicles.map(v => (
                     <tr key={v._id}>
-                      <td><div className="table-vehicle"><strong>{v.title}</strong><span>{v.make} {v.model}</span></div></td>
-                      <td>{v.serviceType && v.serviceType.length > 0 ? <span className="badge" style={{ background: 'var(--bg-secondary)' }}>{v.serviceType[0]}</span> : '-'}</td>
-                      <td>LKR {v.pricePerDay.toLocaleString()}</td>
-                      <td>
+                      <td data-label="Vehicle"><div className="table-vehicle"><strong>{v.title}</strong><span>{v.make} {v.model}</span></div></td>
+                      <td data-label="Category">{v.serviceType && v.serviceType.length > 0 ? <span className="badge" style={{ background: 'var(--bg-secondary)' }}>{v.serviceType[0]}</span> : '-'}</td>
+                      <td data-label="Price/day">LKR {v.pricePerDay.toLocaleString()}</td>
+                      <td data-label="Status">
                         {statusBadge(v.status)}
                         {v.isActive ? <span className="badge badge-primary" style={{ marginLeft: 4 }}>Active</span> : <span className="badge badge-error" style={{ marginLeft: 4 }}>Hidden</span>}
                       </td>
-                      <td>
+                      <td data-label="Actions">
                         <button className="btn btn-ghost btn-sm" onClick={() => handleToggleStatus(v._id)} title={v.isActive ? 'Hide' : 'Show'}>
                           {v.isActive ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>
@@ -545,7 +545,7 @@ export default function Dashboard() {
                     const owner = typeof b.owner === 'object' ? b.owner : null;
                     return (
                       <tr key={b._id} id={`booking-${b._id}`}>
-                        <td>
+                        <td data-label="Vehicle">
                           <div style={{ fontWeight: 600 }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle'}</div>
                           {vehicle && (
                             <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="text-secondary" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
@@ -553,9 +553,9 @@ export default function Dashboard() {
                             </Link>
                           )}
                         </td>
-                        <td className="table-dates">{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</td>
-                        <td>LKR {b.totalAmount.toLocaleString()}</td>
-                        <td>
+                        <td data-label="Dates" className="table-dates">{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</td>
+                        <td data-label="Amount">LKR {b.totalAmount.toLocaleString()}</td>
+                        <td data-label="Status">
                           {statusBadge(b.status)}
                           {/* Show owner phone ONLY when confirmed and user is the renter */}
                           {b.status === 'CONFIRMED' && user?.role === 'user' && owner && (
@@ -569,12 +569,12 @@ export default function Dashboard() {
                             </div>
                           )}
                         </td>
-                        <td className="table-actions">
+                        <td data-label="Actions" className="table-actions">
                           {/* Review Renter Button (Owner Only) */}
                           {b.status === 'PENDING' && isOwner && (
                             <button 
                               className="btn btn-sm btn-ghost" 
-                              style={{ color: '#1890ff', border: '1px solid #1890ff' }}
+                              style={{ color: '#1890ff', border: '1px solid #1890ff', width: '100%' }}
                               onClick={() => {
                                 setSelectedRenter(typeof b.user === 'object' ? b.user : null);
                                 setActiveBookingId(b._id);
@@ -587,11 +587,11 @@ export default function Dashboard() {
 
                           {/* Owner accept/reject — only for verified owners */}
                           {b.status === 'PENDING' && isVerifiedOwner && (
-                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                              <button className="btn btn-sm btn-primary" onClick={() => handleAcceptBooking(b._id)}>
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px', width: '100%' }}>
+                              <button className="btn btn-sm btn-primary" style={{ flex: 1 }} onClick={() => handleAcceptBooking(b._id)}>
                                 <CheckCircle size={14} /> Accept
                               </button>
-                              <button className="btn btn-sm btn-danger" onClick={() => handleRejectBooking(b._id)}>
+                              <button className="btn btn-sm btn-danger" style={{ flex: 1 }} onClick={() => handleRejectBooking(b._id)}>
                                 <XCircle size={14} /> Reject
                               </button>
                             </div>
@@ -604,13 +604,13 @@ export default function Dashboard() {
                           )}
                           {/* Renter can cancel pending bookings */}
                           {(b.status === 'PENDING') && user?.role === 'user' && (
-                            <button className="btn btn-sm btn-danger" onClick={() => handleCancelBooking(b._id)}>
+                            <button className="btn btn-sm btn-danger" style={{ width: '100%' }} onClick={() => handleCancelBooking(b._id)}>
                               <XCircle size={14} /> Cancel
                             </button>
                           )}
                           {/* Renter can review completed bookings */}
                           {b.status === 'COMPLETED' && user?.role === 'user' && !b.isReviewed && (
-                            <button className="btn btn-sm btn-primary" onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>
+                            <button className="btn btn-sm btn-primary" style={{ width: '100%' }} onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>
                               <Star size={14} /> Review
                             </button>
                           )}
@@ -974,7 +974,7 @@ export default function Dashboard() {
                 </div>
               </Col>
               
-              <Col span={12}>
+              <Col xs={24} sm={12}>
                 <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIC Front</p>
                 <Image 
                   src={selectedRenter.documents?.nicFront} 
@@ -982,7 +982,7 @@ export default function Dashboard() {
                   style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
                 />
               </Col>
-              <Col span={12}>
+              <Col xs={24} sm={12}>
                 <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIC Back</p>
                 <Image 
                   src={selectedRenter.documents?.nicBack} 
@@ -990,7 +990,7 @@ export default function Dashboard() {
                   style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
                 />
               </Col>
-              <Col span={12}>
+              <Col xs={24} sm={12}>
                 <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Driving License</p>
                 <Image 
                   src={selectedRenter.documents?.license} 
@@ -998,7 +998,7 @@ export default function Dashboard() {
                   style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
                 />
               </Col>
-              <Col span={12}>
+              <Col xs={24} sm={12}>
                 <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Selfie Verification</p>
                 <Image 
                   src={selectedRenter.documents?.selfie} 

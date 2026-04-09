@@ -99,7 +99,7 @@ router.post("/signup", async (req, res) => {
       emailVerificationToken: token,
     });
 
-    const verifyUrl = `${process.env.BACKEND_URL || "http://localhost:5000"}/api/auth/verify-email/${token}`;
+    const verifyUrl = `${process.env.BACKEND_URL || "https://flexify-rental-production.up.railway.app"}/api/auth/verify-email/${token}`;
 
     try {
       await sendEmail({

@@ -739,7 +739,7 @@ export default function SubAdminDashboard() {
                           <Button 
                             size="small" 
                             icon={<FileText size={14} />} 
-                            onClick={() => window.open(`http://localhost:5000${p.receiptImage}`, '_blank')}
+                            onClick={() => window.open(`https://flexify-rental-production.up.railway.app${p.receiptImage}`, '_blank')}
                           >
                             View
                           </Button>

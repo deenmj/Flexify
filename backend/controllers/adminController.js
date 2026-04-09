@@ -1,7 +1,7 @@
 // backend/controllers/adminController.js
 // SUPERADMIN controller — full platform management
 import Vehicle from "../models/Vehicle.js";
-import Booking from "../models/Booking.js";
+import Booking from "../models/booking.js";
 import User from "../models/User.js";
 import AuditLog from "../models/AuditLog.js";
 import Payment from "../models/Payment.js";

@@ -1,6 +1,6 @@
 import Review from "../models/Review.js";
 import Vehicle from "../models/Vehicle.js";
-import Booking from "../models/Booking.js";
+import Booking from "../models/booking.js";
 import { sendRejectionEmail } from "../utils/notifier.js";
 
 // Helper to update vehicle rating stats

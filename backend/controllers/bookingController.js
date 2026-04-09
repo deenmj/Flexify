@@ -1,5 +1,5 @@
 // backend/controllers/bookingController.js
-import Booking from "../models/Booking.js";
+import Booking from "../models/booking.js";
 import Vehicle from "../models/Vehicle.js";
 import Blackout from "../models/Blackout.js";
 import sendEmail from "../utils/sendEmail.js";

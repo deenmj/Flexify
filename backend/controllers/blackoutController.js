@@ -1,6 +1,6 @@
 import Blackout from "../models/Blackout.js";
 import Vehicle from "../models/Vehicle.js";
-import Booking from "../models/Booking.js";
+import Booking from "../models/booking.js";
 import { z } from "zod";
 
 const createBlackoutSchema = z.object({
