@@ -21,9 +21,16 @@
   margin-bottom: 0.75rem;
 }
 
-.explore-search {
+.explore-controls-container {
   max-width: 700px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.explore-search {
+  width: 100%;
 }
 
 .explore-search-inner {
@@ -79,6 +86,69 @@
   min-width: 0;
 }
 
+.explore-quick-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.quick-locate-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.quick-locate-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.quick-radius-select {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  min-height: 38px;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  outline: none;
+  cursor: pointer;
+}
+
+.quick-radius-select option {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.location-active-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  animation: pulse-dot-anim 2s infinite;
+}
+
+@keyframes pulse-dot-anim {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
 .filter-toggle-btn {
   display: flex;
   align-items: center;
@@ -106,10 +176,32 @@
   padding: 1.5rem 0;
 }
 
+.filters-section-title {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.filters-section-title h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+}
+
+.desktop-filters-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color-light);
 }
 
 .filters-actions {
@@ -117,23 +209,6 @@
   gap: 0.75rem;
   justify-content: flex-end;
   margin-top: 1rem;
-}
-
-.mobile-filters-collapse {
-  margin: -1rem 0;
-}
-
-.mobile-filters-collapse .ant-collapse-header,
-.desktop-filters-collapse .ant-collapse-header {
-  padding: 1.25rem 0 !important;
-  font-weight: 700 !important;
-  color: var(--text-primary) !important;
-  border-bottom: 1px solid var(--border-color-light) !important;
-}
-
-.mobile-filters-collapse .ant-collapse-content-box,
-.desktop-filters-collapse .ant-collapse-content-box {
-  padding: 1.5rem 0 !important;
 }
 
 .mobile-filters-actions-bar {
@@ -153,18 +228,17 @@
 /* Mobile Filter Panel Compact */
 @media (max-width: 768px) {
   .filters-panel {
-    padding: 0.5rem 0;
+    padding: 1rem 0;
   }
-  .mobile-filters-collapse {
-    margin: -0.25rem 0;
+  .desktop-filters-actions {
+    display: none;
   }
-  .mobile-filters-collapse .ant-collapse-header {
-    padding: 0.5rem 0 !important;
-    font-size: 0.7rem !important;
-    font-weight: 600 !important;
+  .filters-section-title {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
   }
-  .mobile-filters-collapse .ant-collapse-content-box {
-    padding: 0.5rem 0 !important;
+  .filters-section-title h4 {
+    font-size: 0.95rem;
   }
   .filters-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -380,6 +454,12 @@
     text-align: left;
     font-size: 0.7rem;
     padding: 0.4rem 0.4rem;
+  }
+  .d-none-mobile {
+    display: none;
+  }
+  .quick-locate-text {
+    display: none;
   }
   .filter-toggle-btn {
     padding: 0.4rem 0.625rem;
