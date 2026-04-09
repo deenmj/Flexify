@@ -6,6 +6,8 @@ import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, 
 import { Link } from 'react-router-dom';
 import { Checkbox, Modal, Button, Typography } from 'antd';
 
+import imageCompression from 'browser-image-compression';
+
 const { Title: AntTitle, Paragraph, Text: AntText } = Typography;
 
 export default function VerifyUser() {
@@ -25,12 +27,27 @@ export default function VerifyUser() {
   const [files, setFiles] = useState<{ nicFront?: File; nicBack?: File; license?: File; selfie?: File }>({});
   const [previews, setPreviews] = useState<{ nicFront?: string; nicBack?: string; license?: string; selfie?: string }>({});
 
-  const handleFileChange = (field: 'nicFront' | 'nicBack' | 'license' | 'selfie', file: File | null) => {
+  const handleFileChange = async (field: 'nicFront' | 'nicBack' | 'license' | 'selfie', file: File | null) => {
     if (!file) return;
-    setFiles((prev) => ({ ...prev, [field]: file }));
-    const reader = new FileReader();
-    reader.onload = (e) => setPreviews((prev) => ({ ...prev, [field]: e.target?.result as string }));
-    reader.readAsDataURL(file);
+    
+    try {
+      // Compress the image down to 500kb to prevent 40MB form uploads that timeout
+      const options = {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      setFiles((prev) => ({ ...prev, [field]: compressedFile }));
+      
+      if (previews[field]) URL.revokeObjectURL(previews[field]!);
+      setPreviews((prev) => ({ ...prev, [field]: URL.createObjectURL(compressedFile) }));
+    } catch (err) {
+      console.error('Compression failed:', err);
+      setFiles((prev) => ({ ...prev, [field]: file }));
+      setPreviews((prev) => ({ ...prev, [field]: URL.createObjectURL(file) }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
