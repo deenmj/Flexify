@@ -37,13 +37,16 @@ connectDB();
 const app = express();
 const httpServer = createServer(app);
 
-// Build the allowed origins list dynamically
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5173",
-  process.env.FRONTEND_URL,
-  process.env.BACKEND_URL,
-].filter(Boolean); // Remove any undefined values
+// Build the allowed origins list
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+  : [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://flexify-three.vercel.app",
+      "https://flexify-production.up.railway.app",
+    ];
 
 const io = new Server(httpServer, {
   cors: {
@@ -91,19 +94,18 @@ app.set("io", io);
 // Security headers
 app.use(helmet());
 
-// CORS configuration — production-ready
+// CORS configuration
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, Postman, same-origin)
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`[CORS] Blocked request from origin: ${origin}`);
+      console.warn(`[CORS] Blocked origin: ${origin}`);
       callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 }));
 
