@@ -1,16 +1,21 @@
 const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}/api`;
 
 export const getImageUrl = (path?: any) => {
-  if (!path) return '';
+  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80';
+  
+  if (!path) return FALLBACK_IMAGE;
+  
   // Handle new Cloudinary object format
   if (typeof path === 'object' && path.url) return path.url;
   
-  if (typeof path === 'string') {
+  // Handle string format
+  if (typeof path === 'string' && path.trim() !== '') {
     if (path.startsWith('http') || path.startsWith('data:')) return path;
     const baseUrl = import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app';
     return `${baseUrl}${path}`;
   }
-  return '';
+  
+  return FALLBACK_IMAGE;
 };
 
 // =================== TYPES ===================

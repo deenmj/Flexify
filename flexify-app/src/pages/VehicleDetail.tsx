@@ -233,8 +233,12 @@ export default function VehicleDetail() {
     );
   }
 
-  const validPhotos = vehicle.photos?.filter(p => p && p.trim() !== '');
-  const displayImages = (validPhotos && validPhotos.length > 0) ? validPhotos : ['https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'];
+  const validPhotos = vehicle.photos?.filter(p => {
+    if (!p) return false;
+    if (typeof p === 'object') return !!p.url;
+    return typeof p === 'string' && p.trim() !== '';
+  });
+  const displayImages = (validPhotos && validPhotos.length > 0) ? validPhotos : [null];
   const owner = typeof vehicle.owner === 'object' ? vehicle.owner : null;
 
   // Calculate days & total from RangePicker

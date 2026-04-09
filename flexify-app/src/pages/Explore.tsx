@@ -357,7 +357,7 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
     <div className="explore-vehicle-card card">
       <div className="explore-vehicle-img-wrap">
         <img
-          src={vehicle.photos?.[0] && vehicle.photos[0].trim() !== '' ? getImageUrl(vehicle.photos[0]) : 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'}
+          src={getImageUrl(vehicle.photos?.[0])}
           alt={vehicle.title}
           loading="lazy"
           className="explore-vehicle-img"

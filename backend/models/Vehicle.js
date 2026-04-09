@@ -15,6 +15,7 @@ const vehicleSchema = new mongoose.Schema(
         public_id: { type: String, required: true },
       },
     ],
+    default: [],
 
     // GeoJSON location
     location: {
