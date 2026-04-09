@@ -8,7 +8,7 @@ import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Book
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
   Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle,
-  CalendarOff, Star, MessageSquare, Zap
+  CalendarOff, Star, MessageSquare, Zap, Edit
 } from 'lucide-react';
 import { notification } from 'antd';
 
@@ -511,6 +511,9 @@ export default function Dashboard() {
                         {v.isActive ? <span className="badge badge-primary" style={{ marginLeft: 4 }}>Active</span> : <span className="badge badge-error" style={{ marginLeft: 4 }}>Hidden</span>}
                       </td>
                       <td data-label="Actions">
+                        <Link to={`/vehicles/edit/${v._id}`} className="btn btn-ghost btn-sm" title="Edit">
+                          <Edit size={14} />
+                        </Link>
                         <button className="btn btn-ghost btn-sm" onClick={() => handleToggleStatus(v._id)} title={v.isActive ? 'Hide' : 'Show'}>
                           {v.isActive ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>

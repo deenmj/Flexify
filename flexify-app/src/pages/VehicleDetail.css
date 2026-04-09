@@ -189,7 +189,7 @@
 
 @media (max-width: 768px) {
   .detail-main-img {
-    height: 300px;
+    height: 220px;
     border-radius: 12px;
   }
   .detail-thumb {
@@ -207,7 +207,7 @@
     padding: 0.35rem 0.75rem;
   }
   .rating-score {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
   .detail-specs-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -252,7 +252,7 @@
     color: var(--text-tertiary);
   }
   .vehicle-detail-page {
-    padding-bottom: 80px;
+    padding-bottom: 70px;
   }
   
   /* Hide sidebar elements that are duplicated in sticky bar */
@@ -351,7 +351,7 @@
   align-items: center;
   gap: 0.5rem;
   color: #64748b;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   margin-top: 0.5rem;
   font-weight: 500;
 }
@@ -366,9 +366,9 @@
 .detail-feature-tag {
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
-  padding: 0.6rem 1.25rem;
-  border-radius: 0.75rem;
-  font-size: 0.9rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #334155;
 }

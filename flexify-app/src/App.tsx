@@ -30,6 +30,7 @@ import VerifyUser from './pages/VerifyUser';
 import SubscriptionManagement from './pages/SubscriptionManagement';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Notifications from './pages/Notifications';
+import EditVehicle from './pages/EditVehicle';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -96,6 +97,7 @@ export default function App() {
               <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ListVehicle /></ProtectedRoute></AppLayout>} />
               <Route path="/dashboard" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><Dashboard /></ProtectedRoute></AppLayout>} />
               <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
+              <Route path="/vehicles/edit/:id" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></AppLayout>} />
               <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
 
               {/* Admin dashboards */}
