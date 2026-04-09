@@ -686,7 +686,7 @@ export default function AdminDashboard() {
                           <Button 
                             size="small" 
                             icon={<FileText size={14} />} 
-                            onClick={() => window.open(`https://flexify-rental-production.up.railway.app${p.receiptImage}`, '_blank')}
+                            onClick={() => window.open(`https://flexify-production.up.railway.app${p.receiptImage}`, '_blank')}
                           >
                             View
                           </Button>

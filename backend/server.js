@@ -10,6 +10,15 @@ import rateLimit from "express-rate-limit";
 import passport from "passport";
 
 import connectDB from "./config/db.js";
+
+// Early validation of critical environment variables
+const criticalEnvs = ["FRONTEND_URL", "BACKEND_URL", "MONGO_URI", "JWT_SECRET"];
+criticalEnvs.forEach(env => {
+  if (!process.env[env]) {
+    console.warn(`[WARNING] Missing environment variable: ${env}. This may cause issues in production.`);
+  }
+});
+
 import "./config/passport.js";
 
 import { createServer } from "http";
@@ -69,7 +78,7 @@ app.use(helmet());
 
 // CORS — restrict to your frontend origin only
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "https://flexify-rental-production.up.railway.app",
+  process.env.FRONTEND_URL || "https://flexify-production.up.railway.app",
   "http://localhost:5173", // Vite dev server
 ];
 app.use(cors({
