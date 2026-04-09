@@ -63,7 +63,7 @@
 }
 
 .detail-title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   margin-bottom: 0.25rem;
   line-height: 1.2;
 }
@@ -90,7 +90,7 @@
 
 .rating-count {
   color: var(--text-tertiary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .detail-specs-grid {
@@ -144,7 +144,7 @@
 }
 
 .booking-price-header h2 {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   margin: 0;
   line-height: 1;
 }
@@ -197,7 +197,7 @@
     height: 60px;
   }
   .detail-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
   .detail-overview {
     padding: 1.25rem !important;
@@ -207,7 +207,7 @@
     padding: 0.35rem 0.75rem;
   }
   .rating-score {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
   .detail-specs-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -221,7 +221,7 @@
     padding: 1.5rem;
   }
   .booking-price-header h2 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .mobile-booking-bar {
@@ -278,7 +278,17 @@
 /* Modal specific overrides */
 .booking-modal {
   max-width: 500px;
-  padding: 2.5rem;
+}
+
+.ant-modal .ant-modal-content {
+  border-radius: 20px !important;
+  padding: 2rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.ant-modal-header {
+  border-bottom: none !important;
+  margin-bottom: 1.5rem !important;
 }
 
 .datepicker-wrapper {
@@ -289,6 +299,8 @@
 .detail-availability .ant-picker-calendar {
   border-radius: 12px;
   overflow: hidden;
+  border: 1px solid var(--border-color-light);
+  padding: 8px;
 }
 
 .avail-cell {
@@ -322,18 +334,16 @@
 
 /* Antd RangePicker override to match theme */
 .ant-picker {
-  border-radius: 10px !important;
+  border-radius: 8px !important;
   border-color: var(--border-color) !important;
+  font-size: 0.85rem !important;
+  transition: all 0.2s ease;
 }
 
 .ant-picker:hover,
 .ant-picker-focused {
   border-color: var(--primary-color) !important;
-}
-
-.ant-modal .ant-modal-content {
-  border-radius: 16px;
-  padding: 2rem;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1) !important;
 }
 
 .location-context {
@@ -361,4 +371,34 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: #334155;
+}
+
+/* Ant Design Picker Dropdown Improvements */
+.ant-picker-dropdown {
+  z-index: 10001 !important;
+}
+
+.ant-picker-dropdown .ant-picker-panel-container {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #f1f5f9 !important;
+}
+
+.ant-picker-dropdown .ant-picker-content th {
+  font-weight: 700 !important;
+  color: #64748b !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-inner {
+  border-radius: 6px !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner,
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-range-start .ant-picker-cell-inner,
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-range-end .ant-picker-cell-inner {
+  background: var(--primary-color) !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-in-range::before {
+  background: rgba(var(--primary-rgb), 0.08) !important;
 }

@@ -1,5 +1,12 @@
 const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}/api`;
 
+export const getImageUrl = (path?: string) => {
+  if (!path) return '';
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  const baseUrl = import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app';
+  return `${baseUrl}${path}`;
+};
+
 // =================== TYPES ===================
 
 export interface User {

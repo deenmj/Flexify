@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate } from 'lucide-react';
-import { vehicleApi, type Vehicle } from '../api';
+import { vehicleApi, type Vehicle, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './Explore.css';
@@ -352,7 +352,7 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
     <div className="explore-vehicle-card card">
       <div className="explore-vehicle-img-wrap">
         <img
-          src={vehicle.photos?.[0] && vehicle.photos[0].trim() !== '' ? vehicle.photos[0] : 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'}
+          src={vehicle.photos?.[0] && vehicle.photos[0].trim() !== '' ? getImageUrl(vehicle.photos[0]) : 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'}
           alt={vehicle.title}
           loading="lazy"
           className="explore-vehicle-img"

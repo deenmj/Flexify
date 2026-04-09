@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag } from 'antd';
-import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review } from '../api';
+import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl } from '../api';
 import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -268,7 +268,7 @@ export default function VehicleDetail() {
           <div className="detail-main">
             <div className="detail-carousel-container">
               <img
-                src={displayImages[activeImage]}
+                src={getImageUrl(displayImages[activeImage])}
                 alt={vehicle.title}
                 loading="lazy"
                 className="detail-main-img animate-fade-in"
@@ -279,7 +279,7 @@ export default function VehicleDetail() {
                   {displayImages.map((img, idx) => (
                     <img
                       key={idx}
-                      src={img}
+                      src={getImageUrl(img)}
                       alt={`Thumbnail ${idx}`}
                       className={`detail-thumb ${activeImage === idx ? 'active' : ''}`}
                       onClick={() => setActiveImage(idx)}
@@ -414,7 +414,7 @@ export default function VehicleDetail() {
                 renderItem={(review: Review) => (
                   <List.Item>
                     <List.Item.Meta
-                      avatar={<Avatar src={review.reviewer.profilePic} alt={review.reviewer.name} />}
+                      avatar={<Avatar src={getImageUrl(review.reviewer.profilePic)} alt={review.reviewer.name} />}
                       title={
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontWeight: 600 }}>{review.reviewer.name}</span>
@@ -520,7 +520,7 @@ export default function VehicleDetail() {
                     offset={[-4, 44]}
                   >
                     <Avatar
-                      src={owner.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
+                      src={getImageUrl(owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
                       alt={owner.name}
                       size={64}
                       style={{ border: '2px solid var(--primary-color)' }}
@@ -576,7 +576,7 @@ export default function VehicleDetail() {
 
             <div className="owner-contact-card box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left' }}>
               <img
-                src={typeof createdBooking.owner === 'object' ? createdBooking.owner.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(createdBooking.owner.name) : ''}
+                src={typeof createdBooking.owner === 'object' ? getImageUrl(createdBooking.owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(createdBooking.owner.name) : ''}
                 alt=""
                 style={{ width: '50px', height: '50px', borderRadius: '50%' }}
               />
