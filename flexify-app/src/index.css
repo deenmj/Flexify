@@ -792,20 +792,81 @@ select {
   display: none !important; /* Removes the left/right and up/down arrow buttons completely */
 }
 
-/* Premium Mobile Action Buttons */
+/* ===== Professional Ant Design Table Styling (Desktop) ===== */
+.ant-table-wrapper {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+.ant-table {
+  border-radius: 12px !important;
+  font-size: 14px;
+}
+.ant-table-thead > tr > th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  padding: 14px 16px !important;
+}
+.ant-table-tbody > tr > td {
+  padding: 14px 16px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  vertical-align: middle !important;
+  transition: background 0.15s ease;
+}
+.ant-table-tbody > tr:hover > td {
+  background: #f8fafc !important;
+}
+.ant-table-tbody > tr:last-child > td {
+  border-bottom: none !important;
+}
+/* Style action buttons inside desktop tables */
+.ant-table-tbody .ant-btn-text {
+  border-radius: 8px !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  border: 1px solid transparent !important;
+}
+.ant-table-tbody .ant-btn-text:hover {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+.ant-table-tbody .ant-btn-text.ant-btn-dangerous:hover {
+  background: #fef2f2 !important;
+  border-color: #fecaca !important;
+}
+/* Pagination styling */
+.ant-pagination-item {
+  border-radius: 8px !important;
+}
+.ant-pagination-item-active {
+  border-color: #0d9488 !important;
+}
+.ant-pagination-item-active a {
+  color: #0d9488 !important;
+}
+
+/* ===== Premium Mobile Action Buttons ===== */
 .mobile-action-bar .ant-space {
-  gap: 10px !important;
+  gap: 8px !important;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 .mobile-action-bar .ant-btn {
   background: white !important;
   border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
   border-radius: 8px !important;
   width: 36px !important;
   height: 36px !important;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   transition: all 0.2s ease;
@@ -814,8 +875,26 @@ select {
   transform: scale(0.95);
   background: #f8fafc !important;
 }
-.mobile-action-bar .ant-btn.ant-btn-dangerous {
+.mobile-action-bar .ant-btn.ant-btn-dangerous,
+.mobile-action-bar .ant-btn-dangerous {
   background: #fff5f5 !important;
   border-color: #fecaca !important;
   color: #ef4444 !important;
+}
+
+/* ===== Mobile Responsive Overrides for Admin Layout ===== */
+@media (max-width: 768px) {
+  .ant-layout-content {
+    margin: 8px !important;
+    padding: 12px !important;
+  }
+  .ant-statistic-title {
+    font-size: 12px !important;
+  }
+  .ant-statistic-content {
+    font-size: 1.1rem !important;
+  }
+  .ant-card-body {
+    padding: 12px !important;
+  }
 }
