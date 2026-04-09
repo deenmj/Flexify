@@ -1,50 +1,20 @@
-// backend/routes/userRoutes.js
 import express from "express";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 import User from "../models/User.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
+import { kycStorage, profileStorage } from "../utils/cloudinary.js";
 
 const router = express.Router();
 
-// Ensure upload folders exist
-const verificationDir = path.join(process.cwd(), "uploads", "verification");
-const avatarsDir = path.join(process.cwd(), "uploads", "avatars");
-if (!fs.existsSync(verificationDir)) fs.mkdirSync(verificationDir, { recursive: true });
-if (!fs.existsSync(avatarsDir)) fs.mkdirSync(avatarsDir, { recursive: true });
-
-// Multer for KYC verification documents
-const kycStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, verificationDir),
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
-  },
-});
 const kycUpload = multer({
   storage: kycStorage,
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) cb(null, true);
-    else cb(new Error("Only image files are allowed"), false);
-  },
 });
 
-// Multer for profile picture uploads (separate from KYC)
-const profileStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, avatarsDir),
-  filename: (req, file, cb) => {
-    cb(null, `avatar-${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
-  },
-});
 const profileUpload = multer({
   storage: profileStorage,
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) cb(null, true);
-    else cb(new Error("Only image files are allowed"), false);
-  },
 });
 
 /**
@@ -73,10 +43,10 @@ router.post(
       const files = req.files || {};
 
       user.documents = {
-        nicFront: files.nicFront ? `/uploads/verification/${files.nicFront[0].filename}` : user.documents?.nicFront || "",
-        nicBack: files.nicBack ? `/uploads/verification/${files.nicBack[0].filename}` : user.documents?.nicBack || "",
-        license: files.license ? `/uploads/verification/${files.license[0].filename}` : user.documents?.license || "",
-        selfie: files.selfie ? `/uploads/verification/${files.selfie[0].filename}` : user.documents?.selfie || "",
+        nicFront: files.nicFront ? files.nicFront[0].path : user.documents?.nicFront || "",
+        nicBack: files.nicBack ? files.nicBack[0].path : user.documents?.nicBack || "",
+        license: files.license ? files.license[0].path : user.documents?.license || "",
+        selfie: files.selfie ? files.selfie[0].path : user.documents?.selfie || "",
         address: req.body.address || user.documents?.address || "",
         kycConsentGiven: req.body.kycConsentGiven === "true" || req.body.kycConsentGiven === true,
       };
@@ -121,7 +91,7 @@ router.put(
       if (req.body.address) user.address = req.body.address;
 
       if (files.profilePic) {
-        user.profilePic = `/uploads/avatars/${files.profilePic[0].filename}`;
+        user.profilePic = files.profilePic[0].path;
       }
 
       await user.save();
