@@ -265,11 +265,11 @@ export default function VehicleDetail() {
 
   return (
     <div className="vehicle-detail-page">
-      <div className="container" style={{ position: 'relative', paddingTop: '1.5rem', paddingBottom: '3rem' }}>
-
-        <div className="detail-grid">
-          {/* LEFT: Image Carousel & Overview */}
-          <div className="detail-main">
+      <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
+        
+        <Row gutter={[24, 24]}>
+          {/* LEFT COLUMN: Main Content */}
+          <Col xs={24} lg={16}>
             <div className="detail-carousel-container">
               <img
                 src={getImageUrl(displayImages[activeImage])}
@@ -294,9 +294,9 @@ export default function VehicleDetail() {
               )}
             </div>
 
-            <div className="detail-overview card" style={{ marginTop: '2rem', padding: '2rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
+            <div className="detail-overview card" style={{ marginTop: '1.5rem', padding: isMobile ? '1.25rem' : '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
                   <h1 className="detail-title">{vehicle.title}</h1>
                   <p className="detail-subtitle">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
                 </div>
@@ -312,12 +312,17 @@ export default function VehicleDetail() {
                 <span>{vehicle.city}, {vehicle.district}, {vehicle.province}</span>
               </div>
 
-              <p className="detail-desc" style={{ marginTop: '1.5rem', fontSize: '1.05rem', lineHeight: '1.6', color: 'var(--text-secondary)' }}>
-                {vehicle.description || "No description provided for this vehicle. Enjoy a premium, comfortable ride perfect for your specified needs."}
-              </p>
+              {vehicle.description && (
+                <>
+                  <h3 className="section-title-minor" style={{ marginTop: '2rem' }}>Description</h3>
+                  <p className="detail-desc" style={{ marginTop: '0.75rem', fontSize: '1rem', lineHeight: '1.6', color: 'var(--text-secondary)' }}>
+                    {vehicle.description}
+                  </p>
+                </>
+              )}
 
-              <h3 style={{ marginTop: '2.5rem', marginBottom: '1.25rem', fontSize: '1.25rem' }}>Technical Specifications</h3>
-              <div className="detail-specs-grid">
+              <h3 className="section-title-minor" style={{ marginTop: '2.5rem' }}>Technical Specifications</h3>
+              <div className="detail-specs-grid" style={{ marginTop: '1.25rem' }}>
                 <div className="spec-item">
                   <span className="spec-label">Transmission</span>
                   <span className="spec-value">{vehicle.transmission}</span>
@@ -333,20 +338,24 @@ export default function VehicleDetail() {
                     {vehicle.seats} Seats
                   </span>
                 </div>
-                <div className="spec-item">
-                  <span className="spec-label">Engine Capacity</span>
-                  <span className="spec-value">
-                    <Zap size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                    {vehicle.engineCapacity || 'N/A'}
-                  </span>
-                </div>
-                <div className="spec-item">
-                  <span className="spec-label">Consumption</span>
-                  <span className="spec-value">
-                    <Gauge size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                    {vehicle.fuelConsumption || 'N/A'}
-                  </span>
-                </div>
+                {vehicle.engineCapacity && (
+                  <div className="spec-item">
+                    <span className="spec-label">Engine</span>
+                    <span className="spec-value">
+                      <Zap size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                      {vehicle.engineCapacity}
+                    </span>
+                  </div>
+                )}
+                {vehicle.fuelConsumption && (
+                  <div className="spec-item">
+                    <span className="spec-label">Consumption</span>
+                    <span className="spec-value">
+                      <Gauge size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                      {vehicle.fuelConsumption}
+                    </span>
+                  </div>
+                )}
                 <div className="spec-item">
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
@@ -354,21 +363,27 @@ export default function VehicleDetail() {
               </div>
 
               {vehicle.features && vehicle.features.length > 0 && (
-                <div className="detail-features-section">
-                  <h3 style={{ marginTop: '2.5rem', marginBottom: '1.25rem', fontSize: '1.25rem' }}>Features & Amenities</h3>
-                  <div className="detail-features-grid">
+                <div className="detail-features-section" style={{ marginTop: '2.5rem' }}>
+                  <h3 className="section-title-minor">Features & Amenities</h3>
+                  <div className="detail-features-tags" style={{ marginTop: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {vehicle.features.map(f => {
-                      const featureMap: Record<string, string> = {
-                        ac: '❄️ A/C',
-                        bluetooth: '📶 Bluetooth',
-                        gps: '📍 GPS',
-                        sparewheel: '🛞 Spare Wheel',
-                        sunroof: '☀️ Sunroof'
+                      const featureMap: Record<string, { label: string; icon: string }> = {
+                        ac: { label: 'A/C', icon: '❄️' },
+                        bluetooth: { label: 'Bluetooth', icon: '📶' },
+                        gps: { label: 'GPS', icon: '📍' },
+                        sparewheel: { label: 'Spare Wheel', icon: '🛞' },
+                        sunroof: { label: 'Sunroof', icon: '☀️' }
                       };
+                      const feat = featureMap[f] || { label: f.toUpperCase(), icon: '✨' };
                       return (
-                        <div key={f} className="detail-feature-tag">
-                          {featureMap[f] || f}
-                        </div>
+                        <Tag 
+                          key={f} 
+                          color="blue" 
+                          icon={<span style={{ marginRight: 4 }}>{feat.icon}</span>}
+                          style={{ padding: '4px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: '#eff6ff', color: '#1e40af' }}
+                        >
+                          {feat.label}
+                        </Tag>
                       );
                     })}
                   </div>
@@ -377,37 +392,40 @@ export default function VehicleDetail() {
             </div>
 
             {/* AVAILABILITY CALENDAR */}
-            <div className="detail-availability card" style={{ marginTop: '2rem', padding: '2rem' }}>
-              <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="detail-availability card" style={{ marginTop: '1.5rem', padding: '1.5rem 2rem' }}>
+              <h3 style={{ marginBottom: '0.5rem', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <CalIcon size={20} /> Availability Calendar
               </h3>
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                View booked and available dates for this vehicle.
+              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+                View available dates for this vehicle. High demand usually affects pickup times.
               </p>
-              <div className="avail-legend" style={{ display: 'flex', gap: '1.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-                  <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
-                  Booked (Confirmed)
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-                  <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
-                  Pending
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-                  <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
-                  Available
-                </span>
-              </div>
-              {availLoading ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)' }}>Loading availability...</div>
-              ) : (
-                <Calendar fullscreen={false} cellRender={(date) => dateCellRender(date as Dayjs)} />
-              )}
+              
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={18}>
+                  <Calendar fullscreen={false} cellRender={(date) => dateCellRender(date as Dayjs)} />
+                </Col>
+                <Col xs={24} md={6}>
+                  <div className="avail-legend-vertical" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
+                      <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
+                      Booked
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
+                      <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
+                      Pending
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
+                      <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
+                      Available
+                    </span>
+                  </div>
+                </Col>
+              </Row>
             </div>
 
             {/* REVIEWS SECTION */}
-            <div className="detail-reviews card" style={{ marginTop: '2rem', padding: '2rem' }}>
-              <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="detail-reviews card" style={{ marginTop: '1.5rem', padding: '2rem' }}>
+              <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <MessageSquare size={20} /> Guest Reviews ({reviews.length})
               </h3>
 
@@ -416,133 +434,133 @@ export default function VehicleDetail() {
                 itemLayout="horizontal"
                 dataSource={reviews}
                 renderItem={(review: Review) => (
-                  <List.Item>
+                  <List.Item style={{ padding: '1.5rem 0' }}>
                     <List.Item.Meta
-                      avatar={<Avatar src={getImageUrl(review.reviewer.profilePic)} alt={review.reviewer.name} />}
+                      avatar={<Avatar src={getImageUrl(review.reviewer.profilePic)} alt={review.reviewer.name} size={48} />}
                       title={
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontWeight: 600 }}>{review.reviewer.name}</span>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{dayjs(review.createdAt).format('MMMM D, YYYY')}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{dayjs(review.createdAt).format('MMM D, YYYY')}</span>
                         </div>
                       }
                       description={
-                        <div style={{ marginTop: '0.5rem' }}>
-                          <Rate disabled defaultValue={review.rating} style={{ fontSize: '14px', marginBottom: '0.5rem' }} />
-                          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.5' }}>{review.comment}</p>
+                        <div style={{ marginTop: '0.35rem' }}>
+                          <Rate disabled defaultValue={review.rating} style={{ fontSize: '12px', marginBottom: '0.5rem' }} />
+                          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>{review.comment}</p>
                         </div>
                       }
                     />
                   </List.Item>
                 )}
-                locale={{ emptyText: <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-tertiary)' }}>No reviews yet for this vehicle.</div> }}
+                locale={{ emptyText: <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-tertiary)' }}>No reviews yet for this vehicle. Be the first to book!</div> }}
               />
             </div>
-          </div>
+          </Col>
 
-          {/* RIGHT: Booking Panel & Owner Info */}
-          <div className="detail-sidebar">
-            <div className="booking-panel card">
-              <div className="booking-price-header">
-                <h2>LKR {vehicle.pricePerDay.toLocaleString()}</h2>
-                <span>/ day</span>
-              </div>
-
-              {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
-                <div className="bulk-pricing-options" style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {vehicle.pricePerWeek && (
-                    <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: 'var(--color-success)', fontWeight: 600 }}>
-                      LKR {vehicle.pricePerWeek.toLocaleString()} / week
-                    </div>
-                  )}
-                  {vehicle.pricePerMonth && (
-                    <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: 'var(--color-success)', fontWeight: 600 }}>
-                      LKR {vehicle.pricePerMonth.toLocaleString()} / month
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {(bookedRanges.length > 0 || blackoutRanges.length > 0) && (
-                <Tag 
-                  color="orange" 
-                  icon={<AlertTriangle size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
-                  style={{ marginTop: '0.75rem', borderRadius: '4px', padding: '2px 8px' }}
-                >
-                  Partially booked – check availability
-                </Tag>
-              )}
-
-              {user && !user.isKycVerified && (
-                <div className="verification-alert box-highlight" style={{ background: '#fff7ed', border: '1px solid #fdba74', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
-                  <Shield size={20} style={{ color: '#ea580c', flexShrink: 0 }} />
-                  <div style={{ fontSize: '0.875rem' }}>
-                    <p style={{ fontWeight: 600, color: '#9a3412', marginBottom: '4px' }}>KYC Verification Required</p>
-                    <p style={{ color: '#c2410c' }}>Complete your identity verification to book vehicles.</p>
-                    <Link to="/verify" style={{ color: 'var(--primary-color)', fontWeight: 600, marginTop: '8px', display: 'inline-block' }}>Verify Now &rarr;</Link>
+          {/* RIGHT COLUMN: Sidebar (Booking & Owner) */}
+          <Col xs={24} lg={8}>
+            <div className="detail-sidebar">
+              <div className="booking-panel card">
+                {!isMobile && (
+                  <div className="booking-price-header">
+                    <h2>LKR {vehicle.pricePerDay.toLocaleString()}</h2>
+                    <span>/ day</span>
                   </div>
-                </div>
-              )}
+                )}
 
-              {user && user._id === (owner?._id || vehicle.owner) ? (
-                <div className="box-highlight" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
-                  <p style={{ fontWeight: 600, color: '#475569', marginBottom: '4px' }}>This is your vehicle</p>
-                  <p style={{ color: '#64748b', fontSize: '0.875rem' }}>You cannot book your own listing.</p>
-                  <Link to="/dashboard" className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }}>Go to Dashboard</Link>
-                </div>
-              ) : (
-                <button
-                  className="btn btn-primary btn-lg btn-full"
-                  onClick={handleBookingTrigger}
-                  style={{ marginTop: '1.5rem', height: '54px', fontSize: '1.1rem' }}
-                >
-                  Book Now
-                </button>
-              )}
+                {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
+                  <div className="bulk-pricing-options" style={{ marginTop: isMobile ? '0' : '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {vehicle.pricePerWeek && (
+                      <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 600 }}>
+                        <Zap size={14} style={{ display: 'inline', marginRight: 6 }} />
+                        LKR {vehicle.pricePerWeek.toLocaleString()} / week
+                      </div>
+                    )}
+                    {vehicle.pricePerMonth && (
+                      <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 600 }}>
+                        <Zap size={14} style={{ display: 'inline', marginRight: 6 }} />
+                        LKR {vehicle.pricePerMonth.toLocaleString()} / month
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              <div className="booking-perks">
-                <div className="perk">
-                  <CheckCircle size={16} className="text-success" />
-                  <span>Free cancellation up to 24 hours before</span>
-                </div>
-                <div className="perk">
-                  <CheckCircle size={16} className="text-success" />
-                  <span>Host approval required</span>
-                </div>
-                <div className="perk">
-                  <CheckCircle size={16} className="text-success" />
-                  <span>Distance limits may apply</span>
-                </div>
-              </div>
-            </div>
-
-            <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.5rem' }} style={{ marginTop: '1.5rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-              <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Hosted By</h3>
-              {owner ? (
-                <div className="owner-profile-preview">
-                  <Badge
-                    count={owner.ownerType === 'VERIFIED' ? <CheckCircle size={14} style={{ color: '#10b981', background: '#fff', borderRadius: '50%' }} /> : 0}
-                    offset={[-4, 44]}
+                {(bookedRanges.length > 0 || blackoutRanges.length > 0) && (
+                  <Tag 
+                    color="orange" 
+                    icon={<AlertTriangle size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
+                    style={{ marginTop: '1rem', borderRadius: '4px', padding: '2px 8px', width: '100%', textAlign: 'center' }}
                   >
-                    <Avatar
-                      src={getImageUrl(owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
-                      alt={owner.name}
-                      size={64}
-                      style={{ border: '2px solid var(--primary-color)' }}
-                    />
-                  </Badge>
-                  <div className="owner-info-text" style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <strong style={{ fontSize: '1.1rem' }}>{owner.name}</strong>
+                    High Demand Listing
+                  </Tag>
+                )}
+
+                {user && !user.isKycVerified && (
+                  <div className="verification-alert box-highlight" style={{ background: '#fff7ed', border: '1px solid #fdba74', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
+                    <Shield size={20} style={{ color: '#ea580c', flexShrink: 0 }} />
+                    <div style={{ fontSize: '0.875rem' }}>
+                      <p style={{ fontWeight: 600, color: '#9a3412', marginBottom: '4px' }}>Verification Required</p>
+                      <p style={{ color: '#c2410c' }}>Verify your identity to book.</p>
+                      <Link to="/verify" style={{ color: 'var(--primary-color)', fontWeight: 600, marginTop: '8px', display: 'inline-block' }}>Verify Now &rarr;</Link>
                     </div>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Joined 2026</span>
+                  </div>
+                )}
+
+                {user && user._id === (owner?._id || vehicle.owner) ? (
+                  <div className="box-highlight" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
+                    <p style={{ fontWeight: 600, color: '#475569', marginBottom: '4px' }}>This is your vehicle</p>
+                    <p style={{ color: '#64748b', fontSize: '0.875rem' }}>Manage this listing in your dashboard.</p>
+                    <Link to="/dashboard" className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }}>Go to Dashboard</Link>
+                  </div>
+                ) : (
+                  <button
+                    className="btn btn-primary btn-lg btn-full"
+                    onClick={handleBookingTrigger}
+                    style={{ marginTop: '1.5rem', height: '54px', fontSize: '1.1rem', fontWeight: 700 }}
+                  >
+                    Book Now
+                  </button>
+                )}
+
+                <div className="booking-perks">
+                  <div className="perk">
+                    <CheckCircle size={14} color="#10b981" />
+                    <span>Free cancellation (up to 24h)</span>
+                  </div>
+                  <div className="perk">
+                    <CheckCircle size={14} color="#10b981" />
+                    <span>Instant support & Host approval</span>
                   </div>
                 </div>
-              ) : (
-                <div style={{ color: 'var(--text-tertiary)' }}>Unknown Owner</div>
-              )}
-            </Card>
-          </div>
-        </div>
+              </div>
+
+              <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.25rem' }} style={{ marginTop: '1rem', borderRadius: '12px', border: '1px solid var(--border-color-light)' }}>
+                <h3 style={{ marginBottom: '1.25rem', fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Hosted By</h3>
+                {owner ? (
+                  <div className="owner-profile-preview">
+                    <Badge
+                      count={owner.ownerType === 'VERIFIED' ? <CheckCircle size={14} style={{ color: '#10b981', background: '#fff', borderRadius: '50%' }} /> : 0}
+                      offset={[-4, 44]}
+                    >
+                      <Avatar
+                        src={getImageUrl(owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
+                        alt={owner.name}
+                        size={54}
+                        style={{ border: '2px solid var(--primary-color)' }}
+                      />
+                    </Badge>
+                    <div className="owner-info-text">
+                      <strong style={{ fontSize: '1rem' }}>{owner.name}</strong>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Member since 2026</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Verified Flexify Host</div>
+                )}
+              </Card>
+            </div>
+          </Col>
+        </Row>
       </div>
 
       {/* MOBILE STICKY BOOKING BAR */}

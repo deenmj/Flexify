@@ -2,17 +2,11 @@
   padding-bottom: 4rem;
 }
 
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-}
-
-@media (min-width: 992px) {
-  .detail-grid {
-    grid-template-columns: 2.5fr 1.15fr;
-    gap: 3rem;
-  }
+.section-title-minor {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
 }
 
 .detail-carousel-container {
@@ -66,6 +60,7 @@
   font-size: 1.5rem;
   margin-bottom: 0.25rem;
   line-height: 1.2;
+  font-weight: 800;
 }
 
 .detail-subtitle {
@@ -77,26 +72,27 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: var(--bg-color);
+  background-color: #fffbeb;
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #fef3c7;
 }
 
 .rating-score {
   font-weight: 700;
   font-size: 1.1rem;
+  color: #92400e;
 }
 
 .rating-count {
-  color: var(--text-tertiary);
+  color: #b45309;
   font-size: 0.85rem;
 }
 
 .detail-specs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 640px) {
@@ -109,20 +105,26 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
 }
 
 .spec-label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .spec-value {
-  font-size: 1.05rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: var(--text-color);
+  display: flex;
+  align-items: center;
 }
 
 /* Sidebar */
@@ -147,6 +149,7 @@
   font-size: 1.75rem;
   margin: 0;
   line-height: 1;
+  font-weight: 800;
 }
 
 .booking-price-header span {
@@ -163,23 +166,17 @@
 
 .perk {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .owner-profile-preview {
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-
-.owner-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
+  gap: 1.25rem;
 }
 
 .owner-info-text {
@@ -187,9 +184,16 @@
   flex-direction: column;
 }
 
+@media (max-width: 991px) {
+  .detail-sidebar {
+    position: static;
+    margin-top: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .detail-main-img {
-    height: 220px;
+    height: 250px;
     border-radius: 12px;
   }
   .detail-thumb {
@@ -197,28 +201,37 @@
     height: 60px;
   }
   .detail-title {
-    font-size: 1.25rem;
+    font-size: 1.4rem;
+  }
+  .section-title-minor {
+    font-size: 1.15rem;
   }
   .detail-overview {
     padding: 1.25rem !important;
     margin-top: 1.5rem !important;
+    border-radius: 16px !important;
   }
   .detail-rating {
     padding: 0.35rem 0.75rem;
   }
   .rating-score {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
   }
   .detail-specs-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+  .spec-item {
+    padding: 0.65rem;
   }
   .detail-availability,
   .detail-reviews {
     padding: 1.25rem !important;
+    border-radius: 16px !important;
   }
   .booking-panel {
     padding: 1.5rem;
+    border-radius: 16px !important;
   }
   .booking-price-header h2 {
     font-size: 1.5rem;
@@ -230,13 +243,13 @@
     left: 0;
     right: 0;
     background: white;
-    padding: 1rem 1.25rem;
+    padding: 0.85rem 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.06);
     z-index: 1000;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid #f1f5f9;
   }
   .mobile-bar-price {
     display: flex;
@@ -244,27 +257,19 @@
   }
   .bar-amount {
     font-weight: 800;
-    font-size: 1.15rem;
-    color: var(--text-primary);
+    font-size: 1.25rem;
+    color: var(--primary-color);
   }
   .bar-unit {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-tertiary);
+    text-transform: uppercase;
+    font-weight: 600;
   }
   .vehicle-detail-page {
-    padding-bottom: 70px;
+    padding-bottom: 80px;
   }
-  
-  /* Hide sidebar elements that are duplicated in sticky bar */
-  .detail-sidebar .booking-panel h2,
-  .detail-sidebar .booking-panel .booking-price-header {
-    display: none;
-  }
-  .detail-sidebar .booking-panel {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-}
+
 
 .animate-slide-up {
   animation: slideUp 0.4s ease-out;
