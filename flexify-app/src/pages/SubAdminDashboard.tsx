@@ -963,14 +963,15 @@ export default function SubAdminDashboard() {
                   { label: 'Live Selfie', field: 'selfie' },
                 ].map((doc, idx) => {
                   const url = selectedUser.documents?.[doc.field as keyof typeof selectedUser.documents];
+                  const fullUrl = url ? (url.startsWith('http') ? url : `${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}${url}`) : '';
                   return (
                     <Card key={idx} size="small" title={doc.label} style={{ borderRadius: '12px' }}>
                       {url ? (
                         <img
-                          src={url}
+                          src={fullUrl}
                           alt={doc.label}
                           style={{ width: '100%', height: '220px', objectFit: 'contain', cursor: 'zoom-in' }}
-                          onClick={() => setFullScreenImage(url)}
+                          onClick={() => setFullScreenImage(fullUrl)}
                         />
                       ) : (
                         <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#cbd5e1' }}>
