@@ -12,10 +12,16 @@ import passport from "passport";
 import connectDB from "./config/db.js";
 
 // Early validation of critical environment variables
-const criticalEnvs = ["FRONTEND_URL", "BACKEND_URL", "MONGO_URI", "JWT_SECRET"];
+const criticalEnvs = ["MONGO_URI", "JWT_SECRET"];
 criticalEnvs.forEach(env => {
   if (!process.env[env]) {
-    console.warn(`[WARNING] Missing environment variable: ${env}. This may cause issues in production.`);
+    console.error(`[FATAL] Missing required environment variable: ${env}`);
+    process.exit(1);
+  }
+});
+["FRONTEND_URL", "BACKEND_URL"].forEach(env => {
+  if (!process.env[env]) {
+    console.warn(`[WARNING] Missing environment variable: ${env}. Using defaults.`);
   }
 });
 
@@ -30,9 +36,18 @@ connectDB();
 
 const app = express();
 const httpServer = createServer(app);
+
+// Build the allowed origins list dynamically
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+  process.env.BACKEND_URL,
+].filter(Boolean); // Remove any undefined values
+
 const io = new Server(httpServer, {
   cors: {
-    origin: [process.env.FRONTEND_URL || "http://localhost:3000", "http://localhost:5173"],
+    origin: allowedOrigins,
     credentials: true,
   },
 });
@@ -76,21 +91,20 @@ app.set("io", io);
 // Security headers
 app.use(helmet());
 
-// CORS — restrict to your frontend origin only
-const allowedOrigins = [
-  process.env.FRONTEND_URL || "https://flexify-three.vercel.app",
-  "http://localhost:5173", // Vite dev server
-];
+// CORS configuration — production-ready
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.) in dev
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman, same-origin)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`[CORS] Blocked request from origin: ${origin}`);
       callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 }));
 
 // Global rate limiter — max 100 requests per 15 minutes per IP

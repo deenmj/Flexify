@@ -99,7 +99,8 @@ router.post("/signup", async (req, res) => {
       emailVerificationToken: token,
     });
 
-    const verifyUrl = `${process.env.BACKEND_URL || "https://flexify-production.up.railway.app"}/api/auth/verify-email/${token}`;
+    const backendUrl = process.env.BACKEND_URL || "https://flexify-production.up.railway.app";
+    const verifyUrl = `${backendUrl}/api/auth/verify-email/${token}`;
 
     try {
       await sendEmail({
@@ -189,7 +190,7 @@ router.get("/verify-email/:token", async (req, res) => {
   user.emailVerificationToken = undefined;
   await user.save();
 
-  const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? "https://flexify-three.vercel.app" : "http://localhost:5173");
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
   res.redirect(`${frontendUrl}/auth`);
 });
 
@@ -216,7 +217,7 @@ router.get(
 router.get(
   "/google/callback",
   (req, res, next) => {
-    const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? "https://flexify-three.vercel.app" : "http://localhost:5173");
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     passport.authenticate("google", {
       session: false,
       failureRedirect: `${frontendUrl}/auth`,
@@ -224,7 +225,7 @@ router.get(
   },
   (req, res) => {
     const token = generateToken(req.user._id);
-    const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? "https://flexify-three.vercel.app" : "http://localhost:5173");
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     res.redirect(`${frontendUrl}/google-success?token=${token}`);
   }
 );
@@ -249,7 +250,7 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
     await user.save();
 
     // Send the UNHASHED token to the user via email (they need it to reset)
-    const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     await sendEmail({
