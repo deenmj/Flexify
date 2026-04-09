@@ -337,12 +337,16 @@ export default function ListVehicle() {
                       showSearch
                       className="antd-select-full"
                       placeholder="Select Brand"
+                      optionFilterProp="children"
                       value={selectedMake || undefined}
                       onChange={(val: string) => {
                         setSelectedMake(val);
                         setSelectedModel(''); 
                       }}
                       loading={loadingMakes}
+                      filterOption={(input, option) =>
+                        (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                      }
                     >
                       {makes.map((m: VehicleMake) => (
                         <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>
@@ -359,10 +363,14 @@ export default function ListVehicle() {
                       showSearch
                       className="antd-select-full"
                       placeholder="Select Model"
+                      optionFilterProp="children"
                       value={selectedModel || undefined}
                       onChange={(val: string) => setSelectedModel(val)}
                       loading={loadingModels}
                       disabled={!selectedMake || (selectedMake === 'Other' && !customMake)}
+                      filterOption={(input, option) =>
+                        (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                      }
                     >
                       {models.map((m: VehicleModel) => (
                         <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>

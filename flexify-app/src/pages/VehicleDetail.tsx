@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Row, Col } from 'antd';
+import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl } from '../api';
 import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './VehicleDetail.css';
+import { useRef } from 'react';
 
 dayjs.extend(isBetween);
 const { RangePicker } = DatePicker;
@@ -17,6 +18,27 @@ export default function VehicleDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [barVisible, setBarVisible] = useState(true);
+
+  // Intersection Observer for sticky bar
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // If sentinel is visible, it means we reached the bottom (footer area)
+        setBarVisible(!entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sentinelRef.current) {
+      observer.observe(sentinelRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isMobile]);
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -362,33 +384,55 @@ export default function VehicleDetail() {
                 </div>
               </div>
 
-              {vehicle.features && vehicle.features.length > 0 && (
-                <div className="detail-features-section" style={{ marginTop: '2.5rem' }}>
-                  <h3 className="section-title-minor">Features & Amenities</h3>
-                  <div className="detail-features-tags" style={{ marginTop: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {vehicle.features.map(f => {
-                      const featureMap: Record<string, { label: string; icon: string }> = {
-                        ac: { label: 'A/C', icon: '❄️' },
-                        bluetooth: { label: 'Bluetooth', icon: '📶' },
-                        gps: { label: 'GPS', icon: '📍' },
-                        sparewheel: { label: 'Spare Wheel', icon: '🛞' },
-                        sunroof: { label: 'Sunroof', icon: '☀️' }
-                      };
-                      const feat = featureMap[f] || { label: f.toUpperCase(), icon: '✨' };
-                      return (
-                        <Tag 
-                          key={f} 
-                          color="blue" 
-                          icon={<span style={{ marginRight: 4 }}>{feat.icon}</span>}
-                          style={{ padding: '4px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: '#eff6ff', color: '#1e40af' }}
-                        >
-                          {feat.label}
-                        </Tag>
-                      );
-                    })}
+              {(() => {
+                const parseFeatures = (feat: any): string[] => {
+                  if (!feat) return [];
+                  if (Array.isArray(feat)) return feat;
+                  if (typeof feat === 'string') {
+                    const trimmed = feat.trim();
+                    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                      try {
+                        const parsed = JSON.parse(trimmed);
+                        if (Array.isArray(parsed)) return parsed;
+                      } catch (e) { /* fallback to comma split */ }
+                    }
+                    return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+                  }
+                  return [];
+                };
+                const safeFeatures = parseFeatures(vehicle.features);
+
+                if (safeFeatures.length === 0) return null;
+
+                return (
+                  <div className="detail-features-section" style={{ marginTop: '2.5rem' }}>
+                    <h3 className="section-title-minor">Features & Amenities</h3>
+                    <div className="detail-features-tags" style={{ marginTop: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      {safeFeatures.map((f, idx) => {
+                        const featureMap: Record<string, { label: string; icon: string }> = {
+                          ac: { label: 'A/C', icon: '❄️' },
+                          bluetooth: { label: 'Bluetooth', icon: '📶' },
+                          gps: { label: 'GPS', icon: '📍' },
+                          sparewheel: { label: 'Spare Wheel', icon: '🛞' },
+                          sunroof: { label: 'Sunroof', icon: '☀️' }
+                        };
+                        const featLower = f.toLowerCase().replace(/[^a-z]/g, '');
+                        const feat = featureMap[featLower] || { label: f.charAt(0).toUpperCase() + f.slice(1), icon: '✨' };
+                        return (
+                          <Tag 
+                            key={idx} 
+                            color="blue" 
+                            icon={<span style={{ marginRight: 4 }}>{feat.icon}</span>}
+                            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: '#eff6ff', color: '#1e40af', margin: 0 }}
+                          >
+                            {feat.label}
+                          </Tag>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
             {/* AVAILABILITY CALENDAR */}
@@ -561,16 +605,19 @@ export default function VehicleDetail() {
             </div>
           </Col>
         </Row>
+
+        {/* Sentinel for hiding floating bar */}
+        <div ref={sentinelRef} style={{ height: '1px', marginTop: '2rem' }}></div>
       </div>
 
       {/* MOBILE STICKY BOOKING BAR */}
       {isMobile && !showBookingModal && !createdBooking && (!user || user._id !== (owner?._id || vehicle.owner)) && (
-        <div className="mobile-booking-bar animate-slide-up">
+        <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`}>
           <div className="mobile-bar-price">
             <span className="bar-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
             <span className="bar-unit">/day</span>
           </div>
-          <button className="btn btn-primary btn-md" onClick={handleBookingTrigger}>
+          <button className="btn btn-primary btn-md" onClick={handleBookingTrigger} style={{ height: '44px', padding: '0 24px', fontWeight: 700, borderRadius: '10px' }}>
             Book Now
           </button>
         </div>

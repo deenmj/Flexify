@@ -107,6 +107,15 @@ export default function EditVehicle() {
 
         setMakes(allMakes);
         
+        // Check if make is in approved list
+        const makeExists = allMakes.find((m: any) => m.name === vehicle.make);
+        if (makeExists) {
+          setSelectedMake(vehicle.make);
+        } else if (vehicle.make) {
+          setSelectedMake('Other');
+          setCustomMake(vehicle.make);
+        }
+
         // Fill form
         setForm({
           title: vehicle.title,
@@ -132,8 +141,7 @@ export default function EditVehicle() {
           pricePerMonth: vehicle.pricePerMonth?.toString() || ''
         });
 
-        setSelectedMake(vehicle.make);
-        setSelectedModel(vehicle.model);
+        // We'll set model after makes logic to avoid race condition with fetchModels useEffect
         setExistingPhotos(vehicle.photos || []);
         if (vehicle.location?.coordinates) {
           setPosition({ lat: vehicle.location.coordinates[1], lng: vehicle.location.coordinates[0] });
@@ -162,6 +170,17 @@ export default function EditVehicle() {
       try {
         const data = await vehicleApi.getModels(makeObj._id);
         setModels(data);
+
+        // Check if current form model is in the newly fetched list
+        // This is mainly for initial load
+        const modelExists = data.find((md: any) => md.name === form.model);
+        if (modelExists) {
+          setSelectedModel(form.model);
+        } else if (form.model && selectedMake !== 'Other') {
+          // If we have a model but it's not in the data, it's a custom model
+          setSelectedModel('Other');
+          setCustomModel(form.model);
+        }
       } catch (err) {
         console.error("Failed to load models", err);
       }
@@ -277,7 +296,9 @@ export default function EditVehicle() {
                     <label>Make</label>
                     <AntSelect
                       showSearch
+                      optionFilterProp="children"
                       className="antd-select-full"
+                      placeholder="Select Brand"
                       value={selectedMake || undefined}
                       onChange={(val: string) => { setSelectedMake(val); setSelectedModel(''); }}
                     >
@@ -291,7 +312,9 @@ export default function EditVehicle() {
                     <label>Model</label>
                     <AntSelect
                       showSearch
+                      optionFilterProp="children"
                       className="antd-select-full"
+                      placeholder="Select Model"
                       value={selectedModel || undefined}
                       onChange={(val: string) => setSelectedModel(val)}
                       disabled={!selectedMake}
