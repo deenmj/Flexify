@@ -14,6 +14,7 @@ import { notification } from 'antd';
 
 const { RangePicker } = DatePicker;
 import { useSocket } from '../context/SocketContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import './Dashboard.css';
 
 dayjs.extend(isBetween);
@@ -21,6 +22,7 @@ dayjs.extend(isBetween);
 export default function Dashboard() {
   const { user } = useAuth();
   const { socket } = useSocket();
+  const isMobile = useIsMobile();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -497,6 +499,42 @@ export default function Dashboard() {
                 <p>{vehicles.length === 0 ? "No vehicles listed yet" : `No ${selectedCategory}s found`}</p>
                 {vehicles.length === 0 && <Link to="/list-vehicle" className="btn btn-primary btn-sm">List a Vehicle</Link>}
               </div>
+            ) : isMobile ? (
+              <div style={{ padding: '0 1rem 1.5rem' }}>
+                <Row gutter={[12, 12]}>
+                  {filteredVehicles.map(v => (
+                    <Col xs={12} key={v._id}>
+                      <div className="dash-mobile-card">
+                        <div className="dash-mobile-card-img">
+                          {v.photos?.[0] ? (
+                            <img src={v.photos[0]} alt={v.title} />
+                          ) : (
+                            <div className="img-placeholder"><Car size={24} /></div>
+                          )}
+                          <div className="dash-mobile-card-status">
+                            {v.isActive ? <Tag color="success">Active</Tag> : <Tag color="error">Hidden</Tag>}
+                          </div>
+                        </div>
+                        <div className="dash-mobile-card-info">
+                          <h4 className="truncate">{v.title}</h4>
+                          <div className="price">LKR {v.pricePerDay.toLocaleString()}<span>/d</span></div>
+                        </div>
+                        <div className="dash-mobile-card-actions">
+                          <Link to={`/vehicles/edit/${v._id}`} className="mobile-action-btn edit">
+                            <Edit size={16} />
+                          </Link>
+                          <button className="mobile-action-btn toggle" onClick={() => handleToggleStatus(v._id)}>
+                            {v.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                          <button className="mobile-action-btn delete" onClick={() => handleDeleteVehicle(v._id)}>
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
             ) : (
               <table className="dashboard-table" style={{ borderTop: '1px solid var(--border-color)' }}>
                 <thead><tr><th>Vehicle</th><th>Category</th><th>Price/day</th><th>Status</th><th>Actions</th></tr></thead>
@@ -504,22 +542,26 @@ export default function Dashboard() {
                   {filteredVehicles.map(v => (
                     <tr key={v._id}>
                       <td data-label="Vehicle"><div className="table-vehicle"><strong>{v.title}</strong><span>{v.make} {v.model}</span></div></td>
-                      <td data-label="Category">{v.serviceType && v.serviceType.length > 0 ? <span className="badge" style={{ background: 'var(--bg-secondary)' }}>{v.serviceType[0]}</span> : '-'}</td>
-                      <td data-label="Price/day">LKR {v.pricePerDay.toLocaleString()}</td>
+                      <td data-label="Category">{v.serviceType && v.serviceType.length > 0 ? <span className="badge" style={{ background: 'var(--bg-secondary)', fontWeight: 600 }}>{v.serviceType[0]}</span> : '-'}</td>
+                      <td data-label="Price/day" style={{ fontWeight: 700 }}>LKR {v.pricePerDay.toLocaleString()}</td>
                       <td data-label="Status">
-                        {statusBadge(v.status)}
-                        {v.isActive ? <span className="badge badge-primary" style={{ marginLeft: 4 }}>Active</span> : <span className="badge badge-error" style={{ marginLeft: 4 }}>Hidden</span>}
+                        <div style={{ display: 'flex', gap: '4px', flexDirection: 'column' }}>
+                          {statusBadge(v.status)}
+                          {v.isActive ? <Tag color="success">Active</Tag> : <Tag color="error">Hidden</Tag>}
+                        </div>
                       </td>
                       <td data-label="Actions">
-                        <Link to={`/vehicles/edit/${v._id}`} className="btn btn-ghost btn-sm" title="Edit">
-                          <Edit size={14} />
-                        </Link>
-                        <button className="btn btn-ghost btn-sm" onClick={() => handleToggleStatus(v._id)} title={v.isActive ? 'Hide' : 'Show'}>
-                          {v.isActive ? <EyeOff size={14} /> : <Eye size={14} />}
-                        </button>
-                        <button className="btn btn-ghost btn-sm text-error" onClick={() => handleDeleteVehicle(v._id)} title="Delete">
-                          <Trash2 size={14} />
-                        </button>
+                        <div className="table-actions">
+                          <Link to={`/vehicles/edit/${v._id}`} className="btn btn-ghost btn-sm" title="Edit">
+                            <Edit size={16} />
+                          </Link>
+                          <button className="btn btn-ghost btn-sm" onClick={() => handleToggleStatus(v._id)} title={v.isActive ? 'Hide' : 'Show'}>
+                            {v.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                          <button className="btn btn-ghost btn-sm text-error" onClick={() => handleDeleteVehicle(v._id)} title="Delete">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

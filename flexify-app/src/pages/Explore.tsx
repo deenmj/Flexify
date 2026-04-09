@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { Row, Col } from 'antd';
 import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate } from 'lucide-react';
 import { vehicleApi, type Vehicle, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -314,25 +315,29 @@ export default function Explore() {
             <p className="results-count">{vehicles.length} vehicles found</p>
           )}
           {loading ? (
-            <div className="explore-grid">
+            <Row gutter={[16, 16]}>
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="card vehicle-skeleton">
-                  <div className="skeleton" style={{ height: 200 }} />
-                  <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div className="skeleton" style={{ height: 20, width: '70%' }} />
-                    <div className="skeleton" style={{ height: 16, width: '50%' }} />
-                    <div className="skeleton" style={{ height: 24, width: '40%', marginTop: '0.5rem' }} />
-                    <div className="skeleton" style={{ height: 38, borderRadius: 8 }} />
+                <Col xs={12} sm={12} md={8} lg={6} key={i}>
+                  <div className="card vehicle-skeleton" style={{ height: '100%' }}>
+                    <div className="skeleton" style={{ height: isMobile ? 120 : 200 }} />
+                    <div style={{ padding: isMobile ? '0.75rem' : '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div className="skeleton" style={{ height: 16, width: '70%' }} />
+                      <div className="skeleton" style={{ height: 12, width: '50%' }} />
+                      <div className="skeleton" style={{ height: 20, width: '40%', marginTop: '0.5rem' }} />
+                      <div className="skeleton" style={{ height: isMobile ? 32 : 38, borderRadius: 8 }} />
+                    </div>
                   </div>
-                </div>
+                </Col>
               ))}
-            </div>
+            </Row>
           ) : vehicles.length > 0 ? (
-            <div className="explore-grid">
+            <Row gutter={[16, 16]}>
               {vehicles.map((vehicle) => (
-                <ExploreVehicleCard key={vehicle._id} vehicle={vehicle} />
+                <Col xs={12} sm={12} md={8} lg={6} key={vehicle._id}>
+                  <ExploreVehicleCard vehicle={vehicle} />
+                </Col>
               ))}
-            </div>
+            </Row>
           ) : (
             <div className="explore-empty">
               <Search size={48} strokeWidth={1} />
