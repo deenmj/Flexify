@@ -4,7 +4,6 @@ import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate } from 'lucid
 import { vehicleApi, type Vehicle } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { Collapse } from 'antd';
 import './Explore.css';
 
 const SRI_LANKA_DISTRICTS = [
