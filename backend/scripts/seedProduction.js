@@ -28,7 +28,7 @@ const seedData = async () => {
 
     // 2. Create Sample Users
     const salt = await bcrypt.genSalt(10);
-    const password = await bcrypt.hash('password123', salt);
+    const password = await bcrypt.hash('Admin@123', salt);
 
     // Superadmin
     const superadmin = await User.findOneAndUpdate(
