@@ -141,10 +141,10 @@ export default function Explore() {
                     className="explore-search-input"
                   />
                   <button type="button" className="filter-toggle-btn" onClick={() => setShowFilters(!showFilters)}>
-                    <SlidersHorizontal size={16} />
-                    <span>Filters</span>
+                    <SlidersHorizontal size={14} />
+                    Filters
                   </button>
-                  <button type="submit" className="btn btn-primary d-none-mobile search-row-btn">Search</button>
+                  <button type="submit" className="btn btn-primary search-row-btn d-none-mobile">Search</button>
                 </div>
               </form>
 
