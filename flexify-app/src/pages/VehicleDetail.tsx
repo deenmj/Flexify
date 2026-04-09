@@ -605,16 +605,49 @@ export default function VehicleDetail() {
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
                     <CalIcon size={16} /> Select Dates
                   </label>
-                  <RangePicker
-                    value={dateRange}
-                    onChange={(dates) => setDateRange(dates)}
-                    disabledDate={disabledDate}
-                    cellRender={pickerCellRender}
-                    format="YYYY-MM-DD"
-                    style={{ width: '100%', height: '44px' }}
-                    placeholder={['Pickup Date', 'Return Date']}
-                    size="large"
-                  />
+                  {isMobile ? (
+                    <div style={{ display: 'flex', gap: '0.75rem', flexDirection: 'column' }}>
+                      <div className="input-group">
+                        <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Pickup Date</label>
+                        <input
+                          type="date"
+                          className="input-field"
+                          value={dateRange && dateRange[0] ? dateRange[0].format('YYYY-MM-DD') : ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setDateRange([val ? dayjs(val) : null, dateRange?.[1] || null]);
+                          }}
+                          min={dayjs().format('YYYY-MM-DD')}
+                          style={{ width: '100%', height: '44px' }}
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Return Date</label>
+                        <input
+                          type="date"
+                          className="input-field"
+                          value={dateRange && dateRange[1] ? dateRange[1].format('YYYY-MM-DD') : ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setDateRange([dateRange?.[0] || null, val ? dayjs(val) : null]);
+                          }}
+                          min={dateRange && dateRange[0] ? dateRange[0].format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD')}
+                          style={{ width: '100%', height: '44px' }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <RangePicker
+                      value={dateRange}
+                      onChange={(dates) => setDateRange(dates)}
+                      disabledDate={disabledDate}
+                      cellRender={pickerCellRender}
+                      format="YYYY-MM-DD"
+                      style={{ width: '100%', height: '44px' }}
+                      placeholder={['Pickup Date', 'Return Date']}
+                      size="large"
+                    />
+                  )}
                 </div>
 
                 <div className="avail-legend modal-legend" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '-0.5rem' }}>

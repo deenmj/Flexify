@@ -201,7 +201,7 @@ export default function Navbar() {
                       <LayoutDashboard size={16} /> {isStaff ? 'Staff Dashboard' : isSuperAdmin ? 'Admin Dashboard' : 'Dashboard'}
                     </Link>
                   )}
-                  {isStaff && (
+                  {isAdminRole && (
                     <Link to="/dashboard" className="dropdown-item" onClick={() => setProfileOpen(false)}>
                       <Car size={16} /> My Vehicles & Bookings
                     </Link>
@@ -279,7 +279,7 @@ export default function Navbar() {
               <Link to="/faq" className="mobile-link" onClick={() => setMobileOpen(false)}>FAQ</Link>
               <Link to="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}>Contact</Link>
               
-              {isStaff && (
+              {isAdminRole && (
                 <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}>My Vehicles & Bookings</Link>
               )}
               {user?.role === 'owner' && (
