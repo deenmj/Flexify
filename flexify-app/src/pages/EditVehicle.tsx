@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle } from '../api';
+import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle, getImageUrl } from '../api';
 import { Select as AntSelect, message, Row, Col } from 'antd';
 import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -88,7 +88,7 @@ export default function EditVehicle() {
   const [selectedModel, setSelectedModel] = useState('');
   const [customModel, setCustomModel] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
-  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<any[]>([]);
   const [position, setPosition] = useState({ lat: 7.8731, lng: 80.7718 });
 
   const [makes, setMakes] = useState<VehicleMake[]>([]);
@@ -460,9 +460,9 @@ export default function EditVehicle() {
                   <div className="existing-photos-management">
                     <label>Current Photos</label>
                     <div className="photo-edit-grid">
-                      {existingPhotos.map((url, i) => (
+                      {existingPhotos.map((photo, i) => (
                         <div key={i} className="photo-edit-item">
-                          <img src={url} alt={`Vehicle ${i}`} />
+                          <img src={getImageUrl(photo)} alt={`Vehicle ${i}`} />
                           <button type="button" className="photo-delete-badge" onClick={() => removeExistingPhoto(i)}>
                             <Trash2 size={12} />
                           </button>

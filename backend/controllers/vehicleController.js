@@ -82,7 +82,10 @@ export const createVehicle = async (req, res) => {
 
     const photos = [];
     if (req.files) {
-      req.files.forEach((f) => photos.push(`/uploads/vehicles/${f.filename}`));
+      req.files.forEach((f) => photos.push({
+        url: f.path, // multer-storage-cloudinary provides the secure_url in f.path
+        public_id: f.filename
+      }));
     }
 
     // All owner listings are set to 'active' immediately as per user request
@@ -222,7 +225,10 @@ export const updateVehicle = async (req, res) => {
     }
 
     if (req.files && req.files.length > 0) {
-      updates.photos = req.files.map((f) => `/uploads/vehicles/${f.filename}`);
+      updates.photos = req.files.map((f) => ({
+        url: f.path,
+        public_id: f.filename
+      }));
     }
 
     Object.keys(updates).forEach((key) => {

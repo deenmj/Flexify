@@ -1,10 +1,16 @@
 const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}/api`;
 
-export const getImageUrl = (path?: string) => {
+export const getImageUrl = (path?: any) => {
   if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('data:')) return path;
-  const baseUrl = import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app';
-  return `${baseUrl}${path}`;
+  // Handle new Cloudinary object format
+  if (typeof path === 'object' && path.url) return path.url;
+  
+  if (typeof path === 'string') {
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const baseUrl = import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app';
+    return `${baseUrl}${path}`;
+  }
+  return '';
 };
 
 // =================== TYPES ===================
@@ -62,7 +68,7 @@ export interface Vehicle {
   fuelType: string;
   seats: number;
   description?: string;
-  photos: string[];
+  photos: { url: string; public_id: string }[];
   status: 'pending' | 'active' | 'rejected';
   isActive: boolean;
   timesRented?: number;

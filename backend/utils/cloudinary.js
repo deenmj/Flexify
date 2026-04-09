@@ -25,4 +25,12 @@ export const profileStorage = new CloudinaryStorage({
   },
 });
 
+export const vehicleStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'flexify/vehicles',
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+  },
+});
+
 export default cloudinary;

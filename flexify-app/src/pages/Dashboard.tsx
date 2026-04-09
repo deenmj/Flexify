@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col } from 'antd';
-import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review } from '../api';
+import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review, getImageUrl } from '../api';
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
   Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle,
@@ -355,19 +355,21 @@ export default function Dashboard() {
   const isVerifiedOwner = (isOwner && user.isKycVerified) || isStaff;
   const isUnverifiedOwner = user.role === 'owner' && !user.isKycVerified && !isStaff;
 
-  const statusBadge = (status: string) => {
-    const map: Record<string, { cls: string; icon: any }> = {
-      'active': { cls: 'badge-success', icon: CheckCircle },
-      'pending': { cls: 'badge-warning', icon: Clock },
-      'rejected': { cls: 'badge-error', icon: XCircle },
-      'CONFIRMED': { cls: 'badge-success', icon: CheckCircle },
-      'PENDING': { cls: 'badge-warning', icon: Clock },
-      'REJECTED': { cls: 'badge-error', icon: XCircle },
-      'CANCELLED': { cls: 'badge-error', icon: XCircle },
-      'COMPLETED': { cls: 'badge-primary', icon: CheckCircle },
-    };
-    const s = map[status] || { cls: 'badge-warning', icon: Clock };
-    return <span className={`badge ${s.cls}`}>{status}</span>;
+  const vehicleStatusBadge = (status: string, isActive: boolean) => {
+    if (status === 'pending') return <Tag color="warning" icon={<Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}>Pending</Tag>;
+    if (status === 'rejected') return <Tag color="error" icon={<XCircle size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}>Rejected</Tag>;
+    if (!isActive) return <Tag color="error">Hidden</Tag>;
+    return <Tag color="success">Active</Tag>;
+  };
+
+  const bookingStatusBadge = (status: string) => {
+    switch (status) {
+      case 'PENDING': return <Tag color="warning">Pending</Tag>;
+      case 'CONFIRMED': return <Tag color="success">Confirmed</Tag>;
+      case 'CANCELLED': return <Tag color="error">Cancelled</Tag>;
+      case 'COMPLETED': return <Tag color="processing">Completed</Tag>;
+      default: return <Tag>{status}</Tag>;
+    }
   };
 
   const filteredVehicles = selectedCategory === 'All'
@@ -507,12 +509,12 @@ export default function Dashboard() {
                       <div className="dash-mobile-card">
                         <div className="dash-mobile-card-img">
                           {v.photos?.[0] ? (
-                            <img src={v.photos[0]} alt={v.title} />
+                            <img src={getImageUrl(v.photos[0])} alt={v.title} />
                           ) : (
                             <div className="img-placeholder"><Car size={24} /></div>
                           )}
                           <div className="dash-mobile-card-status">
-                            {v.isActive ? <Tag color="success">Active</Tag> : <Tag color="error">Hidden</Tag>}
+                            {vehicleStatusBadge(v.status, v.isActive)}
                           </div>
                         </div>
                         <div className="dash-mobile-card-info">
@@ -537,18 +539,22 @@ export default function Dashboard() {
               </div>
             ) : (
               <table className="dashboard-table" style={{ borderTop: '1px solid var(--border-color)' }}>
-                <thead><tr><th>Vehicle</th><th>Category</th><th>Price/day</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Photo</th><th>Vehicle</th><th>Category</th><th>Price/day</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
                   {filteredVehicles.map(v => (
                     <tr key={v._id}>
+                      <td style={{ width: '90px', paddingLeft: '1.5rem' }}>
+                        {v.photos?.[0] ? (
+                          <img src={getImageUrl(v.photos[0])} alt={v.title} style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color-light)' }} />
+                        ) : (
+                          <div style={{ width: '60px', height: '40px', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}><Car size={16} color="var(--text-tertiary)" /></div>
+                        )}
+                      </td>
                       <td data-label="Vehicle"><div className="table-vehicle"><strong>{v.title}</strong><span>{v.make} {v.model}</span></div></td>
                       <td data-label="Category">{v.serviceType && v.serviceType.length > 0 ? <span className="badge" style={{ background: 'var(--bg-secondary)', fontWeight: 600 }}>{v.serviceType[0]}</span> : '-'}</td>
                       <td data-label="Price/day" style={{ fontWeight: 700 }}>LKR {v.pricePerDay.toLocaleString()}</td>
                       <td data-label="Status">
-                        <div style={{ display: 'flex', gap: '4px', flexDirection: 'column' }}>
-                          {statusBadge(v.status)}
-                          {v.isActive ? <Tag color="success">Active</Tag> : <Tag color="error">Hidden</Tag>}
-                        </div>
+                        {vehicleStatusBadge(v.status, v.isActive)}
                       </td>
                       <td data-label="Actions">
                         <div className="table-actions">

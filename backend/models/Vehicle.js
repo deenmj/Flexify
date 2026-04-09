@@ -9,7 +9,12 @@ const vehicleSchema = new mongoose.Schema(
     model: { type: String, required: true },
     year: { type: Number, required: true },
 
-    photos: [{ type: String }],
+    photos: [
+      {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+    ],
 
     // GeoJSON location
     location: {
