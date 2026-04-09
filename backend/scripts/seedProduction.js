@@ -104,7 +104,12 @@ const seedData = async () => {
         province: 'Western',
         district: 'Colombo',
         city: 'Colombo 07',
-        features: ['AC', 'Bluetooth', 'GPS', 'Spare Wheel']
+        features: ['AC', 'Bluetooth', 'GPS', 'Spare Wheel'],
+        location: {
+          type: 'Point',
+          coordinates: [79.8612, 6.9271],
+          address: 'No 15, Gregorys Rd, Colombo 07'
+        }
       },
       {
         title: 'Mitsubishi Montero Sport V6',
@@ -127,7 +132,12 @@ const seedData = async () => {
         province: 'Western',
         district: 'Gampaha',
         city: 'Negombo',
-        features: ['AC', 'Bluetooth', 'GPS', 'Sunroof', 'Spare Wheel']
+        features: ['AC', 'Bluetooth', 'GPS', 'Sunroof', 'Spare Wheel'],
+        location: {
+          type: 'Point',
+          coordinates: [79.8612, 6.9271],
+          address: 'Negombo Main St'
+        }
       },
       {
         title: 'Honda Hornet 160R',
@@ -148,7 +158,12 @@ const seedData = async () => {
         province: 'Southern',
         district: 'Galle',
         city: 'Hikkaduwa',
-        features: ['Spare Wheel']
+        features: ['Spare Wheel'],
+        location: {
+          type: 'Point',
+          coordinates: [79.8612, 6.9271],
+          address: 'Galle Road, Hikkaduwa'
+        }
       }
     ];
 
