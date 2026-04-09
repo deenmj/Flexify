@@ -739,7 +739,7 @@ export default function SubAdminDashboard() {
                           <Button 
                             size="small" 
                             icon={<FileText size={14} />} 
-                            onClick={() => window.open(`${import.meta.env.VITE_API_URL || ''}${p.receiptImage}`, '_blank')}
+                            onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}${p.receiptImage}`, '_blank')}
                           >
                             View
                           </Button>

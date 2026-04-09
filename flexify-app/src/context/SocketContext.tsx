@@ -23,7 +23,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (user) {
       // Connect to socket server
       const token = localStorage.getItem('token');
-      const newSocket = io(import.meta.env.VITE_API_URL || '', {
+      const newSocket = io(import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app', {
         auth: { token },
         transports: ['websocket'], // Prefer websockets
       });
