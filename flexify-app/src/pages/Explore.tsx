@@ -51,7 +51,7 @@ export default function Explore() {
     province: searchParams.get('province') || '',
     district: searchParams.get('district') || '',
   });
-  const [showFilters, setShowFilters] = useState(!!(searchParams.get('type') || searchParams.get('vehicleType') || searchParams.get('service') || searchParams.get('district')));
+  const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
 
   const fetchVehicles = async (overrideQuery?: string, overrideType?: string) => {
@@ -96,8 +96,6 @@ export default function Explore() {
     setQuery(urlQuery);
     setFilters((prev: Filters) => ({ ...prev, vehicleType: urlType }));
 
-    if (urlType) setShowFilters(true);
-
     fetchVehicles(urlQuery, urlType);
     // eslint-disable-next-line
   }, [searchParams]);
@@ -131,51 +129,53 @@ export default function Explore() {
           <p className="explore-subtitle">Find the perfect vehicle for your journey</p>
           
           <div className="explore-controls-container">
-            <form onSubmit={handleSearch} className="explore-search">
-              <div className="explore-search-inner">
-                <Search size={20} className="explore-search-icon" />
-                <input
-                  type="text"
-                  placeholder="Search by name, model, location..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="explore-search-input"
-                />
-                <button type="button" className="filter-toggle-btn" onClick={() => setShowFilters(!showFilters)}>
-                  <SlidersHorizontal size={18} />
-                  Filters
-                </button>
-                <button type="submit" className="btn btn-primary d-none-mobile">Search</button>
-              </div>
-            </form>
-
-            <div className="explore-quick-filters">
-              <button 
-                type="button" 
-                className="btn btn-secondary btn-sm quick-locate-btn" 
-                onClick={handleLocateMe}
-              >
-                <Locate size={16} /> <span className="quick-locate-text">Locate Me</span>
-              </button>
-              <select 
-                className="input-field quick-radius-select"
-                value={filters.radius}
-                onChange={(e) => {
-                  setFilters({ ...filters, radius: e.target.value });
-                  // We don't auto-fetch here to avoid sudden layout shifts if the user wants to hit search
-                }}
-              >
-                <option value="5">Nearby (5km)</option>
-                <option value="10">Within 10km</option>
-                <option value="25">Within 25km</option>
-                <option value="50">Within 50km</option>
-                <option value="100">Within 100km</option>
-              </select>
-              {(filters.lat || filters.lng) && (
-                <div className="location-active-badge">
-                  <span className="pulse-dot"></span> Active
+            <div className="explore-search-row">
+              <form onSubmit={handleSearch} className="explore-search">
+                <div className="explore-search-inner">
+                  <Search size={18} className="explore-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, model, location..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="explore-search-input"
+                  />
+                  <button type="button" className="filter-toggle-btn" onClick={() => setShowFilters(!showFilters)}>
+                    <SlidersHorizontal size={16} />
+                    <span>Filters</span>
+                  </button>
+                  <button type="submit" className="btn btn-primary d-none-mobile search-row-btn">Search</button>
                 </div>
-              )}
+              </form>
+
+              <div className="explore-quick-filters">
+                <button 
+                  type="button" 
+                  className="quick-locate-btn" 
+                  onClick={handleLocateMe}
+                  title="Locate Me"
+                >
+                  <Locate size={14} /> <span className="quick-locate-text">Locate Me</span>
+                </button>
+                <select 
+                  className="quick-radius-select"
+                  value={filters.radius}
+                  onChange={(e) => {
+                    setFilters({ ...filters, radius: e.target.value });
+                  }}
+                >
+                  <option value="5">5km</option>
+                  <option value="10">10km</option>
+                  <option value="25">25km</option>
+                  <option value="50">50km</option>
+                  <option value="100">100km</option>
+                </select>
+                {(filters.lat || filters.lng) && (
+                  <div className="location-active-badge">
+                    <span className="pulse-dot"></span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
