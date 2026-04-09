@@ -7,7 +7,7 @@ import User from "./models/User.js";
 
 async function checkVehicles() {
   try {
-    await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/flexify");
+    await mongoose.connect(process.env.MONGO_URI || "mongodb+srv://marketvendor_auth_db_user:CVlYjrQ55dvWadH8@flexifyrental.wuhrwxx.mongodb.net/?appName=flexifyRental");
     console.log("Connected to DB");
 
     const allVehicles = await Vehicle.find({});

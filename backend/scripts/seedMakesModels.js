@@ -63,7 +63,7 @@ const seedData = [
 
 const seed = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/flexify";
+    const mongoUri = process.env.MONGO_URI || "mongodb+srv://marketvendor_auth_db_user:CVlYjrQ55dvWadH8@flexifyrental.wuhrwxx.mongodb.net/?appName=flexifyRental";
     await mongoose.connect(mongoUri);
     console.log("Connected to MongoDB for seeding...");
 
