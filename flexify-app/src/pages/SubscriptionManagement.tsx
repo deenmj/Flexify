@@ -65,7 +65,7 @@ const SubscriptionManagement: React.FC = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [selectedTier, setSelectedTier] = useState<any>(null);
   const [is6Month, setIs6Month] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'CARD' | 'BANK'>('CARD');
+  const [paymentMethod, setPaymentMethod] = useState<'CARD' | 'BANK'>('BANK');
   const [payhereParams, setPayhereParams] = useState<any>(null);
   const [bankDetails, setBankDetails] = useState<BankDetailsData | null>(null);
   const [receiptFile, setReceiptFile] = useState<any>(null);
@@ -311,7 +311,7 @@ const SubscriptionManagement: React.FC = () => {
               >
                 <CreditCard size={20} />
                 <div>
-                  <strong>Online Payment</strong>
+                  <strong>Online Payment (Coming Soon)</strong>
                   <p>Card, Genie, Vishwa, etc. (Instant Activation)</p>
                 </div>
                 <div className="radio-circle"></div>
@@ -333,11 +333,11 @@ const SubscriptionManagement: React.FC = () => {
             {paymentMethod === 'CARD' ? (
               <div className="card-payment-info">
                 <button
-                  className="pay-now-btn"
-                  onClick={handlePayHere}
-                  disabled={loading}
+                  className="pay-now-btn coming-soon-disabled"
+                  onClick={() => message.info("Online payment is coming soon. Please use Bank Transfer for now.")}
+                  disabled={true}
                 >
-                  {loading ? <><Loader2 className="animate-spin" size={18} /> Processing...</> : 'Pay with PayHere'}
+                  Coming Soon
                 </button>
                 <p className="secure-text">Securely processed by PayHere</p>
               </div>
