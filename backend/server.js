@@ -78,7 +78,7 @@ app.use(helmet());
 
 // CORS — restrict to your frontend origin only
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "https://flexify-production.up.railway.app",
+  process.env.FRONTEND_URL || "https://flexify-three.vercel.app",
   "http://localhost:5173", // Vite dev server
 ];
 app.use(cors({
