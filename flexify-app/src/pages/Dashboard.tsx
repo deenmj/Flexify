@@ -387,9 +387,6 @@ export default function Dashboard() {
     : vehicles.filter(v => v.serviceType && v.serviceType.includes(selectedCategory));
 
   return (
-    <div className="dashboard-page page-wrapper bg-secondary">
-
-  return (
     <div className="dashboard-page page-wrapper" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
 
       <header className="dashboard-header" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)', padding: '2rem 0 3.5rem', textAlign: 'center', color: 'white' }}>
