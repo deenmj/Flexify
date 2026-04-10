@@ -318,33 +318,92 @@
   padding: 8px;
 }
 
-.avail-cell {
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 1px 4px;
-  border-radius: 4px;
-  text-align: center;
-  line-height: 1.4;
-  margin-top: 2px;
+/* ===== Availability Calendar Refinement ===== */
+.avail-status-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 4px;
 }
 
-.avail-confirmed {
+.status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+  transition: all 0.2s ease;
+}
+
+.status-indicator.confirmed {
   background: #fee2e2;
   color: #dc2626;
   border: 1px solid #fca5a5;
 }
 
-.avail-pending {
+.status-indicator.pending {
   background: #fef3c7;
   color: #d97706;
   border: 1px solid #fcd34d;
 }
 
-.avail-blackout {
+.status-indicator.blackout {
   background: #f3f4f6;
   color: #4b5563;
-  border: 1px solid #9ca3af;
-  text-decoration: line-through;
+  border: 1px solid #d1d5db;
+}
+
+/* Legend Improvements */
+.avail-legend-vertical {
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+
+@media (max-width: 768px) {
+  .status-text {
+    display: none; /* Hide text on mobile to save space */
+  }
+
+  .avail-status-container {
+    margin-top: 2px;
+  }
+
+  .status-indicator {
+    padding: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: none !important;
+  }
+
+  /* Make the dots slightly bigger for readability */
+  .status-indicator.confirmed { background: #ef4444; }
+  .status-indicator.pending { background: #f59e0b; }
+  .status-indicator.blackout { background: #94a3b8; }
+
+  .ant-picker-calendar-date-content {
+    height: auto !important;
+    min-height: 12px;
+  }
+
+  .avail-legend-vertical {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+    margin-top: 1rem;
+    padding: 0.75rem;
+  }
+
+  .avail-legend-vertical > span {
+    justify-content: center;
+    font-size: 0.7rem !important;
+  }
 }
 
 /* Antd RangePicker override to match theme */

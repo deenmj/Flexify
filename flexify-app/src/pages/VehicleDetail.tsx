@@ -161,21 +161,33 @@ export default function VehicleDetail() {
     if (confirmed) {
       return (
         <Tooltip title="Booked (Confirmed)">
-          <div className="avail-cell avail-confirmed">Booked</div>
+          <div className="avail-status-container">
+            <div className="status-indicator confirmed">
+              <span className="status-text">Booked</span>
+            </div>
+          </div>
         </Tooltip>
       );
     }
     if (pending) {
       return (
         <Tooltip title="Booking Pending">
-          <div className="avail-cell avail-pending">Pending</div>
+          <div className="avail-status-container">
+            <div className="status-indicator pending">
+              <span className="status-text">Pending</span>
+            </div>
+          </div>
         </Tooltip>
       );
     }
     if (blackedOut) {
       return (
         <Tooltip title="Owner Unavailable / Blackout">
-          <div className="avail-cell avail-blackout">Unavailable</div>
+          <div className="avail-status-container">
+            <div className="status-indicator blackout">
+              <span className="status-text">Unavailable</span>
+            </div>
+          </div>
         </Tooltip>
       );
     }
