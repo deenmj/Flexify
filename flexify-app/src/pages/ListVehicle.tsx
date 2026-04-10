@@ -262,10 +262,14 @@ export default function ListVehicle() {
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
-        formData.append(key, value);
+        // Skip features here, we'll append it specifically
+        if (key !== 'features') {
+          formData.append(key, value);
+        }
       });
 
-      // Append complex fields
+      // Append complex fields specifically
+      // Use JSON.stringify for complex objects so the backend can parse them safely
       formData.append('features', JSON.stringify(form.features));
       
       photos.forEach(photo => {

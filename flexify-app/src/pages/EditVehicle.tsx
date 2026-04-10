@@ -116,6 +116,26 @@ export default function EditVehicle() {
           setCustomMake(vehicle.make);
         }
 
+        // Robust Feature Parsing for existing data
+        const parseExistingFeatures = (feat: any): string[] => {
+          if (!feat) return [];
+          const flatten = (data: any): string[] => {
+            if (Array.isArray(data)) return data.flatMap(item => flatten(item));
+            if (typeof data === 'string') {
+              const trimmed = data.trim();
+              if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                try { return flatten(JSON.parse(trimmed)); } catch (e) { 
+                  return trimmed.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+                }
+              }
+              return [trimmed.replace(/^["']|["']$/g, '').trim()];
+            }
+            return [];
+          };
+          return Array.from(new Set(flatten(feat)))
+            .filter(s => s && s.length > 1 && !s.includes('[') && !s.includes('"'));
+        };
+
         // Fill form
         setForm({
           title: vehicle.title,
@@ -133,7 +153,7 @@ export default function EditVehicle() {
           lng: (vehicle.location?.coordinates?.[0] || 80.7718).toString(),
           engineCapacity: vehicle.engineCapacity || '',
           fuelConsumption: vehicle.fuelConsumption || '',
-          features: vehicle.features || [],
+          features: parseExistingFeatures(vehicle.features),
           province: vehicle.province || '',
           district: vehicle.district || '',
           city: vehicle.city || '',
@@ -243,8 +263,13 @@ export default function EditVehicle() {
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
-        formData.append(key, value);
+        // Skip features here, we'll append it specifically below
+        if (key !== 'features') {
+          formData.append(key, value);
+        }
       });
+      
+      // Append complex fields specifically
       formData.append('features', JSON.stringify(form.features));
       formData.append('existingPhotos', JSON.stringify(existingPhotos));
 

@@ -387,18 +387,35 @@ export default function VehicleDetail() {
               {(() => {
                 const parseFeatures = (feat: any): string[] => {
                   if (!feat) return [];
-                  if (Array.isArray(feat)) return feat;
-                  if (typeof feat === 'string') {
-                    const trimmed = feat.trim();
-                    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-                      try {
-                        const parsed = JSON.parse(trimmed);
-                        if (Array.isArray(parsed)) return parsed;
-                      } catch (e) { /* fallback to comma split */ }
+                  
+                  // Helper to flatten and clean up nested strings
+                  const flatten = (data: any): string[] => {
+                    if (Array.isArray(data)) {
+                      return data.flatMap(item => flatten(item));
                     }
-                    return trimmed.split(',').map(s => s.trim()).filter(Boolean);
-                  }
-                  return [];
+                    if (typeof data === 'string') {
+                      const trimmed = data.trim();
+                      // If it's a JSON array string, parse it and recurse
+                      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                        try {
+                          const parsed = JSON.parse(trimmed);
+                          return flatten(parsed);
+                        } catch (e) {
+                          // Fallback: split by comma if JSON parse fails
+                          return trimmed.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+                        }
+                      }
+                      // Clean up individual strings (remove stray quotes)
+                      return [trimmed.replace(/^["']|["']$/g, '').trim()];
+                    }
+                    return [];
+                  };
+
+                  const results = flatten(feat);
+                  
+                  // Final unique filter and cleanup
+                  return Array.from(new Set(results))
+                    .filter(s => s && s.length > 1 && !s.includes('[') && !s.includes('"'));
                 };
                 const safeFeatures = parseFeatures(vehicle.features);
 
