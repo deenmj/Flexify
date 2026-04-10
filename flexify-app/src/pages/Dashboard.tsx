@@ -633,139 +633,106 @@ export default function Dashboard() {
                 )}
               </div>
             ) : (
-              <div className="dashboard-box-scroll">
-                <table className="dashboard-table">
-                <thead><tr><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th><th style={{ paddingRight: '2.5rem', minWidth: '240px' }}>Actions/Details</th></tr></thead>
-                <tbody>
-                  {bookings.map(b => {
-                    const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
-                    const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)._id || (b.owner as any).id : b.owner);
-                    const bRenterId = String(typeof b.user === 'object' ? (b.user as any)._id || (b.user as any).id : b.user);
-                    const myId = String(user._id || user.id);
-                    
-                    const isIamRenterOfThis = myId === bRenterId;
-                    const isIamOwnerOfThis = (myId === bOwnerId || isStaff) && !isIamRenterOfThis;
-                    const owner = typeof b.owner === 'object' ? b.owner : null;
+            ) : (
+              <div className="booking-cards-container">
+                {bookings.map(b => {
+                  const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
+                  const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)._id || (b.owner as any).id : b.owner);
+                  const bRenterId = String(typeof b.user === 'object' ? (b.user as any)._id || (b.user as any).id : b.user);
+                  const myId = String(user._id || user.id);
+                  
+                  const isIamRenterOfThis = myId === bRenterId;
+                  const isIamOwnerOfThis = (myId === bOwnerId || isStaff) && !isIamRenterOfThis;
+                  const owner = typeof b.owner === 'object' ? b.owner : null;
 
-                    return (
-                      <tr key={b._id} id={`booking-${b._id}`}>
-                        <td data-label="Vehicle">
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle'}</div>
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                              {vehicle && (
-                                <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="text-secondary" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'underline' }}>
-                                  <Eye size={12} /> View Page
-                                </Link>
-                              )}
-                              <button 
-                                onClick={() => handleViewDetail(b)} 
-                                className="text-primary" 
-                                style={{ fontSize: '11px', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
-                              >
-                                <Info size={12} /> Full Details
-                              </button>
+                  return (
+                    <div key={b._id} className="booking-card" id={`booking-${b._id}`}>
+                      <div className="booking-card-img">
+                        {vehicle && (vehicle as Vehicle).photos?.[0] ? (
+                          <img src={getImageUrl((vehicle as Vehicle).photos[0])} alt={vehicle.title} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+                            <Car size={32} color="#cbd5e1" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="booking-card-content">
+                        <div className="booking-card-info">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                            <h4>{vehicle ? (vehicle as Vehicle).title : 'Vehicle Details'}</h4>
+                            {bookingStatusBadge(b.status)}
+                          </div>
+                          
+                          <div className="booking-card-meta">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <CalIcon size={14} color="var(--text-tertiary)" />
+                              <span>{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#0f172a' }}>
+                              <span>LKR {b.totalAmount.toLocaleString()}</span>
                             </div>
                           </div>
-                        </td>
-                        <td data-label="Dates" className="table-dates">
-                          <div style={{ padding: '4px 0' }}>
-                            {new Date(b.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                            <div style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 400 }}>to {new Date(b.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                          </div>
-                        </td>
-                        <td data-label="Amount" className="table-amount">
+                        </div>
+
+                        <div className="booking-card-footer">
                           <div>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginRight: '4px' }}>LKR</span>
-                            {b.totalAmount.toLocaleString()}
-                          </div>
-                        </td>
-                        <td data-label="Status">
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            {bookingStatusBadge(b.status)}
-                            {/* Show owner phone ONLY when confirmed and user is the renter */}
                             {b.status === 'CONFIRMED' && isIamRenterOfThis && owner && (
-                              <div style={{ 
-                                padding: '8px', 
-                                background: '#f0fdf4', 
-                                border: '1px solid #dcfce7', 
-                                borderRadius: '8px',
-                                marginTop: '4px'
-                              }}>
-                                <div style={{ fontSize: '11px', color: '#166534', fontWeight: 700 }}>OWNER: {(owner as any).name}</div>
-                                {(owner as any).phone && (
-                                  <a href={`tel:${(owner as any).phone}`} style={{ fontSize: '12px', color: '#15803d', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                                    <Phone size={12} /> {(owner as any).phone}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                                  <img src={getImageUrl((owner as any).profilePic)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#166534' }}>HOST: {(owner as any).name}</div>
+                                  <a href={`tel:${(owner as any).phone}`} style={{ fontSize: '12px', fontWeight: 700, color: '#15803d' }}>
+                                    {(owner as any).phone || 'Contact Host'}
                                   </a>
-                                )}
+                                </div>
                               </div>
                             )}
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                              {vehicle && (
+                                <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} style={{ fontSize: '11px', color: 'var(--text-secondary)', textDecoration: 'underline' }}>View Page</Link>
+                              )}
+                              <button onClick={() => handleViewDetail(b)} style={{ background: 'none', border: 'none', padding: 0, fontSize: '11px', color: 'var(--color-primary)', cursor: 'pointer', fontWeight: 600 }}>Full Details</button>
+                            </div>
                           </div>
-                        </td>
-                        <td data-label="Actions" className="table-actions">
-                          {/* Review Renter Button (Actual Owner Only) */}
-                          {b.status === 'PENDING' && isIamOwnerOfThis && (
-                            <button 
-                              className="btn btn-sm btn-ghost" 
-                              style={{ width: '100%', borderColor: 'var(--border-color)', background: '#f8fafc' }}
-                              onClick={() => {
-                                setSelectedRenter(typeof b.user === 'object' ? b.user : null);
-                                setActiveBookingId(b._id);
-                                setShowRenterModal(true);
-                              }}
-                            >
-                              <Shield size={14} /> Review Renter
-                            </button>
-                          )}
 
-                          {/* Owner accept/reject — only for verified actual owners */}
-                          {b.status === 'PENDING' && isIamOwnerOfThis && user.isKycVerified && (
-                            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                              <button className="btn btn-sm btn-primary" style={{ flex: 1, height: '38px' }} onClick={() => handleAcceptBooking(b._id)}>
-                                <CheckCircle size={14} /> Accept
-                              </button>
-                              <button className="btn btn-sm btn-danger" style={{ flex: 1, height: '38px' }} onClick={() => handleRejectBooking(b._id)}>
-                                <XCircle size={14} /> Reject
-                              </button>
-                            </div>
-                          )}
-                          
-                          {/* Unverified owner sees read-only */}
-                          {b.status === 'PENDING' && isIamOwnerOfThis && !user.isKycVerified && !isStaff && (
-                            <div style={{ padding: '8px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '8px', fontSize: '11px', color: '#92400e', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <AlertTriangle size={14} /> Verify to respond
-                            </div>
-                          )}
-                          
-                          {/* Renter can cancel their own pending bookings */}
-                          {b.status === 'PENDING' && isIamRenterOfThis && (
-                            <button className="btn btn-sm btn-danger" style={{ width: '100%', height: '38px' }} onClick={() => handleCancelBooking(b._id)}>
-                              <XCircle size={14} /> Cancel Trip
-                            </button>
-                          )}
-                          
-                          {/* Renter can review their own completed bookings */}
-                          {b.status === 'COMPLETED' && isIamRenterOfThis && !b.isReviewed && (
-                            <button className="btn btn-sm btn-primary" style={{ width: '100%', height: '38px' }} onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>
-                              <Star size={14} /> Leave Review
-                            </button>
-                          )}
+                          <div className="booking-card-actions">
+                            {b.status === 'PENDING' && isIamOwnerOfThis && (
+                              <>
+                                <button className="btn btn-sm btn-ghost" onClick={() => { setSelectedRenter(typeof b.user === 'object' ? b.user : null); setActiveBookingId(b._id); setShowRenterModal(true); }}>
+                                  Review Renter
+                                </button>
+                                {user.isKycVerified ? (
+                                  <>
+                                    <button className="btn btn-sm btn-primary" onClick={() => handleAcceptBooking(b._id)}>Accept</button>
+                                    <button className="btn btn-sm btn-danger" onClick={() => handleRejectBooking(b._id)}>Reject</button>
+                                  </>
+                                ) : (
+                                  <div style={{ fontSize: '11px', color: '#92400e', background: '#fffbeb', padding: '6px 12px', borderRadius: '8px', border: '1px solid #fef3c7' }}>
+                                    <AlertTriangle size={12} style={{ marginRight: '4px' }} /> Verify account
+                                  </div>
+                                )}
+                              </>
+                            )}
 
-                          {/* Detail Button for all */}
-                          <button 
-                            className="btn btn-sm btn-ghost" 
-                            style={{ width: '100%', marginTop: '4px', fontSize: '11px' }}
-                            onClick={() => handleViewDetail(b)}
-                          >
-                            <Info size={14} /> View Details
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                            {b.status === 'PENDING' && isIamRenterOfThis && (
+                              <button className="btn btn-sm btn-danger" style={{ minWidth: '120px' }} onClick={() => handleCancelBooking(b._id)}>Cancel Trip</button>
+                            )}
+
+                            {b.status === 'COMPLETED' && isIamRenterOfThis && !b.isReviewed && (
+                              <button className="btn btn-sm btn-primary" onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>Leave Review</button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
           )}
         </div>
         ) : tab === 'calendar' ? (
