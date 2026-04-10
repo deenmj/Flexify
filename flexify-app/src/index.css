@@ -1158,6 +1158,52 @@ select {
   color: white;
 }
 
+/* ============================================
+   VEHICLE LISTING HERO REFINEMENT
+   ============================================ */
+.static-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%) !important;
+  padding: 5rem 0 7rem !important;
+  text-align: center !important;
+  color: white !important;
+  position: relative;
+  z-index: 1;
+}
+
+.static-hero h1 {
+  font-size: 3rem !important;
+  font-weight: 900 !important;
+  color: white !important;
+  margin-bottom: 0.75rem !important;
+  letter-spacing: -0.02em;
+}
+
+.static-hero p {
+  font-size: 1.15rem !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  max-width: 600px;
+  margin: 0 auto !important;
+}
+
+@media (max-width: 768px) {
+  .static-hero {
+    padding: 3rem 0 4rem !important;
+  }
+  .static-hero h1 {
+    font-size: 1.75rem !important;
+  }
+  .static-hero p {
+    font-size: 0.9rem !important;
+    padding: 0 1.5rem;
+  }
+}
+
+.list-vehicle-content {
+  margin-top: -4rem;
+  position: relative;
+  z-index: 10;
+}
+
 /* Submit Button */
 .submit-vehicle-btn {
   padding: 1.375rem !important;
