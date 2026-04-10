@@ -733,8 +733,6 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          )}
-        </div>
         ) : tab === 'calendar' ? (
           /* ===== CALENDAR TAB (Owner Only) ===== */
           <div className="dashboard-box">
@@ -1187,13 +1185,13 @@ export default function Dashboard() {
                 {typeof selectedBooking.owner === 'object' ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <img 
-                      src={getImageUrl((selectedBooking.owner as User).profilePic)} 
+                      src={getImageUrl((selectedBooking.owner as any).profilePic)} 
                       style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
                     />
                     <div>
-                      <div style={{ fontWeight: 600 }}>{(selectedBooking.owner as User).name}</div>
+                      <div style={{ fontWeight: 600 }}>{(selectedBooking.owner as any).name}</div>
                       <div style={{ color: '#16a34a', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Phone size={14} /> {(selectedBooking.owner as User).phone || 'No phone provided'}
+                        <Phone size={14} /> {(selectedBooking.owner as any).phone || 'No phone provided'}
                       </div>
                     </div>
                   </div>
