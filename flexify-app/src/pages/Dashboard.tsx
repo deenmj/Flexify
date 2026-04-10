@@ -447,6 +447,35 @@ export default function Dashboard() {
         {/* KYC verification banner — not for staff (auto-verified) */}
         {!user.isKycVerified && !isStaff && (
           <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem', borderRadius: '20px' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <div style={{ background: '#ff7e33', color: 'white', padding: '10px', borderRadius: '12px' }}><Shield size={24} /></div>
+              <div>
+                <h3 style={{ color: '#9a3412', marginBottom: '4px' }}>
+                  {user.verificationStatus === 'pending' ? 'Verification Pending' : 'Verify Your Account'}
+                </h3>
+                <p style={{ color: '#c2410c' }}>
+                  {user.verificationStatus === 'pending'
+                    ? 'Your KYC documents are under review. You\'ll be notified once approved.'
+                    : 'Complete KYC verification to book vehicles and access all features.'}
+                </p>
+              </div>
+            </div>
+            {user.verificationStatus !== 'pending' && (
+              <Link to="/verify" className="btn btn-primary">Verify Now</Link>
+            )}
+          </div>
+        )}
+
+        {/* Unverified owner banner */}
+        {isUnverifiedOwner && (
+          <div className="card" style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', border: '1px solid #fbbf24', padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem', borderRadius: '20px' }}>
+            <div style={{ background: '#d97706', color: 'white', padding: '10px', borderRadius: '12px' }}><AlertTriangle size={24} /></div>
+            <div>
+              <h3 style={{ color: '#92400e', marginBottom: '4px' }}>Verification Required</h3>
+              <p style={{ color: '#a16207' }}>You can list vehicles, but you must complete KYC verification to accept bookings from renters.</p>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="dashboard-tabs">
@@ -1161,6 +1190,7 @@ export default function Dashboard() {
           </div>
         ) : <p>Loading details...</p>}
       </Modal>
+    </div>
     </div>
   );
 }
