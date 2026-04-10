@@ -196,5 +196,16 @@
   border-radius: 16px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow-x: auto; /* Handle wide tables */
+  -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-box table {
+  min-width: 600px; /* Force scroll on mobile for data integrity */
+}
+
+@media (max-width: 768px) {
+  .dashboard-box table {
+    min-width: 500px;
+  }
 }
