@@ -576,8 +576,9 @@ export default function Dashboard() {
                 </Row>
               </div>
             ) : (
-              <table className="dashboard-table" style={{ borderTop: '1px solid var(--border-color)' }}>
-                <thead><tr><th>Photo</th><th>Vehicle</th><th>Category</th><th>Price/day</th><th>Status</th><th>Actions</th></tr></thead>
+              <div className="dashboard-box-scroll">
+                <table className="dashboard-table">
+                <thead><tr><th style={{ paddingLeft: '2rem' }}>Photo</th><th>Vehicle</th><th>Category</th><th>Price/day</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
                   {filteredVehicles.map(v => (
                     <tr key={v._id}>
@@ -611,8 +612,9 @@ export default function Dashboard() {
                   ))}
                 </tbody>
               </table>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
         ) : tab === 'bookings' ? (
           <div className="dashboard-box">
             <div style={{ padding: '2rem 2rem 0' }}>
@@ -630,9 +632,9 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-            ) : (
+            <div className="dashboard-box-scroll">
               <table className="dashboard-table">
-                <thead><tr><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th><th>Actions/Details</th></tr></thead>
+                <thead><tr><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th><th style={{ paddingRight: '2rem' }}>Actions/Details</th></tr></thead>
                 <tbody>
                   {bookings.map(b => {
                     const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
@@ -676,15 +678,15 @@ export default function Dashboard() {
                           {/* Review Renter Button (Owner Only) */}
                           {b.status === 'PENDING' && isOwner && (
                             <button 
-                              className="btn btn-sm btn-ghost" 
-                              style={{ color: '#1890ff', border: '1px solid #1890ff', width: '100%' }}
+                              className="btn btn-sm btn-primary" 
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px' }}
                               onClick={() => {
                                 setSelectedRenter(typeof b.user === 'object' ? b.user : null);
                                 setActiveBookingId(b._id);
                                 setShowRenterModal(true);
                               }}
                             >
-                              <Eye size={14} /> Review Renter
+                              <Shield size={14} /> Review Renter
                             </button>
                           )}
 
@@ -723,8 +725,9 @@ export default function Dashboard() {
                   })}
                 </tbody>
               </table>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
         ) : tab === 'calendar' ? (
           /* ===== CALENDAR TAB (Owner Only) ===== */
           <div className="dashboard-box">
@@ -936,8 +939,9 @@ export default function Dashboard() {
                   ))}
                 </tbody>
               </table>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
         ) : tab === 'subscription' ? (
           /* ===== SUBSCRIPTION TAB (Owner Only) ===== */
           <div className="animate-fade-in">
