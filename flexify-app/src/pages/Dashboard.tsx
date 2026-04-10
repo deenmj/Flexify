@@ -639,48 +639,74 @@ export default function Dashboard() {
                 <tbody>
                   {bookings.map(b => {
                     const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
+                    const vOwnerId = typeof b.owner === 'object' ? (b.owner as any)._id || (b.owner as any).id : b.owner;
+                    const renterId = typeof b.user === 'object' ? (b.user as any)._id || (b.user as any).id : b.user;
+                    
+                    const isIamOwnerOfThis = vOwnerId === (user._id || user.id) || isStaff;
+                    const isIamRenterOfThis = renterId === (user._id || user.id);
                     const owner = typeof b.owner === 'object' ? b.owner : null;
+
                     return (
                       <tr key={b._id} id={`booking-${b._id}`}>
                         <td data-label="Vehicle">
-                          <div style={{ fontWeight: 600 }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle'}</div>
-                          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                            {vehicle && (
-                              <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="text-secondary" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Eye size={12} /> Vehicle
-                              </Link>
-                            )}
-                            <button 
-                              onClick={() => handleViewDetail(b)} 
-                              className="text-primary" 
-                              style={{ fontSize: '11px', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
-                            >
-                              <Info size={12} /> Full Details
-                            </button>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle'}</div>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                              {vehicle && (
+                                <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="text-secondary" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'underline' }}>
+                                  <Eye size={12} /> View Page
+                                </Link>
+                              )}
+                              <button 
+                                onClick={() => handleViewDetail(b)} 
+                                className="text-primary" 
+                                style={{ fontSize: '11px', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+                              >
+                                <Info size={12} /> Full Details
+                              </button>
+                            </div>
                           </div>
                         </td>
-                        <td data-label="Dates" className="table-dates">{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</td>
-                        <td data-label="Amount">LKR {b.totalAmount.toLocaleString()}</td>
+                        <td data-label="Dates" className="table-dates">
+                          <div style={{ padding: '4px 0' }}>
+                            {new Date(b.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            <div style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 400 }}>to {new Date(b.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                          </div>
+                        </td>
+                        <td data-label="Amount" className="table-amount">
+                          <div>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginRight: '4px' }}>LKR</span>
+                            {b.totalAmount.toLocaleString()}
+                          </div>
+                        </td>
                         <td data-label="Status">
-                          {bookingStatusBadge(b.status)}
-                          {/* Show owner phone ONLY when confirmed and user is the renter */}
-                          {b.status === 'CONFIRMED' && user?.role === 'user' && owner && (
-                            <div style={{ marginTop: '8px' }}>
-                              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>{owner.name}</div>
-                              {owner.phone && (
-                                <div style={{ fontSize: '12px', color: '#1890ff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                  <Phone size={12} /> {owner.phone}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {bookingStatusBadge(b.status)}
+                            {/* Show owner phone ONLY when confirmed and user is the renter */}
+                            {b.status === 'CONFIRMED' && isIamRenterOfThis && owner && (
+                              <div style={{ 
+                                padding: '8px', 
+                                background: '#f0fdf4', 
+                                border: '1px solid #dcfce7', 
+                                borderRadius: '8px',
+                                marginTop: '4px'
+                              }}>
+                                <div style={{ fontSize: '11px', color: '#166534', fontWeight: 700 }}>OWNER: {(owner as any).name}</div>
+                                {(owner as any).phone && (
+                                  <a href={`tel:${(owner as any).phone}`} style={{ fontSize: '12px', color: '#15803d', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                    <Phone size={12} /> {(owner as any).phone}
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td data-label="Actions" className="table-actions">
-                          {/* Review Renter Button (Owner Only) */}
-                          {b.status === 'PENDING' && isOwner && (
+                          {/* Review Renter Button (Actual Owner Only) */}
+                          {b.status === 'PENDING' && isIamOwnerOfThis && (
                             <button 
-                              className="btn btn-sm btn-primary" 
-                              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px' }}
+                              className="btn btn-sm btn-ghost" 
+                              style={{ width: '100%', borderColor: 'var(--border-color)', background: '#f8fafc' }}
                               onClick={() => {
                                 setSelectedRenter(typeof b.user === 'object' ? b.user : null);
                                 setActiveBookingId(b._id);
@@ -691,35 +717,47 @@ export default function Dashboard() {
                             </button>
                           )}
 
-                          {/* Owner accept/reject — only for verified owners */}
-                          {b.status === 'PENDING' && isVerifiedOwner && (
-                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px', width: '100%' }}>
-                              <button className="btn btn-sm btn-primary" style={{ flex: 1 }} onClick={() => handleAcceptBooking(b._id)}>
+                          {/* Owner accept/reject — only for verified actual owners */}
+                          {b.status === 'PENDING' && isIamOwnerOfThis && user.isKycVerified && (
+                            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                              <button className="btn btn-sm btn-primary" style={{ flex: 1, height: '38px' }} onClick={() => handleAcceptBooking(b._id)}>
                                 <CheckCircle size={14} /> Accept
                               </button>
-                              <button className="btn btn-sm btn-danger" style={{ flex: 1 }} onClick={() => handleRejectBooking(b._id)}>
+                              <button className="btn btn-sm btn-danger" style={{ flex: 1, height: '38px' }} onClick={() => handleRejectBooking(b._id)}>
                                 <XCircle size={14} /> Reject
                               </button>
                             </div>
                           )}
+                          
                           {/* Unverified owner sees read-only */}
-                          {b.status === 'PENDING' && isUnverifiedOwner && (
-                            <span style={{ fontSize: '12px', color: '#f59e0b', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <AlertTriangle size={12} /> Verify account to accept
-                            </span>
+                          {b.status === 'PENDING' && isIamOwnerOfThis && !user.isKycVerified && !isStaff && (
+                            <div style={{ padding: '8px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '8px', fontSize: '11px', color: '#92400e', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <AlertTriangle size={14} /> Verify to respond
+                            </div>
                           )}
-                          {/* Renter can cancel pending bookings */}
-                          {(b.status === 'PENDING') && user?.role === 'user' && (
-                            <button className="btn btn-sm btn-danger" style={{ width: '100%' }} onClick={() => handleCancelBooking(b._id)}>
-                              <XCircle size={14} /> Cancel
+                          
+                          {/* Renter can cancel their own pending bookings */}
+                          {b.status === 'PENDING' && isIamRenterOfThis && (
+                            <button className="btn btn-sm btn-danger" style={{ width: '100%', height: '38px' }} onClick={() => handleCancelBooking(b._id)}>
+                              <XCircle size={14} /> Cancel Trip
                             </button>
                           )}
-                          {/* Renter can review completed bookings */}
-                          {b.status === 'COMPLETED' && user?.role === 'user' && !b.isReviewed && (
-                            <button className="btn btn-sm btn-primary" style={{ width: '100%' }} onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>
-                              <Star size={14} /> Review
+                          
+                          {/* Renter can review their own completed bookings */}
+                          {b.status === 'COMPLETED' && isIamRenterOfThis && !b.isReviewed && (
+                            <button className="btn btn-sm btn-primary" style={{ width: '100%', height: '38px' }} onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>
+                              <Star size={14} /> Leave Review
                             </button>
                           )}
+
+                          {/* Detail Button for all */}
+                          <button 
+                            className="btn btn-sm btn-ghost" 
+                            style={{ width: '100%', marginTop: '4px', fontSize: '11px' }}
+                            onClick={() => handleViewDetail(b)}
+                          >
+                            <Info size={14} /> View Details
+                          </button>
                         </td>
                       </tr>
                     );
