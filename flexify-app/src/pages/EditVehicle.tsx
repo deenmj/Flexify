@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel, getImageUrl } from '../api';
 import { Select as AntSelect, message, Row, Col } from 'antd';
-import { Car, MapPin, Settings, Image, Locate, Save, Trash2, Gauge, Fuel, Users, Zap } from 'lucide-react';
+import { Car, MapPin, Settings, Image, Locate, Save, Trash2 } from 'lucide-react';
 import './ListVehicle.css';
 
 const { Option } = AntSelect;
@@ -47,9 +47,7 @@ export default function EditVehicle() {
   });
 
   const [selectedMake, setSelectedMake] = useState('');
-  const [customMake, setCustomMake] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
-  const [customModel, setCustomModel] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<any[]>([]);
   const [makes, setMakes] = useState<VehicleMake[]>([]);
@@ -64,16 +62,15 @@ export default function EditVehicle() {
           vehicleApi.getMakes()
         ]);
         setMakes(allMakes);
-        const makeExists = allMakes.find((m: any) => m.name === vehicle.make);
-        if (makeExists) setSelectedMake(vehicle.make); else if (vehicle.make) { setSelectedMake('Other'); setCustomMake(vehicle.make); }
+        setSelectedMake(vehicle.make || '');
         setForm({
           title: vehicle.title, make: vehicle.make, model: vehicle.model,
           year: vehicle.year.toString(), pricePerDay: vehicle.pricePerDay.toString(),
           transmission: vehicle.transmission || 'Automatic', fuelType: vehicle.fuelType || 'Petrol',
           seats: (vehicle.seats || 4).toString(), serviceType: (vehicle.serviceType && vehicle.serviceType[0]) || '',
           description: vehicle.description || '', address: vehicle.location?.address || '',
-          lat: (vehicle.location?.coordinates?.[1] || 7.8731).toString(),
-          lng: (vehicle.location?.coordinates?.[0] || 80.7718).toString(),
+          lat: (vehicle.location?.coordinates?.[1] || '').toString(),
+          lng: (vehicle.location?.coordinates?.[0] || '').toString(),
           engineCapacity: vehicle.engineCapacity || '', fuelConsumption: vehicle.fuelConsumption || '',
           features: vehicle.features || [], province: vehicle.province || '', district: vehicle.district || '', city: vehicle.city || '',
           pricePerWeek: vehicle.pricePerWeek?.toString() || '', pricePerMonth: vehicle.pricePerMonth?.toString() || ''
@@ -87,30 +84,25 @@ export default function EditVehicle() {
 
   useEffect(() => {
     const fetchModels = async () => {
-      if (!selectedMake || selectedMake === 'Other') { setModels([]); return; }
+      if (!selectedMake) { setModels([]); return; }
       const makeObj = makes.find((m: VehicleMake) => m.name === selectedMake);
       if (!makeObj) return;
       try {
         const data = await vehicleApi.getModels(makeObj._id);
         setModels(data);
-        const modelExists = data.find((md: any) => md.name === form.model);
-        if (modelExists) setSelectedModel(form.model); else if (form.model && selectedMake !== 'Other') {
-          setSelectedModel('Other'); setCustomModel(form.model);
-        }
-      } catch (err) { console.error("Models fail", err); }
+        if (form.model) setSelectedModel(form.model);
+      } catch (err) { console.error("Models load fail", err); }
     };
     if (makes.length > 0) fetchModels();
   }, [selectedMake, makes]);
 
   useEffect(() => {
-    const finalMake = selectedMake === 'Other' ? customMake : selectedMake;
-    const finalModel = selectedModel === 'Other' ? customModel : selectedModel;
-    setForm(prev => ({ ...prev, make: finalMake, model: finalModel }));
-  }, [selectedMake, customMake, selectedModel, customModel]);
+    setForm(prev => ({ ...prev, make: selectedMake, model: selectedModel }));
+  }, [selectedMake, selectedModel]);
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
-      message.loading({ content: 'Syncing...', key: 'locate' });
+      message.loading({ content: 'Syncing Location...', key: 'locate' });
       navigator.geolocation.getCurrentPosition(async (pos) => {
         const { latitude, longitude } = pos.coords;
         try {
@@ -118,163 +110,133 @@ export default function EditVehicle() {
           const data = await res.json();
           if (data && data.address) {
             const addr = data.address;
-            const city = addr.city || addr.town || addr.village || '';
+            const city = addr.city || addr.town || '';
             const district = (addr.state_district || addr.county || '').replace(' District', '').trim();
             const state = addr.state || '';
-            let matchedProvince = ''; let matchedDistrict = '';
+            let mp = ''; let md = '';
             Object.entries(SRI_LANKA_LOCATIONS).forEach(([prov, dists]) => {
               if (state.includes(prov) || dists.some(d => district.includes(d))) {
-                matchedProvince = prov;
-                if (dists.some(d => district.includes(d))) matchedDistrict = dists.find(d => district.includes(d)) || '';
+                mp = prov; if (dists.some(d => district.includes(d))) md = dists.find(d => district.includes(d)) || '';
               }
             });
-            setForm(prev => ({ ...prev, province: matchedProvince || prev.province, district: matchedDistrict || prev.district, city: city || prev.city, lat: latitude.toString(), lng: longitude.toString() }));
-            message.success({ content: `Detected: ${city || 'Locality'}`, key: 'locate' });
+            setForm(prev => ({ ...prev, province: mp || prev.province, district: md || prev.district, city: city || prev.city, lat: latitude.toString(), lng: longitude.toString() }));
+            message.success({ content: `Location Detected: ${city}`, key: 'locate' });
           }
         } catch (err) { message.success({ content: 'Location Found', key: 'locate' }); }
-      }, () => message.error({ content: 'Sync Failed', key: 'locate' }));
+      }, () => message.error({ content: 'Access Denied', key: 'locate' }));
     }
   };
 
-  const handleFeatureToggle = (featureId: string) => {
-    setForm(prev => ({
-      ...prev, features: prev.features.includes(featureId) ? prev.features.filter(id => id !== featureId) : [...prev.features, featureId]
-    }));
+  const handleFeatureToggle = (fid: string) => {
+    setForm(prev => ({ ...prev, features: prev.features.includes(fid) ? prev.features.filter(id => id !== fid) : [...prev.features, fid] }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
-    setSaveLoading(true);
-    setError('');
+    setSaveLoading(true); setError('');
     try {
       const formData = new FormData();
-      Object.entries(form).forEach(([key, value]) => formData.append(key, value));
+      Object.entries(form).forEach(([k, v]) => formData.append(k, v));
       formData.append('features', JSON.stringify(form.features));
       formData.append('existingPhotos', JSON.stringify(existingPhotos));
       photos.forEach(p => formData.append('photos', p));
       await vehicleApi.updateWithPhotos(id, formData);
-      message.success('Listing Updated!');
+      message.success('Listing Updated Successfully!');
       navigate('/dashboard');
-    } catch (err: any) { setError(err.message || 'Error occurred'); }
+    } catch (err: any) { setError(err.message || 'Error occurred while saving'); }
     finally { setSaveLoading(false); }
   };
 
-  if (loading) return <div className="container" style={{ padding: '80px 1rem', textAlign: 'center' }}>Synchronizing details...</div>;
+  if (loading) return <div className="container" style={{ padding: '80px 1rem', textAlign: 'center' }}>Updating local cache...</div>;
 
   return (
     <div className="list-vehicle-page">
       <section className="static-hero">
         <div className="container">
-          <h1>Edit Profile</h1>
-          <p>Optimize your vehicle listing for maximum visibility</p>
+          <h1>Edit Vehicle Listing</h1>
+          <p>Keep your details fresh and accurate for renters</p>
         </div>
       </section>
 
       <section className="list-vehicle-wrapper">
-        <div className="container">
+        <form onSubmit={handleSubmit}>
           {error && <div className="auth-message error" style={{ marginBottom: '2rem' }}>{error}</div>}
 
-          <form onSubmit={handleSubmit} className="list-vehicle-form-refined">
-            
-            <Row gutter={[32, 32]}>
-              <Col xs={24} lg={12}>
-                <div className="form-card" style={{ height: '100%', animationDelay: '0s' }}>
-                  <div className="form-card-header">
-                    <Car size={22} />
-                    <h3>Basic Information</h3>
-                  </div>
-                  <div className="form-card-body">
-                    <div className="input-group">
-                      <label>Vehicle Listing Title</label>
-                      <input className="input-field" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-                    </div>
-                    
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        <div className="input-group">
-                          <label>Make</label>
-                          <AntSelect showSearch className="antd-select-large" value={selectedMake || undefined} onChange={(val) => { setSelectedMake(val); setSelectedModel(''); }}>
-                            {makes.map(m => <Option key={m._id} value={m.name}>{m.name}</Option>)}
-                            <Option value="Other">Other</Option>
-                          </AntSelect>
-                        </div>
-                      </Col>
-                      <Col span={12}>
-                        <div className="input-group">
-                          <label>Model</label>
-                          <AntSelect showSearch className="antd-select-large" value={selectedModel || undefined} onChange={(val) => setSelectedModel(val)} disabled={!selectedMake}>
-                            {models.map(m => <Option key={m._id} value={m.name}>{m.name}</Option>)}
-                            <Option value="Other">Other</Option>
-                          </AntSelect>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Row gutter={[16, 16]}>
-                      <Col span={8}>
-                        <div className="input-group"><label>Year</label><input type="number" className="input-field" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required /></div>
-                      </Col>
-                      <Col span={16}>
-                        <div className="input-group"><label>Price / Day (LKR)</label><input type="number" className="input-field" value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })} required /></div>
-                      </Col>
-                    </Row>
-                  </div>
+          <Row gutter={[32, 32]}>
+            <Col xs={24} lg={14}>
+              <div className="form-card">
+                <div className="form-card-header"><Car size={20} /><h3>Basic Information</h3></div>
+                <div className="form-card-body">
+                  <div className="input-group"><label>Vehicle Title</label><input className="input-field" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
+                  <Row gutter={[16, 16]}>
+                    <Col span={12}><div className="input-group"><label>Make</label><AntSelect showSearch className="antd-select-large" value={selectedMake || undefined} onChange={(v) => { setSelectedMake(v); setSelectedModel(''); }}>{makes.map(m => <Option key={m._id} value={m.name}>{m.name}</Option>)}</AntSelect></div></Col>
+                    <Col span={12}><div className="input-group"><label>Model</label><AntSelect showSearch className="antd-select-large" value={selectedModel || undefined} onChange={(v) => setSelectedModel(v)} disabled={!selectedMake}>{models.map(m => <Option key={m._id} value={m.name}>{m.name}</Option>)}</AntSelect></div></Col>
+                  </Row>
+                  <Row gutter={[16, 16]}>
+                    <Col span={10}><div className="input-group"><label>Year</label><input type="number" className="input-field" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required /></div></Col>
+                    <Col span={14}><div className="input-group"><label>Price / Day (LKR)</label><input type="number" className="input-field" value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })} required /></div></Col>
+                  </Row>
                 </div>
-              </Col>
+              </div>
 
-              <Col xs={24} lg={12}>
-                <div className="form-card" style={{ height: '100%', animationDelay: '0.1s' }}>
-                  <div className="form-card-header"><Settings size={22} /><h3>Technical Specifications</h3></div>
-                  <div className="form-card-body">
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}><div className="input-group"><label>Transmission</label><select className="input-field" value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })}><option value="Automatic">Automatic</option><option value="Manual">Manual</option></select></div></Col>
-                      <Col span={12}><div className="input-group"><label>Fuel Type</label><select className="input-field" value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}><option value="Petrol">Petrol</option><option value="Diesel">Diesel</option><option value="Electric">Electric</option></select></div></Col>
-                    </Row>
-                    <label className="features-group-title">Features & Amenities</label>
+              <div className="form-card">
+                <div className="form-card-header"><MapPin size={20} /><h3>Location Details</h3><button type="button" onClick={handleGetLocation} className="btn-locate-premium"><Locate size={14} /> Auto-Detect</button></div>
+                <div className="form-card-body">
+                  <Row gutter={[16, 16]}>
+                    <Col span={12}><div className="input-group"><label>Province</label><select className="input-field" value={form.province} onChange={(e) => setForm({ ...form, province: e.target.value })} required><option value="">Select Province</option>{Object.keys(SRI_LANKA_LOCATIONS).map(p => <option key={p} value={p}>{p}</option>)}</select></div></Col>
+                    <Col span={12}><div className="input-group"><label>District</label><select className="input-field" disabled={!form.province} value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} required><option value="">Select District</option>{form.province && SRI_LANKA_LOCATIONS[form.province].map(d => <option key={d} value={d}>{d}</option>)}</select></div></Col>
+                    <Col span={24}><div className="input-group"><label>City / Town</label><input className="input-field" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required /></div></Col>
+                  </Row>
+                </div>
+              </div>
+            </Col>
+
+            <Col xs={24} lg={10}>
+              <div className="form-card">
+                <div className="form-card-header"><Settings size={20} /><h3>Technical Specs</h3></div>
+                <div className="form-card-body">
+                  <Row gutter={[16, 16]}>
+                    <Col span={12}><div className="input-group"><label>Transmission</label><select className="input-field" value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })}><option value="Automatic">Automatic</option><option value="Manual">Manual</option></select></div></Col>
+                    <Col span={12}><div className="input-group"><label>Fuel</label><select className="input-field" value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}><option value="Petrol">Petrol</option><option value="Diesel">Diesel</option></select></div></Col>
+                    <Col span={12}><div className="input-group"><label>Capacity</label><input className="input-field" value={form.engineCapacity} onChange={(e) => setForm({ ...form, engineCapacity: e.target.value })} /></div></Col>
+                    <Col span={12}><div className="input-group"><label>Seats</label><select className="input-field" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })}><option value="2">2</option><option value="4">4</option><option value="5">5</option><option value="7">7</option></select></div></Col>
+                  </Row>
+                  <div className="features-group">
+                    <label className="input-group label" style={{ marginBottom: '1rem' }}>Amenities</label>
                     <div className="features-grid">
-                      {VEHICLE_FEATURES.map(feat => (
-                        <div key={feat.id} className={`feature-item ${form.features.includes(feat.id) ? 'active' : ''}`} onClick={() => handleFeatureToggle(feat.id)}>
-                          <span className="feature-icon">{feat.icon}</span><span className="feature-label">{feat.label}</span>
+                      {VEHICLE_FEATURES.map(f => (
+                        <div key={f.id} className={`feature-item ${form.features.includes(f.id) ? 'active' : ''}`} onClick={() => handleFeatureToggle(f.id)}>
+                          <span className="feature-icon">{f.icon}</span><span className="feature-label">{f.label}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
-              </Col>
+              </div>
 
-              <Col xs={24}>
-                <div className="form-card" style={{ animationDelay: '0.2s' }}>
-                  <div className="form-card-header"><MapPin size={22} /><h3>Location & Media</h3><button type="button" onClick={handleGetLocation} className="btn-locate-premium"><Locate size={16} /> Auto-Detect</button></div>
-                  <div className="form-card-body">
-                    <Row gutter={[24, 24]}>
-                      <Col xs={24} md={8}><div className="input-group"><label>Province</label><select className="input-field" value={form.province} onChange={(e) => setForm({ ...form, province: e.target.value })} required><option value="">Select Province</option>{Object.keys(SRI_LANKA_LOCATIONS).map(p => <option key={p} value={p}>{p}</option>)}</select></div></Col>
-                      <Col xs={24} md={8}><div className="input-group"><label>District</label><select className="input-field" disabled={!form.province} value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} required><option value="">Select District</option>{form.province && SRI_LANKA_LOCATIONS[form.province].map(d => <option key={d} value={d}>{d}</option>)}</select></div></Col>
-                      <Col xs={24} md={8}><div className="input-group"><label>City</label><input className="input-field" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required /></div></Col>
-                      
-                      <Col xs={24} md={12}><div className="input-group"><label>Description</label><textarea className="input-field" rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required /></div></Col>
-                      <Col xs={24} md={12}>
-                        <div className="input-group">
-                          <label>Photos Management</label>
-                          <div className="photo-preview-list mb-3">
-                            {existingPhotos.map((p, i) => (
-                              <div key={i} className="photo-tag"><img src={getImageUrl(p)} style={{ width: '40px', borderRadius: '4px' }} alt="" /><button type="button" onClick={() => setExistingPhotos(existingPhotos.filter((_, idx) => idx !== i))}><Trash2 size={14} /></button></div>
-                            ))}
-                          </div>
-                          <div className="upload-dropzone" onClick={() => fileInputRef.current?.click()}><Image size={32} /><p>Add More Photos</p><input type="file" hidden multiple ref={fileInputRef} onChange={(e) => setPhotos(Array.from(e.target.files!))} accept="image/*" /></div>
-                        </div>
-                      </Col>
-                    </Row>
+              <div className="form-card">
+                <div className="form-card-header"><Image size={20} /><h3>Description & Media</h3></div>
+                <div className="form-card-body">
+                  <div className="input-group"><label>Description</label><textarea className="input-field" rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required /></div>
+                  <div className="input-group">
+                    <label>Photos</label>
+                    <div className="photo-preview-list" style={{ marginBottom: '1rem' }}>
+                      {existingPhotos.map((p, i) => (
+                        <div key={i} className="photo-tag"><img src={getImageUrl(p)} style={{ width: '30px', borderRadius: '4px' }} alt="" /><button type="button" onClick={() => setExistingPhotos(existingPhotos.filter((_, idx) => idx !== i))}><Trash2 size={12} /></button></div>
+                      ))}
+                    </div>
+                    <div className="upload-dropzone" onClick={() => fileInputRef.current?.click()}><p>Add More Photos</p><input type="file" hidden multiple ref={fileInputRef} onChange={(e) => setPhotos(Array.from(e.target.files!))} accept="image/*" /></div>
                   </div>
                 </div>
-              </Col>
-            </Row>
+              </div>
+            </Col>
+          </Row>
 
-            <button type="submit" className="submit-vehicle-btn" disabled={saveLoading} style={{ marginTop: '2rem' }}>
-              {saveLoading ? 'Saving Changes...' : <><Save size={18} /> Update Listing</>}
-            </button>
-          </form>
-        </div>
+          <button type="submit" className="submit-vehicle-btn" disabled={saveLoading}>
+            {saveLoading ? 'Saving Changes...' : <><Save size={18} /> Update Listing</>}
+          </button>
+        </form>
       </section>
     </div>
   );
