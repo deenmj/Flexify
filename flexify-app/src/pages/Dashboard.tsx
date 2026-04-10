@@ -960,7 +960,6 @@ export default function Dashboard() {
             </div>
           </div>
         ) : null}
-      </div>
 
       {/* REVIEW MODAL */}
       <Modal
