@@ -389,56 +389,60 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page page-wrapper bg-secondary">
 
-      <header className="dashboard-header section-padding">
+      <header className="dashboard-header">
         <div className="container">
-          <div className="animate-fade-in-up">
-            <h1 className="hero-title" style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>My Dashboard</h1>
-            <p className="hero-subtitle" style={{ fontSize: '1.2rem', opacity: 0.8 }}>Welcome back, {user.name.split(' ')[0]}! Here's what's happening with your fleet today.</p>
+          <div className="animate-fade-in">
+            <h1 className="dashboard-title">My Dashboard</h1>
+            <p className="dashboard-subtitle">
+              Welcome back, {user.name.split(' ')[0]}! Here's what's happening today.
+            </p>
           </div>
         </div>
       </header>
 
-      <div className="container" style={{ marginTop: '0' }}>
+      <div className="container">
         {/* Stats Section */}
         {isOwner && (
-          <div className="dashboard-stats animate-fade-in">
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#eff6ff', color: '#3b82f6' }}>
-                <Car size={28} />
+          <div className="dashboard-stats-wrapper">
+            <div className="dashboard-stats animate-fade-in-up">
+              <div className="stat-card">
+                <div className="stat-icon-wrap" style={{ background: 'var(--color-primary-50)', color: 'var(--color-primary)' }}>
+                  <Car size={22} />
+                </div>
+                <div className="stat-content">
+                  <span className="stat-val">{vehicles.length}</span>
+                  <span className="stat-lbl">Vehicles</span>
+                </div>
               </div>
-              <div className="stat-info">
-                <span className="stat-number">{vehicles.length}</span>
-                <span className="stat-label">My Vehicles</span>
+              
+              <div className="stat-card">
+                <div className="stat-icon-wrap" style={{ background: '#f0fdf4', color: '#10b981' }}>
+                  <CalIcon size={22} />
+                </div>
+                <div className="stat-content">
+                  <span className="stat-val">{bookings.length}</span>
+                  <span className="stat-lbl">Bookings</span>
+                </div>
               </div>
-            </div>
-            
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#f0fdf4', color: '#10b981' }}>
-                <CalIcon size={28} />
-              </div>
-              <div className="stat-info">
-                <span className="stat-number">{bookings.length}</span>
-                <span className="stat-label">Total Bookings</span>
-              </div>
-            </div>
 
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
-                <CheckCircle size={28} />
+              <div className="stat-card">
+                <div className="stat-icon-wrap" style={{ background: '#ecfdf5', color: '#059669' }}>
+                  <CheckCircle size={22} />
+                </div>
+                <div className="stat-content">
+                  <span className="stat-val">{bookings.filter(b => b.status === 'CONFIRMED').length}</span>
+                  <span className="stat-lbl">Confirmed</span>
+                </div>
               </div>
-              <div className="stat-info">
-                <span className="stat-number">{bookings.filter(b => b.status === 'CONFIRMED').length}</span>
-                <span className="stat-label">Confirmed</span>
-              </div>
-            </div>
 
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
-                <Clock size={28} />
-              </div>
-              <div className="stat-info">
-                <span className="stat-number">{bookings.filter(b => b.status === 'PENDING').length}</span>
-                <span className="stat-label">Requests</span>
+              <div className="stat-card">
+                <div className="stat-icon-wrap" style={{ background: '#fffbeb', color: '#d97706' }}>
+                  <Clock size={22} />
+                </div>
+                <div className="stat-content">
+                  <span className="stat-val">{bookings.filter(b => b.status === 'PENDING').length}</span>
+                  <span className="stat-lbl">Requests</span>
+                </div>
               </div>
             </div>
           </div>
@@ -446,60 +450,49 @@ export default function Dashboard() {
 
         {/* KYC verification banner — not for staff (auto-verified) */}
         {!user.isKycVerified && !isStaff && (
-          <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem', borderRadius: '20px' }}>
+          <div className="card" style={{ background: 'white', border: '1.5px solid #fed7aa', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', borderRadius: '16px', boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <div style={{ background: '#ff7e33', color: 'white', padding: '10px', borderRadius: '12px' }}><Shield size={24} /></div>
+              <div style={{ background: '#fff7ed', color: '#f97316', padding: '10px', borderRadius: '10px' }}><Shield size={24} /></div>
               <div>
-                <h3 style={{ color: '#9a3412', marginBottom: '4px' }}>
-                  {user.verificationStatus === 'pending' ? 'Verification Pending' : 'Verify Your Account'}
-                </h3>
-                <p style={{ color: '#c2410c' }}>
+                <h4 style={{ margin: 0, color: '#9a3412', fontWeight: 700 }}>
+                  {user.verificationStatus === 'pending' ? 'Verification Pending' : 'Identity Verification Required'}
+                </h4>
+                <p style={{ margin: '2px 0 0', color: '#c2410c', fontSize: '0.85rem', opacity: 0.8 }}>
                   {user.verificationStatus === 'pending'
-                    ? 'Your KYC documents are under review. You\'ll be notified once approved.'
-                    : 'Complete KYC verification to book vehicles and access all features.'}
+                    ? 'Documents are being reviewed. Expected approval within 24 hours.'
+                    : 'Please complete your KYC verification to list and book vehicles.'}
                 </p>
               </div>
             </div>
             {user.verificationStatus !== 'pending' && (
-              <Link to="/verify" className="btn btn-primary">Verify Now</Link>
+              <Link to="/verify" className="btn btn-primary btn-sm">Verify Identity</Link>
             )}
           </div>
         )}
 
-        {/* Unverified owner banner */}
-        {isUnverifiedOwner && (
-          <div className="card" style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', border: '1px solid #fbbf24', padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem', borderRadius: '20px' }}>
-            <div style={{ background: '#d97706', color: 'white', padding: '10px', borderRadius: '12px' }}><AlertTriangle size={24} /></div>
-            <div>
-              <h3 style={{ color: '#92400e', marginBottom: '4px' }}>Verification Required</h3>
-              <p style={{ color: '#a16207' }}>You can list vehicles, but you must complete KYC verification to accept bookings from renters.</p>
-            </div>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="dashboard-tabs">
+        {/* Tabs - Navigation */}
+        <div className="dashboard-nav">
           {isOwner && (
-            <button className={`dashboard-tab ${tab === 'vehicles' ? 'active' : ''}`} onClick={() => setTab('vehicles')}>
-              <Car size={16} /> My Vehicles
+            <button className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} onClick={() => setTab('vehicles')}>
+              <Car size={16} /> Vehicles
             </button>
           )}
-          <button className={`dashboard-tab ${tab === 'bookings' ? 'active' : ''}`} onClick={() => setTab('bookings')}>
+          <button className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} onClick={() => setTab('bookings')}>
             <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
           </button>
           {isOwner && (
-            <button className={`dashboard-tab ${tab === 'calendar' ? 'active' : ''}`} onClick={() => setTab('calendar')}>
+            <button className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} onClick={() => setTab('calendar')}>
               <CalIcon size={16} /> Calendar
             </button>
           )}
           {isOwner && (
-            <button className={`dashboard-tab ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>
+            <button className={`nav-item ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>
               <Star size={16} /> Reviews
             </button>
           )}
           {isOwner && !isStaff && (
-            <button className={`dashboard-tab ${tab === 'subscription' ? 'active' : ''}`} onClick={() => setTab('subscription')}>
-              <Shield size={16} /> My Subscription
+            <button className={`nav-item ${tab === 'subscription' ? 'active' : ''}`} onClick={() => setTab('subscription')}>
+              <Shield size={16} /> Subscription
             </button>
           )}
         </div>
@@ -507,9 +500,9 @@ export default function Dashboard() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>Loading...</div>
         ) : tab === 'vehicles' ? (
-          <div className="dashboard-table-wrap card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem', padding: '1.5rem 1.5rem 0' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>My Vehicles</h3>
+          <div className="dashboard-box">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem', padding: '2rem 2rem 0' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>My Vehicles</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Category:</label>
                 <select
@@ -609,7 +602,12 @@ export default function Dashboard() {
             )}
           </div>
         ) : tab === 'bookings' ? (
-          <div className="dashboard-table-wrap card">
+          <div className="dashboard-box">
+            <div style={{ padding: '2rem 2rem 0' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                {user.role === 'user' ? 'My Trip History' : 'Manage Bookings'}
+              </h3>
+            </div>
             {bookings.length === 0 ? (
               <div className="dashboard-empty">
                 <CalIcon size={40} strokeWidth={1} />
@@ -717,10 +715,10 @@ export default function Dashboard() {
           </div>
         ) : tab === 'calendar' ? (
           /* ===== CALENDAR TAB (Owner Only) ===== */
-          <div className="dashboard-calendar-wrap card">
-            <div style={{ padding: '1.5rem 1.5rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CalIcon size={18} /> Booking Calendar
+          <div className="dashboard-box">
+            <div style={{ padding: '2rem 2rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)' }}>
+                <CalIcon size={24} /> Availability Calendar
               </h3>
               <Select
                 value={calendarVehicleId || undefined}
@@ -839,13 +837,13 @@ export default function Dashboard() {
           </div>
         ) : tab === 'reviews' ? (
           /* ===== REVIEWS TAB (Owner Only) ===== */
-          <div className="dashboard-table-wrap card">
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Star size={18} /> Customer Reviews
+          <div className="dashboard-box">
+            <div style={{ padding: '2rem', borderBottom: '1px solid var(--border-color-light)' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)' }}>
+                <Star size={24} /> Customer Reviews
               </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.4rem' }}>
-                Manage reviews for your vehicles. Verified owners can hide reviews temporarily.
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                Verified owners can manage visibility of vehicle reviews here.
               </p>
             </div>
 
