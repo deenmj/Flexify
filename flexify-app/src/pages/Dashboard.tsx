@@ -632,8 +632,9 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-            <div className="dashboard-box-scroll">
-              <table className="dashboard-table">
+            ) : (
+              <div className="dashboard-box-scroll">
+                <table className="dashboard-table">
                 <thead><tr><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th><th style={{ paddingRight: '2rem' }}>Actions/Details</th></tr></thead>
                 <tbody>
                   {bookings.map(b => {
@@ -868,7 +869,8 @@ export default function Dashboard() {
                 <p>No reviews yet for your vehicles</p>
               </div>
             ) : (
-              <table className="dashboard-table">
+              <div className="dashboard-box-scroll">
+                <table className="dashboard-table">
                 <thead>
                   <tr>
                     <th>Vehicle</th>
@@ -1003,6 +1005,7 @@ export default function Dashboard() {
             </div>
           </div>
         ) : null}
+      </div>
 
       {/* REVIEW MODAL */}
       <Modal
@@ -1204,7 +1207,6 @@ export default function Dashboard() {
           </div>
         ) : <p>Loading details...</p>}
       </Modal>
-    </div>
     </div>
   );
 }
