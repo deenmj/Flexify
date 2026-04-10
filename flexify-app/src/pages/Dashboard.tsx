@@ -635,15 +635,16 @@ export default function Dashboard() {
             ) : (
               <div className="dashboard-box-scroll">
                 <table className="dashboard-table">
-                <thead><tr><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th><th style={{ paddingRight: '2rem' }}>Actions/Details</th></tr></thead>
+                <thead><tr><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th><th style={{ paddingRight: '2.5rem', minWidth: '240px' }}>Actions/Details</th></tr></thead>
                 <tbody>
                   {bookings.map(b => {
                     const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
-                    const vOwnerId = typeof b.owner === 'object' ? (b.owner as any)._id || (b.owner as any).id : b.owner;
-                    const renterId = typeof b.user === 'object' ? (b.user as any)._id || (b.user as any).id : b.user;
+                    const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)._id || (b.owner as any).id : b.owner);
+                    const bRenterId = String(typeof b.user === 'object' ? (b.user as any)._id || (b.user as any).id : b.user);
+                    const myId = String(user._id || user.id);
                     
-                    const isIamOwnerOfThis = vOwnerId === (user._id || user.id) || isStaff;
-                    const isIamRenterOfThis = renterId === (user._id || user.id);
+                    const isIamRenterOfThis = myId === bRenterId;
+                    const isIamOwnerOfThis = (myId === bOwnerId || isStaff) && !isIamRenterOfThis;
                     const owner = typeof b.owner === 'object' ? b.owner : null;
 
                     return (
