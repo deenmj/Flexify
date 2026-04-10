@@ -126,19 +126,48 @@ export default function VehicleDetail() {
 
   // Tooltip & Styling for RangePicker cells
   const pickerCellRender = useCallback((current: Dayjs | any) => {
-    // antd 5 cellRender might pass string/number/Dayjs depending on view, 
-    // but in DatePicker it should be Dayjs. We cast to satisfy TS.
     const date = dayjs(current);
-    const isBooked = isDateBooked(date, 'CONFIRMED');
-    const isBlackout = isDateBlackedOut(date);
+    const confirmed = isDateBooked(date, 'CONFIRMED');
+    const pending = isDateBooked(date, 'PENDING');
+    const blackedOut = isDateBlackedOut(date);
     
-    if (isBooked || isBlackout) {
-      return (
-        <Tooltip title={isBooked ? "Already booked" : "Owner unavailable (blackout)"}>
-          <div className="ant-picker-cell-inner disabled-cell-inner">{date.date()}</div>
-        </Tooltip>
-      );
+    // Determine the status and label
+    let statusClass = '';
+    let label = '';
+    let tooltip = '';
+
+    if (confirmed) {
+      statusClass = 'confirmed';
+      label = 'Booked';
+      tooltip = 'Already booked';
+    } else if (pending) {
+      statusClass = 'pending';
+      label = 'Pending';
+      tooltip = 'Booking Pending';
+    } else if (blackedOut) {
+      statusClass = 'blackout';
+      label = 'Unavailable';
+      tooltip = 'Owner unavailable (blackout)';
+    } else if (date.isSame(dayjs(), 'day') || date.isAfter(dayjs(), 'day')) {
+      statusClass = 'available';
+      label = 'Available';
     }
+
+    if (statusClass) {
+      const content = (
+        <div className="avail-status-container">
+          <div className={`status-indicator ${statusClass}`}>
+            <span className="status-text">{label}</span>
+          </div>
+        </div>
+      );
+      return tooltip ? (
+        <Tooltip title={tooltip}>
+          <div className="ant-picker-cell-inner">{date.date()}{content}</div>
+        </Tooltip>
+      ) : <div className="ant-picker-cell-inner">{date.date()}{content}</div>;
+    }
+
     return <div className="ant-picker-cell-inner">{date.date()}</div>;
   }, [isDateBooked, isDateBlackedOut]);
 
