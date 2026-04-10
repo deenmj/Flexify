@@ -633,13 +633,12 @@ export default function Dashboard() {
                 )}
               </div>
             ) : (
-            ) : (
               <div className="booking-cards-container">
                 {bookings.map(b => {
                   const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
-                  const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)._id || (b.owner as any).id : b.owner);
-                  const bRenterId = String(typeof b.user === 'object' ? (b.user as any)._id || (b.user as any).id : b.user);
-                  const myId = String(user._id || user.id);
+                  const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)?._id || (b.owner as any)?.id : b.owner);
+                  const bRenterId = String(typeof b.user === 'object' ? (b.user as any)?._id || (b.user as any)?.id : b.user);
+                  const myId = String(user?._id || user?.id || '');
                   
                   const isIamRenterOfThis = myId === bRenterId;
                   const isIamOwnerOfThis = (myId === bOwnerId || isStaff) && !isIamRenterOfThis;
@@ -905,7 +904,7 @@ export default function Dashboard() {
                           <Tag color="success">Visible</Tag>
                         ) : r.status === 'hidden' ? (
                           <Tag color="warning">
-                            {r.hiddenBy === (user._id || user.id) ? 'Hidden by You' : 'Hidden by Admin'}
+                            {r.hiddenBy === String(user?._id || user?.id) ? 'Hidden by You' : 'Hidden by Admin'}
                           </Tag>
                         ) : (
                           <Tag color="error">Rejected</Tag>
@@ -1133,8 +1132,8 @@ export default function Dashboard() {
         onCancel={() => setShowDetailModal(false)}
         footer={[
           <Button key="close" onClick={() => setShowDetailModal(false)}>Close</Button>,
-          selectedBooking?.status === 'PENDING' && user?.role === 'user' && (
-            <Button key="cancel" danger onClick={() => { handleCancelBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Trip</Button>
+          selectedBooking && selectedBooking.status === 'PENDING' && user?.role === 'user' && (
+            <Button key="cancel" danger onClick={() => { if (selectedBooking?._id) handleCancelBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Trip</Button>
           )
         ]}
         width={600}
