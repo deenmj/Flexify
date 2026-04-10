@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel } from '../api';
 import { Select as AntSelect, message, Row, Col } from 'antd';
-import { Car, MapPin, Settings, Image, Locate, Fuel, Users, Zap, Gauge, FileText } from 'lucide-react';
+import { Car, MapPin, Settings, Image, Locate, Shield } from 'lucide-react';
 import './ListVehicle.css';
 
 const { Option } = AntSelect;
@@ -57,7 +57,7 @@ export default function ListVehicle() {
       try {
         const data = await vehicleApi.getMakes();
         setMakes(data);
-      } catch (err) { console.error("Makes load fail", err); }
+      } catch (err) { console.error("API error", err); }
       finally { setLoadingMakes(false); }
     };
     fetchMakes();
@@ -65,14 +65,14 @@ export default function ListVehicle() {
 
   useEffect(() => {
     const fetchModels = async () => {
-      if (!selectedMake || selectedMake === 'Other') { setModels([]); return; }
+      if (!selectedMake) { setModels([]); return; }
       const makeObj = makes.find((m: VehicleMake) => m.name === selectedMake);
       if (!makeObj) return;
       setLoadingModels(true);
       try {
         const data = await vehicleApi.getModels(makeObj._id);
         setModels(data);
-      } catch (err) { console.error("Models load fail", err); }
+      } catch (err) { console.error("API error", err); }
       finally { setLoadingModels(false); }
     };
     fetchModels();
@@ -105,7 +105,7 @@ export default function ListVehicle() {
             message.success({ content: `Location Updated: ${city}`, key: 'locate' });
           }
         } catch (err) { message.success({ content: 'Location Found', key: 'locate' }); }
-      }, () => message.error({ content: 'Sync Failed', key: 'locate' }));
+      }, () => message.error({ content: 'Denied access', key: 'locate' }));
     }
   };
 
@@ -123,13 +123,13 @@ export default function ListVehicle() {
       photos.forEach(p => formData.append('photos', p));
       await vehicleApi.createWithPhotos(formData);
       await refreshUser();
-      setSuccess('Listing Published Successfully!');
+      setSuccess('Publishing Successfully!');
       window.scrollTo(0, 0);
     } catch (err: any) { setError(err.message || 'Error occurred'); }
     finally { setLoading(false); }
   };
 
-  if (!user) return <div className="container" style={{ padding: '100px 1rem', textAlign: 'center' }}>Please log in to share your vehicle.</div>;
+  if (!user) return <div className="container" style={{ padding: '80px 1rem', textAlign: 'center' }}>Please log in to continue.</div>;
 
   return (
     <div className="list-vehicle-page">
@@ -146,105 +146,56 @@ export default function ListVehicle() {
           {success && <div className="auth-message success" style={{ marginBottom: '2rem' }}>{success}</div>}
 
           <Row gutter={[32, 32]}>
-            {/* LEFT COLUMN: Basic Info + Location */}
-            <Col xs={24} lg={14}>
+            {/* LEFT COLUMN */}
+            <Col xs={24} lg={13}>
               <div className="form-card">
-                <div className="form-card-header">
-                  <Car size={20} />
-                  <h3>Basic Information</h3>
-                </div>
+                <div className="form-card-header"><Car size={20} /><h3>Basic Information</h3></div>
                 <div className="form-card-body">
                   <div className="input-group">
                     <label>Vehicle Listing Title</label>
                     <input className="input-field" placeholder="e.g. Spacious Luxury SUV 2024" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
                   </div>
                   <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <div className="input-group">
-                        <label>Make</label>
-                        <AntSelect showSearch className="antd-select-large" placeholder="Brand" value={selectedMake || undefined} onChange={(v) => { setSelectedMake(v); setSelectedModel(''); }} loading={loadingMakes}>
-                          {makes.map(m => <Option key={m._id} value={m.name}>{m.name}</Option>)}
-                        </AntSelect>
-                      </div>
-                    </Col>
-                    <Col span={12}>
-                      <div className="input-group">
-                        <label>Model</label>
-                        <AntSelect showSearch className="antd-select-large" placeholder="Model" value={selectedModel || undefined} onChange={(v) => setSelectedModel(v)} loading={loadingModels} disabled={!selectedMake}>
-                          {models.map(m => <Option key={m._id} value={m.name}>{m.name}</Option>)}
-                        </AntSelect>
-                      </div>
-                    </Col>
+                    <Col span={12}><div className="input-group"><label>Make</label><AntSelect showSearch className="antd-select-large" placeholder="Brand" value={selectedMake || undefined} onChange={(v) => { setSelectedMake(v); setSelectedModel(''); }} loading={loadingMakes}>{makes.map(m => <Option key={m._id} value={m.name}>{m.name}</Option>)}</AntSelect></div></Col>
+                    <Col span={12}><div className="input-group"><label>Model</label><AntSelect showSearch className="antd-select-large" placeholder="Model" value={selectedModel || undefined} onChange={(v) => setSelectedModel(v)} loading={loadingModels} disabled={!selectedMake}>{models.map(m => <Option key={m._id} value={m.name}>{m.name}</Option>)}</AntSelect></div></Col>
                   </Row>
                   <Row gutter={[16, 16]}>
-                    <Col span={10}>
-                      <div className="input-group">
-                        <label>Year</label>
-                        <input type="number" className="input-field" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required />
-                      </div>
-                    </Col>
-                    <Col span={14}>
-                      <div className="input-group">
-                        <label>Daily Rate (LKR)</label>
-                        <input type="number" className="input-field" value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })} required />
-                      </div>
-                    </Col>
+                    <Col span={10}><div className="input-group"><label>Year</label><input type="number" className="input-field" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required /></div></Col>
+                    <Col span={14}><div className="input-group"><label>Daily Rate (LKR)</label><input type="number" className="input-field" value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })} required /></div></Col>
                   </Row>
                 </div>
               </div>
 
               <div className="form-card">
-                <div className="form-card-header">
-                  <MapPin size={20} />
-                  <h3>Location Details</h3>
-                  <button type="button" onClick={handleGetLocation} className="btn-locate-premium"><Locate size={14} /> Auto-Detect</button>
-                </div>
+                <div className="form-card-header"><MapPin size={20} /><h3>Location Details</h3><button type="button" onClick={handleGetLocation} className="btn-locate-premium"><Locate size={14} /> Auto-Detect</button></div>
                 <div className="form-card-body">
                   <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <div className="input-group"><label>Province</label><select className="input-field" value={form.province} onChange={(e) => setForm({ ...form, province: e.target.value })} required><option value="">Select Province</option>{Object.keys(SRI_LANKA_LOCATIONS).map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-                    </Col>
-                    <Col span={12}>
-                      <div className="input-group"><label>District</label><select className="input-field" disabled={!form.province} value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} required><option value="">Select District</option>{form.province && SRI_LANKA_LOCATIONS[form.province].map(d => <option key={d} value={d}>{d}</option>)}</select></div>
-                    </Col>
-                    <Col span={24}>
-                      <div className="input-group"><label>City / Town</label><input className="input-field" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required /></div>
-                    </Col>
+                    <Col span={12}><div className="input-group"><label>Province</label><select className="input-field" value={form.province} onChange={(e) => setForm({ ...form, province: e.target.value })} required><option value="">Select Province</option>{Object.keys(SRI_LANKA_LOCATIONS).map(p => <option key={p} value={p}>{p}</option>)}</select></div></Col>
+                    <Col span={12}><div className="input-group"><label>District</label><select className="input-field" disabled={!form.province} value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} required><option value="">Select District</option>{form.province && SRI_LANKA_LOCATIONS[form.province].map(d => <option key={d} value={d}>{d}</option>)}</select></div></Col>
+                    <Col span={24}><div className="input-group"><label>City / Town</label><input className="input-field" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required /></div></Col>
                   </Row>
                 </div>
               </div>
             </Col>
 
-            {/* RIGHT COLUMN: Tech Specs + Features + Media */}
-            <Col xs={24} lg={10}>
+            {/* RIGHT COLUMN */}
+            <Col xs={24} lg={11}>
               <div className="form-card">
-                <div className="form-card-header">
-                  <Settings size={20} />
-                  <h3>Technical Specifications</h3>
-                </div>
+                <div className="form-card-header"><Settings size={20} /><h3>Technical Specifications</h3></div>
                 <div className="form-card-body">
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <div className="input-group"><label>Transmission</label><select className="input-field" value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })}><option value="Automatic">Automatic</option><option value="Manual">Manual</option></select></div>
-                    </Col>
-                    <Col span={12}>
-                      <div className="input-group"><label>Fuel Type</label><select className="input-field" value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}><option value="Petrol">Petrol</option><option value="Diesel">Diesel</option><option value="Electric">Electric</option></select></div>
-                    </Col>
-                    <Col span={12}>
-                      <div className="input-group"><label>Seats</label><select className="input-field" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })}><option value="2">2</option><option value="4">4</option><option value="5">5</option><option value="7">7</option></select></div>
-                    </Col>
-                    <Col span={12}>
-                      <div className="input-group"><label>Capacity</label><input className="input-field" placeholder="1500cc" value={form.engineCapacity} onChange={(e) => setForm({ ...form, engineCapacity: e.target.value })} /></div>
-                    </Col>
+                  <Row gutter={[14, 14]}>
+                    <Col span={12}><div className="input-group"><label>Transmission</label><select className="input-field" value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })}><option value="Automatic">Automatic</option><option value="Manual">Manual</option></select></div></Col>
+                    <Col span={12}><div className="input-group"><label>Fuel Type</label><select className="input-field" value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}><option value="Petrol">Petrol</option><option value="Diesel">Diesel</option></select></div></Col>
+                    <Col span={12}><div className="input-group"><label>Seats</label><select className="input-field" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })}><option value="2">2</option><option value="4">4</option><option value="5">5</option><option value="7">7</option></select></div></Col>
+                    <Col span={12}><div className="input-group"><label>Capacity</label><input className="input-field" placeholder="1500cc" value={form.engineCapacity} onChange={(e) => setForm({ ...form, engineCapacity: e.target.value })} /></div></Col>
                   </Row>
                   
-                  <div className="features-group">
-                    <label className="input-group label" style={{ marginBottom: '1rem' }}>Features & Amenities</label>
+                  <div style={{ marginTop: '1.5rem' }}>
+                    <label className="input-group label">Features & Amenities</label>
                     <div className="features-grid">
-                      {VEHICLE_FEATURES.map(f => (
-                        <div key={f.id} className={`feature-item ${form.features.includes(f.id) ? 'active' : ''}`} onClick={() => handleFeatureToggle(f.id)}>
-                          <span className="feature-icon">{f.icon}</span>
-                          <span className="feature-label">{f.label}</span>
+                      {VEHICLE_FEATURES.map(v => (
+                        <div key={v.id} className={`feature-item ${form.features.includes(v.id) ? 'active' : ''}`} onClick={() => handleFeatureToggle(v.id)}>
+                          <span className="feature-icon">{v.icon}</span><span className="feature-label">{v.label}</span>
                         </div>
                       ))}
                     </div>
@@ -253,38 +204,29 @@ export default function ListVehicle() {
               </div>
 
               <div className="form-card">
-                <div className="form-card-header">
-                  <Image size={20} />
-                  <h3>Media & Description</h3>
-                </div>
+                <div className="form-card-header"><Image size={20} /><h3>Media & Description</h3></div>
                 <div className="form-card-body">
-                  <div className="input-group">
-                    <label>Description</label>
-                    <textarea className="input-field" rows={4} placeholder="Tell us more about your vehicle..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
-                  </div>
+                  <div className="input-group"><label>Description</label><textarea className="input-field" rows={4} placeholder="Describe your vehicle..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required /></div>
                   <div className="input-group">
                     <label>Vehicle Photos</label>
                     <div className="upload-dropzone" onClick={() => fileInputRef.current?.click()}>
                       <p>Click to Upload Photos</p>
-                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Up to 10MB (PNG, JPG)</span>
                       <input type="file" hidden multiple ref={fileInputRef} onChange={(e) => setPhotos(Array.from(e.target.files!))} accept="image/*" />
                     </div>
-                    {photos.length > 0 && (
-                      <div className="photo-preview-list">
-                        {photos.map((p, i) => (
-                          <div key={i} className="photo-tag">{p.name} <button type="button" onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}>&times;</button></div>
-                        ))}
-                      </div>
-                    )}
+                    <div className="photo-preview-list">
+                      {photos.map((p, i) => (
+                        <div key={i} className="photo-tag">{p.name} <button type="button" onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}>&times;</button></div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
+
+              <button type="submit" className="submit-vehicle-btn" disabled={loading}>
+                {loading ? 'Processing...' : 'Publish Listing'}
+              </button>
             </Col>
           </Row>
-
-          <button type="submit" className="submit-vehicle-btn" disabled={loading}>
-            {loading ? 'Publishing Premium Listing...' : 'Publish Listing'}
-          </button>
         </form>
       </section>
     </div>
