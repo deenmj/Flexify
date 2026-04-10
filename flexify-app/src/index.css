@@ -1185,25 +1185,6 @@ select {
   margin: 0 auto !important;
 }
 
-@media (max-width: 768px) {
-  .static-hero {
-    padding: 3rem 0 4rem !important;
-  }
-  .static-hero h1 {
-    font-size: 1.75rem !important;
-  }
-  .static-hero p {
-    font-size: 0.9rem !important;
-    padding: 0 1.5rem;
-  }
-}
-
-.list-vehicle-content {
-  margin-top: -4rem;
-  position: relative;
-  z-index: 10;
-}
-
 /* Submit Button */
 .submit-vehicle-btn {
   padding: 1.375rem !important;
@@ -1215,27 +1196,50 @@ select {
 }
 
 @media (max-width: 768px) {
+  .static-hero {
+    padding: 2rem 0 2rem !important;
+  }
+  .static-hero h1 {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  .static-hero p {
+    font-size: 0.8rem !important;
+    padding: 0 1.5rem;
+  }
+
+  .list-vehicle-content {
+    margin-top: 0 !important; /* Remove overlap for mobile clarity */
+    padding: 1rem 0;
+  }
+
   .list-vehicle-wrapper {
     padding: 0;
   }
   .list-vehicle-form-refined {
-    padding: 2.5rem 1rem;
-    gap: 2rem;
+    padding: 1rem 0.75rem;
+    gap: 1.25rem;
   }
   .form-card-header {
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
   }
   .form-card-body {
-    padding: 2rem 1.5rem;
+    padding: 1.25rem 1rem;
   }
+  /* Two column layout for mobile to reduce scrolling */
   .form-grid-2, .form-grid-3 {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem;
   }
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   .upload-dropzone {
-    padding: 3rem 1.5rem;
+    padding: 2.5rem 1rem;
+  }
+  
+  .input-field {
+    padding: 0.75rem !important;
+    font-size: 0.8rem !important;
   }
 }
