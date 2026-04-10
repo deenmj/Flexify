@@ -353,6 +353,12 @@
   border: 1px solid #fcd34d;
 }
 
+.status-indicator.available {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
 .status-indicator.blackout {
   background: #f3f4f6;
   color: #4b5563;

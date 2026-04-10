@@ -191,6 +191,19 @@ export default function VehicleDetail() {
         </Tooltip>
       );
     }
+
+    // NEW: Show 'Available' badge if the date is in the future and not blocked
+    // only if it's not in the past (to keep it clean)
+    if (date.isSame(dayjs(), 'day') || date.isAfter(dayjs(), 'day')) {
+      return (
+        <div className="avail-status-container">
+          <div className="status-indicator available">
+            <span className="status-text">Available</span>
+          </div>
+        </div>
+      );
+    }
+
     return null;
   }, [isDateBooked, isDateBlackedOut]);
 
