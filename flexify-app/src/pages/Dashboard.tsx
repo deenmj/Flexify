@@ -389,109 +389,124 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page page-wrapper bg-secondary">
 
-      <header className="dashboard-header">
+  return (
+    <div className="dashboard-page page-wrapper" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
+
+      <header className="dashboard-header" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)', padding: '2rem 0 3.5rem', textAlign: 'center', color: 'white' }}>
         <div className="container">
           <div className="animate-fade-in">
-            <h1 className="dashboard-title">My Dashboard</h1>
-            <p className="dashboard-subtitle">
-              Welcome back, {user.name.split(' ')[0]}! Here's what's happening today.
+            <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.25rem', color: 'white' }}>My Dashboard</h1>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', margin: 0 }}>
+              Welcome back, {user.name.split(' ')[0]}! Manage your fleet and activities here.
             </p>
           </div>
         </div>
       </header>
 
-      <div className="container">
+      <div className="container" style={{ position: 'relative', marginTop: '-1.5rem', marginBottom: '3rem' }}>
         {/* Stats Section */}
         {isOwner && (
-          <div className="dashboard-stats-wrapper">
-            <div className="dashboard-stats animate-fade-in-up">
-              <div className="stat-card">
-                <div className="stat-icon-wrap" style={{ background: 'var(--color-primary-50)', color: 'var(--color-primary)' }}>
-                  <Car size={22} />
-                </div>
-                <div className="stat-content">
-                  <span className="stat-val">{vehicles.length}</span>
-                  <span className="stat-lbl">Vehicles</span>
-                </div>
+          <div className="animate-fade-in-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-primary-50)', color: 'var(--color-primary)' }}>
+                <Car size={24} />
               </div>
-              
-              <div className="stat-card">
-                <div className="stat-icon-wrap" style={{ background: '#f0fdf4', color: '#10b981' }}>
-                  <CalIcon size={22} />
-                </div>
-                <div className="stat-content">
-                  <span className="stat-val">{bookings.length}</span>
-                  <span className="stat-lbl">Bookings</span>
-                </div>
+              <div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{vehicles.length}</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Vehicles</div>
               </div>
+            </div>
+            
+            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0fdf4', color: '#10b981' }}>
+                <CalIcon size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{bookings.length}</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Bookings</div>
+              </div>
+            </div>
 
-              <div className="stat-card">
-                <div className="stat-icon-wrap" style={{ background: '#ecfdf5', color: '#059669' }}>
-                  <CheckCircle size={22} />
-                </div>
-                <div className="stat-content">
-                  <span className="stat-val">{bookings.filter(b => b.status === 'CONFIRMED').length}</span>
-                  <span className="stat-lbl">Confirmed</span>
-                </div>
+            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ecfdf5', color: '#059669' }}>
+                <CheckCircle size={24} />
               </div>
+              <div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{bookings.filter(b => b.status === 'CONFIRMED').length}</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Confirmed</div>
+              </div>
+            </div>
 
-              <div className="stat-card">
-                <div className="stat-icon-wrap" style={{ background: '#fffbeb', color: '#d97706' }}>
-                  <Clock size={22} />
-                </div>
-                <div className="stat-content">
-                  <span className="stat-val">{bookings.filter(b => b.status === 'PENDING').length}</span>
-                  <span className="stat-lbl">Requests</span>
-                </div>
+            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fffbeb', color: '#d97706' }}>
+                <Clock size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{bookings.filter(b => b.status === 'PENDING').length}</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Requests</div>
               </div>
             </div>
           </div>
         )}
+      </div>
 
-        {/* KYC verification banner — not for staff (auto-verified) */}
+      <div className="container" style={{ marginBottom: '4rem' }}>
+        {/* KYC verification banner */}
         {!user.isKycVerified && !isStaff && (
-          <div className="card" style={{ background: 'white', border: '1.5px solid #fed7aa', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', borderRadius: '16px', boxShadow: 'var(--shadow-sm)' }}>
+          <div className="card" style={{ background: 'white', border: '1.5px solid #fed7aa', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', borderRadius: '16px', boxShadow: 'var(--shadow-md)' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <div style={{ background: '#fff7ed', color: '#f97316', padding: '10px', borderRadius: '10px' }}><Shield size={24} /></div>
               <div>
-                <h4 style={{ margin: 0, color: '#9a3412', fontWeight: 700 }}>
-                  {user.verificationStatus === 'pending' ? 'Verification Pending' : 'Identity Verification Required'}
-                </h4>
-                <p style={{ margin: '2px 0 0', color: '#c2410c', fontSize: '0.85rem', opacity: 0.8 }}>
-                  {user.verificationStatus === 'pending'
-                    ? 'Documents are being reviewed. Expected approval within 24 hours.'
-                    : 'Please complete your KYC verification to list and book vehicles.'}
-                </p>
+                <h4 style={{ margin: 0, color: '#9a3412', fontWeight: 700, fontSize: '1rem' }}>Verification Required</h4>
+                <p style={{ margin: '2px 0 0', color: '#c2410c', fontSize: '0.85rem' }}>Please complete KYC verification to access full features.</p>
               </div>
             </div>
-            {user.verificationStatus !== 'pending' && (
-              <Link to="/verify" className="btn btn-primary btn-sm">Verify Identity</Link>
-            )}
+            {user.verificationStatus !== 'pending' && <Link to="/verify" className="btn btn-primary btn-sm">Verify Now</Link>}
           </div>
         )}
 
         {/* Tabs - Navigation */}
-        <div className="dashboard-nav">
+        <div style={{ display: 'flex', gap: '6px', background: 'white', padding: '4px', borderRadius: '12px', width: 'fit-content', marginBottom: '2rem', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)', overflowX: 'auto', maxWidth: '100%', whiteSpace: 'nowrap' }}>
           {isOwner && (
-            <button className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} onClick={() => setTab('vehicles')}>
+            <button 
+              className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
+              onClick={() => setTab('vehicles')}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'vehicles' ? 'var(--color-primary)' : 'transparent', color: tab === 'vehicles' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
               <Car size={16} /> Vehicles
             </button>
           )}
-          <button className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} onClick={() => setTab('bookings')}>
+          <button 
+            className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} 
+            onClick={() => setTab('bookings')}
+            style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'bookings' ? 'var(--color-primary)' : 'transparent', color: tab === 'bookings' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
             <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
           </button>
           {isOwner && (
-            <button className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} onClick={() => setTab('calendar')}>
+            <button 
+              className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} 
+              onClick={() => setTab('calendar')}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'calendar' ? 'var(--color-primary)' : 'transparent', color: tab === 'calendar' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
               <CalIcon size={16} /> Calendar
             </button>
           )}
           {isOwner && (
-            <button className={`nav-item ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>
+            <button 
+              className={`nav-item ${tab === 'reviews' ? 'active' : ''}`} 
+              onClick={() => setTab('reviews')}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'reviews' ? 'var(--color-primary)' : 'transparent', color: tab === 'reviews' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
               <Star size={16} /> Reviews
             </button>
           )}
           {isOwner && !isStaff && (
-            <button className={`nav-item ${tab === 'subscription' ? 'active' : ''}`} onClick={() => setTab('subscription')}>
+            <button 
+              className={`nav-item ${tab === 'subscription' ? 'active' : ''}`} 
+              onClick={() => setTab('subscription')}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'subscription' ? 'var(--color-primary)' : 'transparent', color: tab === 'subscription' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
               <Shield size={16} /> Subscription
             </button>
           )}
