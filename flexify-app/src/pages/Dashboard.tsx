@@ -46,11 +46,21 @@ export default function Dashboard() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
+  // Trip Detail Modal state
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
   // Review Renter Modal state
   const [showRenterModal, setShowRenterModal] = useState(false);
   const [selectedRenter, setSelectedRenter] = useState<any>(null);
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
+
   const [searchParams] = useSearchParams();
+
+  const handleViewDetail = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowDetailModal(true);
+  };
 
   // Highlight logic from URL
   useEffect(() => {
@@ -598,16 +608,25 @@ export default function Dashboard() {
                       <tr key={b._id} id={`booking-${b._id}`}>
                         <td data-label="Vehicle">
                           <div style={{ fontWeight: 600 }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle'}</div>
-                          {vehicle && (
-                            <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="text-secondary" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                              <Eye size={12} /> View Details
-                            </Link>
-                          )}
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                            {vehicle && (
+                              <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="text-secondary" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Eye size={12} /> Vehicle
+                              </Link>
+                            )}
+                            <button 
+                              onClick={() => handleViewDetail(b)} 
+                              className="text-primary" 
+                              style={{ fontSize: '11px', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+                            >
+                              <Info size={12} /> Full Details
+                            </button>
+                          </div>
                         </td>
                         <td data-label="Dates" className="table-dates">{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</td>
                         <td data-label="Amount">LKR {b.totalAmount.toLocaleString()}</td>
                         <td data-label="Status">
-                          {statusBadge(b.status)}
+                          {bookingStatusBadge(b.status)}
                           {/* Show owner phone ONLY when confirmed and user is the renter */}
                           {b.status === 'CONFIRMED' && user?.role === 'user' && owner && (
                             <div style={{ marginTop: '8px' }}>
@@ -1062,6 +1081,92 @@ export default function Dashboard() {
         ) : (
           <p>Loading renter details...</p>
         )}
+      </Modal>
+
+      {/* TRIP DETAIL MODAL FOR RENTERS/OWNERS */}
+      <Modal
+        title="Booking Details"
+        open={showDetailModal}
+        onCancel={() => setShowDetailModal(false)}
+        footer={[
+          <Button key="close" onClick={() => setShowDetailModal(false)}>Close</Button>,
+          selectedBooking?.status === 'PENDING' && user?.role === 'user' && (
+            <Button key="cancel" danger onClick={() => { handleCancelBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Trip</Button>
+          )
+        ]}
+        width={600}
+        centered
+        destroyOnClose
+      >
+        {selectedBooking ? (
+          <div className="booking-detail-content" style={{ padding: '10px 0' }}>
+            {/* Header info */}
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', alignItems: 'flex-start' }}>
+              <div style={{ width: '120px', height: '80px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
+                {typeof selectedBooking.vehicle === 'object' && (selectedBooking.vehicle as Vehicle).photos?.[0] ? (
+                  <img src={getImageUrl((selectedBooking.vehicle as Vehicle).photos[0])} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Car size={24} /></div>}
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{typeof selectedBooking.vehicle === 'object' ? (selectedBooking.vehicle as Vehicle).title : 'Vehicle Details'}</h3>
+                <div style={{ marginTop: '4px' }}>{bookingStatusBadge(selectedBooking.status)}</div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-tertiary)', marginTop: '8px' }}>Ref ID: {selectedBooking._id}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '16px' }}>
+              <div>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Pickup Date</div>
+                <div style={{ fontWeight: 600, fontSize: '1rem', marginTop: '4px' }}>{dayjs(selectedBooking.startDate).format('MMM D, YYYY')}</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Return Date</div>
+                <div style={{ fontWeight: 600, fontSize: '1rem', marginTop: '4px' }}>{dayjs(selectedBooking.endDate).format('MMM D, YYYY')}</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Duration</div>
+                <div style={{ fontWeight: 600, fontSize: '1rem', marginTop: '4px' }}>{selectedBooking.days} Days</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Total Price</div>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#16a34a', marginTop: '4px' }}>LKR {selectedBooking.totalAmount.toLocaleString()}</div>
+              </div>
+            </div>
+
+            {/* Host info for confirmed bookings */}
+            {selectedBooking.status === 'CONFIRMED' && (
+              <div style={{ padding: '1.5rem', border: '1px solid #e2e8f0', borderRadius: '16px', background: '#f0fdf4' }}>
+                <h4 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#166534' }}>
+                  <User size={18} /> Host Contact Details
+                </h4>
+                {typeof selectedBooking.owner === 'object' ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <img 
+                      src={getImageUrl((selectedBooking.owner as User).profilePic)} 
+                      style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
+                    />
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{(selectedBooking.owner as User).name}</div>
+                      <div style={{ color: '#16a34a', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Phone size={14} /> {(selectedBooking.owner as User).phone || 'No phone provided'}
+                      </div>
+                    </div>
+                  </div>
+                ) : <p style={{ margin: 0, fontSize: '0.9rem' }}>Contact info will show here after confirmation refresh.</p>}
+              </div>
+            )}
+
+            {/* Next steps/Notice */}
+            {selectedBooking.status === 'PENDING' && (
+              <div style={{ display: 'flex', gap: '12px', padding: '1rem', background: '#fffbeb', borderRadius: '12px', border: '1px solid #fde68a' }}>
+                <Clock size={20} style={{ color: '#d97706', flexShrink: 0 }} />
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#92400e' }}>
+                  Your request is waiting for the owner's response. You will receive a notification once it's confirmed or rejected.
+                </p>
+              </div>
+            )}
+          </div>
+        ) : <p>Loading details...</p>}
       </Modal>
     </div>
   );

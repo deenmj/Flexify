@@ -248,34 +248,30 @@ export default function VehicleDetail() {
     }
 
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
-      message.error('Please select pickup and return dates');
-      return;
-    }
-
-    if (isRangeBlocked(dateRange[0], dateRange[1])) {
-      message.error('Selected dates are already booked. Please choose different dates.');
+      message.error('Please select both pickup and return dates');
       return;
     }
 
     setBookingLoading(true);
+    const startStr = dateRange[0].toISOString();
+    const endStr = dateRange[1].toISOString();
 
     try {
-      const resp = await bookingApi.create(
-        id!,
-        dateRange[0].toISOString(),
-        dateRange[1].toISOString()
-      );
+      const resp = await bookingApi.create(id!, startStr, endStr);
       setCreatedBooking(resp);
       message.success('Booking request submitted!');
-      // Refresh availability
+      
+      // Background refresh
       vehicleApi.getAvailability(id!)
         .then((data) => {
           setBookedRanges(data.bookedRanges);
           setBlackoutRanges(data.blackoutRanges);
         })
-        .catch(() => { });
+        .catch(err => console.error('Silent refresh failed:', err));
+
     } catch (err: any) {
-      message.error(err.message || 'Failed to submit booking');
+      console.error('Booking failed:', err);
+      message.error(err.message || 'Failed to create booking');
     } finally {
       setBookingLoading(false);
     }
