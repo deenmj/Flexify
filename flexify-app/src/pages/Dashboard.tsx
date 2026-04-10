@@ -513,8 +513,8 @@ export default function Dashboard() {
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>Loading...</div>
         ) : tab === 'vehicles' ? (
           <div className="dashboard-box">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem', padding: '2rem 2rem 0' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>My Vehicles</h3>
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">My Vehicles</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Category:</label>
                 <select
@@ -539,86 +539,54 @@ export default function Dashboard() {
                 <p>{vehicles.length === 0 ? "No vehicles listed yet" : `No ${selectedCategory}s found`}</p>
                 {vehicles.length === 0 && <Link to="/list-vehicle" className="btn btn-primary btn-sm">List a Vehicle</Link>}
               </div>
-            ) : isMobile ? (
-              <div style={{ padding: '0 1rem 1.5rem' }}>
-                <Row gutter={[12, 12]}>
-                  {filteredVehicles.map(v => (
-                    <Col xs={12} key={v._id}>
-                      <div className="dash-mobile-card">
-                        <div className="dash-mobile-card-img">
-                          {v.photos?.[0] ? (
-                            <img src={getImageUrl(v.photos[0])} alt={v.title} />
-                          ) : (
-                            <div className="img-placeholder"><Car size={24} /></div>
-                          )}
-                          <div className="dash-mobile-card-status">
-                            {vehicleStatusBadge(v.status, v.isActive)}
-                          </div>
-                        </div>
-                        <div className="dash-mobile-card-info">
-                          <h4 className="truncate">{v.title}</h4>
-                          <div className="price">LKR {v.pricePerDay.toLocaleString()}<span>/d</span></div>
-                        </div>
-                        <div className="dash-mobile-card-actions">
-                          <Link to={`/vehicles/edit/${v._id}`} className="mobile-action-btn edit">
-                            <Edit size={16} />
-                          </Link>
-                          <button className="mobile-action-btn toggle" onClick={() => handleToggleStatus(v._id)}>
-                            {v.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                          <button className="mobile-action-btn delete" onClick={() => handleDeleteVehicle(v._id)}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    </Col>
-                  ))}
-                </Row>
-              </div>
             ) : (
-              <div className="dashboard-box-scroll">
-                <table className="dashboard-table">
-                <thead><tr><th style={{ paddingLeft: '2rem' }}>Photo</th><th>Vehicle</th><th>Category</th><th>Price/day</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody>
-                  {filteredVehicles.map(v => (
-                    <tr key={v._id}>
-                      <td style={{ width: '90px', paddingLeft: '1.5rem' }}>
-                        {v.photos?.[0] ? (
-                          <img src={getImageUrl(v.photos[0])} alt={v.title} style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color-light)' }} />
-                        ) : (
-                          <div style={{ width: '60px', height: '40px', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}><Car size={16} color="var(--text-tertiary)" /></div>
-                        )}
-                      </td>
-                      <td data-label="Vehicle"><div className="table-vehicle"><strong>{v.title}</strong><span>{v.make} {v.model}</span></div></td>
-                      <td data-label="Category">{v.serviceType && v.serviceType.length > 0 ? <span className="badge" style={{ background: 'var(--bg-secondary)', fontWeight: 600 }}>{v.serviceType[0]}</span> : '-'}</td>
-                      <td data-label="Price/day" style={{ fontWeight: 700 }}>LKR {v.pricePerDay.toLocaleString()}</td>
-                      <td data-label="Status">
-                        {vehicleStatusBadge(v.status, v.isActive)}
-                      </td>
-                      <td data-label="Actions">
-                        <div className="table-actions">
-                          <Link to={`/vehicles/edit/${v._id}`} className="btn btn-ghost btn-sm" title="Edit">
-                            <Edit size={16} />
-                          </Link>
-                          <button className="btn btn-ghost btn-sm" onClick={() => handleToggleStatus(v._id)} title={v.isActive ? 'Hide' : 'Show'}>
-                            {v.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                          <button className="btn btn-ghost btn-sm text-error" onClick={() => handleDeleteVehicle(v._id)} title="Delete">
-                            <Trash2 size={16} />
-                          </button>
+              <div className="dashboard-grid">
+                {filteredVehicles.map(v => (
+                  <div key={v._id} className="dash-vehicle-card">
+                    <div className="dash-vehicle-card-img">
+                      {v.photos?.[0] ? (
+                        <img src={getImageUrl(v.photos[0])} alt={v.title} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
+                          <Car size={32} color="#cbd5e1" />
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                      )}
+                      <div className="dash-vehicle-card-status">
+                        {vehicleStatusBadge(v.status, v.isActive)}
+                      </div>
+                    </div>
+                    <div className="dash-vehicle-card-body">
+                      <div style={{ textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>
+                        {v.serviceType?.[0] || 'Vehicle'}
+                      </div>
+                      <h4 className="dash-vehicle-card-title">{v.title}</h4>
+                      <div className="dash-vehicle-card-meta">{v.make} {v.model}</div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                        <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
+                      </div>
+
+                      <div className="dash-vehicle-card-actions">
+                        <Link to={`/vehicles/edit/${v._id}`} className="btn btn-sm btn-ghost" title="Edit">
+                          <Edit size={14} style={{ marginRight: '6px' }} /> Edit
+                        </Link>
+                        <button className="btn btn-sm btn-ghost" onClick={() => handleToggleStatus(v._id)}>
+                          {v.isActive ? <><EyeOff size={14} style={{ marginRight: '6px' }} /> Hide</> : <><Eye size={14} style={{ marginRight: '6px' }} /> Show</>}
+                        </button>
+                        <button className="btn btn-sm btn-ghost" style={{ gridColumn: 'span 2', borderColor: '#fee2e2', color: '#dc2626' }} onClick={() => handleDeleteVehicle(v._id)}>
+                          <Trash2 size={14} style={{ marginRight: '6px' }} /> Delete Vehicle
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ) : tab === 'bookings' ? (
           <div className="dashboard-box">
-            <div style={{ padding: '2rem 2rem 0' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">
                 {user.role === 'user' ? 'My Trip History' : 'Manage Bookings'}
               </h3>
             </div>
@@ -633,7 +601,7 @@ export default function Dashboard() {
                 )}
               </div>
             ) : (
-              <div className="booking-cards-container">
+              <div className="dashboard-grid">
                 {bookings.map(b => {
                   const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
                   const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)?._id || (b.owner as any)?.id : b.owner);
@@ -735,8 +703,8 @@ export default function Dashboard() {
         ) : tab === 'calendar' ? (
           /* ===== CALENDAR TAB (Owner Only) ===== */
           <div className="dashboard-box">
-            <div style={{ padding: '2rem 2rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)' }}>
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">
                 <CalIcon size={24} /> Availability Calendar
               </h3>
               <Select
@@ -857,13 +825,13 @@ export default function Dashboard() {
         ) : tab === 'reviews' ? (
           /* ===== REVIEWS TAB (Owner Only) ===== */
           <div className="dashboard-box">
-            <div style={{ padding: '2rem', borderBottom: '1px solid var(--border-color-light)' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)' }}>
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">
                 <Star size={24} /> Customer Reviews
               </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                Verified owners can manage visibility of vehicle reviews here.
-              </p>
+            </div>
+            <div style={{ padding: '0.5rem 2rem 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Verified owners can manage visibility of vehicle reviews here.
             </div>
 
             {reviews.length === 0 ? (
@@ -872,93 +840,63 @@ export default function Dashboard() {
                 <p>No reviews yet for your vehicles</p>
               </div>
             ) : (
-              <div className="dashboard-box-scroll">
-                <table className="dashboard-table">
-                <thead>
-                  <tr>
-                    <th>Vehicle</th>
-                    <th>Reviewer</th>
-                    <th>Rating</th>
-                    <th>Comment</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reviews.map((r: Review) => (
-                    <tr key={r._id}>
-                      <td>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{r.vehicle?.title || 'Vehicle'}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{r.vehicle?.make} {r.vehicle?.model}</div>
-                      </td>
-                      <td>
-                        <div style={{ fontSize: '0.9rem' }}>{r.reviewer?.name || 'User'}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
-                      </td>
-                      <td><Rate disabled defaultValue={r.rating} style={{ fontSize: '14px' }} /></td>
-                      <td style={{ maxWidth: '250px' }}>
-                        <div style={{ fontSize: '0.9rem', fontStyle: 'italic' }}>"{r.comment}"</div>
-                      </td>
-                      <td>
+              <div className="dashboard-grid">
+                {reviews.map((r: Review) => (
+                  <div key={r._id} className="dash-review-card">
+                    <div className="dash-review-header">
+                      <img 
+                        src={getImageUrl(r.reviewer?.profilePic)} 
+                        className="dash-review-avatar" 
+                        alt="Avatar"
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(r.reviewer?.name || 'U'); }} 
+                      />
+                      <div className="dash-review-info">
+                        <h5>{r.reviewer?.name || 'User'}</h5>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                      </div>
+                      <div style={{ marginLeft: 'auto' }}>
+                        <Rate disabled defaultValue={r.rating} style={{ fontSize: '12px' }} />
+                      </div>
+                    </div>
+                    
+                    <div style={{ borderTop: '1px solid #f8fafc', paddingTop: '10px' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700 }}>{r.vehicle?.title}</div>
+                      <div className="dash-review-comment">"{r.comment}"</div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f8fafc' }}>
+                      <div>
                         {r.status === 'visible' ? (
                           <Tag color="success">Visible</Tag>
-                        ) : r.status === 'hidden' ? (
-                          <Tag color="warning">
-                            {r.hiddenBy === String(user?._id || user?.id) ? 'Hidden by You' : 'Hidden by Admin'}
-                          </Tag>
                         ) : (
-                          <Tag color="error">Rejected</Tag>
+                          <Tag color="warning">Hidden</Tag>
                         )}
-                      </td>
-                      <td>
-                        {isVerifiedOwner && r.status === 'visible' && (
-                          <Button
-                            danger
-                            size="small"
-                            type="text"
-                            onClick={() => {
-                              Modal.confirm({
-                                title: 'Hide Review Temporarily?',
-                                content: 'This review will be hidden from the public view until you decide to unhide it or an admin overrides this action.',
-                                onOk: () => handleToggleReviewVisibility(r._id)
-                              });
-                            }}
-                          >
-                            Hide
-                          </Button>
-                        )}
-                        {isVerifiedOwner && r.status === 'hidden' && r.hiddenBy === (user._id || user.id) && (
-                          <Button
-                            type="link"
-                            size="small"
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {isVerifiedOwner && (
+                          <button
+                            className="btn btn-sm btn-ghost"
+                            style={{ height: '32px', fontSize: '0.75rem', padding: '0 12px' }}
                             onClick={() => handleToggleReviewVisibility(r._id)}
                           >
-                            Unhide
-                          </Button>
+                            {r.status === 'visible' ? 'Hide' : 'Unhide'}
+                          </button>
                         )}
-                        {r.status === 'hidden' && r.hiddenBy !== (user._id || user.id) && (
-                          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Admin Action</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ) : tab === 'subscription' ? (
           /* ===== SUBSCRIPTION TAB (Owner Only) ===== */
-          <div className="animate-fade-in">
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '2rem', borderBottom: '1px solid var(--border-color)' }}>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Shield size={24} style={{ color: '#1890ff' }} /> Manage My Subscription
-                </h3>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  Monitor your plan status and vehicle listing limits.
-                </p>
-              </div>
+          <div className="dashboard-box">
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">
+                <Shield size={24} style={{ color: '#1890ff' }} /> Manage My Subscription
+              </h3>
+            </div>
               
               <div style={{ padding: '2rem' }}>
                 {user.subscription?.status === 'trial' && (
@@ -1005,7 +943,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         ) : null}
       </div>
