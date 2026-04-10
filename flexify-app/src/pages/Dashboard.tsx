@@ -389,70 +389,64 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page page-wrapper bg-secondary">
 
-      <div className="dashboard-header section-padding">
-        <div className="container" style={{ position: 'relative' }}>
-          <h1>My Dashboard</h1>
-          <p>Welcome, {user.name}! Manage your {user.role === 'user' ? 'rentals' : 'vehicles and bookings'}.</p>
+      <header className="dashboard-header section-padding">
+        <div className="container">
+          <div className="animate-fade-in-up">
+            <h1 className="hero-title" style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>My Dashboard</h1>
+            <p className="hero-subtitle" style={{ fontSize: '1.2rem', opacity: 0.8 }}>Welcome back, {user.name.split(' ')[0]}! Here's what's happening with your fleet today.</p>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="container" style={{ marginTop: '2rem' }}>
-        {/* KYC verification banner — not for staff (auto-verified) */}
-        {!user.isKycVerified && !isStaff && (
-          <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <div style={{ background: '#ff7e33', color: 'white', padding: '10px', borderRadius: '12px' }}><Shield size={24} /></div>
-              <div>
-                <h3 style={{ color: '#9a3412', marginBottom: '4px' }}>
-                  {user.verificationStatus === 'pending' ? 'Verification Pending' : 'Verify Your Account'}
-                </h3>
-                <p style={{ color: '#c2410c' }}>
-                  {user.verificationStatus === 'pending'
-                    ? 'Your KYC documents are under review. You\'ll be notified once approved.'
-                    : 'Complete KYC verification to book vehicles and access all features.'}
-                </p>
+      <div className="container" style={{ marginTop: '0' }}>
+        {/* Stats Section */}
+        {isOwner && (
+          <div className="dashboard-stats animate-fade-in">
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: '#eff6ff', color: '#3b82f6' }}>
+                <Car size={28} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-number">{vehicles.length}</span>
+                <span className="stat-label">My Vehicles</span>
               </div>
             </div>
-            {user.verificationStatus !== 'pending' && (
-              <Link to="/verify" className="btn btn-primary">Verify Now</Link>
-            )}
+            
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: '#f0fdf4', color: '#10b981' }}>
+                <CalIcon size={28} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-number">{bookings.length}</span>
+                <span className="stat-label">Total Bookings</span>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
+                <CheckCircle size={28} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-number">{bookings.filter(b => b.status === 'CONFIRMED').length}</span>
+                <span className="stat-label">Confirmed</span>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
+                <Clock size={28} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-number">{bookings.filter(b => b.status === 'PENDING').length}</span>
+                <span className="stat-label">Requests</span>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Unverified owner banner */}
-        {isUnverifiedOwner && (
-          <div className="card" style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', border: '1px solid #fbbf24', padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ background: '#d97706', color: 'white', padding: '10px', borderRadius: '12px' }}><AlertTriangle size={24} /></div>
-            <div>
-              <h3 style={{ color: '#92400e', marginBottom: '4px' }}>Verification Required</h3>
-              <p style={{ color: '#a16207' }}>You can list vehicles, but you must complete KYC verification to accept bookings from renters.</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="container dashboard-content section-padding" style={{ paddingTop: 0 }}>
-        {/* Stats */}
-        {isOwner && (
-          <div className="dashboard-stats">
-            <div className="stat-card card">
-              <div className="stat-icon" style={{ background: '#eff6ff', color: '#1890ff' }}><Car size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{vehicles.length}</span><span className="stat-label">My Vehicles</span></div>
-            </div>
-            <div className="stat-card card">
-              <div className="stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}><CalIcon size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{bookings.length}</span><span className="stat-label">Total Bookings</span></div>
-            </div>
-            <div className="stat-card card">
-              <div className="stat-icon" style={{ background: '#fefce8', color: '#ca8a04' }}><DollarSign size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{bookings.filter(b => b.status === 'CONFIRMED').length}</span><span className="stat-label">Confirmed</span></div>
-            </div>
-            <div className="stat-card card">
-              <div className="stat-icon" style={{ background: '#fef2f2', color: '#dc2626' }}><Clock size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{bookings.filter(b => b.status === 'PENDING').length}</span><span className="stat-label">Pending</span></div>
-            </div>
-          </div>
-        )}
+        {/* KYC verification banner — not for staff (auto-verified) */}
+        {!user.isKycVerified && !isStaff && (
+          <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem', borderRadius: '20px' }}>
 
         {/* Tabs */}
         <div className="dashboard-tabs">
