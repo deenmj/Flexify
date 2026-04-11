@@ -460,6 +460,7 @@ export default function EditVehicle() {
                     <label>City</label>
                     <input className="input-field" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required />
                   </div>
+                </div>
               </div>
             </div>
 
