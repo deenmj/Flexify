@@ -3,6 +3,7 @@ import Booking from "../models/booking.js";
 import Vehicle from "../models/Vehicle.js";
 import Blackout from "../models/Blackout.js";
 import sendEmail from "../utils/sendEmail.js";
+import { sendBookingUpdateEmail } from "../utils/notifier.js";
 import { createNotification } from "./notificationController.js";
 
 /**
@@ -280,6 +281,12 @@ export const rejectBooking = async (req, res) => {
       });
     }
 
+    // Send rejection email async
+    const populated = await booking.populate("owner user vehicle");
+    if (populated.owner && populated.user && populated.vehicle) {
+      sendBookingUpdateEmail(populated.owner, populated.user, populated.vehicle, "REJECTED");
+    }
+
     return res.json({ message: "Booking rejected", booking });
   } catch (err) {
     return res.status(500).json({ message: err.message });
@@ -304,6 +311,13 @@ export const cancelBooking = async (req, res) => {
 
     booking.status = "CANCELLED";
     await booking.save();
+
+    // Send cancellation email async
+    const populated = await booking.populate("owner user vehicle");
+    if (populated.owner && populated.user && populated.vehicle) {
+      sendBookingUpdateEmail(populated.owner, populated.user, populated.vehicle, "CANCELLED");
+    }
+
     return res.json({ message: "Booking cancelled" });
   } catch (err) {
     return res.status(500).json({ message: err.message });

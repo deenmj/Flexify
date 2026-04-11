@@ -130,6 +130,98 @@ export const sendRejectionEmail = async (user, type, reason, comment) => {
 };
 
 /**
+ * Sends an approval notification to a user
+ * @param {Object} user - User document
+ * @param {string} type - 'KYC' or 'Vehicle'
+ * @param {string} itemName - Optional name of the approved item (e.g. vehicle title)
+ */
+export const sendApprovalEmail = async (user, type, itemName) => {
+    try {
+        const dashboardUrl = (process.env.FRONTEND_URL || "http://localhost:5173") + (type === 'KYC' ? '/dashboard' : '/owner/vehicles');
+        
+        const html = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #10b981; padding: 24px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Congratulations!</h1>
+                </div>
+                <div style="padding: 32px; color: #1e293b;">
+                    <h2 style="font-size: 20px; color: #10b981; margin-top: 0;">Your ${type} has been approved</h2>
+                    <p style="font-size: 16px; line-height: 1.6;">Hello ${user.name},</p>
+                    <p style="font-size: 16px; line-height: 1.6;">We're happy to inform you that your ${type.toLowerCase()} ${itemName ? `(${itemName}) ` : ''}has been successfully reviewed and approved by our team.</p>
+                    
+                    ${type === 'KYC' ? '<p style="font-size: 15px; line-height: 1.6;">You can now book vehicles and access all premium features of the platform.</p>' : ''}
+                    ${type === 'Vehicle' ? '<p style="font-size: 15px; line-height: 1.6;">Your listing is now live and visible to potential renters. Good luck with your first booking!</p>' : ''}
+
+                    <div style="text-align: center; margin-top: 32px;">
+                        <a href="${dashboardUrl}" style="background-color: #1e293b; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block;">Go to Dashboard</a>
+                    </div>
+                </div>
+                <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
+                    <p style="margin: 0;">Thank you for being part of Flexify!</p>
+                </div>
+            </div>
+        `;
+
+        await sendEmail({
+            to: user.email,
+            subject: `Flexify: Your ${type} has been Approved!`,
+            html: html
+        });
+
+        console.log(`Approval email sent to ${user.email} for ${type}`);
+    } catch (error) {
+        console.error("Error in sendApprovalEmail:", error);
+    }
+};
+
+/**
+ * Sends a generic booking update (rejection/cancellation)
+ */
+export const sendBookingUpdateEmail = async (bookingOwner, renter, vehicle, status) => {
+    try {
+        const dashboardUrl = (process.env.FRONTEND_URL || "http://localhost:5173") + "/dashboard";
+        const isCancellation = status === 'CANCELLED';
+        
+        const html = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #64748b; padding: 24px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Booking ${isCancellation ? 'Cancelled' : 'Update'}</h1>
+                </div>
+                <div style="padding: 32px; color: #1e293b;">
+                    <p style="font-size: 16px; line-height: 1.6;">Hello,</p>
+                    <p style="font-size: 16px; line-height: 1.6;">This is to notify you that the booking for <strong>${vehicle.title}</strong> has been <strong>${status.toLowerCase()}</strong>.</p>
+                    
+                    <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 24px 0;">
+                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 15px;">
+                            <li style="margin-bottom: 8px;"><strong style="color: #475569;">Vehicle:</strong> ${vehicle.title}</li>
+                            <li style="margin-bottom: 8px;"><strong style="color: #475569;">Status:</strong> ${status}</li>
+                        </ul>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 32px;">
+                        <a href="${dashboardUrl}" style="background-color: #1e293b; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block;">View Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Notify both parties of the update
+        const participants = [renter.email, bookingOwner.email];
+        await Promise.all(participants.map(email => 
+            sendEmail({
+                to: email,
+                subject: `Flexify: Booking ${status} - ${vehicle.title}`,
+                html: html
+            })
+        ));
+
+        console.log(`Booking update (${status}) emails sent to renter and owner`);
+    } catch (error) {
+        console.error("Error in sendBookingUpdateEmail:", error);
+    }
+};
+
+/**
  * Sends a subscription expiry reminder
  * @param {Object} user - User document
  * @param {number} daysLeft - 7 or 1

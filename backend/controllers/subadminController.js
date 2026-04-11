@@ -4,7 +4,7 @@ import User from "../models/User.js";
 import Vehicle from "../models/Vehicle.js";
 import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
-import { sendRejectionEmail } from "../utils/notifier.js";
+import { sendRejectionEmail, sendApprovalEmail } from "../utils/notifier.js";
 
 /**
  * List users who have submitted KYC documents for staff review
@@ -57,6 +57,9 @@ export const approveUserKyc = async (req, res) => {
         user.rejectedAt = null;
 
         await user.save();
+        
+        // Send approval email async
+        sendApprovalEmail(user, "KYC");
 
         // SOCKET NOTIFICATION TO ALL ADMINS
         const io = req.app.get("io");
@@ -142,6 +145,11 @@ export const approveVehicle = async (req, res) => {
         vehicle.rejectedAt = null;
         
         await vehicle.save();
+
+        // Send approval email async
+        if (vehicle.owner) {
+            sendApprovalEmail(vehicle.owner, "Vehicle", vehicle.title);
+        }
 
         // Optionally promote owner to VERIFIED if they were UNVERIFIED
         if (vehicle.owner && vehicle.owner.role === "owner" && vehicle.owner.ownerType === "UNVERIFIED") {
