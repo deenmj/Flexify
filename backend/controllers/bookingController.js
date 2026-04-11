@@ -3,7 +3,7 @@ import Booking from "../models/booking.js";
 import Vehicle from "../models/Vehicle.js";
 import Blackout from "../models/Blackout.js";
 import sendEmail from "../utils/sendEmail.js";
-import { sendBookingUpdateEmail } from "../utils/notifier.js";
+import { sendBookingUpdateEmail, sendNewBookingEmail } from "../utils/notifier.js";
 import { createNotification } from "./notificationController.js";
 
 /**
@@ -29,7 +29,7 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const vehicle = await Vehicle.findById(vehicleId).populate("owner", "_id name email phone profilePic");
+    const vehicle = await Vehicle.findById(vehicleId).populate("owner", "_id name email phone profilePic notificationEmail isNotificationEmailActive");
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
     if (vehicle.status !== "active") return res.status(400).json({ message: "Vehicle is not available" });
 
@@ -109,22 +109,7 @@ export const createBooking = async (req, res) => {
     }
 
     // Send email to owner (fire-and-forget — never blocks response)
-    sendEmail({
-      to: vehicle.owner.email,
-      subject: "🔔 New Booking Request - Flexify",
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
-          <h2 style="color: #1890ff;">New Booking Request</h2>
-          <p>Hi <strong>${vehicle.owner.name}</strong>,</p>
-          <p>You have a new booking request for <strong>${vehicle.title}</strong>.</p>
-          <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
-            <p><strong>Dates:</strong> ${s.toDateString()} - ${e.toDateString()}</p>
-            <p><strong>Total:</strong> LKR ${totalAmount.toLocaleString()}</p>
-          </div>
-          <p>Log in to your dashboard to accept or reject this request.</p>
-        </div>
-      `,
-    }).catch(emailErr => console.error("Email notification failed:", emailErr.message));
+    sendNewBookingEmail(vehicle.owner, req.user.name, vehicle.title, s, e, totalAmount);
 
   } catch (err) {
     // Only send error if headers haven't been sent yet
@@ -141,7 +126,10 @@ export const createBooking = async (req, res) => {
  */
 export const acceptBooking = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id).populate("vehicle owner user");
+    const booking = await Booking.findById(req.params.id).populate("vehicle").populate({
+      path: "owner",
+      select: "_id name email phone profilePic notificationEmail isNotificationEmailActive"
+    }).populate("user");
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
     if (booking.status !== "PENDING") {
@@ -201,6 +189,11 @@ export const acceptBooking = async (req, res) => {
     const sDate = new Date(booking.startDate).toDateString();
     const eDate = new Date(booking.endDate).toDateString();
 
+    // Determine owner recipient email
+    const ownerRecipient = (ownerUser.isNotificationEmailActive && ownerUser.notificationEmail) 
+      ? ownerUser.notificationEmail 
+      : ownerUser.email;
+
     // Send both emails in parallel (fire-and-forget)
     Promise.all([
       sendEmail({
@@ -222,7 +215,7 @@ export const acceptBooking = async (req, res) => {
         `,
       }),
       sendEmail({
-        to: ownerUser.email,
+        to: ownerRecipient,
         subject: "✅ Booking Accepted - Flexify",
         html: `
           <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
@@ -282,7 +275,10 @@ export const rejectBooking = async (req, res) => {
     }
 
     // Send rejection email async
-    const populated = await booking.populate("owner user vehicle");
+    const populated = await booking.populate({
+      path: "owner",
+      select: "_id name email notificationEmail isNotificationEmailActive"
+    }).populate("user vehicle");
     if (populated.owner && populated.user && populated.vehicle) {
       sendBookingUpdateEmail(populated.owner, populated.user, populated.vehicle, "REJECTED");
     }
@@ -313,7 +309,10 @@ export const cancelBooking = async (req, res) => {
     await booking.save();
 
     // Send cancellation email async
-    const populated = await booking.populate("owner user vehicle");
+    const populated = await booking.populate({
+      path: "owner",
+      select: "_id name email notificationEmail isNotificationEmailActive"
+    }).populate("user vehicle");
     if (populated.owner && populated.user && populated.vehicle) {
       sendBookingUpdateEmail(populated.owner, populated.user, populated.vehicle, "CANCELLED");
     }

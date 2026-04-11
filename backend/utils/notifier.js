@@ -222,6 +222,60 @@ export const sendBookingUpdateEmail = async (bookingOwner, renter, vehicle, stat
 };
 
 /**
+ * Sends a notification to the owner about a new booking request
+ */
+export const sendNewBookingEmail = async (owner, renterName, vehicleTitle, startDate, endDate, totalAmount) => {
+    try {
+        const dashboardUrl = (process.env.FRONTEND_URL || "http://localhost:5173") + "/dashboard";
+        
+        // Determine recipient email: use notificationEmail if active, otherwise fallback to login email
+        const recipientEmail = (owner.isNotificationEmailActive && owner.notificationEmail) 
+            ? owner.notificationEmail 
+            : owner.email;
+
+        const html = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #2563eb; padding: 24px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">New Booking Request</h1>
+                </div>
+                <div style="padding: 32px; color: #1e293b;">
+                    <p style="font-size: 16px; line-height: 1.6;">Hello <strong>${owner.name}</strong>,</p>
+                    <p style="font-size: 16px; line-height: 1.6;">You have received a new booking request for your vehicle, <strong>${vehicleTitle}</strong>.</p>
+                    
+                    <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 24px 0; border: 1px solid #e2e8f0;">
+                        <h3 style="font-size: 14px; text-transform: uppercase; color: #64748b; margin-top: 0; margin-bottom: 12px; letter-spacing: 0.05em;">Reservation Details</h3>
+                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 15px;">
+                            <li style="margin-bottom: 8px;"><strong style="color: #475569;">Renter:</strong> ${renterName}</li>
+                            <li style="margin-bottom: 8px;"><strong style="color: #475569;">Dates:</strong> ${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}</li>
+                            <li style="margin-bottom: 8px;"><strong style="color: #475569;">Total Amount:</strong> LKR ${totalAmount.toLocaleString()}</li>
+                        </ul>
+                    </div>
+
+                    <p style="font-size: 15px; line-height: 1.6;">Please review this request in your dashboard to accept or reject it.</p>
+
+                    <div style="text-align: center; margin-top: 32px;">
+                        <a href="${dashboardUrl}" style="background-color: #2563eb; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block;">Manage Booking</a>
+                    </div>
+                </div>
+                <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
+                    <p style="margin: 0;">This request will expire if not handled promptly.</p>
+                </div>
+            </div>
+        `;
+
+        await sendEmail({
+            to: recipientEmail,
+            subject: `🔔 New Booking Request: ${vehicleTitle}`,
+            html: html
+        });
+
+        console.log(`New booking email sent to ${recipientEmail}`);
+    } catch (error) {
+        console.error("Error in sendNewBookingEmail:", error);
+    }
+};
+
+/**
  * Sends a subscription expiry reminder
  * @param {Object} user - User document
  * @param {number} daysLeft - 7 or 1
