@@ -469,48 +469,43 @@ export default function Dashboard() {
         )}
 
         {/* Tabs - Navigation */}
-        <div style={{ display: 'flex', gap: '6px', background: 'white', padding: '4px', borderRadius: '12px', width: 'fit-content', marginBottom: '2rem', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)', overflowX: 'auto', maxWidth: '100%', whiteSpace: 'nowrap' }}>
+        <div className="dashboard-nav">
           {isOwner && (
             <button 
               className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
               onClick={() => setTab('vehicles')}
-              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'vehicles' ? 'var(--color-primary)' : 'transparent', color: tab === 'vehicles' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <Car size={16} /> Vehicles
+              <Car size={16} /> My Vehicles
             </button>
           )}
           <button 
             className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} 
             onClick={() => setTab('bookings')}
-            style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'bookings' ? 'var(--color-primary)' : 'transparent', color: tab === 'bookings' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
+            <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'All Bookings'}
           </button>
           {isOwner && (
             <button 
               className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} 
               onClick={() => setTab('calendar')}
-              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'calendar' ? 'var(--color-primary)' : 'transparent', color: tab === 'calendar' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <CalIcon size={16} /> Calendar
+              <CalIcon size={16} /> Availability
             </button>
           )}
           {isOwner && (
             <button 
               className={`nav-item ${tab === 'reviews' ? 'active' : ''}`} 
               onClick={() => setTab('reviews')}
-              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'reviews' ? 'var(--color-primary)' : 'transparent', color: tab === 'reviews' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <Star size={16} /> Reviews
+              <Star size={16} /> Feedback
             </button>
           )}
           {isOwner && !isStaff && (
             <button 
               className={`nav-item ${tab === 'subscription' ? 'active' : ''}`} 
               onClick={() => setTab('subscription')}
-              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'subscription' ? 'var(--color-primary)' : 'transparent', color: tab === 'subscription' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <Shield size={16} /> Subscription
+              <Shield size={16} /> Plan
             </button>
           )}
         </div>
@@ -607,7 +602,7 @@ export default function Dashboard() {
                 )}
               </div>
             ) : (
-              <div className="dashboard-grid">
+              <div className="booking-cards-container">
                 {bookings.map(b => {
                   const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
                   const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)?._id || (b.owner as any)?.id : b.owner);
