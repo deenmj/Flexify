@@ -470,19 +470,17 @@ export default function Dashboard() {
 
         {/* Tabs - Navigation */}
         <div className="dashboard-nav">
-          {isOwner && (
-            <button 
-              className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
-              onClick={() => setTab('vehicles')}
-            >
-              <Car size={16} /> My Vehicles
-            </button>
-          )}
+          <button 
+            className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
+            onClick={() => setTab('vehicles')}
+          >
+            <Car size={16} /> My Vehicles
+          </button>
           <button 
             className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} 
             onClick={() => setTab('bookings')}
           >
-            <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'All Bookings'}
+            <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
           </button>
           {isOwner && (
             <button 
