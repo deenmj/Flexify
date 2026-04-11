@@ -664,12 +664,12 @@ export default function Dashboard() {
                               </div>
                             )}
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: b.status === 'CONFIRMED' && isIamRenterOfThis && owner ? '1rem' : '0' }}>
-                              <button onClick={() => handleViewDetail(b)} className="btn btn-sm btn-ghost" style={{ flex: 1, minWidth: 'fit-content' }}>
-                                Full Details
+                              <button onClick={() => handleViewDetail(b)} className="btn btn-sm" style={{ flex: 1, minWidth: 'fit-content', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Info size={14} style={{ marginRight: '6px' }} /> Full Details
                               </button>
                               {vehicle && (
-                                <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="btn btn-sm btn-ghost" style={{ flex: 1, minWidth: 'fit-content', textAlign: 'center' }}>
-                                  View Page
+                                <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="btn btn-sm" style={{ flex: 1, minWidth: 'fit-content', textAlign: 'center', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Eye size={14} style={{ marginRight: '6px' }} /> View Page
                                 </Link>
                               )}
                             </div>
