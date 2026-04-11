@@ -436,7 +436,7 @@ export default function EditVehicle() {
               <div className="form-card-header">
                 <MapPin size={20} />
                 <h3>Location Details</h3>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={handleGetLocation}>
+                <button type="button" className="btn btn-ghost btn-sm locate-me-btn" onClick={handleGetLocation}>
                   <Locate size={14} /> Locate Me
                 </button>
               </div>
