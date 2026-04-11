@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car } from 'lucide-react';
 import { Row, Col } from 'antd';
-import { vehicleApi, type Vehicle, type User, type PublicStats } from '../api';
+import { vehicleApi, type Vehicle, type User, type PublicStats, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './Home.css';

@@ -126,19 +126,48 @@ export default function VehicleDetail() {
 
   // Tooltip & Styling for RangePicker cells
   const pickerCellRender = useCallback((current: Dayjs | any) => {
-    // antd 5 cellRender might pass string/number/Dayjs depending on view, 
-    // but in DatePicker it should be Dayjs. We cast to satisfy TS.
     const date = dayjs(current);
-    const isBooked = isDateBooked(date, 'CONFIRMED');
-    const isBlackout = isDateBlackedOut(date);
+    const confirmed = isDateBooked(date, 'CONFIRMED');
+    const pending = isDateBooked(date, 'PENDING');
+    const blackedOut = isDateBlackedOut(date);
     
-    if (isBooked || isBlackout) {
-      return (
-        <Tooltip title={isBooked ? "Already booked" : "Owner unavailable (blackout)"}>
-          <div className="ant-picker-cell-inner disabled-cell-inner">{date.date()}</div>
-        </Tooltip>
-      );
+    // Determine the status and label
+    let statusClass = '';
+    let label = '';
+    let tooltip = '';
+
+    if (confirmed) {
+      statusClass = 'confirmed';
+      label = 'Booked';
+      tooltip = 'Already booked';
+    } else if (pending) {
+      statusClass = 'pending';
+      label = 'Pending';
+      tooltip = 'Booking Pending';
+    } else if (blackedOut) {
+      statusClass = 'blackout';
+      label = 'Unavailable';
+      tooltip = 'Owner unavailable (blackout)';
+    } else if (date.isSame(dayjs(), 'day') || date.isAfter(dayjs(), 'day')) {
+      statusClass = 'available';
+      label = 'Available';
     }
+
+    if (statusClass) {
+      const content = (
+        <div className="avail-status-container">
+          <div className={`status-indicator ${statusClass}`}>
+            <span className="status-text">{label}</span>
+          </div>
+        </div>
+      );
+      return tooltip ? (
+        <Tooltip title={tooltip}>
+          <div className="ant-picker-cell-inner">{date.date()}{content}</div>
+        </Tooltip>
+      ) : <div className="ant-picker-cell-inner">{date.date()}{content}</div>;
+    }
+
     return <div className="ant-picker-cell-inner">{date.date()}</div>;
   }, [isDateBooked, isDateBlackedOut]);
 
@@ -161,24 +190,49 @@ export default function VehicleDetail() {
     if (confirmed) {
       return (
         <Tooltip title="Booked (Confirmed)">
-          <div className="avail-cell avail-confirmed">Booked</div>
+          <div className="avail-status-container">
+            <div className="status-indicator confirmed">
+              <span className="status-text">Booked</span>
+            </div>
+          </div>
         </Tooltip>
       );
     }
     if (pending) {
       return (
         <Tooltip title="Booking Pending">
-          <div className="avail-cell avail-pending">Pending</div>
+          <div className="avail-status-container">
+            <div className="status-indicator pending">
+              <span className="status-text">Pending</span>
+            </div>
+          </div>
         </Tooltip>
       );
     }
     if (blackedOut) {
       return (
         <Tooltip title="Owner Unavailable / Blackout">
-          <div className="avail-cell avail-blackout">Unavailable</div>
+          <div className="avail-status-container">
+            <div className="status-indicator blackout">
+              <span className="status-text">Unavailable</span>
+            </div>
+          </div>
         </Tooltip>
       );
     }
+
+    // NEW: Show 'Available' badge if the date is in the future and not blocked
+    // only if it's not in the past (to keep it clean)
+    if (date.isSame(dayjs(), 'day') || date.isAfter(dayjs(), 'day')) {
+      return (
+        <div className="avail-status-container">
+          <div className="status-indicator available">
+            <span className="status-text">Available</span>
+          </div>
+        </div>
+      );
+    }
+
     return null;
   }, [isDateBooked, isDateBlackedOut]);
 
@@ -195,34 +249,30 @@ export default function VehicleDetail() {
     }
 
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
-      message.error('Please select pickup and return dates');
-      return;
-    }
-
-    if (isRangeBlocked(dateRange[0], dateRange[1])) {
-      message.error('Selected dates are already booked. Please choose different dates.');
+      message.error('Please select both pickup and return dates');
       return;
     }
 
     setBookingLoading(true);
+    const startStr = dateRange[0].toISOString();
+    const endStr = dateRange[1].toISOString();
 
     try {
-      const resp = await bookingApi.create(
-        id!,
-        dateRange[0].toISOString(),
-        dateRange[1].toISOString()
-      );
+      const resp = await bookingApi.create(id!, startStr, endStr);
       setCreatedBooking(resp);
       message.success('Booking request submitted!');
-      // Refresh availability
+      
+      // Background refresh
       vehicleApi.getAvailability(id!)
         .then((data) => {
           setBookedRanges(data.bookedRanges);
           setBlackoutRanges(data.blackoutRanges);
         })
-        .catch(() => { });
+        .catch(err => console.error('Silent refresh failed:', err));
+
     } catch (err: any) {
-      message.error(err.message || 'Failed to submit booking');
+      console.error('Booking failed:', err);
+      message.error(err.message || 'Failed to create booking');
     } finally {
       setBookingLoading(false);
     }
@@ -388,18 +438,35 @@ export default function VehicleDetail() {
               {(() => {
                 const parseFeatures = (feat: any): string[] => {
                   if (!feat) return [];
-                  if (Array.isArray(feat)) return feat;
-                  if (typeof feat === 'string') {
-                    const trimmed = feat.trim();
-                    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-                      try {
-                        const parsed = JSON.parse(trimmed);
-                        if (Array.isArray(parsed)) return parsed;
-                      } catch (e) { /* fallback to comma split */ }
+                  
+                  // Helper to flatten and clean up nested strings
+                  const flatten = (data: any): string[] => {
+                    if (Array.isArray(data)) {
+                      return data.flatMap(item => flatten(item));
                     }
-                    return trimmed.split(',').map(s => s.trim()).filter(Boolean);
-                  }
-                  return [];
+                    if (typeof data === 'string') {
+                      const trimmed = data.trim();
+                      // If it's a JSON array string, parse it and recurse
+                      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                        try {
+                          const parsed = JSON.parse(trimmed);
+                          return flatten(parsed);
+                        } catch (e) {
+                          // Fallback: split by comma if JSON parse fails
+                          return trimmed.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+                        }
+                      }
+                      // Clean up individual strings (remove stray quotes)
+                      return [trimmed.replace(/^["']|["']$/g, '').trim()];
+                    }
+                    return [];
+                  };
+
+                  const results = flatten(feat);
+                  
+                  // Final unique filter and cleanup
+                  return Array.from(new Set(results))
+                    .filter(s => s && s.length > 1 && !s.includes('[') && !s.includes('"'));
                 };
                 const safeFeatures = parseFeatures(vehicle.features);
 

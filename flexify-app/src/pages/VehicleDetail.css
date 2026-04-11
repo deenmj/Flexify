@@ -318,33 +318,93 @@
   padding: 8px;
 }
 
-.avail-cell {
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 1px 4px;
-  border-radius: 4px;
-  text-align: center;
-  line-height: 1.4;
+/* ===== Availability Calendar Refinement (Universal Text Badges) ===== */
+.avail-status-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
   margin-top: 2px;
 }
 
-.avail-confirmed {
+.status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+  transition: all 0.2s ease;
+  width: auto;
+  height: auto;
+}
+
+.status-indicator.confirmed {
   background: #fee2e2;
   color: #dc2626;
   border: 1px solid #fca5a5;
 }
 
-.avail-pending {
+.status-indicator.pending {
   background: #fef3c7;
   color: #d97706;
   border: 1px solid #fcd34d;
 }
 
-.avail-blackout {
+.status-indicator.available {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.status-indicator.blackout {
   background: #f3f4f6;
   color: #4b5563;
-  border: 1px solid #9ca3af;
-  text-decoration: line-through;
+  border: 1px solid #d1d5db;
+}
+
+/* Ensure text is always visible */
+.status-text {
+  display: inline-block !important;
+}
+
+/* Standardized Legend */
+.avail-legend-vertical {
+  padding: 1.25rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .status-indicator {
+    font-size: 0.55rem;
+    padding: 1px 4px;
+    letter-spacing: -0.02em;
+  }
+
+  .ant-picker-calendar-date-content {
+    height: auto !important;
+    min-height: 16px;
+  }
+
+  .avail-legend-vertical {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+    margin-top: 1rem;
+    padding: 0.75rem;
+  }
+
+  .avail-legend-vertical > span {
+    justify-content: center;
+    font-size: 0.75rem !important;
+  }
 }
 
 /* Antd RangePicker override to match theme */

@@ -8,7 +8,7 @@ import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Book
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
   Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle,
-  CalendarOff, Star, MessageSquare, Zap, Edit
+  CalendarOff, Star, MessageSquare, Zap, Edit, Info, User
 } from 'lucide-react';
 import { notification } from 'antd';
 
@@ -46,11 +46,21 @@ export default function Dashboard() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
+  // Trip Detail Modal state
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
   // Review Renter Modal state
   const [showRenterModal, setShowRenterModal] = useState(false);
   const [selectedRenter, setSelectedRenter] = useState<any>(null);
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
+
   const [searchParams] = useSearchParams();
+
+  const handleViewDetail = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowDetailModal(true);
+  };
 
   // Highlight logic from URL
   useEffect(() => {
@@ -352,8 +362,8 @@ export default function Dashboard() {
   // Staff (subadmin) behaves like a verified owner in the dashboard
   const isStaff = user.role === 'subadmin';
   const isOwner = user.role === 'owner' || isStaff;
-  // All owners can accept bookings (no KYC requirement)
-  const isVerifiedOwner = isOwner;
+  const isVerifiedOwner = (isOwner && user.isKycVerified) || isStaff;
+  const isUnverifiedOwner = user.role === 'owner' && !user.isKycVerified && !isStaff;
 
   const vehicleStatusBadge = (status: string, isActive: boolean) => {
     if (status === 'pending') return <Tag color="warning" icon={<Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}>Pending</Tag>;
@@ -377,16 +387,81 @@ export default function Dashboard() {
     : vehicles.filter(v => v.serviceType && v.serviceType.includes(selectedCategory));
 
   return (
-    <div className="dashboard-page page-wrapper bg-secondary">
+    <div className="dashboard-page page-wrapper" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
 
-      <div className="dashboard-header section-padding">
-        <div className="container" style={{ position: 'relative' }}>
-          <h1>My Dashboard</h1>
-          <p>Welcome, {user.name}! Manage your {user.role === 'user' ? 'rentals' : 'vehicles and bookings'}.</p>
+      <header className="dashboard-header" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)', padding: '2rem 0 3.5rem', textAlign: 'center', color: 'white' }}>
+        <div className="container">
+          <div className="animate-fade-in">
+            <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.25rem', color: 'white' }}>My Dashboard</h1>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', margin: 0 }}>
+              Welcome back, {user.name.split(' ')[0]}! Manage your fleet and activities here.
+            </p>
+          </div>
         </div>
+      </header>
+
+      <div className="container" style={{ position: 'relative', marginTop: '-1.5rem', marginBottom: '3rem' }}>
+        {/* Stats Section */}
+        {isOwner && (
+          <div className="animate-fade-in-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-primary-50)', color: 'var(--color-primary)' }}>
+                <Car size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{vehicles.length}</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Vehicles</div>
+              </div>
+            </div>
+            
+            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0fdf4', color: '#10b981' }}>
+                <CalIcon size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{bookings.length}</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Bookings</div>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ecfdf5', color: '#059669' }}>
+                <CheckCircle size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{bookings.filter(b => b.status === 'CONFIRMED').length}</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Confirmed</div>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fffbeb', color: '#d97706' }}>
+                <Clock size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{bookings.filter(b => b.status === 'PENDING').length}</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Requests</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="container" style={{ marginTop: '2rem' }}>
+      <div className="container" style={{ marginBottom: '4rem' }}>
+        {/* KYC verification banner */}
+        {!user.isKycVerified && !isStaff && (
+          <div className="card" style={{ background: 'white', border: '1.5px solid #fed7aa', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', borderRadius: '16px', boxShadow: 'var(--shadow-md)' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <div style={{ background: '#fff7ed', color: '#f97316', padding: '10px', borderRadius: '10px' }}><Shield size={24} /></div>
+              <div>
+                <h4 style={{ margin: 0, color: '#9a3412', fontWeight: 700, fontSize: '1rem' }}>Verification Required</h4>
+                <p style={{ margin: '2px 0 0', color: '#c2410c', fontSize: '0.85rem' }}>Please complete KYC verification to access full features.</p>
+              </div>
+            </div>
+            {user.verificationStatus !== 'pending' && <Link to="/verify" className="btn btn-primary btn-sm">Verify Now</Link>}
+          </div>
+        )}
+
         {/* KYC document upload banner — only for users/renters who haven't uploaded docs */}
         {user.verificationStatus === 'not_submitted' && !isStaff && user.role === 'user' && (
           <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
@@ -404,54 +479,50 @@ export default function Dashboard() {
             <Link to="/verify" className="btn btn-primary">Upload Now</Link>
           </div>
         )}
-      </div>
 
-      <div className="container dashboard-content section-padding" style={{ paddingTop: 0 }}>
-        {/* Stats */}
-        {isOwner && (
-          <div className="dashboard-stats">
-            <div className="stat-card card">
-              <div className="stat-icon" style={{ background: '#eff6ff', color: '#1890ff' }}><Car size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{vehicles.length}</span><span className="stat-label">My Vehicles</span></div>
-            </div>
-            <div className="stat-card card">
-              <div className="stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}><CalIcon size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{bookings.length}</span><span className="stat-label">Total Bookings</span></div>
-            </div>
-            <div className="stat-card card">
-              <div className="stat-icon" style={{ background: '#fefce8', color: '#ca8a04' }}><DollarSign size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{bookings.filter(b => b.status === 'CONFIRMED').length}</span><span className="stat-label">Confirmed</span></div>
-            </div>
-            <div className="stat-card card">
-              <div className="stat-icon" style={{ background: '#fef2f2', color: '#dc2626' }}><Clock size={24} /></div>
-              <div className="stat-info"><span className="stat-number">{bookings.filter(b => b.status === 'PENDING').length}</span><span className="stat-label">Pending</span></div>
-            </div>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="dashboard-tabs">
+        {/* Tabs - Navigation */}
+        <div style={{ display: 'flex', gap: '6px', background: 'white', padding: '4px', borderRadius: '12px', width: 'fit-content', marginBottom: '2rem', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)', overflowX: 'auto', maxWidth: '100%', whiteSpace: 'nowrap' }}>
           {isOwner && (
-            <button className={`dashboard-tab ${tab === 'vehicles' ? 'active' : ''}`} onClick={() => setTab('vehicles')}>
-              <Car size={16} /> My Vehicles
+            <button 
+              className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
+              onClick={() => setTab('vehicles')}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'vehicles' ? 'var(--color-primary)' : 'transparent', color: tab === 'vehicles' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Car size={16} /> Vehicles
             </button>
           )}
-          <button className={`dashboard-tab ${tab === 'bookings' ? 'active' : ''}`} onClick={() => setTab('bookings')}>
+          <button 
+            className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} 
+            onClick={() => setTab('bookings')}
+            style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'bookings' ? 'var(--color-primary)' : 'transparent', color: tab === 'bookings' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
             <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
           </button>
           {isOwner && (
-            <button className={`dashboard-tab ${tab === 'calendar' ? 'active' : ''}`} onClick={() => setTab('calendar')}>
+            <button 
+              className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} 
+              onClick={() => setTab('calendar')}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'calendar' ? 'var(--color-primary)' : 'transparent', color: tab === 'calendar' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
               <CalIcon size={16} /> Calendar
             </button>
           )}
           {isOwner && (
-            <button className={`dashboard-tab ${tab === 'reviews' ? 'active' : ''}`} onClick={() => setTab('reviews')}>
+            <button 
+              className={`nav-item ${tab === 'reviews' ? 'active' : ''}`} 
+              onClick={() => setTab('reviews')}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'reviews' ? 'var(--color-primary)' : 'transparent', color: tab === 'reviews' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
               <Star size={16} /> Reviews
             </button>
           )}
           {isOwner && !isStaff && (
-            <button className={`dashboard-tab ${tab === 'subscription' ? 'active' : ''}`} onClick={() => setTab('subscription')}>
-              <Shield size={16} /> My Subscription
+            <button 
+              className={`nav-item ${tab === 'subscription' ? 'active' : ''}`} 
+              onClick={() => setTab('subscription')}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: tab === 'subscription' ? 'var(--color-primary)' : 'transparent', color: tab === 'subscription' ? 'white' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Shield size={16} /> Subscription
             </button>
           )}
         </div>
@@ -459,9 +530,9 @@ export default function Dashboard() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>Loading...</div>
         ) : tab === 'vehicles' ? (
-          <div className="dashboard-table-wrap card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem', padding: '1.5rem 1.5rem 0' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>My Vehicles</h3>
+          <div className="dashboard-box">
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">My Vehicles</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Category:</label>
                 <select
@@ -486,82 +557,57 @@ export default function Dashboard() {
                 <p>{vehicles.length === 0 ? "No vehicles listed yet" : `No ${selectedCategory}s found`}</p>
                 {vehicles.length === 0 && <Link to="/list-vehicle" className="btn btn-primary btn-sm">List a Vehicle</Link>}
               </div>
-            ) : isMobile ? (
-              <div style={{ padding: '0 1rem 1.5rem' }}>
-                <Row gutter={[12, 12]}>
-                  {filteredVehicles.map(v => (
-                    <Col xs={12} key={v._id}>
-                      <div className="dash-mobile-card">
-                        <div className="dash-mobile-card-img">
-                          {v.photos?.[0] ? (
-                            <img src={getImageUrl(v.photos[0])} alt={v.title} />
-                          ) : (
-                            <div className="img-placeholder"><Car size={24} /></div>
-                          )}
-                          <div className="dash-mobile-card-status">
-                            {vehicleStatusBadge(v.status, v.isActive)}
-                          </div>
-                        </div>
-                        <div className="dash-mobile-card-info">
-                          <h4 className="truncate">{v.title}</h4>
-                          <div className="price">LKR {v.pricePerDay.toLocaleString()}<span>/d</span></div>
-                        </div>
-                        <div className="dash-mobile-card-actions">
-                          <Link to={`/vehicles/edit/${v._id}`} className="mobile-action-btn edit">
-                            <Edit size={16} />
-                          </Link>
-                          <button className="mobile-action-btn toggle" onClick={() => handleToggleStatus(v._id)}>
-                            {v.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                          <button className="mobile-action-btn delete" onClick={() => handleDeleteVehicle(v._id)}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    </Col>
-                  ))}
-                </Row>
-              </div>
             ) : (
-              <table className="dashboard-table" style={{ borderTop: '1px solid var(--border-color)' }}>
-                <thead><tr><th>Photo</th><th>Vehicle</th><th>Category</th><th>Price/day</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody>
-                  {filteredVehicles.map(v => (
-                    <tr key={v._id}>
-                      <td style={{ width: '90px', paddingLeft: '1.5rem' }}>
-                        {v.photos?.[0] ? (
-                          <img src={getImageUrl(v.photos[0])} alt={v.title} style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color-light)' }} />
-                        ) : (
-                          <div style={{ width: '60px', height: '40px', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}><Car size={16} color="var(--text-tertiary)" /></div>
-                        )}
-                      </td>
-                      <td data-label="Vehicle"><div className="table-vehicle"><strong>{v.title}</strong><span>{v.make} {v.model}</span></div></td>
-                      <td data-label="Category">{v.serviceType && v.serviceType.length > 0 ? <span className="badge" style={{ background: 'var(--bg-secondary)', fontWeight: 600 }}>{v.serviceType[0]}</span> : '-'}</td>
-                      <td data-label="Price/day" style={{ fontWeight: 700 }}>LKR {v.pricePerDay.toLocaleString()}</td>
-                      <td data-label="Status">
-                        {vehicleStatusBadge(v.status, v.isActive)}
-                      </td>
-                      <td data-label="Actions">
-                        <div className="table-actions">
-                          <Link to={`/vehicles/edit/${v._id}`} className="btn btn-ghost btn-sm" title="Edit">
-                            <Edit size={16} />
-                          </Link>
-                          <button className="btn btn-ghost btn-sm" onClick={() => handleToggleStatus(v._id)} title={v.isActive ? 'Hide' : 'Show'}>
-                            {v.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                          <button className="btn btn-ghost btn-sm text-error" onClick={() => handleDeleteVehicle(v._id)} title="Delete">
-                            <Trash2 size={16} />
-                          </button>
+              <div className="dashboard-grid">
+                {filteredVehicles.map(v => (
+                  <div key={v._id} className="dash-vehicle-card">
+                    <div className="dash-vehicle-card-img">
+                      {v.photos?.[0] ? (
+                        <img src={getImageUrl(v.photos[0])} alt={v.title} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
+                          <Car size={32} color="#cbd5e1" />
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      )}
+                      <div className="dash-vehicle-card-status">
+                        {vehicleStatusBadge(v.status, v.isActive)}
+                      </div>
+                    </div>
+                    <div className="dash-vehicle-card-body">
+                      <div style={{ textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>
+                        {v.serviceType?.[0] || 'Vehicle'}
+                      </div>
+                      <h4 className="dash-vehicle-card-title">{v.title}</h4>
+                      <div className="dash-vehicle-card-meta">{v.make} {v.model}</div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                        <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
+                      </div>
+
+                      <div className="dash-vehicle-card-actions">
+                        <Link to={`/vehicles/edit/${v._id}`} className="btn btn-sm btn-ghost" title="Edit">
+                          <Edit size={14} style={{ marginRight: '6px' }} /> Edit
+                        </Link>
+                        <button className="btn btn-sm btn-ghost" onClick={() => handleToggleStatus(v._id)}>
+                          {v.isActive ? <><EyeOff size={14} style={{ marginRight: '6px' }} /> Hide</> : <><Eye size={14} style={{ marginRight: '6px' }} /> Show</>}
+                        </button>
+                        <button className="btn btn-sm btn-ghost" style={{ gridColumn: 'span 2', borderColor: '#fee2e2', color: '#dc2626' }} onClick={() => handleDeleteVehicle(v._id)}>
+                          <Trash2 size={14} style={{ marginRight: '6px' }} /> Delete Vehicle
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         ) : tab === 'bookings' ? (
-          <div className="dashboard-table-wrap card">
+          <div className="dashboard-box">
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">
+                {user.role === 'user' ? 'My Trip History' : 'Manage Bookings'}
+              </h3>
+            </div>
             {bookings.length === 0 ? (
               <div className="dashboard-empty">
                 <CalIcon size={40} strokeWidth={1} />
@@ -573,91 +619,105 @@ export default function Dashboard() {
                 )}
               </div>
             ) : (
-              <table className="dashboard-table">
-                <thead><tr><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th><th>Actions/Details</th></tr></thead>
-                <tbody>
-                  {bookings.map(b => {
-                    const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
-                    const owner = typeof b.owner === 'object' ? b.owner : null;
-                    return (
-                      <tr key={b._id} id={`booking-${b._id}`}>
-                        <td data-label="Vehicle">
-                          <div style={{ fontWeight: 600 }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle'}</div>
-                          {vehicle && (
-                            <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="text-secondary" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                              <Eye size={12} /> View Details
-                            </Link>
-                          )}
-                        </td>
-                        <td data-label="Dates" className="table-dates">{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</td>
-                        <td data-label="Amount">LKR {b.totalAmount.toLocaleString()}</td>
-                        <td data-label="Status">
-                          {statusBadge(b.status)}
-                          {/* Show owner phone ONLY when confirmed and user is the renter */}
-                          {b.status === 'CONFIRMED' && user?.role === 'user' && owner && (
-                            <div style={{ marginTop: '8px' }}>
-                              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>{owner.name}</div>
-                              {owner.phone && (
-                                <div style={{ fontSize: '12px', color: '#1890ff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                  <Phone size={12} /> {owner.phone}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                        <td data-label="Actions" className="table-actions">
-                          {/* Review Renter Button (Owner Only) */}
-                          {b.status === 'PENDING' && isOwner && (
-                            <button 
-                              className="btn btn-sm btn-ghost" 
-                              style={{ color: '#1890ff', border: '1px solid #1890ff', width: '100%' }}
-                              onClick={() => {
-                                setSelectedRenter(typeof b.user === 'object' ? b.user : null);
-                                setActiveBookingId(b._id);
-                                setShowRenterModal(true);
-                              }}
-                            >
-                              <Eye size={14} /> Review Renter
-                            </button>
-                          )}
+              <div className="dashboard-grid">
+                {bookings.map(b => {
+                  const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
+                  const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)?._id || (b.owner as any)?.id : b.owner);
+                  const bRenterId = String(typeof b.user === 'object' ? (b.user as any)?._id || (b.user as any)?.id : b.user);
+                  const myId = String(user?._id || user?.id || '');
+                  
+                  const isIamRenterOfThis = myId === bRenterId;
+                  const isIamOwnerOfThis = (myId === bOwnerId || isStaff) && !isIamRenterOfThis;
+                  const owner = typeof b.owner === 'object' ? b.owner : null;
 
-                          {/* Owner accept/reject — all owners can accept bookings */}
-                          {b.status === 'PENDING' && isVerifiedOwner && (
-                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px', width: '100%' }}>
-                              <button className="btn btn-sm btn-primary" style={{ flex: 1 }} onClick={() => handleAcceptBooking(b._id)}>
-                                <CheckCircle size={14} /> Accept
-                              </button>
-                              <button className="btn btn-sm btn-danger" style={{ flex: 1 }} onClick={() => handleRejectBooking(b._id)}>
-                                <XCircle size={14} /> Reject
-                              </button>
+                  return (
+                    <div key={b._id} className="booking-card" id={`booking-${b._id}`}>
+                      <div className="booking-card-img">
+                        {vehicle && (vehicle as Vehicle).photos?.[0] ? (
+                          <img src={getImageUrl((vehicle as Vehicle).photos[0])} alt={vehicle.title} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+                            <Car size={32} color="#cbd5e1" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="booking-card-content">
+                        <div className="booking-card-info">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                            <h4>{vehicle ? (vehicle as Vehicle).title : 'Vehicle Details'}</h4>
+                            {bookingStatusBadge(b.status)}
+                          </div>
+                          
+                          <div className="booking-card-meta">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <CalIcon size={14} color="var(--text-tertiary)" />
+                              <span>{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</span>
                             </div>
-                          )}
-                          {/* Renter can cancel pending bookings */}
-                          {(b.status === 'PENDING') && user?.role === 'user' && (
-                            <button className="btn btn-sm btn-danger" style={{ width: '100%' }} onClick={() => handleCancelBooking(b._id)}>
-                              <XCircle size={14} /> Cancel
-                            </button>
-                          )}
-                          {/* Renter can review completed bookings */}
-                          {b.status === 'COMPLETED' && user?.role === 'user' && !b.isReviewed && (
-                            <button className="btn btn-sm btn-primary" style={{ width: '100%' }} onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>
-                              <Star size={14} /> Review
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#0f172a' }}>
+                              <span>LKR {b.totalAmount.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="booking-card-footer">
+                          <div>
+                            {b.status === 'CONFIRMED' && isIamRenterOfThis && owner && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                                  <img src={getImageUrl((owner as any).profilePic)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#166534' }}>HOST: {(owner as any).name}</div>
+                                  <a href={`tel:${(owner as any).phone}`} style={{ fontSize: '12px', fontWeight: 700, color: '#15803d' }}>
+                                    {(owner as any).phone || 'Contact Host'}
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                              {vehicle && (
+                                <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} style={{ fontSize: '11px', color: 'var(--text-secondary)', textDecoration: 'underline' }}>View Page</Link>
+                              )}
+                              <button onClick={() => handleViewDetail(b)} style={{ background: 'none', border: 'none', padding: 0, fontSize: '11px', color: 'var(--color-primary)', cursor: 'pointer', fontWeight: 600 }}>Full Details</button>
+                            </div>
+                          </div>
+
+                          <div className="booking-card-actions">
+                            {b.status === 'PENDING' && isIamOwnerOfThis && (
+                              <>
+                                <button className="btn btn-sm btn-ghost" onClick={() => { setSelectedRenter(typeof b.user === 'object' ? b.user : null); setActiveBookingId(b._id); setShowRenterModal(true); }}>
+                                  Review Renter
+                                </button>
+                                <>
+                                  <button className="btn btn-sm btn-primary" onClick={() => handleAcceptBooking(b._id)}>Accept</button>
+                                  <button className="btn btn-sm btn-danger" onClick={() => handleRejectBooking(b._id)}>Reject</button>
+                                </>
+                              </>
+                            )}
+
+                            {b.status === 'PENDING' && isIamRenterOfThis && (
+                              <button className="btn btn-sm btn-danger" style={{ minWidth: '120px' }} onClick={() => handleCancelBooking(b._id)}>Cancel Trip</button>
+                            )}
+
+                            {b.status === 'COMPLETED' && isIamRenterOfThis && !b.isReviewed && (
+                              <button className="btn btn-sm btn-primary" onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>Leave Review</button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         ) : tab === 'calendar' ? (
           /* ===== CALENDAR TAB (Owner Only) ===== */
-          <div className="dashboard-calendar-wrap card">
-            <div style={{ padding: '1.5rem 1.5rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CalIcon size={18} /> Booking Calendar
+          <div className="dashboard-box">
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">
+                <CalIcon size={24} /> Availability Calendar
               </h3>
               <Select
                 value={calendarVehicleId || undefined}
@@ -776,14 +836,14 @@ export default function Dashboard() {
           </div>
         ) : tab === 'reviews' ? (
           /* ===== REVIEWS TAB (Owner Only) ===== */
-          <div className="dashboard-table-wrap card">
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Star size={18} /> Customer Reviews
+          <div className="dashboard-box">
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">
+                <Star size={24} /> Customer Reviews
               </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.4rem' }}>
-                Manage reviews for your vehicles. Verified owners can hide reviews temporarily.
-              </p>
+            </div>
+            <div style={{ padding: '0.5rem 2rem 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Verified owners can manage visibility of vehicle reviews here.
             </div>
 
             {reviews.length === 0 ? (
@@ -792,91 +852,63 @@ export default function Dashboard() {
                 <p>No reviews yet for your vehicles</p>
               </div>
             ) : (
-              <table className="dashboard-table">
-                <thead>
-                  <tr>
-                    <th>Vehicle</th>
-                    <th>Reviewer</th>
-                    <th>Rating</th>
-                    <th>Comment</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reviews.map((r: Review) => (
-                    <tr key={r._id}>
-                      <td>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{r.vehicle?.title || 'Vehicle'}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{r.vehicle?.make} {r.vehicle?.model}</div>
-                      </td>
-                      <td>
-                        <div style={{ fontSize: '0.9rem' }}>{r.reviewer?.name || 'User'}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
-                      </td>
-                      <td><Rate disabled defaultValue={r.rating} style={{ fontSize: '14px' }} /></td>
-                      <td style={{ maxWidth: '250px' }}>
-                        <div style={{ fontSize: '0.9rem', fontStyle: 'italic' }}>"{r.comment}"</div>
-                      </td>
-                      <td>
+              <div className="dashboard-grid">
+                {reviews.map((r: Review) => (
+                  <div key={r._id} className="dash-review-card">
+                    <div className="dash-review-header">
+                      <img 
+                        src={getImageUrl(r.reviewer?.profilePic)} 
+                        className="dash-review-avatar" 
+                        alt="Avatar"
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(r.reviewer?.name || 'U'); }} 
+                      />
+                      <div className="dash-review-info">
+                        <h5>{r.reviewer?.name || 'User'}</h5>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                      </div>
+                      <div style={{ marginLeft: 'auto' }}>
+                        <Rate disabled defaultValue={r.rating} style={{ fontSize: '12px' }} />
+                      </div>
+                    </div>
+                    
+                    <div style={{ borderTop: '1px solid #f8fafc', paddingTop: '10px' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700 }}>{r.vehicle?.title}</div>
+                      <div className="dash-review-comment">"{r.comment}"</div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f8fafc' }}>
+                      <div>
                         {r.status === 'visible' ? (
                           <Tag color="success">Visible</Tag>
-                        ) : r.status === 'hidden' ? (
-                          <Tag color="warning">
-                            {r.hiddenBy === (user._id || user.id) ? 'Hidden by You' : 'Hidden by Admin'}
-                          </Tag>
                         ) : (
-                          <Tag color="error">Rejected</Tag>
+                          <Tag color="warning">Hidden</Tag>
                         )}
-                      </td>
-                      <td>
-                        {isVerifiedOwner && r.status === 'visible' && (
-                          <Button
-                            danger
-                            size="small"
-                            type="text"
-                            onClick={() => {
-                              Modal.confirm({
-                                title: 'Hide Review Temporarily?',
-                                content: 'This review will be hidden from the public view until you decide to unhide it or an admin overrides this action.',
-                                onOk: () => handleToggleReviewVisibility(r._id)
-                              });
-                            }}
-                          >
-                            Hide
-                          </Button>
-                        )}
-                        {isVerifiedOwner && r.status === 'hidden' && r.hiddenBy === (user._id || user.id) && (
-                          <Button
-                            type="link"
-                            size="small"
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {isVerifiedOwner && (
+                          <button
+                            className="btn btn-sm btn-ghost"
+                            style={{ height: '32px', fontSize: '0.75rem', padding: '0 12px' }}
                             onClick={() => handleToggleReviewVisibility(r._id)}
                           >
-                            Unhide
-                          </Button>
+                            {r.status === 'visible' ? 'Hide' : 'Unhide'}
+                          </button>
                         )}
-                        {r.status === 'hidden' && r.hiddenBy !== (user._id || user.id) && (
-                          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Admin Action</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         ) : tab === 'subscription' ? (
           /* ===== SUBSCRIPTION TAB (Owner Only) ===== */
-          <div className="animate-fade-in">
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '2rem', borderBottom: '1px solid var(--border-color)' }}>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Shield size={24} style={{ color: '#1890ff' }} /> Manage My Subscription
-                </h3>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  Monitor your plan status and vehicle listing limits.
-                </p>
-              </div>
+          <div className="dashboard-box">
+            <div className="dashboard-box-header">
+              <h3 className="dashboard-box-title">
+                <Shield size={24} style={{ color: '#1890ff' }} /> Manage My Subscription
+              </h3>
+            </div>
               
               <div style={{ padding: '2rem' }}>
                 {user.subscription?.status === 'trial' && (
@@ -923,7 +955,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         ) : null}
       </div>
@@ -1041,6 +1072,92 @@ export default function Dashboard() {
         ) : (
           <p>Loading renter details...</p>
         )}
+      </Modal>
+
+      {/* TRIP DETAIL MODAL FOR RENTERS/OWNERS */}
+      <Modal
+        title="Booking Details"
+        open={showDetailModal}
+        onCancel={() => setShowDetailModal(false)}
+        footer={[
+          <Button key="close" onClick={() => setShowDetailModal(false)}>Close</Button>,
+          selectedBooking && selectedBooking.status === 'PENDING' && user?.role === 'user' && (
+            <Button key="cancel" danger onClick={() => { if (selectedBooking?._id) handleCancelBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Trip</Button>
+          )
+        ]}
+        width={600}
+        centered
+        destroyOnClose
+      >
+        {selectedBooking ? (
+          <div className="booking-detail-content" style={{ padding: '10px 0' }}>
+            {/* Header info */}
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', alignItems: 'flex-start' }}>
+              <div style={{ width: '120px', height: '80px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
+                {typeof selectedBooking.vehicle === 'object' && (selectedBooking.vehicle as Vehicle).photos?.[0] ? (
+                  <img src={getImageUrl((selectedBooking.vehicle as Vehicle).photos[0])} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Car size={24} /></div>}
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{typeof selectedBooking.vehicle === 'object' ? (selectedBooking.vehicle as Vehicle).title : 'Vehicle Details'}</h3>
+                <div style={{ marginTop: '4px' }}>{bookingStatusBadge(selectedBooking.status)}</div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-tertiary)', marginTop: '8px' }}>Ref ID: {selectedBooking._id}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '16px' }}>
+              <div>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Pickup Date</div>
+                <div style={{ fontWeight: 600, fontSize: '1rem', marginTop: '4px' }}>{dayjs(selectedBooking.startDate).format('MMM D, YYYY')}</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Return Date</div>
+                <div style={{ fontWeight: 600, fontSize: '1rem', marginTop: '4px' }}>{dayjs(selectedBooking.endDate).format('MMM D, YYYY')}</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Duration</div>
+                <div style={{ fontWeight: 600, fontSize: '1rem', marginTop: '4px' }}>{selectedBooking.days} Days</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Total Price</div>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#16a34a', marginTop: '4px' }}>LKR {selectedBooking.totalAmount.toLocaleString()}</div>
+              </div>
+            </div>
+
+            {/* Host info for confirmed bookings */}
+            {selectedBooking.status === 'CONFIRMED' && (
+              <div style={{ padding: '1.5rem', border: '1px solid #e2e8f0', borderRadius: '16px', background: '#f0fdf4' }}>
+                <h4 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#166534' }}>
+                  <User size={18} /> Host Contact Details
+                </h4>
+                {typeof selectedBooking.owner === 'object' ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <img 
+                      src={getImageUrl((selectedBooking.owner as any).profilePic)} 
+                      style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
+                    />
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{(selectedBooking.owner as any).name}</div>
+                      <div style={{ color: '#16a34a', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Phone size={14} /> {(selectedBooking.owner as any).phone || 'No phone provided'}
+                      </div>
+                    </div>
+                  </div>
+                ) : <p style={{ margin: 0, fontSize: '0.9rem' }}>Contact info will show here after confirmation refresh.</p>}
+              </div>
+            )}
+
+            {/* Next steps/Notice */}
+            {selectedBooking.status === 'PENDING' && (
+              <div style={{ display: 'flex', gap: '12px', padding: '1rem', background: '#fffbeb', borderRadius: '12px', border: '1px solid #fde68a' }}>
+                <Clock size={20} style={{ color: '#d97706', flexShrink: 0 }} />
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#92400e' }}>
+                  Your request is waiting for the owner's response. You will receive a notification once it's confirmed or rejected.
+                </p>
+              </div>
+            )}
+          </div>
+        ) : <p>Loading details...</p>}
       </Modal>
     </div>
   );
