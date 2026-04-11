@@ -448,19 +448,7 @@ export default function Dashboard() {
       </div>
 
       <div className="container" style={{ marginBottom: '4rem' }}>
-        {/* KYC verification banner */}
-        {!user.isKycVerified && !isStaff && (
-          <div className="card" style={{ background: 'white', border: '1.5px solid #fed7aa', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', borderRadius: '16px', boxShadow: 'var(--shadow-md)' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <div style={{ background: '#fff7ed', color: '#f97316', padding: '10px', borderRadius: '10px' }}><Shield size={24} /></div>
-              <div>
-                <h4 style={{ margin: 0, color: '#9a3412', fontWeight: 700, fontSize: '1rem' }}>Verification Required</h4>
-                <p style={{ margin: '2px 0 0', color: '#c2410c', fontSize: '0.85rem' }}>Please complete KYC verification to access full features.</p>
-              </div>
-            </div>
-            {user.verificationStatus !== 'pending' && <Link to="/verify" className="btn btn-primary btn-sm">Verify Now</Link>}
-          </div>
-        )}
+
 
         {/* KYC document upload banner — only for users/renters who haven't uploaded docs */}
         {user.verificationStatus === 'not_submitted' && !isStaff && user.role === 'user' && (
