@@ -35,11 +35,6 @@ router.post(
       const user = await User.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
-      // Check if already approved
-      if (user.verificationStatus === "approved") {
-        return res.status(400).json({ message: "Your KYC is already verified" });
-      }
-
       const files = req.files || {};
 
       user.documents = {
@@ -51,7 +46,16 @@ router.post(
         kycConsentGiven: req.body.kycConsentGiven === "true" || req.body.kycConsentGiven === true,
       };
 
+      // Auto-verify immediately for booking access
+      user.isKycVerified = true;
+      user.kycVerifiedAt = new Date();
+      // Set to pending so staff can review them in the dashboard
       user.verificationStatus = "pending";
+
+      // If user is an owner, promote to VERIFIED owner
+      if (user.role === "owner" && user.ownerType === "UNVERIFIED") {
+        user.ownerType = "VERIFIED";
+      }
 
       // Update profile info
       if (req.body.fullName) user.name = req.body.fullName;
@@ -62,7 +66,7 @@ router.post(
       await user.save();
 
       res.json({
-        message: "KYC documents submitted successfully. Please wait for admin approval.",
+        message: "KYC documents submitted successfully! You can now book vehicles.",
         user,
       });
     } catch (err) {

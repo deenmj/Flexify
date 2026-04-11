@@ -144,19 +144,19 @@ export default function Profile() {
         {error && <div className="auth-message error" style={{ marginBottom: '2rem' }}>{error}</div>}
         {message && <div className="auth-message success" style={{ marginBottom: '2rem' }}>{message}</div>}
 
-        {!user.isKycVerified && (
+        {user.verificationStatus === 'not_submitted' && (
           <div className="card verify-alert-card animate-pulse" style={{ marginBottom: '2rem', border: '1px solid #7c3aed', background: 'rgba(124, 58, 237, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
               <div className="alert-icon" style={{ background: '#7c3aed', color: 'white', padding: '12px', borderRadius: '12px' }}>
                 <Shield size={32} />
               </div>
               <div>
-                <h3 style={{ margin: 0, color: '#111827' }}>Identity Verification Required</h3>
-                <p style={{ margin: '4px 0 0', color: '#4b5563', fontSize: '14px' }}>Verify your account to unlock booking and listing features.</p>
+                <h3 style={{ margin: 0, color: '#111827' }}>Upload Your Documents</h3>
+                <p style={{ margin: '4px 0 0', color: '#4b5563', fontSize: '14px' }}>Upload your KYC documents to book vehicles.</p>
               </div>
             </div>
             <Link to="/verify" className="btn btn-primary btn-lg" style={{ background: 'var(--color-primary)', color: 'white' }}>
-              Verify Now
+              Upload Now
             </Link>
           </div>
         )}
@@ -252,10 +252,10 @@ export default function Profile() {
               <a href="/list-vehicle" className="profile-action-item">
                 <span>🚗</span> List a Vehicle
               </a>
-              {!user.isKycVerified && (
+              {user.verificationStatus === 'not_submitted' && (
                 <Link to="/verify" className="profile-action-item" style={{ background: 'var(--color-primary)', color: 'white', borderRadius: '12px' }}>
                   <Shield size={16} color="white" />
-                  <span style={{ color: 'white' }}>Verify Identity</span>
+                  <span style={{ color: 'white' }}>Upload Documents</span>
                 </Link>
               )}
               {user.role !== 'superadmin' && (

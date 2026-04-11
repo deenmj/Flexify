@@ -216,9 +216,9 @@ export default function Navbar() {
                       <Shield size={16} /> My Subscription
                     </Link>
                   )}
-                  {user && !user.isKycVerified && !isAdminRole && (
+                  {user && user.verificationStatus === 'not_submitted' && !isAdminRole && (
                     <Link to="/verify" className="dropdown-item" onClick={() => setProfileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                      <Shield size={16} /> Verify Identity
+                      <Shield size={16} /> Upload Documents
                     </Link>
                   )}
                   <button className="dropdown-item dropdown-item-danger" onClick={handleLogout}>
@@ -285,9 +285,9 @@ export default function Navbar() {
               {user?.role === 'owner' && (
                 <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}>My Subscription</Link>
               )}
-              {user && !user.isKycVerified && !isAdminRole && (
+              {user && user.verificationStatus === 'not_submitted' && !isAdminRole && (
                 <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                  <Shield size={18} /> Verify Identity
+                  <Shield size={18} /> Upload Documents
                 </Link>
               )}
               {user ? (

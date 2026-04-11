@@ -82,7 +82,7 @@ export default function VerifyUser() {
       formData.append('kycConsentGiven', 'true');
 
       await userApi.submitKyc(formData);
-      setMessage('KYC documents submitted successfully! Please wait for admin approval.');
+      setMessage('KYC documents submitted successfully! You can now book vehicles.');
       await refreshUser();
     } catch (err: any) {
       setError(err.message || 'Submission failed');
@@ -111,8 +111,8 @@ export default function VerifyUser() {
         <div style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)', border: '1px solid #fcd34d', borderRadius: '16px', padding: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
           <div style={{ background: '#f59e0b', padding: '14px', borderRadius: '14px', color: 'white' }}><Clock size={28} /></div>
           <div>
-            <h3 style={{ color: '#92400e', margin: 0 }}>Verification Pending</h3>
-            <p style={{ color: '#a16207', margin: '4px 0 0' }}>Your documents are being reviewed by our team. This usually takes 1-2 business days.</p>
+            <h3 style={{ color: '#92400e', margin: 0 }}>Documents Under Review</h3>
+            <p style={{ color: '#a16207', margin: '4px 0 0' }}>Your documents are being reviewed by our team. You can still book vehicles while we verify your details.</p>
           </div>
         </div>
       );
@@ -155,7 +155,7 @@ export default function VerifyUser() {
           </div>
           <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: '0.5rem', color: '#1e293b' }}>KYC Verification</h1>
           <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto', fontSize: isMobile ? '0.9rem' : '1rem' }}>
-            Verify your identity to unlock booking features. Upload your documents below for review.
+            Upload your identity documents to start booking vehicles. It only takes a minute!
           </p>
         </div>
 
@@ -247,7 +247,7 @@ export default function VerifyUser() {
               disabled={loading || !agreed}
               style={{ width: '100%', padding: '1rem', fontSize: '16px', borderRadius: '12px', fontWeight: 700, opacity: agreed ? 1 : 0.6, cursor: agreed ? 'pointer' : 'not-allowed' }}
             >
-              {loading ? 'Submitting...' : 'Submit KYC for Verification'}
+              {loading ? 'Submitting...' : 'Submit Documents'}
             </button>
           </form>
         )}

@@ -7,13 +7,14 @@ import VehicleModel from "../models/VehicleModel.js";
 import { sendRejectionEmail } from "../utils/notifier.js";
 
 /**
- * List users with pending KYC verification
+ * List users who have submitted KYC documents for staff review
+ * (Documents are auto-approved but staff can review and take action)
  */
 export const getPendingUsers = async (req, res) => {
     try {
         const users = await User.find({ verificationStatus: "pending" })
             .select("-password")
-            .sort({ updatedAt: -1 });
+            .sort({ kycVerifiedAt: -1, updatedAt: -1 });
         res.json(users);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -70,7 +71,7 @@ export const approveUserKyc = async (req, res) => {
 };
 
 /**
- * Reject user KYC
+ * Reject/Revoke user KYC — revokes access and notifies user to resubmit
  */
 export const rejectUserKyc = async (req, res) => {
     const { reason, comment } = req.body;
@@ -83,11 +84,17 @@ export const rejectUserKyc = async (req, res) => {
         const user = await User.findById(req.params.id);
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // Revoke KYC verification — user will need to resubmit
         user.verificationStatus = "rejected";
         user.isKycVerified = false;
         user.rejectionReason = reason;
         user.rejectionComment = comment;
         user.rejectedAt = new Date();
+
+        // If owner, revert to UNVERIFIED
+        if (user.role === "owner" && user.ownerType === "VERIFIED") {
+            user.ownerType = "UNVERIFIED";
+        }
 
         await user.save();
 
@@ -100,7 +107,7 @@ export const rejectUserKyc = async (req, res) => {
         // Send feedback email async
         sendRejectionEmail(user, "KYC", reason, comment);
 
-        res.json({ message: "User KYC rejected and notification sent", user });
+        res.json({ message: "User KYC revoked and notification sent", user });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

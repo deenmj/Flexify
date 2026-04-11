@@ -352,8 +352,8 @@ export default function Dashboard() {
   // Staff (subadmin) behaves like a verified owner in the dashboard
   const isStaff = user.role === 'subadmin';
   const isOwner = user.role === 'owner' || isStaff;
-  const isVerifiedOwner = (isOwner && user.isKycVerified) || isStaff;
-  const isUnverifiedOwner = user.role === 'owner' && !user.isKycVerified && !isStaff;
+  // All owners can accept bookings (no KYC requirement)
+  const isVerifiedOwner = isOwner;
 
   const vehicleStatusBadge = (status: string, isActive: boolean) => {
     if (status === 'pending') return <Tag color="warning" icon={<Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}>Pending</Tag>;
@@ -387,36 +387,21 @@ export default function Dashboard() {
       </div>
 
       <div className="container" style={{ marginTop: '2rem' }}>
-        {/* KYC verification banner — not for staff (auto-verified) */}
-        {!user.isKycVerified && !isStaff && (
+        {/* KYC document upload banner — only for users/renters who haven't uploaded docs */}
+        {user.verificationStatus === 'not_submitted' && !isStaff && user.role === 'user' && (
           <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <div style={{ background: '#ff7e33', color: 'white', padding: '10px', borderRadius: '12px' }}><Shield size={24} /></div>
               <div>
                 <h3 style={{ color: '#9a3412', marginBottom: '4px' }}>
-                  {user.verificationStatus === 'pending' ? 'Verification Pending' : 'Verify Your Account'}
+                  Upload Your Documents
                 </h3>
                 <p style={{ color: '#c2410c' }}>
-                  {user.verificationStatus === 'pending'
-                    ? 'Your KYC documents are under review. You\'ll be notified once approved.'
-                    : 'Complete KYC verification to book vehicles and access all features.'}
+                  Upload your KYC documents to book vehicles. It only takes a minute!
                 </p>
               </div>
             </div>
-            {user.verificationStatus !== 'pending' && (
-              <Link to="/verify" className="btn btn-primary">Verify Now</Link>
-            )}
-          </div>
-        )}
-
-        {/* Unverified owner banner */}
-        {isUnverifiedOwner && (
-          <div className="card" style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', border: '1px solid #fbbf24', padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ background: '#d97706', color: 'white', padding: '10px', borderRadius: '12px' }}><AlertTriangle size={24} /></div>
-            <div>
-              <h3 style={{ color: '#92400e', marginBottom: '4px' }}>Verification Required</h3>
-              <p style={{ color: '#a16207' }}>You can list vehicles, but you must complete KYC verification to accept bookings from renters.</p>
-            </div>
+            <Link to="/verify" className="btn btn-primary">Upload Now</Link>
           </div>
         )}
       </div>
@@ -636,7 +621,7 @@ export default function Dashboard() {
                             </button>
                           )}
 
-                          {/* Owner accept/reject — only for verified owners */}
+                          {/* Owner accept/reject — all owners can accept bookings */}
                           {b.status === 'PENDING' && isVerifiedOwner && (
                             <div style={{ display: 'flex', gap: '4px', marginTop: '4px', width: '100%' }}>
                               <button className="btn btn-sm btn-primary" style={{ flex: 1 }} onClick={() => handleAcceptBooking(b._id)}>
@@ -646,12 +631,6 @@ export default function Dashboard() {
                                 <XCircle size={14} /> Reject
                               </button>
                             </div>
-                          )}
-                          {/* Unverified owner sees read-only */}
-                          {b.status === 'PENDING' && isUnverifiedOwner && (
-                            <span style={{ fontSize: '12px', color: '#f59e0b', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <AlertTriangle size={12} /> Verify account to accept
-                            </span>
                           )}
                           {/* Renter can cancel pending bookings */}
                           {(b.status === 'PENDING') && user?.role === 'user' && (

@@ -188,7 +188,8 @@ export default function VehicleDetail() {
       return;
     }
 
-    if (!user.isKycVerified) {
+    // Only block booking if KYC documents haven't been uploaded at all
+    if (user.verificationStatus === 'not_submitted') {
       navigate('/verify');
       return;
     }
@@ -232,7 +233,7 @@ export default function VehicleDetail() {
       navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
       return;
     }
-    if (!user.isKycVerified) {
+    if (user.verificationStatus === 'not_submitted') {
       navigate('/verify');
       return;
     }
@@ -539,13 +540,13 @@ export default function VehicleDetail() {
                   </Tag>
                 )}
 
-                {user && !user.isKycVerified && (
+                {user && user.verificationStatus === 'not_submitted' && (
                   <div className="verification-alert box-highlight" style={{ background: '#fff7ed', border: '1px solid #fdba74', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
                     <Shield size={20} style={{ color: '#ea580c', flexShrink: 0 }} />
                     <div style={{ fontSize: '0.875rem' }}>
-                      <p style={{ fontWeight: 600, color: '#9a3412', marginBottom: '4px' }}>Verification Required</p>
-                      <p style={{ color: '#c2410c' }}>Verify your identity to book.</p>
-                      <Link to="/verify" style={{ color: 'var(--primary-color)', fontWeight: 600, marginTop: '8px', display: 'inline-block' }}>Verify Now &rarr;</Link>
+                      <p style={{ fontWeight: 600, color: '#9a3412', marginBottom: '4px' }}>Documents Required</p>
+                      <p style={{ color: '#c2410c' }}>Upload your KYC documents to book.</p>
+                      <Link to="/verify" style={{ color: 'var(--primary-color)', fontWeight: 600, marginTop: '8px', display: 'inline-block' }}>Upload Now &rarr;</Link>
                     </div>
                   </div>
                 )}

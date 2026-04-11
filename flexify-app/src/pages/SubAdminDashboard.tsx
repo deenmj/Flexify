@@ -80,8 +80,8 @@ export default function SubAdminDashboard() {
   useEffect(() => {
     if (stats && (stats.pendingUsers > 0 || stats.pendingVehicles > 0)) {
       notification.info({
-        message: 'Pending Actions Required',
-        description: `You have ${stats.pendingUsers} users and ${stats.pendingVehicles} vehicles awaiting approval.`,
+        message: 'Items Need Review',
+        description: `You have ${stats.pendingUsers} KYC submissions and ${stats.pendingVehicles} vehicles to review.`,
         placement: 'topRight',
         duration: 5,
       });
@@ -379,7 +379,7 @@ export default function SubAdminDashboard() {
             selectedKeys={[tab]}
             onClick={({ key }) => setTab(key as any)}
             items={[
-              { key: 'users', icon: <Shield size={18} />, label: `KYC Verifications (${pendingUsers.length})` },
+              { key: 'users', icon: <Shield size={18} />, label: `KYC Reviews (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
@@ -444,7 +444,7 @@ export default function SubAdminDashboard() {
               />
             )}
             <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1e293b' }}>
-              {tab === 'users' && 'KYC Verification'}
+              {tab === 'users' && 'KYC Document Reviews'}
               {tab === 'vehicles' && 'Vehicle Approvals'}
               {tab === 'reviews' && 'Review Moderation'}
               {tab === 'moderation' && 'Platform Content Suggestions'}
@@ -521,7 +521,7 @@ export default function SubAdminDashboard() {
               {tab === 'users' && (
                 <div className="animate-fade-in">
                   <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center' }}>
-                    <Title level={5} style={{ margin: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>Pending KYC Requests</Title>
+                    <Title level={5} style={{ margin: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>KYC Document Reviews</Title>
                     <div style={{ display: 'flex', width: isMobile ? '100%' : 'auto', gap: '8px' }}>
                       <Input
                         prefix={<Search size={16} />}
@@ -555,7 +555,7 @@ export default function SubAdminDashboard() {
                       },
                       { title: 'Phone Number', dataIndex: 'phone', render: p => p || <Text type="danger">Not provided</Text> },
                       { title: 'Submission Date', dataIndex: 'updatedAt', render: d => d ? new Date(d).toLocaleDateString() : 'Recent' },
-                      { title: 'Status', render: () => <Tag color="warning">PENDING REVIEW</Tag> },
+                      { title: 'Status', render: (_, u) => u.isKycVerified ? <Tag color="success">VERIFIED</Tag> : <Tag color="warning">NEEDS REVIEW</Tag> },
                       {
                         title: 'Action',
                         render: (_, u) => (
@@ -935,7 +935,7 @@ export default function SubAdminDashboard() {
                     ghost
                     onClick={() => handleRejectUser((selectedUser.id || selectedUser._id)!)}
                   >
-                    Reject
+                    Revoke & Flag
                   </Button>
                   <Button
                     type="primary"
@@ -943,7 +943,7 @@ export default function SubAdminDashboard() {
                     onClick={() => handleApproveUser((selectedUser.id || selectedUser._id)!)}
                     style={{ background: allChecked ? '#10b981' : '#e2e8f0', borderColor: allChecked ? '#10b981' : '#e2e8f0' }}
                   >
-                    Approve
+                    Mark Reviewed
                   </Button>
                 </div>
               </Space>

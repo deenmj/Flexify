@@ -6,17 +6,19 @@ import sendEmail from "../utils/sendEmail.js";
 import { createNotification } from "./notificationController.js";
 
 /**
- * Create booking — only KYC verified users can book
+ * Create booking — users who have uploaded KYC documents can book
+ * (No staff approval needed — documents are reviewed post-submission)
  */
 export const createBooking = async (req, res) => {
   try {
     const userId = req.user._id;
     const { vehicleId, startDate, endDate } = req.body;
 
-    // Check KYC verification
-    if (!req.user.isKycVerified) {
+    // Check KYC documents uploaded (no staff approval needed — just must have submitted)
+    const isStaffOrAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
+    if (!isStaffOrAdmin && req.user.verificationStatus === "not_submitted") {
       return res.status(403).json({
-        message: "You must complete KYC verification to book a vehicle.",
+        message: "Please upload your KYC documents before booking a vehicle.",
         verificationNeeded: true,
         verificationStatus: req.user.verificationStatus,
       });
@@ -26,7 +28,7 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const vehicle = await Vehicle.findById(vehicleId).populate("owner");
+    const vehicle = await Vehicle.findById(vehicleId).populate("owner", "_id name email phone profilePic");
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
     if (vehicle.status !== "active") return res.status(400).json({ message: "Vehicle is not available" });
 
@@ -38,23 +40,22 @@ export const createBooking = async (req, res) => {
 
     const days = Math.ceil((e - s) / (1000 * 60 * 60 * 24)) || 1;
 
-    // Check for overlapping confirmed bookings
-    const overlapping = await Booking.findOne({
-      vehicle: vehicleId,
-      status: "CONFIRMED",
-      $or: [{ startDate: { $lte: e }, endDate: { $gte: s } }],
-    });
+    // Run overlap checks in PARALLEL for speed
+    const [overlapping, overlappingBlackout] = await Promise.all([
+      Booking.findOne({
+        vehicle: vehicleId,
+        status: "CONFIRMED",
+        $or: [{ startDate: { $lte: e }, endDate: { $gte: s } }],
+      }).lean(),
+      Blackout.findOne({
+        vehicle: vehicleId,
+        $or: [{ startDate: { $lte: e }, endDate: { $gte: s } }],
+      }).lean()
+    ]);
 
     if (overlapping) {
       return res.status(409).json({ message: "Vehicle not available for selected dates (Already booked)" });
     }
-
-    // Check for overlapping blackouts
-    const overlappingBlackout = await Blackout.findOne({
-      vehicle: vehicleId,
-      $or: [{ startDate: { $lte: e }, endDate: { $gte: s } }],
-    });
-
     if (overlappingBlackout) {
       return res.status(409).json({ message: "Vehicle not available for selected dates (Owner unavailable)" });
     }
@@ -72,10 +73,18 @@ export const createBooking = async (req, res) => {
       status: "PENDING",
     });
 
-    // Log notification
+    // Build response immediately from existing data (no re-query)
+    const responseData = booking.toObject();
+    responseData.vehicle = vehicle;
+    responseData.owner = vehicle.owner;
+    responseData.user = { _id: req.user._id, name: req.user.name, email: req.user.email, phone: req.user.phone };
+
+    // RETURN RESPONSE IMMEDIATELY — don't wait for email/notifications
+    res.status(201).json(responseData);
+
+    // === FIRE-AND-FORGET: notifications & email (after response sent) ===
     console.log(`🔔 NEW BOOKING: ${vehicle.title} by ${req.user.name} | LKR ${totalAmount} for ${days} days`);
 
-    // SOCKET NOTIFICATION TO OWNER
     const io = req.app.get("io");
     if (io) {
       io.to(vehicle.owner._id.toString()).emit("newBookingRequest", {
@@ -87,48 +96,47 @@ export const createBooking = async (req, res) => {
         totalAmount
       });
 
-      // PERSISTENT NOTIFICATION (for bell icon & history)
-      await createNotification(
+      // PERSISTENT NOTIFICATION (fire-and-forget)
+      createNotification(
         io,
         vehicle.owner._id,
         "New Booking Request",
         `${req.user.name} wants to rent your ${vehicle.title}.`,
         "booking_request",
         booking._id
-      );
+      ).catch(err => console.error("Notification save failed:", err.message));
     }
 
-    // Send email to owner
-    try {
-      await sendEmail({
-        to: vehicle.owner.email,
-        subject: "🔔 New Booking Request - Flexify",
-        html: `
-          <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
-            <h2 style="color: #1890ff;">New Booking Request</h2>
-            <p>Hi <strong>${vehicle.owner.name}</strong>,</p>
-            <p>You have a new booking request for <strong>${vehicle.title}</strong>.</p>
-            <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
-              <p><strong>Dates:</strong> ${s.toDateString()} - ${e.toDateString()}</p>
-              <p><strong>Total:</strong> LKR ${totalAmount.toLocaleString()}</p>
-            </div>
-            <p>Log in to your dashboard to accept or reject this request.</p>
+    // Send email to owner (fire-and-forget — never blocks response)
+    sendEmail({
+      to: vehicle.owner.email,
+      subject: "🔔 New Booking Request - Flexify",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
+          <h2 style="color: #1890ff;">New Booking Request</h2>
+          <p>Hi <strong>${vehicle.owner.name}</strong>,</p>
+          <p>You have a new booking request for <strong>${vehicle.title}</strong>.</p>
+          <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            <p><strong>Dates:</strong> ${s.toDateString()} - ${e.toDateString()}</p>
+            <p><strong>Total:</strong> LKR ${totalAmount.toLocaleString()}</p>
           </div>
-        `,
-      });
-    } catch (emailErr) {
-      console.error("Email notification failed:", emailErr.message);
-    }
+          <p>Log in to your dashboard to accept or reject this request.</p>
+        </div>
+      `,
+    }).catch(emailErr => console.error("Email notification failed:", emailErr.message));
 
-    const responseData = await Booking.findById(booking._id).populate("vehicle owner user");
-    return res.status(201).json(responseData);
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    // Only send error if headers haven't been sent yet
+    if (!res.headersSent) {
+      return res.status(500).json({ message: err.message });
+    }
+    console.error("Post-response error in createBooking:", err.message);
   }
 };
 
 /**
- * Accept booking — only verified owner (of that vehicle) or subadmin/superadmin
+ * Accept booking — owner of that vehicle or subadmin/superadmin
+ * (No KYC requirement for owners to accept their own bookings)
  */
 export const acceptBooking = async (req, res) => {
   try {
@@ -139,16 +147,12 @@ export const acceptBooking = async (req, res) => {
       return res.status(400).json({ message: "Booking is not in pending state" });
     }
 
-    // Authorization: vehicle owner (must be KYC VERIFIED) or subadmin/superadmin
+    // Authorization: vehicle owner (no KYC needed) or subadmin/superadmin
     const isOwner = booking.owner._id.toString() === req.user._id.toString();
-    const isVerifiedOwner = isOwner && req.user.role === "owner" && req.user.isKycVerified;
     const isAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
 
-    if (!isVerifiedOwner && !isAdmin) {
-      return res.status(403).json({ 
-        message: "You must be KYC verified to accept bookings. Please complete your identity verification in the profile section.",
-        verificationNeeded: true
-      });
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: "Not authorized to accept this booking" });
     }
 
     // Check no overlapping confirmed bookings
@@ -157,19 +161,30 @@ export const acceptBooking = async (req, res) => {
       status: "CONFIRMED",
       _id: { $ne: booking._id },
       $or: [{ startDate: { $lte: booking.endDate }, endDate: { $gte: booking.startDate } }],
-    });
+    }).lean();
 
     if (overlap) {
       return res.status(409).json({ message: "Vehicle already booked for these dates" });
     }
 
     booking.status = "CONFIRMED";
-    await booking.save();
+    // Save booking and increment timesRented in parallel
+    await Promise.all([
+      booking.save(),
+      Vehicle.findByIdAndUpdate(booking.vehicle._id, { $inc: { timesRented: 1 } })
+    ]);
 
-    // Increment timesRented
-    await Vehicle.findByIdAndUpdate(booking.vehicle._id, { $inc: { timesRented: 1 } });
+    // Build response from existing populated data (no re-query)
+    const result = booking.toObject();
+    // Ensure owner phone is visible for confirmed bookings
+    if (result.owner && !result.owner.phone) {
+      result.owner.phone = booking.owner.phone;
+    }
 
-    // SOCKET NOTIFICATION TO RENTER
+    // RETURN RESPONSE IMMEDIATELY
+    res.json(result);
+
+    // === FIRE-AND-FORGET: socket, emails (after response sent) ===
     const io = req.app.get("io");
     if (io) {
       io.to(booking.user._id.toString()).emit("bookingStatusUpdate", {
@@ -179,15 +194,15 @@ export const acceptBooking = async (req, res) => {
       });
     }
 
-    // Send confirmation email to RENTER
-    try {
-      const renter = booking.user;
-      const ownerUser = booking.owner;
-      const vehicleTitle = booking.vehicle.title || "Vehicle";
-      const sDate = new Date(booking.startDate).toDateString();
-      const eDate = new Date(booking.endDate).toDateString();
+    const renter = booking.user;
+    const ownerUser = booking.owner;
+    const vehicleTitle = booking.vehicle.title || "Vehicle";
+    const sDate = new Date(booking.startDate).toDateString();
+    const eDate = new Date(booking.endDate).toDateString();
 
-      await sendEmail({
+    // Send both emails in parallel (fire-and-forget)
+    Promise.all([
+      sendEmail({
         to: renter.email,
         subject: "✅ Booking Confirmed - Flexify",
         html: `
@@ -204,20 +219,8 @@ export const acceptBooking = async (req, res) => {
             <p>You can view your booking details in your <a href="${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard" style="color: #1890ff;">dashboard</a>.</p>
           </div>
         `,
-      });
-    } catch (emailErr) {
-      console.error("Renter confirmation email failed:", emailErr.message);
-    }
-
-    // Send confirmation email to OWNER
-    try {
-      const renter = booking.user;
-      const ownerUser = booking.owner;
-      const vehicleTitle = booking.vehicle.title || "Vehicle";
-      const sDate = new Date(booking.startDate).toDateString();
-      const eDate = new Date(booking.endDate).toDateString();
-
-      await sendEmail({
+      }),
+      sendEmail({
         to: ownerUser.email,
         subject: "✅ Booking Accepted - Flexify",
         html: `
@@ -234,20 +237,14 @@ export const acceptBooking = async (req, res) => {
             <p>Manage your bookings in your <a href="${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard" style="color: #1890ff;">dashboard</a>.</p>
           </div>
         `,
-      });
-    } catch (emailErr) {
-      console.error("Owner confirmation email failed:", emailErr.message);
-    }
+      })
+    ]).catch(emailErr => console.error("Confirmation email failed:", emailErr.message));
 
-    // Return with owner phone revealed
-    const result = await Booking.findById(booking._id)
-      .populate("vehicle")
-      .populate("owner", "name email phone profilePic")
-      .populate("user", "name email phone");
-
-    return res.json(result);
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    if (!res.headersSent) {
+      return res.status(500).json({ message: err.message });
+    }
+    console.error("Post-response error in acceptBooking:", err.message);
   }
 };
 
@@ -336,19 +333,18 @@ export const getMyBookings = async (req, res) => {
         path: "owner",
         select: "name email phone profilePic",
       })
-      .populate("user", "name email phone documents address profilePic") // Populating documents and address
-      .sort({ createdAt: -1 });
+      .populate("user", "name email phone documents address profilePic")
+      .sort({ createdAt: -1 })
+      .lean();
 
     // Mask owner phone unless booking is CONFIRMED
-    const sanitized = bookings.map((b) => {
-      const obj = b.toObject();
-      if (obj.status !== "CONFIRMED" && obj.owner) {
-        obj.owner.phone = undefined;
+    for (const b of bookings) {
+      if (b.status !== "CONFIRMED" && b.owner) {
+        b.owner.phone = undefined;
       }
-      return obj;
-    });
+    }
 
-    res.json(sanitized);
+    res.json(bookings);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
