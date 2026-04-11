@@ -648,8 +648,8 @@ export default function Dashboard() {
                           </div>
                         </div>
 
-                        <div className="booking-card-footer">
-                          <div>
+                        <div className="booking-card-footer" style={{ flexWrap: 'wrap', gap: '1rem' }}>
+                          <div style={{ flex: 1, minWidth: 'fit-content' }}>
                             {b.status === 'CONFIRMED' && isIamRenterOfThis && owner && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
@@ -663,11 +663,15 @@ export default function Dashboard() {
                                 </div>
                               </div>
                             )}
-                            <div style={{ display: 'flex', gap: '12px' }}>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: b.status === 'CONFIRMED' && isIamRenterOfThis && owner ? '1rem' : '0' }}>
+                              <button onClick={() => handleViewDetail(b)} className="btn btn-sm btn-ghost" style={{ flex: 1, minWidth: 'fit-content' }}>
+                                Full Details
+                              </button>
                               {vehicle && (
-                                <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} style={{ fontSize: '11px', color: 'var(--text-secondary)', textDecoration: 'underline' }}>View Page</Link>
+                                <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="btn btn-sm btn-ghost" style={{ flex: 1, minWidth: 'fit-content', textAlign: 'center' }}>
+                                  View Page
+                                </Link>
                               )}
-                              <button onClick={() => handleViewDetail(b)} style={{ background: 'none', border: 'none', padding: 0, fontSize: '11px', color: 'var(--color-primary)', cursor: 'pointer', fontWeight: 600 }}>Full Details</button>
                             </div>
                           </div>
 
