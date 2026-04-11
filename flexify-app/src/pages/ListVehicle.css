@@ -259,7 +259,6 @@
   color: white;
 }
 
-/* Submit Button */
 .submit-vehicle-btn {
   padding: 1.375rem !important;
   font-size: 1.125rem !important;
@@ -267,6 +266,70 @@
   border-radius: 18px !important;
   margin-top: 2rem;
   box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Edit Vehicle - Existing Photos */
+.existing-photos-management {
+  margin-top: 1rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px dashed var(--border-color-light);
+}
+
+.existing-photos-management label {
+  display: block;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 1rem;
+}
+
+.photo-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1rem;
+}
+
+.photo-edit-item {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.photo-edit-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.photo-edit-item:hover img {
+  transform: scale(1.05);
+}
+
+.photo-delete-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: white;
+  color: #ef4444;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.2s;
+}
+
+.photo-delete-badge:hover {
+  background: #ef4444;
+  color: white;
+  transform: scale(1.1);
 }
 
 @media (max-width: 768px) {

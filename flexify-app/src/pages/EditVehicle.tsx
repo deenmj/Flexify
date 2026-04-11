@@ -4,18 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle, getImageUrl } from '../api';
 import { Select as AntSelect, message, Row, Col } from 'antd';
 import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 import './ListVehicle.css';
-
-// Fix Leaflet's default icon path issues with React
-L.Marker.prototype.options.icon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41]
-});
 
 const { Option } = AntSelect;
 
@@ -39,16 +28,7 @@ const VEHICLE_FEATURES = [
   { id: 'sunroof', label: 'Sunroof', icon: '☀️' }
 ];
 
-function LocationMarker({ position, setPosition }: any) {
-  useMapEvents({
-    click(e) {
-      setPosition({ lat: e.latlng.lat, lng: e.latlng.lng });
-    }
-  });
-  return position.lat === 0 && position.lng === 0 ? null : (
-    <Marker position={[position.lat, position.lng]}></Marker>
-  );
-}
+
 
 export default function EditVehicle() {
   const { id } = useParams<{ id: string }>();
@@ -480,14 +460,6 @@ export default function EditVehicle() {
                     <label>City</label>
                     <input className="input-field" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required />
                   </div>
-                </div>
-                
-                <div className="map-picker-container" style={{ height: '300px', borderRadius: '12px', overflow: 'hidden', marginTop: '1rem', border: '1px solid var(--border-color)' }}>
-                  <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <LocationMarker position={position} setPosition={setPosition} />
-                  </MapContainer>
-                </div>
               </div>
             </div>
 

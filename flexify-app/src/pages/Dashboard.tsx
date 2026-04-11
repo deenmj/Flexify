@@ -573,13 +573,13 @@ export default function Dashboard() {
                       </div>
 
                       <div className="dash-vehicle-card-actions">
-                        <Link to={`/vehicles/edit/${v._id}`} className="btn btn-sm btn-ghost" title="Edit">
+                        <Link to={`/vehicles/edit/${v._id}`} className="btn btn-sm" title="Edit" style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <Edit size={14} style={{ marginRight: '6px' }} /> Edit
                         </Link>
-                        <button className="btn btn-sm btn-ghost" onClick={() => handleToggleStatus(v._id)}>
+                        <button className="btn btn-sm" onClick={() => handleToggleStatus(v._id)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {v.isActive ? <><EyeOff size={14} style={{ marginRight: '6px' }} /> Hide</> : <><Eye size={14} style={{ marginRight: '6px' }} /> Show</>}
                         </button>
-                        <button className="btn btn-sm btn-ghost" style={{ gridColumn: 'span 2', borderColor: '#fee2e2', color: '#dc2626' }} onClick={() => handleDeleteVehicle(v._id)}>
+                        <button className="btn btn-sm" style={{ gridColumn: 'span 2', background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleDeleteVehicle(v._id)}>
                           <Trash2 size={14} style={{ marginRight: '6px' }} /> Delete Vehicle
                         </button>
                       </div>
