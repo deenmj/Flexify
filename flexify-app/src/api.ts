@@ -14,7 +14,9 @@ export const getImageUrl = (path?: any) => {
     
     // Ensure no trailing slash on baseUrl and ensure leading slash on path
     const baseUrl = (import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app').replace(/\/$/, '');
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    // Normalize backslashes to forward slashes (fix for Windows local paths)
+    const normalizedPath = path.replace(/\\/g, '/');
+    const cleanPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
     
     return `${baseUrl}${cleanPath}`;
   }
