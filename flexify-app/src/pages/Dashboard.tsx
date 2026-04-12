@@ -427,51 +427,7 @@ export default function Dashboard() {
       </header>
 
       <div className="container" style={{ position: 'relative', marginTop: '-1.5rem', marginBottom: '3rem' }}>
-        {/* Stats Section */}
-        {isOwner && (
-          <div className="animate-fade-in-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-primary-50)', color: 'var(--color-primary)' }}>
-                <Car size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{vehicles.length}</div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Vehicles</div>
-              </div>
-            </div>
-            
-            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0fdf4', color: '#10b981' }}>
-                <CalIcon size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{bookings.length}</div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Bookings</div>
-              </div>
-            </div>
-
-            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ecfdf5', color: '#059669' }}>
-                <CheckCircle size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{bookings.filter(b => b.status === 'CONFIRMED').length}</div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Confirmed</div>
-              </div>
-            </div>
-
-            <div className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: 'none', boxShadow: 'var(--shadow-lg)', borderRadius: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fffbeb', color: '#d97706' }}>
-                <Clock size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{bookings.filter(b => b.status === 'PENDING').length}</div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Requests</div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Stats Section Removed to Simplify View */}
 
       <div className="container" style={{ marginBottom: '4rem' }}>
 
@@ -496,7 +452,7 @@ export default function Dashboard() {
 
         {/* Tabs - Navigation */}
         <div className="dashboard-nav">
-          {/* Renters only see their bookings, owners see everything */}
+          {/* Renters only see their bookings, owners see Vehicles/Bookings - Availability & Feedback removed to simplify */}
           {user.role === 'user' ? (
             <button 
               className={`nav-item active`} 
@@ -518,26 +474,6 @@ export default function Dashboard() {
               >
                 <CalIcon size={16} /> Manage Bookings
               </button>
-              <button 
-                className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} 
-                onClick={() => setTab('calendar')}
-              >
-                <CalIcon size={16} /> Availability
-              </button>
-              <button 
-                className={`nav-item ${tab === 'reviews' ? 'active' : ''}`} 
-                onClick={() => setTab('reviews')}
-              >
-                <Star size={16} /> Feedback
-              </button>
-              {!isStaff && (
-                <button 
-                  className={`nav-item ${tab === 'subscription' ? 'active' : ''}`} 
-                  onClick={() => setTab('subscription')}
-                >
-                  <Shield size={16} /> Plan
-                </button>
-              )}
             </>
           )}
         </div>
