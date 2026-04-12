@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col, Avatar } from 'antd';
+import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col, Avatar, Spin } from 'antd';
 import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review, getImageUrl } from '../api';
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
@@ -998,72 +998,78 @@ export default function Dashboard() {
         destroyOnClose
       >
         {selectedRenter ? (
-          <div className="renter-review-content" style={{ padding: '10px 0' }}>
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', alignItems: 'center', background: '#f8fafc', padding: '15px', borderRadius: '12px' }}>
-              <Avatar 
-                size={80} 
-                src={getImageUrl(selectedRenter.profilePic)} 
-                icon={<User />}
-                style={{ 
-                  flexShrink: 0,
-                  border: '3px solid white', 
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  background: '#1890ff' // fallback background
-                }}
-              >
-                {selectedRenter.name?.charAt(0)}
-              </Avatar>
-              <div>
-                <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem' }}>{selectedRenter.name}</h3>
-                <p style={{ margin: '0', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}><Phone size={14} /> {selectedRenter.phone || 'No phone provided'}</p>
-                <p style={{ margin: '0', color: 'var(--text-secondary)' }}>{selectedRenter.email}</p>
+          <div className="renter-review-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '400px', background: '#f8fafc', borderRadius: '12px', overflow: 'hidden' }}>
+            {/* Sidebar with User Info */}
+            <div style={{ padding: '32px', background: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div>
+                  <Avatar 
+                    size={64} 
+                    src={getImageUrl(selectedRenter.profilePic)}
+                    style={{ background: '#1890ff', marginBottom: 16 }}
+                  >
+                    {selectedRenter.name?.charAt(0)}
+                  </Avatar>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>{selectedRenter.name}</h3>
+                  <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{selectedRenter.email}</p>
+                </div>
+
+                <div>
+                  <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>Contact Info</h4>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '4px' }}>{selectedRenter.phone || 'Phone not provided'}</div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedRenter.documents?.address || selectedRenter.address || 'Address not listed'}</div>
+                </div>
+
+                <div style={{ padding: '16px', background: '#eff6ff', borderRadius: '12px', border: '1px solid #dbeafe', marginTop: 'auto' }}>
+                  <div style={{ color: '#1e40af', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <Shield size={16} /> Verification Alert
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#1e40af', lineHeight: 1.5 }}>
+                    Please ensure the ID documents match the person picking up the vehicle. Cross-check name and license validity.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <Row gutter={[20, 20]}>
-              <Col span={24}>
-                <div style={{ padding: '12px', background: '#eff6ff', borderRadius: '8px', borderLeft: '4px solid #1890ff' }}>
-                  <p style={{ margin: 0, fontWeight: 600, fontSize: '0.9rem', color: '#1e40af' }}>Address</p>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.95rem' }}>{selectedRenter.documents?.address || selectedRenter.address || 'Not provided'}</p>
-                </div>
-              </Col>
-              
-              <Col xs={24} sm={12}>
-                <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIC Front</p>
-                <Image 
-                  src={getImageUrl(selectedRenter.documents?.nicFront)} 
-                  fallback="https://via.placeholder.com/400x250?text=NIC+Front+Not+Available"
-                  style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
-                />
-              </Col>
-              <Col xs={24} sm={12}>
-                <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIC Back</p>
-                <Image 
-                  src={getImageUrl(selectedRenter.documents?.nicBack)} 
-                  fallback="https://via.placeholder.com/400x250?text=NIC+Back+Not+Available"
-                  style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
-                />
-              </Col>
-              <Col xs={24} sm={12}>
-                <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Driving License</p>
-                <Image 
-                  src={getImageUrl(selectedRenter.documents?.license)} 
-                  fallback="https://via.placeholder.com/400x250?text=License+Not+Available"
-                  style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
-                />
-              </Col>
-              <Col xs={24} sm={12}>
-                <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Selfie Verification</p>
-                <Image 
-                  src={getImageUrl(selectedRenter.documents?.selfie)} 
-                  fallback="https://via.placeholder.com/400x250?text=Selfie+Not+Available"
-                  style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
-                />
-              </Col>
-            </Row>
+            {/* Document display area */}
+            <div style={{ padding: '24px', background: '#ffffff', overflowY: 'auto', maxHeight: '70vh' }}>
+              <h4 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', fontWeight: 600 }}>
+                <FileText size={18} /> Documents
+              </h4>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+                {[
+                  { label: 'NIC Front View', field: 'nicFront' },
+                  { label: 'NIC Back View', field: 'nicBack' },
+                  { label: 'Driver License', field: 'license' },
+                  { label: 'Live Selfie', field: 'selfie' },
+                ].map((doc, idx) => {
+                  const url = selectedRenter.documents?.[doc.field as keyof typeof selectedRenter.documents];
+                  const fullUrl = getImageUrl(url);
+                  return (
+                    <div key={idx} style={{ background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>{doc.label}</div>
+                      {url ? (
+                        <Image
+                          src={fullUrl}
+                          alt={doc.label}
+                          style={{ width: '100%', height: 'auto', minHeight: '120px', borderRadius: '8px', objectFit: 'contain' }}
+                        />
+                      ) : (
+                        <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', borderRadius: '8px', color: '#94a3b8', fontSize: '0.85rem' }}>
+                          Not Uploaded
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         ) : (
-          <p>Loading renter details...</p>
+          <div style={{ textAlign: 'center', padding: '3rem' }}>
+            <Spin tip="Loading renter details..." />
+          </div>
         )}
       </Modal>
 
