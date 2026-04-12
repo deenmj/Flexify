@@ -496,22 +496,28 @@ export default function Dashboard() {
 
         {/* Tabs - Navigation */}
         <div className="dashboard-nav">
-          <button 
-            className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
-            onClick={() => setTab('vehicles')}
-          >
-            <Car size={16} /> My Vehicles
-          </button>
-          <button 
-            className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} 
-            onClick={() => setTab('bookings')}
-          >
-            <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
-          </button>
-          
-          {/* Host features - Visibility based on user role/privileges */}
-          {(isOwner || isStaff) && (
+          {/* Renters only see their bookings, owners see everything */}
+          {user.role === 'user' ? (
+            <button 
+              className={`nav-item active`} 
+              onClick={() => setTab('bookings')}
+            >
+              <CalIcon size={16} /> My Trip History
+            </button>
+          ) : (
             <>
+              <button 
+                className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
+                onClick={() => setTab('vehicles')}
+              >
+                <Car size={16} /> My Vehicles
+              </button>
+              <button 
+                className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} 
+                onClick={() => setTab('bookings')}
+              >
+                <CalIcon size={16} /> Manage Bookings
+              </button>
               <button 
                 className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} 
                 onClick={() => setTab('calendar')}
@@ -1069,7 +1075,13 @@ export default function Dashboard() {
                   { label: 'Live Selfie', field: 'selfie' },
                 ].map((doc, idx) => {
                   const renterData = selectedRenter as any;
-                  const url = renterData.documents?.[doc.field] || renterData[doc.field] || null;
+                  // Extremely resilient path extraction to match all potential schema versions
+                  const url = renterData.documents?.[doc.field] || 
+                              renterData[doc.field] || 
+                              (renterData.documents && renterData.documents[`${doc.field}Path`]) || 
+                              (renterData.documents && renterData.documents[doc.field.toLowerCase()]) ||
+                              null;
+                                
                   const fullUrl = getImageUrl(url);
                   
                   return (
