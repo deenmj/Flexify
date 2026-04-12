@@ -106,25 +106,28 @@ export default function Dashboard() {
     }
   }, [searchParams, bookings.length, user?.role, showRenterModal]);
 
-  useEffect(() => {
-    const promises: Promise<any>[] = [
-      vehicleApi.getMy().catch(() => []),
-      bookingApi.getMy().catch(() => []),
-    ];
-
-    if (user?.role === 'owner') {
-      promises.push(reviewApi.getMyReviews().catch(() => []));
-    } else {
-      promises.push(Promise.resolve([]));
-    }
-
-    Promise.all(promises).then(([v, b, r]) => {
+  const handleRefreshData = async () => {
+    try {
+      const v = await vehicleApi.getMy().catch(() => []);
+      const b = await bookingApi.getMy().catch(() => []);
       setVehicles(v as Vehicle[]);
       setBookings(b as Booking[]);
-      setReviews(r as Review[]);
-      // Set default calendar vehicle
-      if ((v as Vehicle[]).length > 0) setCalendarVehicleId((v as Vehicle[])[0]._id);
-    }).finally(() => setLoading(false));
+      
+      if (user?.role === 'owner') {
+        const r = await reviewApi.getMyReviews().catch(() => []);
+        setReviews(r as Review[]);
+      }
+      
+      if (v.length > 0) setCalendarVehicleId((v as any)[0]._id);
+    } catch (err) {
+      console.error("Failed to refresh dashboard data", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleRefreshData();
   }, [user]);
 
   // Handle Real-time Sockets
@@ -142,7 +145,7 @@ export default function Dashboard() {
           onClick: () => setTab('bookings')
         });
         // Add to local state
-        bookingApi.getMy().then(setBookings);
+        handleRefreshData();
       });
     }
 
@@ -156,7 +159,7 @@ export default function Dashboard() {
           placement: 'topRight'
         });
         // Refresh local bookings
-        bookingApi.getMy().then(setBookings);
+        handleRefreshData();
       });
     }
 
@@ -505,7 +508,7 @@ export default function Dashboard() {
           >
             <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
           </button>
-          {isOwner && (
+          {isOwner && vehicles.length > 0 && (
             <button 
               className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} 
               onClick={() => setTab('calendar')}
@@ -513,7 +516,7 @@ export default function Dashboard() {
               <CalIcon size={16} /> Availability
             </button>
           )}
-          {isOwner && (
+          {isOwner && vehicles.length > 0 && (
             <button 
               className={`nav-item ${tab === 'reviews' ? 'active' : ''}`} 
               onClick={() => setTab('reviews')}
@@ -521,7 +524,7 @@ export default function Dashboard() {
               <Star size={16} /> Feedback
             </button>
           )}
-          {isOwner && !isStaff && (
+          {isOwner && !isStaff && vehicles.length > 0 && (
             <button 
               className={`nav-item ${tab === 'subscription' ? 'active' : ''}`} 
               onClick={() => setTab('subscription')}
@@ -1046,24 +1049,17 @@ export default function Dashboard() {
                   <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedRenter.documents?.address || selectedRenter.address || 'Address not listed'}</div>
                 </div>
 
-                <div style={{ padding: '16px', background: '#eff6ff', borderRadius: '12px', border: '1px solid #dbeafe', marginTop: 'auto' }}>
-                  <div style={{ color: '#1e40af', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <Shield size={16} /> Verification Alert
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#1e40af', lineHeight: 1.5 }}>
-                    Please ensure the ID documents match the person picking up the vehicle. Cross-check name and license validity.
-                  </p>
-                </div>
+                {/* Verification Alert removed to simplify view */}
               </div>
             </div>
 
             {/* Document display area */}
             <div style={{ padding: '24px', background: '#ffffff', overflowY: 'auto', maxHeight: '70vh' }}>
-              <h4 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', fontWeight: 600 }}>
-                <FileText size={18} /> Documents
+              <h4 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem', fontWeight: 600 }}>
+                <FileText size={20} /> Documentation Verification
               </h4>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 {[
                   { label: 'NIC Front View', field: 'nicFront' },
                   { label: 'NIC Back View', field: 'nicBack' },
@@ -1071,21 +1067,30 @@ export default function Dashboard() {
                   { label: 'Live Selfie', field: 'selfie' },
                 ].map((doc, idx) => {
                   const renterData = selectedRenter as any;
-                  // Try to find the document path in 'documents' or directly on the renter object
-                  const url = renterData.documents?.[doc.field] || renterData[doc.field];
+                  const url = renterData.documents?.[doc.field] || renterData[doc.field] || null;
                   const fullUrl = getImageUrl(url);
+                  
                   return (
-                    <div key={idx} style={{ background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>{doc.label}</div>
+                    <div key={idx} style={{ 
+                      background: '#fff', 
+                      padding: '12px', 
+                      borderRadius: '16px', 
+                      border: '1px solid #f1f5f9',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                    }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', marginBottom: '12px', textTransform: 'uppercase' }}>{doc.label}</div>
                       {url ? (
-                        <Image
-                          src={fullUrl}
-                          alt={doc.label}
-                          style={{ width: '100%', height: 'auto', minHeight: '120px', borderRadius: '8px', objectFit: 'contain' }}
-                        />
+                        <div className="doc-image-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
+                          <Image
+                            src={fullUrl}
+                            alt={doc.label}
+                            style={{ width: '100%', height: '180px', objectFit: 'contain' }}
+                            placeholder={<div style={{ height: '180px', background: '#f8fafc' }} />}
+                          />
+                        </div>
                       ) : (
-                        <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', borderRadius: '8px', color: '#94a3b8', fontSize: '0.85rem' }}>
-                          Not Uploaded { /* Debug: {doc.field} */ }
+                        <div style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderRadius: '12px', color: '#94a3b8', fontSize: '0.85rem' }}>
+                          Not Uploaded
                         </div>
                       )}
                     </div>

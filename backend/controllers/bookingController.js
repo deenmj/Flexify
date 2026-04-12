@@ -366,10 +366,7 @@ export const getMyBookings = async (req, res) => {
         path: "owner",
         select: "name email phone profilePic",
       })
-      .populate({
-        path: "user",
-        select: "name email phone documents address profilePic isKycVerified verificationStatus"
-      })
+      .populate("user", "-password")
       .sort({ createdAt: -1 });
 
     // Mask owner phone unless booking is CONFIRMED
