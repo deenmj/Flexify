@@ -427,7 +427,8 @@ export default function Dashboard() {
       </header>
 
       <div className="container" style={{ position: 'relative', marginTop: '-1.5rem', marginBottom: '3rem' }}>
-      {/* Stats Section Removed to Simplify View */}
+        {/* Stats Section Removed to Simplify View */}
+      </div>
 
       <div className="container" style={{ marginBottom: '4rem' }}>
 
