@@ -397,7 +397,8 @@ export const getRenterDetails = async (req, res) => {
     if (!user) return res.status(404).json({ message: "Renter not found" });
 
     // Ensure the requester is the owner of the vehicle or an admin
-    const isOwner = booking.owner.toString() === req.user._id.toString();
+    const bookingOwnerId = booking.owner._id ? booking.owner._id.toString() : booking.owner.toString();
+    const isOwner = bookingOwnerId === req.user._id.toString();
     const isAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
 
     if (!isOwner && !isAdmin) {

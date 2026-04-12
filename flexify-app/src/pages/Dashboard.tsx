@@ -508,29 +508,31 @@ export default function Dashboard() {
           >
             <CalIcon size={16} /> {user.role === 'user' ? 'My Rentals' : 'Bookings'}
           </button>
-          {isOwner && vehicles.length > 0 && (
-            <button 
-              className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} 
-              onClick={() => setTab('calendar')}
-            >
-              <CalIcon size={16} /> Availability
-            </button>
-          )}
-          {isOwner && vehicles.length > 0 && (
-            <button 
-              className={`nav-item ${tab === 'reviews' ? 'active' : ''}`} 
-              onClick={() => setTab('reviews')}
-            >
-              <Star size={16} /> Feedback
-            </button>
-          )}
-          {isOwner && !isStaff && vehicles.length > 0 && (
-            <button 
-              className={`nav-item ${tab === 'subscription' ? 'active' : ''}`} 
-              onClick={() => setTab('subscription')}
-            >
-              <Shield size={16} /> Plan
-            </button>
+          
+          {/* Host features - Visibility based on user role/privileges */}
+          {(isOwner || isStaff) && (
+            <>
+              <button 
+                className={`nav-item ${tab === 'calendar' ? 'active' : ''}`} 
+                onClick={() => setTab('calendar')}
+              >
+                <CalIcon size={16} /> Availability
+              </button>
+              <button 
+                className={`nav-item ${tab === 'reviews' ? 'active' : ''}`} 
+                onClick={() => setTab('reviews')}
+              >
+                <Star size={16} /> Feedback
+              </button>
+              {!isStaff && (
+                <button 
+                  className={`nav-item ${tab === 'subscription' ? 'active' : ''}`} 
+                  onClick={() => setTab('subscription')}
+                >
+                  <Shield size={16} /> Plan
+                </button>
+              )}
+            </>
           )}
         </div>
 
