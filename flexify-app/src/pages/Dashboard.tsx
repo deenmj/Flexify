@@ -1048,7 +1048,9 @@ export default function Dashboard() {
                   { label: 'Driver License', field: 'license' },
                   { label: 'Live Selfie', field: 'selfie' },
                 ].map((doc, idx) => {
-                  const url = selectedRenter.documents?.[doc.field as keyof typeof selectedRenter.documents];
+                  const renterData = selectedRenter as any;
+                  // Try to find the document path in 'documents' or directly on the renter object
+                  const url = renterData.documents?.[doc.field] || renterData[doc.field];
                   const fullUrl = getImageUrl(url);
                   return (
                     <div key={idx} style={{ background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
@@ -1061,7 +1063,7 @@ export default function Dashboard() {
                         />
                       ) : (
                         <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', borderRadius: '8px', color: '#94a3b8', fontSize: '0.85rem' }}>
-                          Not Uploaded
+                          Not Uploaded { /* Debug: {doc.field} */ }
                         </div>
                       )}
                     </div>
