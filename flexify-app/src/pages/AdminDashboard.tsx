@@ -573,7 +573,7 @@ export default function AdminDashboard() {
                     pagination={{ pageSize: 15 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                     columns={[
-                      { title: 'User', render: (_, u) => <Space><Avatar size="small" src={u.profilePic} style={{ backgroundColor: '#7c3aed' }}>{u.name.charAt(0)}</Avatar><div><strong>{u.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text></div></Space> },
+                      { title: 'User', render: (_, u) => <Space><Avatar size="small" src={getImageUrl(u.profilePic)} style={{ backgroundColor: '#7c3aed' }}>{u.name.charAt(0)}</Avatar><div><strong>{u.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text></div></Space> },
                       { title: 'Role', render: (_, u) => roleBadge(u) },
                       { title: 'KYC', render: (_, u) => u.isKycVerified ? <Tag icon={<CheckCircle size={12} />} color="success">Verified</Tag> : <Tag color={u.verificationStatus === 'pending' ? 'processing' : 'warning'}>{u.verificationStatus || 'Not submitted'}</Tag> },
                       { 
@@ -876,22 +876,22 @@ export default function AdminDashboard() {
             <Row gutter={[16, 24]}>
               <Col span={12}>
                 <Card size="small" title="NIC Front">
-                  {kycUser.documents?.nicFront ? <img src={kycUser.documents.nicFront} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.nicFront ? <img src={getImageUrl(kycUser.documents.nicFront)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="NIC Back">
-                  {kycUser.documents?.nicBack ? <img src={kycUser.documents.nicBack} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.nicBack ? <img src={getImageUrl(kycUser.documents.nicBack)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="Driving License">
-                  {kycUser.documents?.license ? <img src={kycUser.documents.license} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.license ? <img src={getImageUrl(kycUser.documents.license)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="Live Selfie">
-                  {kycUser.documents?.selfie ? <img src={kycUser.documents.selfie} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.selfie ? <img src={getImageUrl(kycUser.documents.selfie)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
                 </Card>
               </Col>
             </Row>

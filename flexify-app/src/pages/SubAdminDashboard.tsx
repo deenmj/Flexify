@@ -963,7 +963,7 @@ export default function SubAdminDashboard() {
                   { label: 'Live Selfie', field: 'selfie' },
                 ].map((doc, idx) => {
                   const url = selectedUser.documents?.[doc.field as keyof typeof selectedUser.documents];
-                  const fullUrl = url ? (url.startsWith('http') ? url : `${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}${url}`) : '';
+                  const fullUrl = getImageUrl(url);
                   return (
                     <Card key={idx} size="small" title={doc.label} style={{ borderRadius: '12px' }}>
                       {url ? (

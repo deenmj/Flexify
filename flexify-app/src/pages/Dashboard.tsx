@@ -1001,7 +1001,7 @@ export default function Dashboard() {
           <div className="renter-review-content" style={{ padding: '10px 0' }}>
             <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', alignItems: 'center', background: '#f8fafc', padding: '15px', borderRadius: '12px' }}>
               <img 
-                src={selectedRenter.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(selectedRenter.name || 'User') + '&background=1890ff&color=fff'} 
+                src={getImageUrl(selectedRenter.profilePic)} 
                 alt="Profile" 
                 style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
               />
@@ -1023,7 +1023,7 @@ export default function Dashboard() {
               <Col xs={24} sm={12}>
                 <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIC Front</p>
                 <Image 
-                  src={selectedRenter.documents?.nicFront} 
+                  src={getImageUrl(selectedRenter.documents?.nicFront)} 
                   fallback="https://via.placeholder.com/400x250?text=NIC+Front+Not+Available"
                   style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
                 />
@@ -1031,7 +1031,7 @@ export default function Dashboard() {
               <Col xs={24} sm={12}>
                 <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>NIC Back</p>
                 <Image 
-                  src={selectedRenter.documents?.nicBack} 
+                  src={getImageUrl(selectedRenter.documents?.nicBack)} 
                   fallback="https://via.placeholder.com/400x250?text=NIC+Back+Not+Available"
                   style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
                 />
@@ -1039,7 +1039,7 @@ export default function Dashboard() {
               <Col xs={24} sm={12}>
                 <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Driving License</p>
                 <Image 
-                  src={selectedRenter.documents?.license} 
+                  src={getImageUrl(selectedRenter.documents?.license)} 
                   fallback="https://via.placeholder.com/400x250?text=License+Not+Available"
                   style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
                 />
@@ -1047,7 +1047,7 @@ export default function Dashboard() {
               <Col xs={24} sm={12}>
                 <p style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Selfie Verification</p>
                 <Image 
-                  src={selectedRenter.documents?.selfie} 
+                  src={getImageUrl(selectedRenter.documents?.selfie)} 
                   fallback="https://via.placeholder.com/400x250?text=Selfie+Not+Available"
                   style={{ borderRadius: '8px', width: '100%', height: '180px', objectFit: 'cover', border: '1px solid #e2e8f0' }} 
                 />
