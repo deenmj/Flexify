@@ -454,7 +454,6 @@ export default function Dashboard() {
         )}
 
         {/* Tabs - Navigation */}
-          {/* Renters see only My Trip History. Owners/Hosts with listings see both. */}
           {user.role === 'user' && vehicles.length === 0 ? (
             <button 
               className={`nav-item active`} 
@@ -464,15 +463,12 @@ export default function Dashboard() {
             </button>
           ) : (
             <>
-              {/* Only show Vehicles tab if they actually have vehicles or are staff */}
-              {(vehicles.length > 0 || isStaff) && (
-                <button 
-                  className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
-                  onClick={() => setTab('vehicles')}
-                >
-                  <Car size={16} /> My Vehicles
-                </button>
-              )}
+              <button 
+                className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
+                onClick={() => setTab('vehicles')}
+              >
+                <Car size={16} /> My Vehicles
+              </button>
               <button 
                 className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} 
                 onClick={() => setTab('bookings')}
@@ -1137,7 +1133,7 @@ export default function Dashboard() {
                     <div>
                       <div style={{ fontWeight: 600 }}>{(selectedBooking.owner as any).name}</div>
                       <div style={{ color: '#16a34a', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Phone size={14} /> {(selectedBooking.owner as any).phone || 'No phone provided'}
+                        <Phone size={14} /> {(selectedBooking.owner as any).phone || (selectedBooking.owner as any).phoneNumber || 'No phone provided'}
                       </div>
                     </div>
                   </div>

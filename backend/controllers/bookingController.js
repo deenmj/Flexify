@@ -371,13 +371,7 @@ export const getMyBookings = async (req, res) => {
       .populate("user", "-password")
       .sort({ createdAt: -1 });
 
-    // Mask owner phone unless booking is CONFIRMED
-    for (const b of bookings) {
-      if (b.status !== "CONFIRMED" && b.owner) {
-        b.owner.phone = undefined;
-      }
-    }
-
+    // Data is sent in full to client. Dashboard UI handles masking based on status.
     res.json(bookings);
   } catch (err) {
     res.status(500).json({ message: err.message });
