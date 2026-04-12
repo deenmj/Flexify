@@ -85,6 +85,8 @@ export default function Dashboard() {
     
     if (targetTab === 'bookings') {
       setTab('bookings');
+    } else if (targetTab === 'vehicles' && (vehicles.length > 0 || user?.role === 'admin')) {
+      setTab('vehicles');
     }
 
     if (highlightId && bookings.length > 0) {
@@ -452,9 +454,8 @@ export default function Dashboard() {
         )}
 
         {/* Tabs - Navigation */}
-        <div className="dashboard-nav">
-          {/* Renters only see their bookings, owners see Vehicles/Bookings - Availability & Feedback removed to simplify */}
-          {user.role === 'user' ? (
+          {/* Renters see only My Trip History. Owners/Hosts with listings see both. */}
+          {user.role === 'user' && vehicles.length === 0 ? (
             <button 
               className={`nav-item active`} 
               onClick={() => setTab('bookings')}
@@ -463,17 +464,20 @@ export default function Dashboard() {
             </button>
           ) : (
             <>
-              <button 
-                className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
-                onClick={() => setTab('vehicles')}
-              >
-                <Car size={16} /> My Vehicles
-              </button>
+              {/* Only show Vehicles tab if they actually have vehicles or are staff */}
+              {(vehicles.length > 0 || isStaff) && (
+                <button 
+                  className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
+                  onClick={() => setTab('vehicles')}
+                >
+                  <Car size={16} /> My Vehicles
+                </button>
+              )}
               <button 
                 className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} 
                 onClick={() => setTab('bookings')}
               >
-                <CalIcon size={16} /> Manage Bookings
+                <CalIcon size={16} /> {user.role === 'user' ? 'My Trip History' : 'Manage Bookings'}
               </button>
             </>
           )}
@@ -504,10 +508,21 @@ export default function Dashboard() {
             </div>
 
             {filteredVehicles.length === 0 ? (
-              <div className="dashboard-empty" style={{ paddingTop: '2rem' }}>
-                <Car size={40} strokeWidth={1} />
-                <p>{vehicles.length === 0 ? "No vehicles listed yet" : `No ${selectedCategory}s found`}</p>
-                {vehicles.length === 0 && <Link to="/list-vehicle" className="btn btn-primary btn-sm">List a Vehicle</Link>}
+              <div className="dashboard-empty" style={{ padding: '5rem 2rem', textAlign: 'center', background: '#fafafa', borderRadius: '0 0 20px 20px' }}>
+                <div style={{ background: '#f8fafc', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid #e2e8f0' }}>
+                  <Car size={40} strokeWidth={1.5} color="#94a3b8" />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                  {vehicles.length === 0 ? "You haven't listed any vehicles yet" : `No ${selectedCategory}s found`}
+                </h3>
+                <p style={{ color: 'var(--text-tertiary)', marginBottom: '2rem', maxWidth: '300px', margin: '0 auto 2rem' }}>
+                  Start earning today by sharing your vehicle with the Flexify community.
+                </p>
+                {vehicles.length === 0 && (
+                  <Link to="/list-vehicle" className="btn btn-primary" style={{ padding: '12px 32px' }}>
+                    <Car size={18} style={{ marginRight: '8px' }} /> List Your First Vehicle
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="dashboard-grid">

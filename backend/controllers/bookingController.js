@@ -295,12 +295,13 @@ export const rejectBooking = async (req, res) => {
     }
 
     // Send rejection email async
-    const populated = await booking.populate({
-      path: "owner",
-      select: "_id name email notificationEmail isNotificationEmailActive"
-    }).populate("user vehicle");
-    if (populated.owner && populated.user && populated.vehicle) {
-      sendBookingUpdateEmail(populated.owner, populated.user, populated.vehicle, "REJECTED");
+    await booking.populate([
+      { path: "owner", select: "_id name email notificationEmail isNotificationEmailActive" },
+      { path: "user" },
+      { path: "vehicle" }
+    ]);
+    if (booking.owner && booking.user && booking.vehicle) {
+      sendBookingUpdateEmail(booking.owner, booking.user, booking.vehicle, "REJECTED");
     }
 
     return res.json({ message: "Booking rejected", booking });
@@ -329,12 +330,13 @@ export const cancelBooking = async (req, res) => {
     await booking.save();
 
     // Send cancellation email async
-    const populated = await booking.populate({
-      path: "owner",
-      select: "_id name email notificationEmail isNotificationEmailActive"
-    }).populate("user vehicle");
-    if (populated.owner && populated.user && populated.vehicle) {
-      sendBookingUpdateEmail(populated.owner, populated.user, populated.vehicle, "CANCELLED");
+    await booking.populate([
+      { path: "owner", select: "_id name email notificationEmail isNotificationEmailActive" },
+      { path: "user" },
+      { path: "vehicle" }
+    ]);
+    if (booking.owner && booking.user && booking.vehicle) {
+      sendBookingUpdateEmail(booking.owner, booking.user, booking.vehicle, "CANCELLED");
     }
 
     return res.json({ message: "Booking cancelled" });
