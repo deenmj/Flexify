@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col } from 'antd';
+import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col, Avatar } from 'antd';
 import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review, getImageUrl } from '../api';
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
@@ -1000,11 +1000,19 @@ export default function Dashboard() {
         {selectedRenter ? (
           <div className="renter-review-content" style={{ padding: '10px 0' }}>
             <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', alignItems: 'center', background: '#f8fafc', padding: '15px', borderRadius: '12px' }}>
-              <img 
+              <Avatar 
+                size={80} 
                 src={getImageUrl(selectedRenter.profilePic)} 
-                alt="Profile" 
-                style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-              />
+                icon={<User />}
+                style={{ 
+                  flexShrink: 0,
+                  border: '3px solid white', 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  background: '#1890ff' // fallback background
+                }}
+              >
+                {selectedRenter.name?.charAt(0)}
+              </Avatar>
               <div>
                 <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem' }}>{selectedRenter.name}</h3>
                 <p style={{ margin: '0', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}><Phone size={14} /> {selectedRenter.phone || 'No phone provided'}</p>

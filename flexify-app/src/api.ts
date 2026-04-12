@@ -5,14 +5,18 @@ export const getImageUrl = (path?: any) => {
   
   if (!path) return FALLBACK_IMAGE;
   
-  // Handle new Cloudinary object format
+  // Handle object format (Cloudinary)
   if (typeof path === 'object' && path.url) return path.url;
   
   // Handle string format
   if (typeof path === 'string' && path.trim() !== '') {
     if (path.startsWith('http') || path.startsWith('data:')) return path;
-    const baseUrl = import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app';
-    return `${baseUrl}${path}`;
+    
+    // Ensure no trailing slash on baseUrl and ensure leading slash on path
+    const baseUrl = (import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app').replace(/\/$/, '');
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    
+    return `${baseUrl}${cleanPath}`;
   }
   
   return FALLBACK_IMAGE;

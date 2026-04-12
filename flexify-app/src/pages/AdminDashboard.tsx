@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, bankDetailsApi, feedbackApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData } from '../api';
+import { adminApi, bankDetailsApi, feedbackApi, getImageUrl, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData } from '../api';
 import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid } from 'antd';
 import Table from '../components/ResponsiveTable';
@@ -876,22 +876,22 @@ export default function AdminDashboard() {
             <Row gutter={[16, 24]}>
               <Col span={12}>
                 <Card size="small" title="NIC Front">
-                  {kycUser.documents?.nicFront ? <img src={getImageUrl(kycUser.documents.nicFront)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.nicFront ? <Image src={getImageUrl(kycUser.documents.nicFront)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="NIC Back">
-                  {kycUser.documents?.nicBack ? <img src={getImageUrl(kycUser.documents.nicBack)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.nicBack ? <Image src={getImageUrl(kycUser.documents.nicBack)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="Driving License">
-                  {kycUser.documents?.license ? <img src={getImageUrl(kycUser.documents.license)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.license ? <Image src={getImageUrl(kycUser.documents.license)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="Live Selfie">
-                  {kycUser.documents?.selfie ? <img src={getImageUrl(kycUser.documents.selfie)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.selfie ? <Image src={getImageUrl(kycUser.documents.selfie)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
                 </Card>
               </Col>
             </Row>

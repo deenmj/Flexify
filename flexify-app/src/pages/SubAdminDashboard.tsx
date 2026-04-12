@@ -8,7 +8,7 @@ import {
   AlertTriangle, FileText, Clock, MessageSquare,
   LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon
 } from 'lucide-react';
-import { subadminApi, adminApi, userApi, feedbackApi, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
+import { subadminApi, adminApi, userApi, feedbackApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { DollarSign } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
@@ -879,7 +879,13 @@ export default function SubAdminDashboard() {
             <div style={{ padding: '32px', background: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>
               <Space direction="vertical" size="large" style={{ width: '100%' }}>
                 <div>
-                  <Avatar size={64} style={{ background: '#0d9488', marginBottom: 16 }}>{selectedUser.name.charAt(0)}</Avatar>
+                  <Avatar 
+                    size={64} 
+                    src={getImageUrl(selectedUser.profilePic)}
+                    style={{ background: '#0d9488', marginBottom: 16 }}
+                  >
+                    {selectedUser.name?.charAt(0)}
+                  </Avatar>
                   <Title level={4} style={{ margin: 0 }}>{selectedUser.name}</Title>
                   <Text type="secondary">{selectedUser.email}</Text>
                 </div>
@@ -967,11 +973,10 @@ export default function SubAdminDashboard() {
                   return (
                     <Card key={idx} size="small" title={doc.label} style={{ borderRadius: '12px' }}>
                       {url ? (
-                        <img
+                        <Image
                           src={fullUrl}
                           alt={doc.label}
-                          style={{ width: '100%', height: '220px', objectFit: 'contain', cursor: 'zoom-in' }}
-                          onClick={() => setFullScreenImage(fullUrl)}
+                          style={{ width: '100%', height: '220px', objectFit: 'contain' }}
                         />
                       ) : (
                         <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#cbd5e1' }}>
