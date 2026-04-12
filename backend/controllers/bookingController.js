@@ -181,6 +181,16 @@ export const acceptBooking = async (req, res) => {
         status: "CONFIRMED",
         message: `Your booking for ${booking.vehicle.title} has been confirmed!`
       });
+
+      // PERSISTENT NOTIFICATION (fire-and-forget)
+      createNotification(
+        io,
+        booking.user._id,
+        "Booking Confirmed",
+        `Your booking for ${booking.vehicle.title} has been confirmed!`,
+        "booking_update",
+        booking._id
+      ).catch(err => console.error("Notification save failed:", err.message));
     }
 
     const renter = booking.user;
@@ -272,6 +282,16 @@ export const rejectBooking = async (req, res) => {
         status: "REJECTED",
         message: `Your booking for ${booking.vehicle?.title || "a vehicle"} was rejected.`
       });
+
+      // PERSISTENT NOTIFICATION (fire-and-forget)
+      createNotification(
+        io,
+        booking.user,
+        "Booking Rejected",
+        `The owner has rejected your booking request for ${booking.vehicle?.title || "a vehicle"}.`,
+        "booking_update",
+        booking._id
+      ).catch(err => console.error("Notification save failed:", err.message));
     }
 
     // Send rejection email async

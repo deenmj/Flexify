@@ -87,7 +87,14 @@ export default function Dashboard() {
       setTab('bookings');
     }
 
-    if (highlightId) {
+    if (highlightId && bookings.length > 0) {
+      // Automatic Modal Opening for Notifications (Owner view of pending request)
+      const targetBooking = bookings.find(b => b._id === highlightId);
+      if (targetBooking && targetBooking.status === 'PENDING' && user?.role === 'owner' && !showRenterModal) {
+        const renter = typeof targetBooking.user === 'object' ? targetBooking.user : null;
+        handleReviewRenter(targetBooking._id, renter);
+      }
+
       setTimeout(() => {
         const element = document.getElementById(`booking-${highlightId}`);
         if (element) {
@@ -97,7 +104,7 @@ export default function Dashboard() {
         }
       }, 500);
     }
-  }, [searchParams, bookings.length]);
+  }, [searchParams, bookings.length, user?.role, showRenterModal]);
 
   useEffect(() => {
     const promises: Promise<any>[] = [
