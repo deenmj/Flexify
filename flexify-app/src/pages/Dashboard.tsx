@@ -686,18 +686,18 @@ export default function Dashboard() {
 
                           <div className="booking-card-actions">
                             {b.status === 'PENDING' && isIamOwnerOfThis && (
-                              <div style={{ display: 'flex', width: '100%', gap: '8px' }}>
-                                <button 
-                                  className="btn btn-sm btn-primary" 
-                                  style={{ flex: 1, background: '#1890ff', fontWeight: 600 }}
-                                  onClick={() => { 
-                                    const renter = typeof b.user === 'object' ? b.user : null;
-                                    handleReviewRenter(b._id, renter);
-                                  }}
-                                >
-                                  Review & Respond
+                              <>
+                                <button className="btn btn-sm btn-ghost" onClick={() => { 
+                                  const renter = typeof b.user === 'object' ? b.user : null;
+                                  handleReviewRenter(b._id, renter);
+                                }}>
+                                  Review Renter
                                 </button>
-                              </div>
+                                <>
+                                  <button className="btn btn-sm btn-primary" onClick={() => handleAcceptBooking(b._id)}>Accept</button>
+                                  <button className="btn btn-sm btn-danger" onClick={() => handleRejectBooking(b._id)}>Reject</button>
+                                </>
+                              </>
                             )}
 
                             {b.status === 'PENDING' && isIamRenterOfThis && (
