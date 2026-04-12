@@ -391,8 +391,13 @@ export const getMyBookings = async (req, res) => {
 export const getRenterDetails = async (req, res) => {
   try {
     const bookingId = req.params.bookingId;
-    const booking = await Booking.findById(bookingId).populate("user", "-password");
+    const booking = await Booking.findById(bookingId);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    // Fetch the user directly from the User collection to ensure all fields are accessible
+    // exactly like the staff/admin dashboard does.
+    const user = await User.findById(booking.user).select("-password");
+    if (!user) return res.status(404).json({ message: "Renter not found" });
 
     // Ensure the requester is the owner of the vehicle or an admin
     const isOwner = booking.owner.toString() === req.user._id.toString();
@@ -402,7 +407,7 @@ export const getRenterDetails = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to view these renter details" });
     }
 
-    res.json(booking.user);
+    res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
