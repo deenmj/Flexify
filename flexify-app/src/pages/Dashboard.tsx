@@ -454,6 +454,7 @@ export default function Dashboard() {
         )}
 
         {/* Tabs - Navigation */}
+        <div className="dashboard-nav">
           {user.role === 'user' && vehicles.length === 0 ? (
             <button 
               className={`nav-item active`} 
