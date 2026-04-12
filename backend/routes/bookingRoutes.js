@@ -6,6 +6,7 @@ import {
   rejectBooking,
   cancelBooking,
   getMyBookings,
+  getRenterDetails,
 } from "../controllers/bookingController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
