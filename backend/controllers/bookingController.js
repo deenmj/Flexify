@@ -346,7 +346,7 @@ export const getMyBookings = async (req, res) => {
         path: "owner",
         select: "name email phone profilePic",
       })
-      .populate("user", "name email phone documents address profilePic")
+      .populate("user", "-password")
       .sort({ createdAt: -1 })
       .lean();
 
