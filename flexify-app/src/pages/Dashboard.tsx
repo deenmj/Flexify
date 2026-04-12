@@ -62,6 +62,22 @@ export default function Dashboard() {
     setShowDetailModal(true);
   };
 
+  const handleReviewRenter = async (bookingId: string, initialUser: any) => {
+    // Show modal immediately with partial data (name/email)
+    setSelectedRenter(initialUser);
+    setActiveBookingId(bookingId);
+    setShowRenterModal(true);
+    
+    // Explicitly fetch full user details directly from the User collection
+    // This bypasses any population issues in the main booking list
+    try {
+      const fullUser = await bookingApi.getRenterDetails(bookingId);
+      setSelectedRenter(fullUser);
+    } catch (err: any) {
+      console.error("Failed to fetch renter details:", err);
+    }
+  };
+
   // Highlight logic from URL
   useEffect(() => {
     const highlightId = searchParams.get('highlight');
@@ -675,9 +691,8 @@ export default function Dashboard() {
                                   className="btn btn-sm btn-primary" 
                                   style={{ flex: 1, background: '#1890ff', fontWeight: 600 }}
                                   onClick={() => { 
-                                    setSelectedRenter(typeof b.user === 'object' ? b.user : null); 
-                                    setActiveBookingId(b._id); 
-                                    setShowRenterModal(true); 
+                                    const renter = typeof b.user === 'object' ? b.user : null;
+                                    handleReviewRenter(b._id, renter);
                                   }}
                                 >
                                   Review & Respond

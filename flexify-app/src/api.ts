@@ -394,6 +394,9 @@ export const bookingApi = {
 
   cancel: (id: string) =>
     apiFetch<{ message: string }>(`/bookings/cancel/${id}`, { method: 'PUT' }),
+    
+  getRenterDetails: (bookingId: string) =>
+    apiFetch<User>(`/bookings/renter-details/${bookingId}`),
 };
 
 // =================== BLACKOUTS ===================

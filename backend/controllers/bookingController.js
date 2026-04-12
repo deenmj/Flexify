@@ -364,3 +364,26 @@ export const getMyBookings = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+/**
+ * Get renter details for an owner (direct fetch from User collection for a specific booking)
+ */
+export const getRenterDetails = async (req, res) => {
+  try {
+    const bookingId = req.params.bookingId;
+    const booking = await Booking.findById(bookingId).populate("user", "-password");
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    // Ensure the requester is the owner of the vehicle or an admin
+    const isOwner = booking.owner.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: "Not authorized to view these renter details" });
+    }
+
+    res.json(booking.user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
