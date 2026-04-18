@@ -14,26 +14,25 @@ function getTransporter() {
   console.log(`[EMAIL SETUP] Initialize Nodemailer. Env: ${process.env.NODE_ENV || 'development'}`);
   
   const settings = {
-    service: process.env.EMAIL_SERVICE || 'gmail',
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    // Required to bypass strict SSL checks on cloud proxies like Railway
+    tls: {
+      rejectUnauthorized: false
+    },
     pool: true,
     maxConnections: 3,
     maxMessages: 50,
-    // Timeouts to prevent hanging on cloud hosting
-    connectionTimeout: 10000, // 10 seconds
+    // Timeouts
+    connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
   };
-
-  // Only use host/port if service is not gmail
-  if (!process.env.EMAIL_SERVICE || process.env.EMAIL_SERVICE !== 'gmail') {
-    settings.host = process.env.EMAIL_HOST || "smtp.gmail.com";
-    settings.port = parseInt(process.env.EMAIL_PORT) || 587;
-    settings.secure = settings.port === 465;
-  }
 
   transporter = nodemailer.createTransport(settings);
   console.log(`[EMAIL] Transporter created for ${process.env.EMAIL_USER}`);
