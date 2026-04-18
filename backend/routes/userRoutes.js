@@ -165,4 +165,29 @@ router.put("/notification-settings", protect, async (req, res) => {
   }
 });
 
+/**
+ * Test email sending manually
+ */
+import sendEmail from "../utils/sendEmail.js";
+
+router.get("/test-email", protect, async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+    const info = await sendEmail({
+      to: userEmail,
+      subject: "Test Email from Flexify Production",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Email Test Successful</h2>
+          <p>If you are reading this, Nodemailer is working correctly in production!</p>
+          <p><strong>Environment:</strong> ${process.env.NODE_ENV || 'development'}</p>
+        </div>
+      `,
+    });
+    res.json({ message: "Test email initiated. Check logs for success/failure.", info });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to initiate test email", error: err.message });
+  }
+});
+
 export default router;
