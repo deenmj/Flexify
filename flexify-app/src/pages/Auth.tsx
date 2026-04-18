@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
 import './Auth.css';
 
 export default function Auth() {
@@ -105,41 +105,34 @@ export default function Auth() {
             {mode === 'signup' && (
               <div className="input-group">
                 <label htmlFor="auth-name">Full Name</label>
-                <div className="input-with-icon">
-                  <User size={18} className="input-icon" />
-                  <input
-                    id="auth-name"
-                    type="text"
-                    className="input-field"
-                    placeholder="Enter your name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
+                <input
+                  id="auth-name"
+                  type="text"
+                  className="input-field"
+                  placeholder="Enter your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
               </div>
             )}
 
             <div className="input-group">
               <label htmlFor="auth-email">Email Address</label>
-              <div className="input-with-icon">
-                <Mail size={18} className="input-icon" />
-                <input
-                  id="auth-email"
-                  type="email"
-                  className="input-field"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
+              <input
+                id="auth-email"
+                type="email"
+                className="input-field"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
 
             <div className="input-group">
               <label htmlFor="auth-password">Password</label>
-              <div className="input-with-icon">
-                <Lock size={18} className="input-icon" />
+              <div style={{ position: 'relative' }}>
                 <input
                   id="auth-password"
                   type={showPassword ? 'text' : 'password'}
@@ -149,6 +142,7 @@ export default function Auth() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={8}
+                  style={{ paddingRight: '3rem' }}
                 />
                 <button
                   type="button"
