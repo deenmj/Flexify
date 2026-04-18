@@ -1,61 +1,48 @@
-import * as brevo from "@getbrevo/brevo";
+// No external npm SDK needed — we use native fetch for zero-dependency speed
 
-let apiInstance = null;
-
-function getBrevoClient() {
-  if (apiInstance) return apiInstance;
-
+const sendEmail = async ({ to, subject, html }) => {
   if (!process.env.BREVO_API_KEY) {
-    console.error("[EMAIL FATAL] Missing BREVO_API_KEY in environment variables. Emails will not send.");
+    console.error("[EMAIL FATAL] Missing BREVO_API_KEY. Emails will not send.");
     return null;
   }
 
-  // Configure Brevo API
-  let defaultClient = brevo.ApiClient.instance;
-  let apiKey = defaultClient.authentications['api-key'];
-  apiKey.apiKey = process.env.BREVO_API_KEY;
-
-  apiInstance = new brevo.TransactionalEmailsApi();
-  console.log(`[EMAIL SETUP] Brevo Client Initialized.`);
-  return apiInstance;
-}
-
-const sendEmail = async ({ to, subject, html }) => {
-  const mailer = getBrevoClient();
-  if (!mailer) {
-    console.warn(`[EMAIL SKIPPED] No Brevo client configured: ${subject} → ${to}`);
-    return;
-  }
-
   try {
-    console.log(`[EMAIL] Attempting to send (via Brevo) ${subject} to ${to}...`);
+    console.log(`[EMAIL] Attempting to send (via Brevo REST API) ${subject} to ${to}...`);
 
-    let sendSmtpEmail = new brevo.SendSmtpEmail();
-    
-    sendSmtpEmail.subject = subject;
-    sendSmtpEmail.htmlContent = html;
-    sendSmtpEmail.sender = {
-      name: process.env.BREVO_SENDER_NAME || "Flexify",
-      email: process.env.BREVO_SENDER_EMAIL || "noreply@flexify.lk" // Fallback safety
-    };
-    sendSmtpEmail.to = [{ email: to }];
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": process.env.BREVO_API_KEY,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        sender: {
+          name: process.env.BREVO_SENDER_NAME || "Flexify",
+          email: process.env.BREVO_SENDER_EMAIL || "noreply@flexify.lk" // Must be verified in Brevo
+        },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html
+      })
+    });
 
-    // Execute the send
-    const data = await mailer.sendTransacEmail(sendSmtpEmail);
-    console.log(`[EMAIL SUCCESS] ✅ Sent to ${to} | MessageId: ${data.messageId}`);
-    return data;
-  } catch (error) {
-    console.error(`[EMAIL FATAL] ❌ Failed to send (via Brevo) to ${to}`);
-    
-    // Brevo API errors are usually nested in error.response
-    if (error.response && error.response.text) {
-      console.error(`[EMAIL ERROR DETAILS] Brevo API Response:`, error.response.text);
-    } else {
-      console.error(`[EMAIL ERROR DETAILS]`, error.message);
-      console.error(error); // Full raw error
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      console.error(`[EMAIL ERROR DETAILS] Brevo API Rejected the email:`, data || response.statusText);
+      return null;
     }
+
+    console.log(`[EMAIL SUCCESS] ✅ Sent to ${to} | MessageId: ${data?.messageId}`);
+    return data;
+
+  } catch (error) {
+    console.error(`[EMAIL FATAL] ❌ Failed to send to ${to}`);
+    console.error(`[EMAIL ERROR DETAILS]`, error.message);
   }
 };
 
 export default sendEmail;
+
 
