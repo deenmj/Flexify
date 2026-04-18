@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Row, Col } from 'antd';
-import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate } from 'lucide-react';
+import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown, X } from 'lucide-react';
 import { vehicleApi, type Vehicle, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -31,6 +31,63 @@ interface Filters {
   sort: string;
   province: string;
   district: string;
+}
+
+const RADIUS_OPTIONS = [
+  { value: '5', label: '5 km', desc: 'Nearby' },
+  { value: '10', label: '10 km', desc: 'Local area' },
+  { value: '25', label: '25 km', desc: 'Extended area' },
+  { value: '50', label: '50 km', desc: 'Wide search' },
+  { value: '100', label: '100 km', desc: 'Maximum range' },
+];
+
+function RadiusPicker({ value, onChange }: { value: string; onChange: (val: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const selected = RADIUS_OPTIONS.find(o => o.value === value);
+
+  return (
+    <>
+      <button
+        type="button"
+        className="radius-picker-trigger"
+        onClick={() => setOpen(true)}
+      >
+        <span>{selected?.label || '10km'}</span>
+        <ChevronDown size={14} />
+      </button>
+
+      {open && (
+        <>
+          <div className="radius-sheet-overlay" onClick={() => setOpen(false)} />
+          <div className="radius-sheet">
+            <div className="radius-sheet-header">
+              <h3>Search Radius</h3>
+              <button className="radius-sheet-close" onClick={() => setOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="radius-sheet-options">
+              {RADIUS_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`radius-sheet-option ${value === opt.value ? 'active' : ''}`}
+                  onClick={() => { onChange(opt.value); setOpen(false); }}
+                >
+                  <div className="radius-option-content">
+                    <span className="radius-option-label">{opt.label}</span>
+                    <span className="radius-option-desc">{opt.desc}</span>
+                  </div>
+                  <div className={`radius-option-radio ${value === opt.value ? 'checked' : ''}`}>
+                    {value === opt.value && <div className="radius-option-radio-dot" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
 }
 
 export default function Explore() {
@@ -158,19 +215,26 @@ export default function Explore() {
                 >
                   <Locate size={14} /> <span className="quick-locate-text">Locate Me</span>
                 </button>
-                <select 
-                  className="quick-radius-select"
-                  value={filters.radius}
-                  onChange={(e) => {
-                    setFilters({ ...filters, radius: e.target.value });
-                  }}
-                >
-                  <option value="5">5km</option>
-                  <option value="10">10km</option>
-                  <option value="25">25km</option>
-                  <option value="50">50km</option>
-                  <option value="100">100km</option>
-                </select>
+                {isMobile ? (
+                  <RadiusPicker
+                    value={filters.radius}
+                    onChange={(val) => setFilters({ ...filters, radius: val })}
+                  />
+                ) : (
+                  <select 
+                    className="quick-radius-select"
+                    value={filters.radius}
+                    onChange={(e) => {
+                      setFilters({ ...filters, radius: e.target.value });
+                    }}
+                  >
+                    <option value="5">5km</option>
+                    <option value="10">10km</option>
+                    <option value="25">25km</option>
+                    <option value="50">50km</option>
+                    <option value="100">100km</option>
+                  </select>
+                )}
                 {(filters.lat || filters.lng) && (
                   <div className="location-active-badge">
                     <span className="pulse-dot"></span>

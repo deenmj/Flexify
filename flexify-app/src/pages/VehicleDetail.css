@@ -477,3 +477,152 @@
 .ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-in-range::before {
   background: rgba(var(--primary-rgb), 0.08) !important;
 }
+
+/* ===== Vehicle Detail Loading Skeleton ===== */
+.detail-loading-skeleton-img {
+  width: 100%;
+  height: 500px;
+  border-radius: 16px;
+}
+
+.detail-loading-thumbs {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.detail-loading-thumb {
+  width: 100px;
+  height: 80px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.detail-loading-card {
+  padding: 2rem;
+  margin-top: 1.5rem;
+}
+
+.detail-loading-title {
+  height: 28px;
+  width: 65%;
+  border-radius: 8px;
+}
+
+.detail-loading-subtitle {
+  height: 18px;
+  width: 45%;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+}
+
+.detail-loading-location {
+  height: 16px;
+  width: 55%;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+}
+
+.detail-loading-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.detail-loading-spec {
+  height: 64px;
+  border-radius: 10px;
+}
+
+.detail-loading-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.detail-loading-feature-tag {
+  height: 36px;
+  width: 90px;
+  border-radius: 8px;
+}
+
+.detail-loading-price {
+  height: 36px;
+  width: 60%;
+  border-radius: 8px;
+}
+
+.detail-loading-btn {
+  height: 54px;
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 1.5rem;
+}
+
+.detail-loading-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.detail-loading-perk {
+  height: 18px;
+  width: 80%;
+  border-radius: 6px;
+}
+
+.detail-loading-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.detail-loading-owner-name {
+  height: 18px;
+  width: 120px;
+  border-radius: 6px;
+}
+
+.detail-loading-owner-sub {
+  height: 14px;
+  width: 90px;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .detail-loading-skeleton-img {
+    height: 250px;
+    border-radius: 12px;
+  }
+  .detail-loading-thumb {
+    width: 80px;
+    height: 60px;
+  }
+  .detail-loading-card {
+    padding: 1.25rem;
+    margin-top: 1rem;
+  }
+  .detail-loading-specs-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .detail-loading-spec {
+    height: 52px;
+  }
+  .detail-loading-title {
+    height: 22px;
+  }
+  .detail-loading-features {
+    margin-top: 1.5rem;
+  }
+  .detail-loading-feature-tag {
+    height: 30px;
+    width: 70px;
+  }
+}

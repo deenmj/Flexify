@@ -291,7 +291,63 @@ export default function VehicleDetail() {
   };
 
   if (loading) {
-    return <div className="detail-loading">Loading vehicle details...</div>;
+    return (
+      <div className="vehicle-detail-page">
+        <div className="container" style={{ paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
+          <Row gutter={[24, 24]}>
+            <Col xs={24} lg={16}>
+              {/* Image skeleton */}
+              <div className="detail-loading-skeleton-img skeleton" />
+              {/* Thumbnails skeleton */}
+              <div className="detail-loading-thumbs">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="detail-loading-thumb skeleton" />
+                ))}
+              </div>
+              {/* Overview card skeleton */}
+              <div className="card detail-loading-card">
+                <div className="detail-loading-title skeleton" />
+                <div className="detail-loading-subtitle skeleton" />
+                <div className="detail-loading-location skeleton" />
+                {/* Specs grid skeleton */}
+                <div className="detail-loading-specs-grid">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="detail-loading-spec skeleton" />
+                  ))}
+                </div>
+                {/* Features skeleton */}
+                <div className="detail-loading-features">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="detail-loading-feature-tag skeleton" />
+                  ))}
+                </div>
+              </div>
+            </Col>
+            <Col xs={24} lg={8}>
+              {/* Booking panel skeleton */}
+              <div className="card detail-loading-card">
+                <div className="detail-loading-price skeleton" />
+                <div className="detail-loading-btn skeleton" />
+                <div className="detail-loading-perks">
+                  <div className="detail-loading-perk skeleton" />
+                  <div className="detail-loading-perk skeleton" />
+                </div>
+              </div>
+              {/* Owner panel skeleton */}
+              <div className="card detail-loading-card" style={{ marginTop: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div className="detail-loading-avatar skeleton" />
+                  <div style={{ flex: 1 }}>
+                    <div className="detail-loading-owner-name skeleton" />
+                    <div className="detail-loading-owner-sub skeleton" />
+                  </div>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </div>
+      </div>
+    );
   }
 
   if (error || !vehicle) {
