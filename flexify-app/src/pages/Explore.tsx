@@ -308,53 +308,6 @@ export default function Explore() {
                   {filters.province && SRI_LANKA_LOCATIONS[filters.province as keyof typeof SRI_LANKA_LOCATIONS].map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
-              <div className="input-group">
-                <label>Seats</label>
-                <select
-                  className="input-field"
-                  value={filters.seats}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, seats: e.target.value })}
-                >
-                  <option value="">Any</option>
-                  <option value="2">2</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="7">7+</option>
-                </select>
-              </div>
-              <div className="input-group">
-                <label>Min Price (LKR/day)</label>
-                <input
-                  type="number"
-                  className="input-field"
-                  placeholder="0"
-                  value={filters.minPrice}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, minPrice: e.target.value })}
-                />
-              </div>
-              <div className="input-group">
-                <label>Max Price (LKR/day)</label>
-                <input
-                  type="number"
-                  className="input-field"
-                  placeholder="Unlimited"
-                  value={filters.maxPrice}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, maxPrice: e.target.value })}
-                />
-              </div>
-              <div className="input-group">
-                <label>Sort By</label>
-                <select
-                  className="input-field"
-                  value={filters.sort}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, sort: e.target.value })}
-                >
-                  <option value="newest">Newest</option>
-                  <option value="price_low">Price: Low → High</option>
-                  <option value="price_high">Price: High → Low</option>
-                  <option value="popular">Most Popular</option>
-                </select>
-              </div>
             </div>
 
             <div className="desktop-filters-actions">
