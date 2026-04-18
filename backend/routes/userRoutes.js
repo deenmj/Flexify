@@ -179,7 +179,7 @@ router.get("/test-email", protect, async (req, res) => {
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Email Test Successful</h2>
-          <p>If you are reading this, Nodemailer is working correctly in production!</p>
+          <p>If you are reading this, Brevo is working correctly via the V3 API!</p>
           <p><strong>Environment:</strong> ${process.env.NODE_ENV || 'development'}</p>
         </div>
       `,

@@ -1,94 +1,61 @@
-import nodemailer from "nodemailer";
+import * as brevo from "@getbrevo/brevo";
 
-// Create a SINGLETON transporter (reused across all email sends)
-let transporter = null;
+let apiInstance = null;
 
-function getTransporter() {
-  if (transporter) return transporter;
+function getBrevoClient() {
+  if (apiInstance) return apiInstance;
 
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error("[EMAIL ERROR] Missing EMAIL_USER or EMAIL_PASS environment variables. Emails will not be sent.");
+  if (!process.env.BREVO_API_KEY) {
+    console.error("[EMAIL FATAL] Missing BREVO_API_KEY in environment variables. Emails will not send.");
     return null;
   }
 
-  console.log(`[EMAIL SETUP] Initialize Nodemailer. Env: ${process.env.NODE_ENV || 'development'}`);
-  
-  const settings = {
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    // Required to bypass strict SSL checks on cloud proxies like Railway
-    tls: {
-      rejectUnauthorized: false
-    },
-    pool: true,
-    maxConnections: 3,
-    maxMessages: 50,
-    // Timeouts
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-  };
+  // Configure Brevo API
+  let defaultClient = brevo.ApiClient.instance;
+  let apiKey = defaultClient.authentications['api-key'];
+  apiKey.apiKey = process.env.BREVO_API_KEY;
 
-  transporter = nodemailer.createTransport(settings);
-  console.log(`[EMAIL] Transporter created for ${process.env.EMAIL_USER}`);
-  return transporter;
+  apiInstance = new brevo.TransactionalEmailsApi();
+  console.log(`[EMAIL SETUP] Brevo Client Initialized.`);
+  return apiInstance;
 }
 
 const sendEmail = async ({ to, subject, html }) => {
-  const mailer = getTransporter();
+  const mailer = getBrevoClient();
   if (!mailer) {
-    console.warn(`[EMAIL SKIPPED] No transporter configured: ${subject} → ${to}`);
+    console.warn(`[EMAIL SKIPPED] No Brevo client configured: ${subject} → ${to}`);
     return;
   }
 
   try {
-    console.log(`[EMAIL] Attempting to send ${subject} to ${to}...`);
-    const info = await mailer.sendMail({
-      from: `"Flexify" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
-    });
+    console.log(`[EMAIL] Attempting to send (via Brevo) ${subject} to ${to}...`);
 
-    console.log(`[EMAIL SUCCESS] ✅ Sent to ${to} | MessageId: ${info.messageId}`);
-    return info;
+    let sendSmtpEmail = new brevo.SendSmtpEmail();
+    
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
+    sendSmtpEmail.sender = {
+      name: process.env.BREVO_SENDER_NAME || "Flexify",
+      email: process.env.BREVO_SENDER_EMAIL || "noreply@flexify.lk" // Fallback safety
+    };
+    sendSmtpEmail.to = [{ email: to }];
+
+    // Execute the send
+    const data = await mailer.sendTransacEmail(sendSmtpEmail);
+    console.log(`[EMAIL SUCCESS] ✅ Sent to ${to} | MessageId: ${data.messageId}`);
+    return data;
   } catch (error) {
-    console.error(`[EMAIL FATAL] ❌ Failed to ${to}`);
-    console.error(`[EMAIL ERROR DETAILS] Name: ${error.name}, Message: ${error.message}, Code: ${error.code}`);
-    console.error(error); // Log full raw error object for debugging Railway issues
-
-    // Reset transporter on auth/connection errors so it reconnects next time
-    if (error.code === 'EAUTH' || error.code === 'ESOCKET' || error.code === 'ECONNECTION') {
-      console.log("[EMAIL] Resetting transporter due to connection/auth error...");
-      transporter = null;
-    }
-
-    // Single retry with a fresh transporter
-    try {
-      console.log(`[EMAIL RETRY] Attempting retry to ${to}...`);
-      const freshMailer = getTransporter();
-      if (freshMailer) {
-        const retryInfo = await freshMailer.sendMail({
-          from: `"Flexify" <${process.env.EMAIL_USER}>`,
-          to,
-          subject,
-          html,
-        });
-        console.log(`[EMAIL SUCCESS] ✅ Retry succeeded to ${to} | MessageId: ${retryInfo.messageId}`);
-        return retryInfo;
-      }
-    } catch (retryErr) {
-      console.error(`[EMAIL RETRY FATAL] ❌ Retry also failed to ${to}`);
-      console.error(`[EMAIL RETRY ERROR DETAILS] Code: ${retryErr.code}, Message: ${retryErr.message}`);
-      console.error(retryErr); // Full raw error
-      // Don't throw — email failure should never crash the app
+    console.error(`[EMAIL FATAL] ❌ Failed to send (via Brevo) to ${to}`);
+    
+    // Brevo API errors are usually nested in error.response
+    if (error.response && error.response.text) {
+      console.error(`[EMAIL ERROR DETAILS] Brevo API Response:`, error.response.text);
+    } else {
+      console.error(`[EMAIL ERROR DETAILS]`, error.message);
+      console.error(error); // Full raw error
     }
   }
 };
 
 export default sendEmail;
+
