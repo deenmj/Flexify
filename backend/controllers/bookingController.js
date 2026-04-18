@@ -2,6 +2,7 @@
 import Booking from "../models/booking.js";
 import Vehicle from "../models/Vehicle.js";
 import Blackout from "../models/Blackout.js";
+import User from "../models/User.js";
 import sendEmail from "../utils/sendEmail.js";
 import { sendBookingUpdateEmail, sendNewBookingEmail } from "../utils/notifier.js";
 import { createNotification } from "./notificationController.js";

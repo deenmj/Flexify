@@ -90,6 +90,9 @@ io.on("connection", (socket) => {
 // App instance on req for controllers
 app.set("io", io);
 
+// Trust proxy (required for Railway/Render — ensures rate limiter uses real client IP)
+app.set("trust proxy", 1);
+
 // Security headers
 app.use(helmet());
 
@@ -108,11 +111,16 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 }));
 
-// Global rate limiter — max 100 requests per 15 minutes per IP
+// Global rate limiter — max 500 requests per 15 minutes per IP
+// NOTE: On cloud platforms (Railway/Render), users may share proxy IPs,
+// so keep this generous. Auth-specific limiters handle brute-force protection.
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,
   message: { message: "Too many requests, please try again later." },
+  // Trust proxy headers from Railway/cloud hosting
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use(globalLimiter);
 
