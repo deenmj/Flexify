@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
-import rentifyLogo from '../assets/rentify-logo.png';
 import './Auth.css';
 
 export default function Auth() {
@@ -75,7 +74,7 @@ export default function Auth() {
         <div className="auth-card animate-scale-in">
           {/* Header */}
           <div className="auth-header">
-            <img src={rentifyLogo} alt="Rentify" className="auth-logo-image" />
+            <h1 className="auth-logo">Rentify</h1>
             <p className="auth-tagline">
               {mode === 'login' ? 'Welcome back! Sign in to continue.' : 'Create your account to get started.'}
             </p>

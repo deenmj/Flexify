@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Lock, ArrowRight } from 'lucide-react';
-import rentifyLogo from '../assets/rentify-logo.png';
 import { authApi } from '../api';
 
 export default function ResetPassword() {
@@ -36,7 +35,7 @@ export default function ResetPassword() {
       <div className="auth-container">
         <div className="auth-card animate-scale-in">
           <div className="auth-header">
-            <img src={rentifyLogo} alt="Rentify" className="auth-logo-image" />
+            <h1 className="auth-logo">Rentify</h1>
             <p className="auth-tagline">Enter your new password</p>
           </div>
           {error && <div className="auth-message error">{error}</div>}

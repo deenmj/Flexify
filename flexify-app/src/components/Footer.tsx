@@ -1,5 +1,4 @@
 import { Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
-import rentifyLogo from '../assets/rentify-logo.png';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Collapse } from 'antd';
 import { Link } from 'react-router-dom'; // Assuming Link is from react-router-dom
@@ -47,7 +46,7 @@ export default function Footer() {
       <div className="footer-main container section-padding">
         <div className="footer-grid">
           <div className="footer-brand">
-            <img src={rentifyLogo} alt="Rentify" className="footer-logo-image" />
+            <h2 className="footer-logo">Rentify</h2>
             <p className="footer-desc">
               Your trusted platform for renting, selling, and discovering vehicles worldwide. Premium car rental experience.
             </p>

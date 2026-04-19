@@ -66,10 +66,13 @@
   margin-bottom: 2rem;
 }
 
-.auth-logo-image {
-  height: 64px;
-  width: auto;
-  object-fit: contain;
+.auth-logo {
+  font-size: var(--font-size-3xl);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 0.5rem;
 }
 
@@ -207,7 +210,7 @@
 @media (max-width: 480px) {
   .auth-page { padding: 1rem; }
   .auth-card { padding: 1.5rem 1.25rem; }
-  .auth-logo-image { height: 48px; }
+  .auth-logo { font-size: 1.75rem; }
   .auth-tagline { font-size: 0.85rem; }
   .auth-container { max-width: 100%; }
 }

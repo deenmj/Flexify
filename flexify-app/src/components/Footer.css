@@ -21,10 +21,10 @@
   }
 }
 
-.footer-logo-image {
-  height: 48px;
-  width: auto;
-  object-fit: contain;
+.footer-logo {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: white;
   margin-bottom: 0.75rem;
 }
 
@@ -105,8 +105,8 @@
     text-align: left;
     align-items: flex-start;
   }
-  .footer-logo-image {
-    height: 40px;
+  .footer-logo {
+    font-size: 1.1rem;
     margin-bottom: 0.35rem;
   }
   .footer-desc {
