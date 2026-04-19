@@ -24,7 +24,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2><Lock size={20} /> Privacy Policy</h2>
             <p>
-              At Flexify, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your personal information.
+              At Rentify, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your personal information.
             </p>
             <h3>1. Information We Collect</h3>
             <ul>
@@ -43,11 +43,11 @@ export default function PrivacyPolicy() {
           <section>
             <h2><FileText size={20} /> Terms of Service</h2>
             <p>
-              By using Flexify, you agree to comply with our platform rules and local laws of Sri Lanka.
+              By using Rentify, you agree to comply with our platform rules and local laws of Sri Lanka.
             </p>
             <h3>1. User Eligibility</h3>
             <p>
-              You must be at least 18 years old and possess a valid driving license to rent vehicles on Flexify. Owners must provide accurate vehicle descriptions and maintain insurance.
+              You must be at least 18 years old and possess a valid driving license to rent vehicles on Rentify. Owners must provide accurate vehicle descriptions and maintain insurance.
             </p>
             <h3>2. Bookings & Payments</h3>
             <p>

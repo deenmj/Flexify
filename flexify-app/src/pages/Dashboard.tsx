@@ -513,7 +513,7 @@ export default function Dashboard() {
                   {vehicles.length === 0 ? "You haven't listed any vehicles yet" : `No ${selectedCategory}s found`}
                 </h3>
                 <p style={{ color: 'var(--text-tertiary)', marginBottom: '2rem', maxWidth: '300px', margin: '0 auto 2rem' }}>
-                  Start earning today by sharing your vehicle with the Flexify community.
+                  Start earning today by sharing your vehicle with the Rentify community.
                 </p>
                 {vehicles.length === 0 && (
                   <Link to="/list-vehicle" className="btn btn-primary" style={{ padding: '12px 32px' }}>

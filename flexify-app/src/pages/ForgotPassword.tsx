@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, ArrowRight } from 'lucide-react';
+import rentifyLogo from '../assets/rentify-logo.png';
 import { authApi } from '../api';
 
 export default function ForgotPassword() {
@@ -30,7 +31,7 @@ export default function ForgotPassword() {
       <div className="auth-container">
         <div className="auth-card animate-scale-in">
           <div className="auth-header">
-            <h1 className="auth-logo">Flexify</h1>
+            <img src={rentifyLogo} alt="Rentify" className="auth-logo-image" />
             <p className="auth-tagline">Enter your email to receive a password reset link</p>
           </div>
           {error && <div className="auth-message error">{error}</div>}

@@ -269,24 +269,24 @@ export default function VerifyUser() {
           <div style={{ background: '#e6f7ff', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#1890ff' }}>
             <FileText size={24} />
           </div>
-          <AntTitle level={3}>Flexify Verification Terms</AntTitle>
+          <AntTitle level={3}>Rentify Verification Terms</AntTitle>
         </div>
 
         <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '1rem' }} className="custom-scrollbar">
           <Paragraph>
-            By submitting your National Identity Card (NIC), driving licence, selfie photograph, and address details for verification on Flexify, you agree to the following:
+            By submitting your National Identity Card (NIC), driving licence, selfie photograph, and address details for verification on Rentify, you agree to the following:
           </Paragraph>
 
           <AntTitle level={5}>1. Purpose</AntTitle>
           <Paragraph>
-            These documents are collected only to verify your identity and eligibility to use Flexify as a renter or vehicle owner, in accordance with Sri Lankan law and to ensure platform safety.
+            These documents are collected only to verify your identity and eligibility to use Rentify as a renter or vehicle owner, in accordance with Sri Lankan law and to ensure platform safety.
           </Paragraph>
 
           <AntTitle level={5}>2. Data Handling & Security</AntTitle>
           <Paragraph>
             <ul>
               <li>Your documents are stored securely on encrypted servers.</li>
-              <li>Access is strictly limited to authorised Flexify administrators and sub-administrators for verification purposes only.</li>
+              <li>Access is strictly limited to authorised Rentify administrators and sub-administrators for verification purposes only.</li>
               <li>We do not share your documents with third parties except when required by law or to prevent fraud/abuse.</li>
             </ul>
           </Paragraph>

@@ -105,9 +105,9 @@ router.post("/signup", async (req, res) => {
     try {
       await sendEmail({
         to: user.email,
-        subject: "Verify your Flexify account",
+        subject: "Verify your Rentify account",
         html: `
-          <h2>Welcome to Flexify 🚗</h2>
+          <h2>Welcome to Rentify 🚗</h2>
           <p>Please verify your email to activate your account:</p>
           <a href="${verifyUrl}" style="display:inline-block;background:#1890ff;color:white;padding:10px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email</a>
         `,
@@ -255,7 +255,7 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
 
     await sendEmail({
       to: user.email,
-      subject: "Reset your Flexify password",
+      subject: "Reset your Rentify password",
       html: `
         <h2>Password Reset</h2>
         <p>Click the link below to reset your password:</p>

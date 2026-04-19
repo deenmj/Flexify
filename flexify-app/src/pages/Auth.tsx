@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
+import rentifyLogo from '../assets/rentify-logo.png';
 import './Auth.css';
 
 export default function Auth() {
@@ -55,8 +56,8 @@ export default function Auth() {
 
   const handleGoogleLogin = () => {
     // Explicitly navigate to the backend to start the OAuth sequence
-    const API_URL = import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app';
-    window.location.href = `${API_URL}/api/auth/google`;
+    const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}/api`;
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (
@@ -74,7 +75,7 @@ export default function Auth() {
         <div className="auth-card animate-scale-in">
           {/* Header */}
           <div className="auth-header">
-            <h1 className="auth-logo">Flexify</h1>
+            <img src={rentifyLogo} alt="Rentify" className="auth-logo-image" />
             <p className="auth-tagline">
               {mode === 'login' ? 'Welcome back! Sign in to continue.' : 'Create your account to get started.'}
             </p>

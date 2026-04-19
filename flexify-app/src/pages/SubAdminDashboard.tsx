@@ -371,7 +371,7 @@ export default function SubAdminDashboard() {
           }}
         >
           <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
-            {collapsed ? 'FX' : 'Flexify Staff'}
+            {collapsed ? 'RN' : 'Rentify Staff'}
           </div>
           <Menu
             theme="dark"
@@ -400,7 +400,7 @@ export default function SubAdminDashboard() {
           bodyStyle={{ background: '#001529' }}
         >
           <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
-            Flexify Staff
+            Rentify Staff
           </div>
           <Menu
             theme="dark"

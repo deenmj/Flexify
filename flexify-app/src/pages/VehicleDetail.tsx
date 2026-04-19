@@ -723,7 +723,7 @@ export default function VehicleDetail() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Verified Flexify Host</div>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Verified Rentify Host</div>
                 )}
               </Card>
             </div>

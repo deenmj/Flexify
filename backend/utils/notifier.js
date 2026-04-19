@@ -23,7 +23,7 @@ export const sendSubadminAlert = async ({ subject, type, details, linkPath }) =>
         const html = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
                 <div style="background-color: #0d9488; padding: 24px; text-align: center;">
-                    <h1 style="color: white; margin: 0; font-size: 24px;">Flexify Admin Alert</h1>
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Rentify Admin Alert</h1>
                 </div>
                 <div style="padding: 32px; color: #1e293b;">
                     <h2 style="font-size: 20px; color: #0d9488; margin-top: 0;">New Pending ${type}</h2>
@@ -45,7 +45,7 @@ export const sendSubadminAlert = async ({ subject, type, details, linkPath }) =>
                     </div>
                 </div>
                 <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
-                    <p style="margin: 0;">This is an automated notification from the Flexify Platform.</p>
+                    <p style="margin: 0;">This is an automated notification from the Rentify Platform.</p>
                 </div>
             </div>
         `;
@@ -92,7 +92,7 @@ export const sendRejectionEmail = async (user, type, reason, comment) => {
         const html = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
                 <div style="background-color: #ef4444; padding: 24px; text-align: center;">
-                    <h1 style="color: white; margin: 0; font-size: 24px;">Action Required: Flexify</h1>
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Action Required: Rentify</h1>
                 </div>
                 <div style="padding: 32px; color: #1e293b;">
                     <h2 style="font-size: 20px; color: #ef4444; margin-top: 0;">Your ${type} submission was not approved</h2>
@@ -112,14 +112,14 @@ export const sendRejectionEmail = async (user, type, reason, comment) => {
                     </div>
                 </div>
                 <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
-                    <p style="margin: 0;">This is an automated message from Flexify. If you have questions, please contact support.</p>
+                    <p style="margin: 0;">This is an automated message from Rentify. If you have questions, please contact support.</p>
                 </div>
             </div>
         `;
 
         await sendEmail({
             to: user.email,
-            subject: `Flexify: Your ${type} Submission Status Update`,
+            subject: `Rentify: Your ${type} Submission Status Update`,
             html: html
         });
 
@@ -157,14 +157,14 @@ export const sendApprovalEmail = async (user, type, itemName) => {
                     </div>
                 </div>
                 <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
-                    <p style="margin: 0;">Thank you for being part of Flexify!</p>
+                    <p style="margin: 0;">Thank you for being part of Rentify!</p>
                 </div>
             </div>
         `;
 
         await sendEmail({
             to: user.email,
-            subject: `Flexify: Your ${type} has been Approved!`,
+            subject: `Rentify: Your ${type} has been Approved!`,
             html: html
         });
 
@@ -210,7 +210,7 @@ export const sendBookingUpdateEmail = async (bookingOwner, renter, vehicle, stat
         await Promise.all(participants.map(email => 
             sendEmail({
                 to: email,
-                subject: `Flexify: Booking ${status} - ${vehicle.title}`,
+                subject: `Rentify: Booking ${status} - ${vehicle.title}`,
                 html: html
             })
         ));
@@ -284,8 +284,8 @@ export const sendSubscriptionReminder = async (user, daysLeft) => {
     try {
         const dashboardUrl = (process.env.FRONTEND_URL || "http://localhost:5173") + "/subscription";
         const subject = daysLeft === 1 
-            ? "Urgent: Your Flexify Subscription expires tomorrow!" 
-            : `Reminder: Your Flexify Subscription expires in ${daysLeft} days`;
+            ? "Urgent: Your Rentify Subscription expires tomorrow!" 
+            : `Reminder: Your Rentify Subscription expires in ${daysLeft} days`;
 
         const html = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -334,7 +334,7 @@ export const sendSubscriptionExpired = async (user) => {
             </div>
         `;
 
-        await sendEmail({ to: user.email, subject: "Flexify: Your listings are now hidden", html });
+        await sendEmail({ to: user.email, subject: "Rentify: Your listings are now hidden", html });
     } catch (err) {
         console.error("Error in sendSubscriptionExpired:", err);
     }

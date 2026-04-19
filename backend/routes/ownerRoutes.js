@@ -107,7 +107,7 @@ router.post("/payhere-params", protect, async (req, res) => {
       cancel_url: process.env.PAYHERE_CANCEL_URL,
       notify_url: process.env.PAYHERE_NOTIFY_URL,
       order_id: orderId,
-      items: `Flexify ${tier} Subscription (${duration})`,
+      items: `Rentify ${tier} Subscription (${duration})`,
       currency,
       amount,
       hash,

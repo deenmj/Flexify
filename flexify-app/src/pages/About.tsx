@@ -19,7 +19,7 @@ export default function About() {
             Redefining Mobility
           </h1>
           <p style={{ fontSize: '1.25rem', lineHeight: 1.8, opacity: 0.9, marginBottom: '2rem' }}>
-            Flexify is the world’s premier peer-to-peer vehicle sharing marketplace. 
+            Rentify is the world’s premier peer-to-peer vehicle sharing marketplace. 
             We empower individuals to monetize their vehicles while providing renters 
             with unprecedented access to a diverse fleet of cars, trucks, and specialty vehicles.
           </p>
@@ -51,13 +51,13 @@ export default function About() {
           <div className="about-text">
             <h2 style={{ fontSize: '2rem', color: '#0f172a' }}>Our Mission & Vision</h2>
             <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '1.5rem' }}>
-              At Flexify, our mission is to put the world's vehicles to better use. We envision a future where 
+              At Rentify, our mission is to put the world's vehicles to better use. We envision a future where 
               car ownership is shared, efficient, and sustainable. By connecting vehicle owners directly with 
               renters, we're building a community that reduces waste, empowers local economies, and makes travel more accessible.
             </p>
             <p style={{ fontSize: '1.1rem', color: '#475569' }}>
               Whether you need an SUV for a weekend family trip, an exotic car for a special event, or a commercial 
-              truck for heavy lifting, Flexify provides the platform, the trust, and the insurance infrastructure 
+              truck for heavy lifting, Rentify provides the platform, the trust, and the insurance infrastructure 
               to make it happen seamlessly.
             </p>
           </div>

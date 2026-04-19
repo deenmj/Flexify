@@ -18,8 +18,8 @@ const sendEmail = async ({ to, subject, html }) => {
       },
       body: JSON.stringify({
         sender: {
-          name: process.env.BREVO_SENDER_NAME || "Flexify",
-          email: process.env.BREVO_SENDER_EMAIL || "noreply@flexify.lk" // Must be verified in Brevo
+          name: process.env.BREVO_SENDER_NAME || "Rentify",
+          email: process.env.BREVO_SENDER_EMAIL || "noreply@rentify.lk" // Must be verified in Brevo
         },
         to: [{ email: to }],
         subject: subject,

@@ -1,4 +1,5 @@
 import { Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
+import rentifyLogo from '../assets/rentify-logo.png';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Collapse } from 'antd';
 import { Link } from 'react-router-dom'; // Assuming Link is from react-router-dom
@@ -46,7 +47,7 @@ export default function Footer() {
       <div className="footer-main container section-padding">
         <div className="footer-grid">
           <div className="footer-brand">
-            <h2 className="footer-logo">Flexify</h2>
+            <img src={rentifyLogo} alt="Rentify" className="footer-logo-image" />
             <p className="footer-desc">
               Your trusted platform for renting, selling, and discovering vehicles worldwide. Premium car rental experience.
             </p>
@@ -82,7 +83,7 @@ export default function Footer() {
       </div>
       <div className="footer-bottom">
         <div className="container" style={{ display: 'flex', justifyContent: 'center' }}>
-          <p>© {new Date().getFullYear()} Flexify. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Rentify. All rights reserved.</p>
         </div>
       </div>
     </footer>

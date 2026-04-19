@@ -209,7 +209,7 @@ export const acceptBooking = async (req, res) => {
     Promise.all([
       sendEmail({
         to: renter.email,
-        subject: "✅ Booking Confirmed - Flexify",
+        subject: "✅ Booking Confirmed - Rentify",
         html: `
           <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
             <h2 style="color: #16a34a;">Booking Confirmed!</h2>
@@ -227,7 +227,7 @@ export const acceptBooking = async (req, res) => {
       }),
       sendEmail({
         to: ownerRecipient,
-        subject: "✅ Booking Accepted - Flexify",
+        subject: "✅ Booking Accepted - Rentify",
         html: `
           <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px;">
             <h2 style="color: #16a34a;">You Accepted a Booking</h2>
