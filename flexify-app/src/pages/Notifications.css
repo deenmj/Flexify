@@ -1,6 +1,7 @@
 .notifications-page {
   max-width: 800px;
   margin: 0 auto;
+  padding: 2rem 1rem;
 }
 
 .notifications-header {
@@ -82,4 +83,59 @@
 .loading-container {
   padding: 4rem;
   text-align: center;
+}
+
+/* Mobile Responsiveness for Notifications */
+@media screen and (max-width: 768px) {
+  .notifications-page {
+    padding: 1rem 0.5rem;
+  }
+
+  .notifications-header {
+    margin-bottom: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .notifications-header h2 {
+    font-size: 1.5rem !important;
+  }
+
+  .notification-item {
+    padding: 1rem !important;
+  }
+
+  .notification-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    margin-right: 1rem;
+  }
+
+  .notification-icon-wrapper svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .icon-calendar,
+  .icon-subscription,
+  .icon-kyc,
+  .icon-system {
+    padding: 4px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .notification-title {
+    font-size: 0.95rem;
+  }
+
+  .notification-message {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .notification-time {
+    font-size: 0.75rem;
+  }
 }

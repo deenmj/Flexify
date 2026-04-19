@@ -99,7 +99,7 @@ export default function Notifications() {
   };
 
   return (
-    <div className="notifications-page container animate-fade-in" style={{ padding: '2rem 1rem' }}>
+    <div className="notifications-page container animate-fade-in">
       <div className="notifications-header">
         <div>
           <Title level={2} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
