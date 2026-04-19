@@ -168,9 +168,9 @@
     padding: 1.5rem 0.75rem 1.25rem;
   }
   .hero-title {
-    font-size: 1.35rem !important;
-    line-height: 1.2;
-    margin-bottom: 0.5rem;
+    font-size: 1.8rem !important;
+    line-height: 1.25;
+    margin-bottom: 0.75rem;
   }
   .hero-subtitle {
     font-size: 0.75rem;
@@ -218,21 +218,22 @@
     display: none;
   }
 
-  /* Stats 3-column grid */
+  /* Stats Flex Wrap */
   .hero-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
     width: 100%;
   }
   .hero-stat-divider {
     display: none;
   }
   .hero-stat-number {
-    font-size: 1rem;
+    font-size: 1.25rem;
   }
   .hero-stat-label {
-    font-size: 0.55rem;
+    font-size: 0.65rem;
     text-align: center;
   }
 }

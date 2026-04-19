@@ -536,6 +536,9 @@
   .explore-empty p {
     font-size: 0.7rem;
   }
+  .d-none-mobile {
+    display: none !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -558,9 +561,6 @@
     text-align: left;
     font-size: 0.65rem;
     padding: 0.4rem 0.4rem;
-  }
-  .d-none-mobile {
-    display: none;
   }
   .quick-locate-text {
     display: none;
