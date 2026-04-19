@@ -267,36 +267,47 @@ export default function Navbar() {
                   </div>
                 </div>
               )}
+              <div className="mobile-section-title">Main Menu</div>
+              <Link to="/home" className="mobile-link" onClick={() => setMobileOpen(false)}><Home size={18} /> Home</Link>
+              <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}><Compass size={18} /> Explore Vehicles</Link>
+              {!isSuperAdmin && (
+                 <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List your Vehicle</Link>
+              )}
+
               {user && (
-                <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>
-                  {isSuperAdmin ? 'Admin Dashboard' : isStaff ? 'Staff Dashboard' : 'Dashboard'}
-                </Link>
+                <>
+                  <div className="mobile-section-title">My Account</div>
+                  <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>
+                    <LayoutDashboard size={18} /> {isSuperAdmin ? 'Admin Dashboard' : isStaff ? 'Staff Dashboard' : 'Dashboard'}
+                  </Link>
+                  {isAdminRole && (
+                    <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> My Vehicles & Bookings</Link>
+                  )}
+                  {user?.role === 'owner' && (
+                    <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}><DollarSign size={18} /> My Subscription</Link>
+                  )}
+                  {user.verificationStatus === 'not_submitted' && !isAdminRole && (
+                    <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
+                      <Shield size={18} /> Upload Documents
+                    </Link>
+                  )}
+                </>
               )}
-              <Link to="/home" className="mobile-link" onClick={() => setMobileOpen(false)}>Home</Link>
-              <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}>Explore Vehicles</Link>
-              <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}>List your Vehicle</Link>
-              <Link to="/about" className="mobile-link" onClick={() => setMobileOpen(false)}>About Us</Link>
-              <Link to="/faq" className="mobile-link" onClick={() => setMobileOpen(false)}>FAQ</Link>
-              <Link to="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}>Contact</Link>
+
+              <div className="mobile-section-title">General</div>
+              <Link to="/about" className="mobile-link" onClick={() => setMobileOpen(false)}><Info size={18} /> About Us</Link>
+              <Link to="/faq" className="mobile-link" onClick={() => setMobileOpen(false)}><HelpCircle size={18} /> FAQ</Link>
+              <Link to="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}><Phone size={18} /> Contact</Link>
               
-              {isAdminRole && (
-                <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}>My Vehicles & Bookings</Link>
-              )}
-              {user?.role === 'owner' && (
-                <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}>My Subscription</Link>
-              )}
-              {user && user.verificationStatus === 'not_submitted' && !isAdminRole && (
-                <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                  <Shield size={18} /> Upload Documents
-                </Link>
-              )}
-              {user ? (
-                <button className="mobile-link mobile-logout" onClick={() => { handleLogout(); setMobileOpen(false); }}>
-                  Logout
-                </button>
-              ) : (
-                <Link to="/auth" className="btn btn-primary btn-full" onClick={() => setMobileOpen(false)}>Sign In</Link>
-              )}
+              <div style={{ marginTop: '1rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color-light)' }}>
+                {user ? (
+                  <button className="mobile-link mobile-logout" onClick={() => { handleLogout(); setMobileOpen(false); }}>
+                    <LogOut size={18} /> Logout
+                  </button>
+                ) : (
+                  <Link to="/auth" className="btn btn-primary btn-full" onClick={() => setMobileOpen(false)}>Sign In</Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
