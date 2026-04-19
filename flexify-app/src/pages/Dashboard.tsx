@@ -29,6 +29,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'subscription'>(user?.role === 'user' ? 'bookings' : 'vehicles');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'confirmed' | 'past'>('all');
 
   // Calendar tab state (owner only)
   const [calendarVehicleId, setCalendarVehicleId] = useState<string>('');
@@ -414,6 +415,14 @@ export default function Dashboard() {
     ? vehicles
     : vehicles.filter(v => v.serviceType && v.serviceType.includes(selectedCategory));
 
+  const filteredBookings = bookings.filter(b => {
+    if (bookingFilter === 'all') return true;
+    if (bookingFilter === 'pending') return b.status === 'PENDING';
+    if (bookingFilter === 'confirmed') return b.status === 'CONFIRMED';
+    if (bookingFilter === 'past') return b.status === 'COMPLETED' || b.status === 'CANCELLED' || b.status === 'REJECTED';
+    return true;
+  });
+
   return (
     <div className="dashboard-page page-wrapper" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
 
@@ -567,24 +576,60 @@ export default function Dashboard() {
           </div>
         ) : tab === 'bookings' ? (
           <div className="dashboard-box">
-            <div className="dashboard-box-header">
-              <h3 className="dashboard-box-title">
+            <div className="dashboard-box-header" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+              <h3 className="dashboard-box-title" style={{ marginBottom: '1rem' }}>
                 {user.role === 'user' ? 'My Trip History' : 'Manage Bookings'}
               </h3>
+              
+              {/* Booking Filters */}
+              <div className="dashboard-nav" style={{ marginBottom: 0 }}>
+                <button 
+                  className={`nav-item ${bookingFilter === 'all' ? 'active' : ''}`} 
+                  onClick={() => setBookingFilter('all')}
+                >
+                  All
+                </button>
+                <button 
+                  className={`nav-item ${bookingFilter === 'pending' ? 'active' : ''}`} 
+                  onClick={() => setBookingFilter('pending')}
+                >
+                  Pending
+                </button>
+                <button 
+                  className={`nav-item ${bookingFilter === 'confirmed' ? 'active' : ''}`} 
+                  onClick={() => setBookingFilter('confirmed')}
+                >
+                  Confirmed
+                </button>
+                <button 
+                  className={`nav-item ${bookingFilter === 'past' ? 'active' : ''}`} 
+                  onClick={() => setBookingFilter('past')}
+                >
+                  Past
+                </button>
+              </div>
             </div>
-            {bookings.length === 0 ? (
-              <div className="dashboard-empty">
-                <CalIcon size={40} strokeWidth={1} />
-                <p>No bookings yet</p>
+            
+            {filteredBookings.length === 0 ? (
+              <div className="dashboard-empty" style={{ padding: '5rem 2rem', textAlign: 'center' }}>
+                <div style={{ background: '#f8fafc', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid #e2e8f0' }}>
+                  <CalIcon size={40} strokeWidth={1.5} color="#94a3b8" />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                  No {bookingFilter !== 'all' ? bookingFilter : ''} bookings found
+                </h3>
+                <p style={{ color: 'var(--text-tertiary)', marginBottom: '2rem' }}>
+                  When you have bookings, they will appear here.
+                </p>
                 {user.role === 'user' && (
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Link to="/explore" className="btn btn-primary btn-sm">Explore Vehicles</Link>
-                  </div>
+                  <Link to="/explore" className="btn btn-primary" style={{ padding: '12px 32px' }}>
+                    <Car size={18} style={{ marginRight: '8px' }} /> Explore Vehicles
+                  </Link>
                 )}
               </div>
             ) : (
               <div className="booking-cards-container">
-                {bookings.map(b => {
+                {filteredBookings.map(b => {
                   const vehicle = typeof b.vehicle === 'object' ? b.vehicle : null;
                   const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)?._id || (b.owner as any)?.id : b.owner);
                   const bRenterId = String(typeof b.user === 'object' ? (b.user as any)?._id || (b.user as any)?.id : b.user);
