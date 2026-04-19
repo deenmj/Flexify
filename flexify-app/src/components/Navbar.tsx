@@ -99,9 +99,6 @@ export default function Navbar() {
               <Link to="/home" className="nav-link nav-link-highlight">
                 <Home size={18} /> Home
               </Link>
-              <Link to="/explore" className="nav-link">
-                <Compass size={18} /> Explore
-              </Link>
               <NavDropdown
                 label="Fleet & Brands"
                 items={[
@@ -110,14 +107,6 @@ export default function Navbar() {
                   { label: 'Vans & Minivans', href: '/explore?type=Van', icon: Globe, desc: 'Group transportation' },
                   { label: 'Heavy Trucks', href: '/explore?type=Truck', icon: Zap, desc: 'For heavy cargo needs' },
                   { label: 'Motorbikes', href: '/explore?type=Bike', icon: Zap, desc: 'Quick city travel' },
-                ]}
-              />
-              <NavDropdown
-                label="Services"
-                items={[
-                  { label: 'Self Drive', href: '/explore?service=self-drive', icon: User, desc: 'Drive yourself anywhere' },
-                  { label: 'With Chauffeur', href: '/explore?service=Chauffeur', icon: Shield, desc: 'Professional drivers' },
-                  { label: 'Airport Transfer', href: '/explore?service=Transfer', icon: Car, desc: 'Pickup & drop services' },
                 ]}
               />
               <NavDropdown
