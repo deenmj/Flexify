@@ -83,15 +83,22 @@ export default function Navbar() {
     <>
       <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
         <div className="navbar-inner container">
-          <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo">
-            <div className="logo-icon">
-              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" opacity="0.5" />
-                <path d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263Z" fill="currentColor" />
-              </svg>
-            </div>
-            <span className="logo-text">Rentify</span>
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Hamburger menu — moved to left for mobile */}
+            <button className="mobile-menu-btn menu-btn-left" onClick={() => setMobileOpen(true)}>
+              <Menu size={24} strokeWidth={2.5} />
+            </button>
+            
+            <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo">
+              <div className="logo-icon">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" opacity="0.5" />
+                  <path d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263Z" fill="currentColor" />
+                </svg>
+              </div>
+              <span className="logo-text">Rentify</span>
+            </Link>
+          </div>
 
           {/* Desktop Nav — All roles see full nav now */}
           <div>
@@ -133,6 +140,9 @@ export default function Navbar() {
           <div className="navbar-actions">
             {!isSuperAdmin && (
               <>
+                <Link to="/list-vehicle" className="btn btn-primary d-none-mobile header-list-btn">
+                  <Car size={16} /> List Vehicle
+                </Link>
                 <Link to="/explore" className="nav-action-btn" title="Search">
                   <Search size={20} />
                 </Link>
@@ -222,11 +232,6 @@ export default function Navbar() {
                 Sign In
               </Link>
             )}
-
-            {/* Hamburger menu — always rightmost */}
-            <button className="mobile-menu-btn" onClick={() => setMobileOpen(true)}>
-              <Menu size={24} />
-            </button>
           </div>
         </div>
       </nav>
@@ -234,9 +239,9 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="mobile-overlay" onClick={() => setMobileOpen(false)}>
-          <div className="mobile-menu animate-slide-in" onClick={(e) => e.stopPropagation()}>
+          <div className="mobile-menu animate-slide-in-left" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-menu-header">
-              <span className="logo-text">Rentify</span>
+              <span className="logo-text">Menu</span>
               <button onClick={() => setMobileOpen(false)}><X size={24} /></button>
             </div>
             <div className="mobile-menu-body">

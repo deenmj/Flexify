@@ -361,32 +361,8 @@ export default function Explore() {
               <h3>No vehicles found</h3>
               <p>Try adjusting your search or filters</p>
             </div>
-          )}
         </div>
       </section>
-
-      {/* Floating List Vehicle CTA */}
-      {isMobile ? (
-        <Link to="/list-vehicle" className="explore-fab-cta">
-          <Plus size={22} strokeWidth={2.5} />
-        </Link>
-      ) : (
-        <div className="explore-list-banner">
-          <div className="container">
-            <div className="explore-list-banner-inner">
-              <div className="explore-list-banner-text">
-                <Car size={24} />
-                <div>
-                  <strong>Have a vehicle?</strong> Earn money by listing it on Rentify
-                </div>
-              </div>
-              <Link to="/list-vehicle" className="btn explore-list-banner-btn">
-                <Plus size={16} /> List Your Vehicle
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
