@@ -496,6 +496,9 @@ export default function Dashboard() {
             <div className="dashboard-box-header">
               <h3 className="dashboard-box-title">My Vehicles</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Link to="/list-vehicle" className="btn btn-primary btn-sm" style={{ padding: '0.4rem 0.75rem', fontSize: '0.875rem', height: 'auto', display: 'flex', alignItems: 'center', marginRight: '8px' }}>
+                  <Car size={16} style={{ marginRight: '6px' }} /> List New
+                </Link>
                 <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Category:</label>
                 <select
                   className="input-field"
@@ -875,12 +878,33 @@ export default function Dashboard() {
         title="Booking Details"
         open={showDetailModal}
         onCancel={() => setShowDetailModal(false)}
-        footer={[
-          <Button key="close" onClick={() => setShowDetailModal(false)}>Close</Button>,
-          selectedBooking && selectedBooking.status === 'PENDING' && user?.role === 'user' && (
-            <Button key="cancel" danger onClick={() => { if (selectedBooking?._id) handleCancelBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Trip</Button>
-          )
-        ]}
+        footer={(() => {
+          const isPending = selectedBooking?.status === 'PENDING';
+          const bOwnerId = String(typeof selectedBooking?.owner === 'object' ? (selectedBooking?.owner as any)._id : selectedBooking?.owner);
+          const bRenterId = String(typeof selectedBooking?.user === 'object' ? (selectedBooking?.user as any)._id : selectedBooking?.user);
+          const myId = String(user?._id || user?.id || '');
+          const isOwner = myId === bOwnerId;
+          const isRenter = myId === bRenterId;
+
+          const buttons = [
+            <Button key="close" onClick={() => setShowDetailModal(false)}>Close</Button>
+          ];
+
+          if (isPending && isRenter) {
+            buttons.push(
+              <Button key="cancel-renter" danger onClick={() => { if (selectedBooking?._id) handleCancelBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Trip</Button>
+            );
+          }
+
+          if (isPending && isOwner) {
+            buttons.push(
+              <Button key="reject-owner" danger onClick={() => { if (selectedBooking?._id) handleRejectBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Booking</Button>,
+              <Button key="accept-owner" type="primary" style={{ background: '#16a34a', borderColor: '#16a34a' }} onClick={() => { if (selectedBooking?._id) handleAcceptBooking(selectedBooking._id); setShowDetailModal(false); }}>Accept Booking</Button>
+            );
+          }
+
+          return buttons;
+        })()}
         width={600}
         centered
         destroyOnClose
@@ -992,6 +1016,8 @@ export default function Dashboard() {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                           {[
                             { label: 'NIC Front View', field: 'nicFront' },
+                            { label: 'NIC Back View', field: 'nicBack' },
+                            { label: 'Driver License', field: 'license' },
                             { label: 'Selfie Verification', field: 'selfie' },
                           ].map((doc, idx) => {
                             const url = renterObj.documents?.[doc.field] || 
