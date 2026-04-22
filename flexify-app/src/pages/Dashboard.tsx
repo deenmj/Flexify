@@ -788,34 +788,32 @@ export default function Dashboard() {
         destroyOnClose
       >
         {selectedRenter ? (
-          <div className="renter-review-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '400px', background: '#f8fafc', borderRadius: '12px', overflow: 'hidden' }}>
-            {/* Sidebar with User Info */}
-            <div style={{ padding: '32px', background: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="renter-review-content" style={{ display: 'flex', flexDirection: 'column', minHeight: '400px', background: '#f8fafc', borderRadius: '12px', overflow: 'hidden' }}>
+            {/* Top Bar with User Info */}
+            <div style={{ padding: '24px 32px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '1 1 300px' }}>
+                <Avatar 
+                  size={64} 
+                  src={getImageUrl(selectedRenter.profilePic)}
+                  style={{ background: '#1890ff' }}
+                >
+                  {selectedRenter.name?.charAt(0)}
+                </Avatar>
                 <div>
-                  <Avatar 
-                    size={64} 
-                    src={getImageUrl(selectedRenter.profilePic)}
-                    style={{ background: '#1890ff', marginBottom: 16 }}
-                  >
-                    {selectedRenter.name?.charAt(0)}
-                  </Avatar>
                   <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>{selectedRenter.name}</h3>
                   <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{selectedRenter.email}</p>
                 </div>
+              </div>
 
-                <div>
-                  <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>Contact Info</h4>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '4px' }}>{selectedRenter.phone || 'Phone not provided'}</div>
-                  <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedRenter.documents?.address || selectedRenter.address || 'Address not listed'}</div>
-                </div>
-
-                {/* Verification Alert removed to simplify view */}
+              <div style={{ flex: '1 1 250px' }}>
+                <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>Contact Info</h4>
+                <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '4px' }}>{selectedRenter.phone || 'Phone not provided'}</div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedRenter.documents?.address || selectedRenter.address || 'Address not listed'}</div>
               </div>
             </div>
 
             {/* Document display area */}
-            <div style={{ padding: '24px', background: '#ffffff', overflowY: 'auto', maxHeight: '70vh' }}>
+            <div style={{ padding: '24px', background: '#ffffff', overflowY: 'auto', maxHeight: '60vh' }}>
               <h4 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem', fontWeight: 600 }}>
                 <FileText size={20} /> Documentation Verification
               </h4>
