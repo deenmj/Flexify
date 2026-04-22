@@ -243,7 +243,11 @@ export default function Navbar() {
             </div>
             <div className="mobile-menu-body">
               {user && (
-                <div className="mobile-user-info">
+                <div 
+                  className="mobile-user-info" 
+                  onClick={() => { setMobileOpen(false); navigate('/profile'); }}
+                  style={{ cursor: 'pointer' }}
+                >
                   <img
                     src={user.profilePic || '/default-avatar.png'}
                     alt={user.name}
