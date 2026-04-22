@@ -632,11 +632,22 @@ export default function Dashboard() {
                       <div className="booking-card-content" style={{ padding: '24px' }}>
                         <div className="booking-card-info">
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px', marginBottom: '16px' }}>
-                            <div>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
-                                Reference: #{b._id.slice(-6).toUpperCase()}
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                              <div style={{ width: '60px', height: '60px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, border: '1px solid #e2e8f0' }}>
+                                {vehicle && (vehicle as Vehicle).photos?.[0] ? (
+                                  <img src={getImageUrl((vehicle as Vehicle).photos[0])} alt={(vehicle as Vehicle).title || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                  <div style={{ width: '100%', height: '100%', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Car size={24} color="#cbd5e1" />
+                                  </div>
+                                )}
                               </div>
-                              <h4 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a' }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle Details'}</h4>
+                              <div>
+                                <h4 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a' }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle Details'}</h4>
+                                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                  Ref: #{b._id.slice(-6).toUpperCase()}
+                                </div>
+                              </div>
                             </div>
                             {bookingStatusBadge(b.status)}
                           </div>
@@ -876,71 +887,150 @@ export default function Dashboard() {
       >
         {selectedBooking ? (
           <div className="booking-detail-content" style={{ padding: '10px 0' }}>
-            {/* Header info */}
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', alignItems: 'flex-start' }}>
-              <div style={{ width: '120px', height: '80px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
-                {typeof selectedBooking.vehicle === 'object' && (selectedBooking.vehicle as Vehicle).photos?.[0] ? (
-                  <img src={getImageUrl((selectedBooking.vehicle as Vehicle).photos[0])} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Car size={24} /></div>}
-              </div>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{typeof selectedBooking.vehicle === 'object' ? (selectedBooking.vehicle as Vehicle).title : 'Vehicle Details'}</h3>
-                <div style={{ marginTop: '4px' }}>{bookingStatusBadge(selectedBooking.status)}</div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-tertiary)', marginTop: '8px' }}>Ref ID: {selectedBooking._id}</div>
-              </div>
-            </div>
+            {(() => {
+              const bOwnerId = String(typeof selectedBooking.owner === 'object' ? (selectedBooking.owner as any)._id : selectedBooking.owner);
+              const bRenterId = String(typeof selectedBooking.user === 'object' ? (selectedBooking.user as any)._id : selectedBooking.user);
+              const myId = String(user?._id || user?.id || '');
+              const isOwner = myId === bOwnerId;
+              const isRenter = myId === bRenterId;
+              const renterObj = typeof selectedBooking.user === 'object' ? selectedBooking.user as any : null;
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '16px' }}>
-              <div>
-                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Pickup Date</div>
-                <div style={{ fontWeight: 600, fontSize: '1rem', marginTop: '4px' }}>{dayjs(selectedBooking.startDate).format('MMM D, YYYY')}</div>
-              </div>
-              <div>
-                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Return Date</div>
-                <div style={{ fontWeight: 600, fontSize: '1rem', marginTop: '4px' }}>{dayjs(selectedBooking.endDate).format('MMM D, YYYY')}</div>
-              </div>
-              <div>
-                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Duration</div>
-                <div style={{ fontWeight: 600, fontSize: '1rem', marginTop: '4px' }}>{selectedBooking.days} Days</div>
-              </div>
-              <div>
-                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700 }}>Total Price</div>
-                <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#16a34a', marginTop: '4px' }}>LKR {selectedBooking.totalAmount.toLocaleString()}</div>
-              </div>
-            </div>
-
-            {/* Host info for confirmed bookings */}
-            {selectedBooking.status === 'CONFIRMED' && (
-              <div style={{ padding: '1.5rem', border: '1px solid #e2e8f0', borderRadius: '16px', background: '#f0fdf4' }}>
-                <h4 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#166534' }}>
-                  <User size={18} /> Host Contact Details
-                </h4>
-                {typeof selectedBooking.owner === 'object' ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <img 
-                      src={getImageUrl((selectedBooking.owner as any).profilePic)} 
-                      style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
-                    />
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{(selectedBooking.owner as any).name}</div>
-                      <div style={{ color: '#16a34a', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Phone size={14} /> {(selectedBooking.owner as any).phone || (selectedBooking.owner as any).phoneNumber || 'No phone provided'}
-                      </div>
+              return (
+                <>
+                  {/* Header info */}
+                  <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', alignItems: 'center' }}>
+                    <div style={{ width: '100px', height: '100px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, border: '1px solid #e2e8f0' }}>
+                      {typeof selectedBooking.vehicle === 'object' && (selectedBooking.vehicle as Vehicle).photos?.[0] ? (
+                        <img src={getImageUrl((selectedBooking.vehicle as Vehicle).photos[0])} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Car size={32} color="#94a3b8" /></div>}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>{typeof selectedBooking.vehicle === 'object' ? (selectedBooking.vehicle as Vehicle).title : 'Vehicle Details'}</h3>
+                      <div style={{ marginTop: '8px' }}>{bookingStatusBadge(selectedBooking.status)}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '8px', fontWeight: 600 }}>REF ID: {selectedBooking._id}</div>
                     </div>
                   </div>
-                ) : <p style={{ margin: 0, fontSize: '0.9rem' }}>Contact info will show here after confirmation refresh.</p>}
-              </div>
-            )}
 
-            {/* Next steps/Notice */}
-            {selectedBooking.status === 'PENDING' && (
-              <div style={{ display: 'flex', gap: '12px', padding: '1rem', background: '#fffbeb', borderRadius: '12px', border: '1px solid #fde68a' }}>
-                <Clock size={20} style={{ color: '#d97706', flexShrink: 0 }} />
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#92400e' }}>
-                  Your request is waiting for the owner's response. You will receive a notification once it's confirmed or rejected.
-                </p>
-              </div>
-            )}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                    <div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Pickup Date</div>
+                      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#334155', marginTop: '4px' }}>{dayjs(selectedBooking.startDate).format('MMM D, YYYY')}</div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Return Date</div>
+                      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#334155', marginTop: '4px' }}>{dayjs(selectedBooking.endDate).format('MMM D, YYYY')}</div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Duration</div>
+                      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#334155', marginTop: '4px' }}>{selectedBooking.days} Days</div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Total Price</div>
+                      <div style={{ fontWeight: 800, fontSize: '1.2rem', color: '#16a34a', marginTop: '4px' }}>LKR {selectedBooking.totalAmount.toLocaleString()}</div>
+                    </div>
+                  </div>
+
+                  {/* RENTER PERSPECTIVE: Show Host Contact or Pending Message */}
+                  {isRenter && (
+                    <>
+                      {selectedBooking.status === 'CONFIRMED' && (
+                        <div style={{ padding: '1.5rem', border: '1px solid #bbf7d0', borderRadius: '16px', background: '#f0fdf4' }}>
+                          <h4 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#166534' }}>
+                            <User size={18} /> Host Contact Details
+                          </h4>
+                          {typeof selectedBooking.owner === 'object' ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                              <img 
+                                src={getImageUrl((selectedBooking.owner as any).profilePic)} 
+                                style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
+                              />
+                              <div>
+                                <div style={{ fontWeight: 700, color: '#166534' }}>{(selectedBooking.owner as any).name}</div>
+                                <div style={{ color: '#15803d', fontWeight: 700, fontSize: '1.1rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <Phone size={16} /> {(selectedBooking.owner as any).phone || (selectedBooking.owner as any).phoneNumber || 'No phone provided'}
+                                </div>
+                              </div>
+                            </div>
+                          ) : <p style={{ margin: 0, fontSize: '0.9rem' }}>Contact info available upon refresh.</p>}
+                        </div>
+                      )}
+                      {selectedBooking.status === 'PENDING' && (
+                        <div style={{ display: 'flex', gap: '12px', padding: '1rem', background: '#fffbeb', borderRadius: '12px', border: '1px solid #fde68a' }}>
+                          <Clock size={20} style={{ color: '#d97706', flexShrink: 0 }} />
+                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#92400e' }}>
+                            Your request is waiting for the owner's response. You will receive a notification once it's confirmed or rejected.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* OWNER PERSPECTIVE: Show Renter Contact & Identity */}
+                  {isOwner && renterObj && (
+                    <div style={{ border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden' }}>
+                      <div style={{ background: '#f8fafc', padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0' }}>
+                        <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontWeight: 800 }}>
+                          <Users size={18} color="var(--color-primary)" /> Renter Details & Verification
+                        </h4>
+                      </div>
+                      
+                      <div style={{ padding: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '1.5rem' }}>
+                          <Avatar size={56} src={getImageUrl(renterObj.profilePic)} style={{ background: '#1890ff' }}>
+                            {renterObj.name?.charAt(0)}
+                          </Avatar>
+                          <div>
+                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0f172a' }}>{renterObj.name}</div>
+                            <div style={{ color: '#475569', fontSize: '0.9rem', marginBottom: '4px' }}>{renterObj.email}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: 700 }}>
+                              <Phone size={14} /> {renterObj.phone || 'Phone not provided'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Document display area directly integrated */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          {[
+                            { label: 'NIC Front View', field: 'nicFront' },
+                            { label: 'Selfie Verification', field: 'selfie' },
+                          ].map((doc, idx) => {
+                            const url = renterObj.documents?.[doc.field] || 
+                                        renterObj[doc.field] || 
+                                        (renterObj.documents && renterObj.documents[`${doc.field}Path`]) || 
+                                        null;
+                            const fullUrl = getImageUrl(url);
+                            
+                            return (
+                              <div key={idx} style={{ 
+                                background: '#f8fafc', 
+                                padding: '10px', 
+                                borderRadius: '12px', 
+                                border: '1px solid #f1f5f9'
+                              }}>
+                                <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>{doc.label}</div>
+                                {url ? (
+                                  <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0', background: 'white' }}>
+                                    <Image
+                                      src={fullUrl}
+                                      alt={doc.label}
+                                      style={{ width: '100%', height: '100px', objectFit: 'contain' }}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', borderRadius: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600 }}>
+                                    Not Uploaded
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         ) : <p>Loading details...</p>}
       </Modal>
