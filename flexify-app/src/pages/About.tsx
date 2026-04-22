@@ -89,7 +89,7 @@ export default function About() {
           </div>
           <div className="about-value-card">
             <Award size={32} className="about-value-icon" style={{ color: '#eab308' }} />
-            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Strict KYC Verification</h3>
+            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Identity Verification</h3>
             <p>Multi-layered identity verification algorithms prevent fraud and keep the community secure.</p>
           </div>
           <div className="about-value-card">

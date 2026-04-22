@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { userApi } from '../api';
 import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck, FileText } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Checkbox, Modal, Button, Typography } from 'antd';
 
 import imageCompression from 'browser-image-compression';
@@ -13,6 +13,9 @@ const { Title: AntTitle, Paragraph, Text: AntText } = Typography;
 export default function VerifyUser() {
   const { user, refreshUser } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -82,8 +85,15 @@ export default function VerifyUser() {
       formData.append('kycConsentGiven', 'true');
 
       await userApi.submitKyc(formData);
-      setMessage('KYC documents submitted successfully! You can now book vehicles.');
       await refreshUser();
+
+      // If there's a returnTo URL, redirect back to that page
+      if (returnTo) {
+        navigate(returnTo, { replace: true });
+        return;
+      }
+
+      setMessage('Documents submitted successfully! You can now book vehicles.');
     } catch (err: any) {
       setError(err.message || 'Submission failed');
     } finally {
@@ -100,7 +110,7 @@ export default function VerifyUser() {
           <div style={{ background: '#10b981', padding: '14px', borderRadius: '14px', color: 'white' }}><CheckCircle size={28} /></div>
           <div>
             <h3 style={{ color: '#065f46', margin: 0, fontSize: isMobile ? '1.1rem' : '1.25rem' }}>Identity Verified</h3>
-            <p style={{ color: '#047857', margin: '4px 0 0', fontSize: isMobile ? '0.85rem' : '1rem' }}>Your KYC documents have been approved. You can now book vehicles and access all features.</p>
+            <p style={{ color: '#047857', margin: '4px 0 0', fontSize: isMobile ? '0.85rem' : '1rem' }}>Your documents have been approved. You can book vehicles and access all features.</p>
           </div>
         </div>
       );
@@ -113,6 +123,15 @@ export default function VerifyUser() {
           <div>
             <h3 style={{ color: '#92400e', margin: 0 }}>Documents Under Review</h3>
             <p style={{ color: '#a16207', margin: '4px 0 0' }}>Your documents are being reviewed by our team. You can still book vehicles while we verify your details.</p>
+            {returnTo && (
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => navigate(returnTo, { replace: true })}
+                style={{ marginTop: '1rem' }}
+              >
+                Continue Booking →
+              </button>
+            )}
           </div>
         </div>
       );
@@ -140,22 +159,27 @@ export default function VerifyUser() {
     { key: 'selfie', label: 'Selfie / Photo', desc: 'Take a clear selfie or upload a recent photo of yourself' },
   ];
 
+  // Only allow form submission if not pending or approved
   const canSubmit = user?.verificationStatus !== 'pending' && user?.verificationStatus !== 'approved';
+
+  // Determine the back link destination
+  const backLink = returnTo || '/dashboard';
+  const backLabel = returnTo ? 'Back to Vehicle' : 'Back to Dashboard';
 
   return (
     <div style={{ background: '#f8fafc', minHeight: '100vh', paddingTop: '2rem' }}>
       <div className="container" style={{ maxWidth: '800px', paddingBottom: '4rem' }}>
-        <Link to="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#64748b', textDecoration: 'none', fontWeight: 600, marginBottom: '1.5rem', fontSize: isMobile ? '0.85rem' : '1rem' }}>
-          <ArrowLeft size={18} /> Back to Dashboard
+        <Link to={backLink} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#64748b', textDecoration: 'none', fontWeight: 600, marginBottom: '1.5rem', fontSize: isMobile ? '0.85rem' : '1rem' }}>
+          <ArrowLeft size={18} /> {backLabel}
         </Link>
 
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <div style={{ background: 'linear-gradient(135deg, #1890ff, #096dd9)', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: 'white' }}>
             <Shield size={32} />
           </div>
-          <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: '0.5rem', color: '#1e293b' }}>KYC Verification</h1>
+          <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: '0.5rem', color: '#1e293b' }}>One-Time Verification</h1>
           <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto', fontSize: isMobile ? '0.9rem' : '1rem' }}>
-            Upload your identity documents to start booking vehicles. It only takes a minute!
+            Upload your identity documents once to start booking vehicles. This is a one-time process — it only takes a minute!
           </p>
         </div>
 

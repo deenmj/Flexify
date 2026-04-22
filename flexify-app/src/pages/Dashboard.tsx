@@ -444,21 +444,21 @@ export default function Dashboard() {
       <div className="container" style={{ marginBottom: '4rem' }}>
 
 
-        {/* KYC document upload banner — only for users/renters who haven't uploaded docs */}
+        {/* One-Time Verification banner — only for users/renters who haven't uploaded docs */}
         {user.verificationStatus === 'not_submitted' && !isStaff && user.role === 'user' && (
           <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <div style={{ background: '#ff7e33', color: 'white', padding: '10px', borderRadius: '12px' }}><Shield size={24} /></div>
               <div>
                 <h3 style={{ color: '#9a3412', marginBottom: '4px' }}>
-                  Upload Your Documents
+                  One-Time Verification
                 </h3>
                 <p style={{ color: '#c2410c' }}>
-                  Upload your KYC documents to book vehicles. It only takes a minute!
+                  Verify your identity once to start booking vehicles. It only takes a minute!
                 </p>
               </div>
             </div>
-            <Link to="/verify" className="btn btn-primary">Upload Now</Link>
+            <Link to="/verify" className="btn btn-primary">Verify Now</Link>
           </div>
         )}
 

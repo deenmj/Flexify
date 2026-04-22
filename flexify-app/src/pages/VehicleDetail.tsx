@@ -242,9 +242,9 @@ export default function VehicleDetail() {
       return;
     }
 
-    // Only block booking if KYC documents haven't been uploaded at all
+    // Only block booking if documents haven't been uploaded at all
     if (user.verificationStatus === 'not_submitted') {
-      navigate('/verify');
+      navigate(`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`);
       return;
     }
 
@@ -278,13 +278,20 @@ export default function VehicleDetail() {
     }
   };
 
+  // Determine button text based on verification status
+  const getBookingButtonText = () => {
+    if (!user) return 'Sign In to Book';
+    if (user.verificationStatus === 'not_submitted') return 'Verify & Continue Booking';
+    return 'Book Now';
+  };
+
   const handleBookingTrigger = () => {
     if (!user) {
       navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
       return;
     }
     if (user.verificationStatus === 'not_submitted') {
-      navigate('/verify');
+      navigate(`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`);
       return;
     }
     setShowBookingModal(true);
@@ -667,9 +674,9 @@ export default function VehicleDetail() {
                   <div className="verification-alert box-highlight" style={{ background: '#fff7ed', border: '1px solid #fdba74', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
                     <Shield size={20} style={{ color: '#ea580c', flexShrink: 0 }} />
                     <div style={{ fontSize: '0.875rem' }}>
-                      <p style={{ fontWeight: 600, color: '#9a3412', marginBottom: '4px' }}>Documents Required</p>
-                      <p style={{ color: '#c2410c' }}>Upload your KYC documents to book.</p>
-                      <Link to="/verify" style={{ color: 'var(--primary-color)', fontWeight: 600, marginTop: '8px', display: 'inline-block' }}>Upload Now &rarr;</Link>
+                      <p style={{ fontWeight: 600, color: '#9a3412', marginBottom: '4px' }}>One-Time Verification Required</p>
+                      <p style={{ color: '#c2410c' }}>Verify your identity once to start booking vehicles.</p>
+                      <Link to={`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`} style={{ color: 'var(--primary-color)', fontWeight: 600, marginTop: '8px', display: 'inline-block' }}>Verify Now &rarr;</Link>
                     </div>
                   </div>
                 )}
@@ -686,7 +693,7 @@ export default function VehicleDetail() {
                     onClick={handleBookingTrigger}
                     style={{ marginTop: '1.5rem', height: '54px', fontSize: '1.1rem', fontWeight: 700 }}
                   >
-                    Book Now
+                    {getBookingButtonText()}
                   </button>
                 )}
 
@@ -742,7 +749,7 @@ export default function VehicleDetail() {
             <span className="bar-unit">/day</span>
           </div>
           <button className="btn btn-primary btn-md" onClick={handleBookingTrigger} style={{ height: '44px', padding: '0 24px', fontWeight: 700, borderRadius: '10px' }}>
-            Book Now
+            {getBookingButtonText()}
           </button>
         </div>
       )}

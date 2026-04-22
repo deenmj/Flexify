@@ -571,6 +571,17 @@ export const userApi = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+
+  updateDocuments: (formData: FormData) =>
+    fetch(`${API_BASE_URL}/users/update-documents`, {
+      method: 'PUT',
+      headers: authHeadersOnly(),
+      body: formData,
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Document update failed');
+      return data;
+    }),
 };
 
 // =================== OWNER / SUBSCRIPTIONS ===================

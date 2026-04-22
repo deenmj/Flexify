@@ -64,7 +64,7 @@ export default function Navbar() {
     if (user.role === 'superadmin') return { text: 'ADMIN', color: '#7c3aed' };
     if (user.role === 'subadmin') return { text: 'STAFF', color: '#0d9488' };
     if (user.role === 'owner' && user.ownerType === 'VERIFIED') return { text: 'PRO', color: '#1890ff' };
-    if (user.isKycVerified) return { text: 'KYC', color: '#16a34a' };
+    if (user.isKycVerified) return { text: '✓', color: '#16a34a' };
     return null;
   };
 
@@ -207,7 +207,7 @@ export default function Navbar() {
                   )}
                   {user && user.verificationStatus === 'not_submitted' && !isAdminRole && (
                     <Link to="/verify" className="dropdown-item" onClick={() => setProfileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                      <Shield size={16} /> Upload Documents
+                      <Shield size={16} /> One-Time Verification
                     </Link>
                   )}
                   <button className="dropdown-item dropdown-item-danger" onClick={handleLogout}>
@@ -277,7 +277,7 @@ export default function Navbar() {
                   )}
                   {user.verificationStatus === 'not_submitted' && !isAdminRole && (
                     <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                      <Shield size={18} /> Upload Documents
+                      <Shield size={18} /> One-Time Verification
                     </Link>
                   )}
                 </>

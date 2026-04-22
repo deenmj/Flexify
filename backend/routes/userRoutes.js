@@ -108,6 +108,56 @@ router.put(
 );
 
 /**
+ * Update verification documents from Profile page
+ * Users can re-upload individual documents + update address
+ */
+router.put(
+  "/update-documents",
+  protect,
+  kycUpload.fields([
+    { name: "nicFront", maxCount: 1 },
+    { name: "nicBack", maxCount: 1 },
+    { name: "license", maxCount: 1 },
+    { name: "selfie", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.user._id);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      // Only allow updates if documents have been submitted at least once
+      if (user.verificationStatus === "not_submitted") {
+        return res.status(400).json({ message: "Please complete the initial verification first." });
+      }
+
+      const files = req.files || {};
+
+      // Update only the fields that were provided
+      if (!user.documents) user.documents = {};
+
+      if (files.nicFront) user.documents.nicFront = files.nicFront[0].path;
+      if (files.nicBack) user.documents.nicBack = files.nicBack[0].path;
+      if (files.license) user.documents.license = files.license[0].path;
+      if (files.selfie) user.documents.selfie = files.selfie[0].path;
+      if (req.body.address) user.documents.address = req.body.address;
+
+      // Mark for re-review by staff
+      user.verificationStatus = "pending";
+
+      await user.save();
+
+      res.json({
+        message: "Documents updated successfully! Our team will review the changes.",
+        user,
+      });
+    } catch (err) {
+      console.error("Document update error:", err);
+      res.status(500).json({ message: "Error updating documents" });
+    }
+  }
+);
+
+/**
  * Register as owner (switch role to owner)
  */
 router.post("/become-owner", protect, async (req, res) => {
