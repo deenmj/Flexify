@@ -16,6 +16,7 @@ const bookingSchema = new mongoose.Schema(
       default: "PENDING",
     },
     isReviewed: { type: Boolean, default: false },
+    cancellationReason: { type: String, default: "" },
   },
   { timestamps: true }
 );

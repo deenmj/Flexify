@@ -273,6 +273,7 @@ export const rejectBooking = async (req, res) => {
     }
 
     booking.status = "REJECTED";
+    booking.cancellationReason = req.body.reason || "";
     await booking.save();
 
     // SOCKET NOTIFICATION TO RENTER
@@ -328,6 +329,7 @@ export const cancelBooking = async (req, res) => {
     }
 
     booking.status = "CANCELLED";
+    booking.cancellationReason = req.body.reason || "";
     await booking.save();
 
     // Send cancellation email async

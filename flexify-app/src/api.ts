@@ -127,6 +127,7 @@ export interface Booking {
   totalAmount: number;
   status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED';
   isReviewed?: boolean;
+  cancellationReason?: string;
   createdAt?: string;
 }
 
@@ -389,11 +390,17 @@ export const bookingApi = {
   accept: (id: string) =>
     apiFetch<Booking>(`/bookings/accept/${id}`, { method: 'PUT' }),
 
-  reject: (id: string) =>
-    apiFetch<{ message: string }>(`/bookings/reject/${id}`, { method: 'PUT' }),
+  reject: (id: string, reason: string) =>
+    apiFetch<{ message: string }>(`/bookings/reject/${id}`, { 
+      method: 'PUT',
+      body: JSON.stringify({ reason })
+    }),
 
-  cancel: (id: string) =>
-    apiFetch<{ message: string }>(`/bookings/cancel/${id}`, { method: 'PUT' }),
+  cancel: (id: string, reason: string) =>
+    apiFetch<{ message: string }>(`/bookings/cancel/${id}`, { 
+      method: 'PUT',
+      body: JSON.stringify({ reason })
+    }),
     
   getRenterDetails: (bookingId: string) =>
     apiFetch<User>(`/bookings/renter-details/${bookingId}`),

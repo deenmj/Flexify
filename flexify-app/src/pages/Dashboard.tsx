@@ -277,15 +277,25 @@ export default function Dashboard() {
   };
 
   const handleRejectBooking = async (id: string) => {
+    let reason = '';
     Modal.confirm({
       title: 'Reject Booking',
-      content: 'Are you sure you want to reject this booking request?',
+      content: (
+        <div style={{ marginTop: '16px' }}>
+          <p style={{ marginBottom: '12px' }}>Are you sure you want to reject this booking request?</p>
+          <Input.TextArea 
+            placeholder="Tell the renter why you are rejecting (e.g., Vehicle needs maintenance)"
+            onChange={(e) => { reason = e.target.value; }}
+            rows={3}
+          />
+        </div>
+      ),
       okText: 'Reject',
       okType: 'danger',
       cancelText: 'Cancel',
       onOk: async () => {
         try {
-          await bookingApi.reject(id);
+          await bookingApi.reject(id, reason);
           setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'REJECTED' } : bk));
           message.success('Booking rejected');
         } catch (err: any) { message.error(err.message || 'Failed to reject booking'); }
@@ -294,15 +304,25 @@ export default function Dashboard() {
   };
 
   const handleCancelBooking = async (id: string) => {
+    let reason = '';
     Modal.confirm({
       title: 'Cancel Booking',
-      content: 'Are you sure you want to cancel this booking?',
+      content: (
+        <div style={{ marginTop: '16px' }}>
+          <p style={{ marginBottom: '12px' }}>Are you sure you want to cancel this booking?</p>
+          <Input.TextArea 
+            placeholder="Reason for cancellation (e.g., Change of plans)"
+            onChange={(e) => { reason = e.target.value; }}
+            rows={3}
+          />
+        </div>
+      ),
       okText: 'Cancel Booking',
       okType: 'danger',
       cancelText: 'Go Back',
       onOk: async () => {
         try {
-          await bookingApi.cancel(id);
+          await bookingApi.cancel(id, reason);
           setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CANCELLED' } : bk));
           message.success('Booking cancelled');
         } catch (err: any) { message.error(err.message || 'Failed to cancel booking'); }
@@ -1052,11 +1072,22 @@ export default function Dashboard() {
                       </div>
                     </div>
                   )}
+
+                  {selectedBooking.cancellationReason && (
+                    <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#fff1f2', border: '1px solid #fecaca', borderRadius: '12px' }}>
+                      <h4 style={{ color: '#991b1b', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 700 }}>
+                        <AlertTriangle size={16} /> Cancellation Note
+                      </h4>
+                      <p style={{ color: '#7f1d1d', fontSize: '0.9rem', margin: 0 }}>
+                        {selectedBooking.cancellationReason}
+                      </p>
+                    </div>
+                  )}
                 </>
               );
             })()}
           </div>
-        ) : <p>Loading details...</p>}
+        ) : <Spin />}
       </Modal>
     </div>
   );
