@@ -223,6 +223,7 @@ export default function Navbar() {
               </Link>
             )}
 
+            {/* Hamburger menu — always rightmost */}
             <button className="mobile-menu-btn" onClick={() => setMobileOpen(true)}>
               <Menu size={24} />
             </button>

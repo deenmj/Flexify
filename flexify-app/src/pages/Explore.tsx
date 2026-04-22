@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Row, Col } from 'antd';
-import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown, X } from 'lucide-react';
+import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown, X, Car, Plus } from 'lucide-react';
 import { vehicleApi, type Vehicle, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -364,6 +364,29 @@ export default function Explore() {
           )}
         </div>
       </section>
+
+      {/* Floating List Vehicle CTA */}
+      {isMobile ? (
+        <Link to="/list-vehicle" className="explore-fab-cta">
+          <Plus size={22} strokeWidth={2.5} />
+        </Link>
+      ) : (
+        <div className="explore-list-banner">
+          <div className="container">
+            <div className="explore-list-banner-inner">
+              <div className="explore-list-banner-text">
+                <Car size={24} />
+                <div>
+                  <strong>Have a vehicle?</strong> Earn money by listing it on Rentify
+                </div>
+              </div>
+              <Link to="/list-vehicle" className="btn explore-list-banner-btn">
+                <Plus size={16} /> List Your Vehicle
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

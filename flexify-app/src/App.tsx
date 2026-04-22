@@ -43,6 +43,16 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function NoFooterLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="page-wrapper">
+      <Navbar />
+      <main className="main-content">{children}</main>
+      <GlobalFeedback />
+    </div>
+  );
+}
+
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
@@ -83,7 +93,7 @@ export default function App() {
 
               {/* Public pages */}
               <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
-              <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
+              <Route path="/explore" element={<NoFooterLayout><Explore /></NoFooterLayout>} />
               <Route path="/vehicles/:id" element={<AppLayout><VehicleDetail /></AppLayout>} />
               <Route path="/about" element={<AppLayout><About /></AppLayout>} />
               <Route path="/faq" element={<AppLayout><FAQ /></AppLayout>} />
@@ -94,7 +104,7 @@ export default function App() {
               {/* Protected pages */}
               <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
               <Route path="/verify" element={<AppLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></AppLayout>} />
-              <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ListVehicle /></ProtectedRoute></AppLayout>} />
+              <Route path="/list-vehicle" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ListVehicle /></ProtectedRoute></NoFooterLayout>} />
               <Route path="/dashboard" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><Dashboard /></ProtectedRoute></AppLayout>} />
               <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
               <Route path="/vehicles/edit/:id" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></AppLayout>} />
