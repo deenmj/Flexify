@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle, getImageUrl } from '../api';
-import { Select as AntSelect, message, Row, Col } from 'antd';
-import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap } from 'lucide-react';
+import { Select as AntSelect, message, Row, Col, Modal } from 'antd';
+import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff } from 'lucide-react';
 import './ListVehicle.css';
 
 const { Option } = AntSelect;
@@ -60,7 +60,8 @@ export default function EditVehicle() {
     district: '',
     city: '',
     pricePerWeek: '',
-    pricePerMonth: ''
+    pricePerMonth: '',
+    isActive: true
   });
 
   const [selectedMake, setSelectedMake] = useState('');
@@ -138,7 +139,8 @@ export default function EditVehicle() {
           district: vehicle.district || '',
           city: vehicle.city || '',
           pricePerWeek: vehicle.pricePerWeek?.toString() || '',
-          pricePerMonth: vehicle.pricePerMonth?.toString() || ''
+          pricePerMonth: vehicle.pricePerMonth?.toString() || '',
+          isActive: vehicle.isActive
         });
 
         // We'll set model after makes logic to avoid race condition with fetchModels useEffect
@@ -234,6 +236,37 @@ export default function EditVehicle() {
     }
   };
 
+  const handleToggleStatus = async () => {
+    if (!id) return;
+    try {
+      await vehicleApi.toggleStatus(id);
+      setForm(prev => ({ ...prev, isActive: !prev.isActive }));
+      message.success(form.isActive ? 'Vehicle is now hidden' : 'Vehicle is now visible');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update status');
+    }
+  };
+
+  const handleDeleteVehicle = () => {
+    if (!id) return;
+    Modal.confirm({
+      title: 'Delete Vehicle',
+      content: 'Are you sure you want to delete this vehicle? This action cannot be undone.',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await vehicleApi.delete(id);
+          message.success('Vehicle deleted successfully');
+          navigate('/dashboard');
+        } catch (err: any) {
+          message.error(err.message || 'Failed to delete vehicle');
+        }
+      }
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
@@ -275,6 +308,14 @@ export default function EditVehicle() {
         <div className="container" style={{ position: 'relative' }}>
           <h1>Edit Vehicle</h1>
           <p>Update your vehicle information and pricing</p>
+          <div className="edit-vehicle-actions" style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', right: '1rem', display: 'flex', gap: '8px' }}>
+            <button className="btn" onClick={handleToggleStatus} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.5rem 1rem' }}>
+              {form.isActive ? <><EyeOff size={16} style={{ marginRight: '6px' }} /> Hide</> : <><Eye size={16} style={{ marginRight: '6px' }} /> Show</>}
+            </button>
+            <button className="btn" onClick={handleDeleteVehicle} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem' }}>
+              <Trash2 size={16} style={{ marginRight: '6px' }} /> Delete
+            </button>
+          </div>
         </div>
       </section>
 

@@ -533,7 +533,7 @@ export default function Dashboard() {
             ) : (
               <div className="dashboard-grid">
                 {filteredVehicles.map(v => (
-                  <div key={v._id} className="dash-vehicle-card">
+                  <Link to={`/vehicles/edit/${v._id}`} key={v._id} className="dash-vehicle-card" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
                     <div className="dash-vehicle-card-img">
                       {v.photos?.[0] ? (
                         <img src={getImageUrl(v.photos[0])} alt={v.title} />
@@ -556,20 +556,8 @@ export default function Dashboard() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                         <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
                       </div>
-
-                      <div className="dash-vehicle-card-actions">
-                        <Link to={`/vehicles/edit/${v._id}`} className="btn btn-sm" title="Edit" style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Edit size={14} style={{ marginRight: '6px' }} /> Edit
-                        </Link>
-                        <button className="btn btn-sm" onClick={() => handleToggleStatus(v._id)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {v.isActive ? <><EyeOff size={14} style={{ marginRight: '6px' }} /> Hide</> : <><Eye size={14} style={{ marginRight: '6px' }} /> Show</>}
-                        </button>
-                        <button className="btn btn-sm" style={{ gridColumn: 'span 2', background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleDeleteVehicle(v._id)}>
-                          <Trash2 size={14} style={{ marginRight: '6px' }} /> Delete Vehicle
-                        </button>
-                      </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
