@@ -628,36 +628,37 @@ export default function Dashboard() {
                   const owner = typeof b.owner === 'object' ? b.owner : null;
 
                   return (
-                    <div key={b._id} className="booking-card" id={`booking-${b._id}`}>
-                      <div className="booking-card-img">
-                        {vehicle && (vehicle as Vehicle).photos?.[0] ? (
-                          <img src={getImageUrl((vehicle as Vehicle).photos[0])} alt={vehicle.title} />
-                        ) : (
-                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-                            <Car size={32} color="#cbd5e1" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="booking-card-content">
+                    <div key={b._id} className="booking-card" id={`booking-${b._id}`} style={{ padding: '0', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                      <div className="booking-card-content" style={{ padding: '24px' }}>
                         <div className="booking-card-info">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                            <h4>{vehicle ? (vehicle as Vehicle).title : 'Vehicle Details'}</h4>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px', marginBottom: '16px' }}>
+                            <div>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                                Reference: #{b._id.slice(-6).toUpperCase()}
+                              </div>
+                              <h4 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a' }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle Details'}</h4>
+                            </div>
                             {bookingStatusBadge(b.status)}
                           </div>
                           
-                          <div className="booking-card-meta">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <CalIcon size={14} color="var(--text-tertiary)" />
-                              <span>{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</span>
+                          <div className="booking-card-meta" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                            <div>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Trip Dates</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: '#334155', fontWeight: 600 }}>
+                                <CalIcon size={14} color="var(--color-primary)" />
+                                <span>{new Date(b.startDate).toLocaleDateString()} — {new Date(b.endDate).toLocaleDateString()}</span>
+                              </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#0f172a' }}>
-                              <span>LKR {b.totalAmount.toLocaleString()}</span>
+                            <div>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Total Payout</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, color: '#0f172a', fontSize: '1.05rem' }}>
+                                LKR {b.totalAmount.toLocaleString()}
+                              </div>
                             </div>
                           </div>
                         </div>
 
-                        <div className="booking-card-footer" style={{ flexWrap: 'wrap', gap: '1rem' }}>
+                        <div className="booking-card-footer" style={{ borderTop: 'none', paddingTop: '16px', marginTop: 0, flexWrap: 'wrap', gap: '1rem' }}>
                           <div style={{ flex: 1, minWidth: 'fit-content' }}>
                             {b.status === 'CONFIRMED' && isIamRenterOfThis && owner && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
