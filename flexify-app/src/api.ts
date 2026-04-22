@@ -452,9 +452,10 @@ export const adminApi = {
 
   getUserKyc: (userId: string) => apiFetch<User>(`/admin/users/${userId}/kyc`),
 
-  deleteUserKyc: (userId: string) =>
+  deleteUserKyc: (userId: string, reason: string) =>
     apiFetch<{ message: string; user: User }>(`/admin/users/${userId}/kyc`, { 
-      method: 'DELETE' 
+      method: 'DELETE',
+      body: JSON.stringify({ reason })
     }),
 
   deleteUser: (userId: string) =>

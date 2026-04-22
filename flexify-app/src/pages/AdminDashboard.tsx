@@ -224,15 +224,25 @@ export default function AdminDashboard() {
 
   const handleDeleteKyc = async (u: User) => {
     const id = (u.id || u._id)!;
+    let reason = '';
     Modal.confirm({
       title: 'Delete User KYC Data',
-      content: `Are you sure you want to permanently delete KYC documents for ${u.name}? This will reset their verification status to unverified.`,
+      content: (
+        <div style={{ marginTop: '16px' }}>
+          <p style={{ marginBottom: '12px' }}>Are you sure you want to permanently delete KYC documents for {u.name}? This will reset their verification status.</p>
+          <Input.TextArea 
+            placeholder="Reason for deletion (e.g., Fraudulent documents, expired ID)"
+            onChange={(e) => { reason = e.target.value; }}
+            rows={3}
+          />
+        </div>
+      ),
       okText: 'Delete KYC',
       okType: 'danger',
       onOk: async () => {
         try {
           setActionLoadingId(id);
-          await adminApi.deleteUserKyc(id);
+          await adminApi.deleteUserKyc(id, reason);
           setAllUsers((prev: User[]) => prev.map(usr => (usr.id || usr._id) === id ? { ...usr, verificationStatus: 'not_submitted', isKycVerified: false, documents: undefined } : usr));
           setKycUser(null);
           setIsKycModalOpen(false);

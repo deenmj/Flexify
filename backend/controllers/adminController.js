@@ -317,7 +317,7 @@ export const deleteUserKyc = async (req, res) => {
     }
 
     await user.save();
-    logAdminAction(req, "kyc_delete", user._id, { reason: "Admin enforced deletion" });
+    logAdminAction(req, "kyc_delete", user._id, { reason: req.body.reason || "Admin enforced deletion" });
     res.json({ message: "User KYC data cleared", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
