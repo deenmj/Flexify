@@ -719,7 +719,7 @@ export default function Dashboard() {
                               <button className="btn btn-sm btn-danger" style={{ minWidth: '120px' }} onClick={() => handleCancelBooking(b._id)}>Cancel Trip</button>
                             )}
 
-                            {b.status === 'COMPLETED' && isIamRenterOfThis && !b.isReviewed && (
+                            {(b.status === 'COMPLETED' || b.status === 'CONFIRMED') && isIamRenterOfThis && !b.isReviewed && (
                               <button className="btn btn-sm btn-primary" onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>Leave Review</button>
                             )}
                           </div>

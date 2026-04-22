@@ -222,6 +222,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteKyc = async (u: User) => {
+    const id = (u.id || u._id)!;
+    Modal.confirm({
+      title: 'Delete User KYC Data',
+      content: `Are you sure you want to permanently delete KYC documents for ${u.name}? This will reset their verification status to unverified.`,
+      okText: 'Delete KYC',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          setActionLoadingId(id);
+          await adminApi.deleteUserKyc(id);
+          setAllUsers((prev: User[]) => prev.map(usr => (usr.id || usr._id) === id ? { ...usr, verificationStatus: 'not_submitted', isKycVerified: false, documents: undefined } : usr));
+          setKycUser(null);
+          setIsKycModalOpen(false);
+          message.success('User KYC data deleted successfully');
+        } catch (err: any) {
+          message.error(err.message || 'Failed to delete KYC data');
+        } finally {
+          setActionLoadingId(null);
+        }
+      }
+    });
+  };
+
   const filteredUsers = allUsers.filter(u =>
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -641,6 +665,7 @@ export default function AdminDashboard() {
                         }
                       },
                       { title: 'Price/day', dataIndex: 'pricePerDay', render: p => `LKR ${(p || 0).toLocaleString()}` },
+                      { title: 'Performance', render: (_, v) => <div><Tag color="blue">{v.bookingsCount || 0} Bookings</Tag><br /><Tag icon={<Star size={12} />} color="gold" style={{ marginTop: '4px' }}>{v.averageRating ? `${v.averageRating} / 5` : 'No rating'}</Tag></div> },
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'active' ? 'green' : s === 'pending' ? 'orange' : 'red'}>{s}</Tag> }
                     ]}
                   />
@@ -868,6 +893,11 @@ export default function AdminDashboard() {
         onCancel={() => setIsKycModalOpen(false)}
         width={900}
         footer={[
+          kycUser && (
+            <Button key="delete" danger onClick={() => handleDeleteKyc(kycUser)} style={{ float: 'left' }}>
+              Delete Entire KYC Data
+            </Button>
+          ),
           <Button key="close" onClick={() => setIsKycModalOpen(false)}>Close</Button>
         ]}
       >

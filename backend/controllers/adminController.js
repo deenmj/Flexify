@@ -300,6 +300,31 @@ export const getUserKyc = async (req, res) => {
 };
 
 /**
+ * Delete user KYC documents (superadmin)
+ */
+export const deleteUserKyc = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.documents = { nicFront: "", nicBack: "", license: "", selfie: "", address: "" };
+    user.verificationStatus = "not_submitted";
+    user.isKycVerified = false;
+    
+    // Demote to UNVERIFIED if owner
+    if (user.role === "owner" && user.ownerType === "VERIFIED") {
+      user.ownerType = "UNVERIFIED";
+    }
+
+    await user.save();
+    logAdminAction(req, "kyc_delete", user._id, { reason: "Admin enforced deletion" });
+    res.json({ message: "User KYC data cleared", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
  * Get ALL vehicles (superadmin)
  */
 export const getAllVehicles = async (req, res) => {

@@ -46,9 +46,9 @@ export const createReview = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to review this booking" });
     }
 
-    // Check if booking is completed
-    if (booking.status !== "COMPLETED") {
-      return res.status(400).json({ message: "Only completed bookings can be reviewed" });
+    // Check if booking is completed or confirmed
+    if (booking.status !== "COMPLETED" && booking.status !== "CONFIRMED") {
+      return res.status(400).json({ message: "Only confirmed or completed bookings can be reviewed" });
     }
 
     // Check if already reviewed
