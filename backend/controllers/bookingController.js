@@ -303,7 +303,7 @@ export const rejectBooking = async (req, res) => {
       { path: "vehicle" }
     ]);
     if (booking.owner && booking.user && booking.vehicle) {
-      sendBookingUpdateEmail(booking.owner, booking.user, booking.vehicle, "REJECTED");
+      sendBookingUpdateEmail(booking.owner, booking.user, booking.vehicle, "REJECTED", booking.cancellationReason);
     }
 
     return res.json({ message: "Booking rejected", booking });
@@ -339,7 +339,7 @@ export const cancelBooking = async (req, res) => {
       { path: "vehicle" }
     ]);
     if (booking.owner && booking.user && booking.vehicle) {
-      sendBookingUpdateEmail(booking.owner, booking.user, booking.vehicle, "CANCELLED");
+      sendBookingUpdateEmail(booking.owner, booking.user, booking.vehicle, "CANCELLED", booking.cancellationReason);
     }
 
     return res.json({ message: "Booking cancelled" });

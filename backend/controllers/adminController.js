@@ -6,6 +6,7 @@ import User from "../models/User.js";
 import AuditLog from "../models/AuditLog.js";
 import Payment from "../models/Payment.js";
 import { logAdminAction } from "../utils/auditLogger.js";
+import { sendKycResetEmail } from "../utils/notifier.js";
 
 
 /**
@@ -317,7 +318,12 @@ export const deleteUserKyc = async (req, res) => {
     }
 
     await user.save();
-    logAdminAction(req, "kyc_delete", user._id, { reason: req.body.reason || "Admin enforced deletion" });
+    
+    // FIRE-AND-FORGET: Log action and send notification email to user
+    const reason = req.body.reason || "Admin enforced verification data reset";
+    logAdminAction(req, "kyc_delete", user._id, { reason });
+    sendKycResetEmail(user, reason).catch(err => console.error("KYC reset email failed:", err.message));
+    
     res.json({ message: "User KYC data cleared", user });
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -177,7 +177,7 @@ export const sendApprovalEmail = async (user, type, itemName) => {
 /**
  * Sends a generic booking update (rejection/cancellation)
  */
-export const sendBookingUpdateEmail = async (bookingOwner, renter, vehicle, status) => {
+export const sendBookingUpdateEmail = async (bookingOwner, renter, vehicle, status, reason) => {
     try {
         const dashboardUrl = (process.env.FRONTEND_URL || "http://localhost:5173") + "/dashboard";
         const isCancellation = status === 'CANCELLED';
@@ -195,6 +195,7 @@ export const sendBookingUpdateEmail = async (bookingOwner, renter, vehicle, stat
                         <ul style="list-style: none; padding: 0; margin: 0; font-size: 15px;">
                             <li style="margin-bottom: 8px;"><strong style="color: #475569;">Vehicle:</strong> ${vehicle.title}</li>
                             <li style="margin-bottom: 8px;"><strong style="color: #475569;">Status:</strong> ${status}</li>
+                            ${reason ? `<li style="margin-bottom: 8px;"><strong style="color: #475569;">Reason:</strong> ${reason}</li>` : ''}
                         </ul>
                     </div>
 
@@ -218,6 +219,51 @@ export const sendBookingUpdateEmail = async (bookingOwner, renter, vehicle, stat
         console.log(`Booking update (${status}) emails sent to renter and owner`);
     } catch (error) {
         console.error("Error in sendBookingUpdateEmail:", error);
+    }
+};
+
+/**
+ * Sends an email notification to a user when their KYC data is reset/deleted by SuperAdmin
+ * @param {Object} user - User document
+ * @param {string} reason - Optional reason for deletion
+ */
+export const sendKycResetEmail = async (user, reason) => {
+    try {
+        const dashboardUrl = (process.env.FRONTEND_URL || "http://localhost:5173") + "/profile/verify";
+        
+        const html = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #f59e0b; padding: 24px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Verification Data Reset</h1>
+                </div>
+                <div style="padding: 32px; color: #1e293b;">
+                    <h2 style="font-size: 20px; color: #d97706; margin-top: 0;">Identity documents cleared</h2>
+                    <p style="font-size: 16px; line-height: 1.6;">Hello ${user.name},</p>
+                    <p style="font-size: 16px; line-height: 1.6;">A Super Admin has cleared your identity verification (KYC) documents from our system.</p>
+                    
+                    <div style="background-color: #fffbeb; padding: 20px; border-radius: 8px; margin: 24px 0; border: 1px solid #fef3c7;">
+                        <h3 style="font-size: 14px; text-transform: uppercase; color: #92400e; margin-top: 0; margin-bottom: 8px;">Reason for Data Reset</h3>
+                        <p style="font-size: 15px; margin-bottom: 0; color: #78350f;">${reason || "Improper documents or verification update required."}</p>
+                    </div>
+
+                    <p style="font-size: 15px; line-height: 1.6;"><strong>Action Required:</strong> To continue booking vehicles, please re-upload your verification information.</p>
+
+                    <div style="text-align: center; margin-top: 32px;">
+                        <a href="${dashboardUrl}" style="background-color: #1e293b; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block;">Re-Verify Now</a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        await sendEmail({
+            to: user.email,
+            subject: "Rentify: Your Verification Data has been Reset",
+            html: html
+        });
+
+        console.log(`KYC reset email sent to ${user.email}`);
+    } catch (error) {
+        console.error("Error in sendKycResetEmail:", error);
     }
 };
 
