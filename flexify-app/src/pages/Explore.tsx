@@ -361,6 +361,7 @@ export default function Explore() {
               <h3>No vehicles found</h3>
               <p>Try adjusting your search or filters</p>
             </div>
+          )}
         </div>
       </section>
     </div>
