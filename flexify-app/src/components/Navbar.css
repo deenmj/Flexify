@@ -230,6 +230,12 @@
   position: relative;
 }
 
+@media (max-width: 1024px) {
+  .profile-wrapper {
+    display: none;
+  }
+}
+
 .profile-trigger {
   width: 40px;
   height: 40px;
@@ -561,21 +567,4 @@
   padding-right: 0.25rem;
   margin-left: -0.25rem;
   color: var(--text-primary);
-}
-
-.header-list-btn {
-  border-radius: 20px !important;
-  font-weight: 700 !important;
-  padding: 0.4rem 1rem !important;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%) !important;
-  border: none !important;
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
-  color: white !important;
-  transition: all 0.2s ease !important;
-}
-
-.header-list-btn:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.45) !important;
-  color: white !important;
 }

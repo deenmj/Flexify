@@ -140,9 +140,6 @@ export default function Navbar() {
           <div className="navbar-actions">
             {!isSuperAdmin && (
               <>
-                <Link to="/list-vehicle" className="btn btn-primary d-none-mobile header-list-btn">
-                  <Car size={16} /> List Vehicle
-                </Link>
                 <Link to="/explore" className="nav-action-btn" title="Search">
                   <Search size={20} />
                 </Link>

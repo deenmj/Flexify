@@ -240,6 +240,11 @@ export default function Explore() {
                     <span className="pulse-dot"></span>
                   </div>
                 )}
+                {user?.role !== 'superadmin' && (
+                  <Link to="/list-vehicle" className="quick-list-btn">
+                    <Car size={16} /> List Your Vehicle
+                  </Link>
+                )}
               </div>
             </div>
           </div>
