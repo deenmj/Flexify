@@ -978,8 +978,8 @@
   }
   
   .vehicle-detail-panel {
-    max-height: 100vh;
-    flex: 1;
+    max-height: none !important;
+    height: auto !important;
   }
 
   .vd-image-container {
@@ -1010,9 +1010,16 @@
   }
 
   .vd-stats-bar {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 0.5rem !important;
-    padding: 1rem !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+    padding: 0.5rem !important;
+  }
+  
+  .vd-stat-item {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+    min-width: 140px !important;
+    padding: 0.75rem !important;
   }
   
   .vd-stat-value {
