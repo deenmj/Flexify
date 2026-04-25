@@ -630,7 +630,7 @@
     padding: 0.4rem 0.4rem;
   }
   .quick-locate-text {
-    display: none;
+    display: inline;
   }
   .filter-toggle-btn {
     padding: 0.4rem 0.625rem;

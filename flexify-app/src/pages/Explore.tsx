@@ -112,25 +112,26 @@ export default function Explore() {
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
 
-  const fetchVehicles = async (overrideQuery?: string, overrideType?: string) => {
+  const fetchVehicles = async (overrideQuery?: string, overrideType?: string, overrideFilters?: Partial<Filters>) => {
     setLoading(true);
     try {
       const params: Record<string, string> = {};
       const activeQuery = overrideQuery !== undefined ? overrideQuery : query;
-      const activeType = overrideType !== undefined ? overrideType : filters.vehicleType;
+      const activeType = overrideType !== undefined ? overrideType : (overrideFilters?.vehicleType ?? filters.vehicleType);
+      const activeFilters = overrideFilters ? { ...filters, ...overrideFilters } : filters;
 
       if (activeQuery) params.q = activeQuery;
-      if (filters.transmission) params.transmission = filters.transmission;
-      if (filters.minPrice) params.minPrice = filters.minPrice;
-      if (filters.maxPrice) params.maxPrice = filters.maxPrice;
-      if (filters.seats) params.seats = filters.seats;
+      if (activeFilters.transmission) params.transmission = activeFilters.transmission;
+      if (activeFilters.minPrice) params.minPrice = activeFilters.minPrice;
+      if (activeFilters.maxPrice) params.maxPrice = activeFilters.maxPrice;
+      if (activeFilters.seats) params.seats = activeFilters.seats;
       if (activeType) params.vehicleType = activeType;
-      if (filters.lat) params.lat = filters.lat;
-      if (filters.lng) params.lng = filters.lng;
-      if (filters.radius) params.radius = filters.radius;
-      if (filters.province) params.province = filters.province;
-      if (filters.district) params.district = filters.district;
-      if (filters.sort) params.sort = filters.sort;
+      if (activeFilters.lat) params.lat = activeFilters.lat;
+      if (activeFilters.lng) params.lng = activeFilters.lng;
+      if (activeFilters.radius) params.radius = activeFilters.radius;
+      if (activeFilters.province) params.province = activeFilters.province;
+      if (activeFilters.district) params.district = activeFilters.district;
+      if (activeFilters.sort) params.sort = activeFilters.sort;
 
       const data = await vehicleApi.getAll(params);
       
@@ -158,6 +159,16 @@ export default function Explore() {
     // eslint-disable-next-line
   }, [searchParams]);
 
+  // Auto-refetch when radius changes while location is active
+  const prevRadiusRef = React.useRef(filters.radius);
+  useEffect(() => {
+    if (filters.lat && filters.lng && prevRadiusRef.current !== filters.radius) {
+      prevRadiusRef.current = filters.radius;
+      fetchVehicles();
+    }
+    // eslint-disable-next-line
+  }, [filters.radius]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchVehicles();
@@ -171,7 +182,12 @@ export default function Explore() {
   const handleLocateMe = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
-        setFilters({ ...filters, lat: pos.coords.latitude.toString(), lng: pos.coords.longitude.toString(), province: '', district: '' });
+        const newLat = pos.coords.latitude.toString();
+        const newLng = pos.coords.longitude.toString();
+        const updatedFilters = { ...filters, lat: newLat, lng: newLng, province: '', district: '' };
+        setFilters(updatedFilters);
+        // Immediately fetch with the new location (avoids stale closure issue)
+        fetchVehicles(undefined, undefined, { lat: newLat, lng: newLng, province: '', district: '' });
       }, () => {
         alert("Failed to get location. Please enable location permissions.");
       });

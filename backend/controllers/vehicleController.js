@@ -294,26 +294,36 @@ export const listVehicles = async (req, res) => {
     if (province) filter.province = province;
     if (district) filter.district = district;
 
-    // Geolocation filter
-    if (lat && lng && radius) {
-      const radiusInMeters = parseFloat(radius) * 1000;
-      filter.location = {
-        $near: {
-          $geometry: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
-          $maxDistance: radiusInMeters,
-        },
-      };
-    }
-
     let sortCondition = { createdAt: -1 };
     if (sort === "price_low") sortCondition = { pricePerDay: 1 };
     else if (sort === "price_high") sortCondition = { pricePerDay: -1 };
     else if (sort === "popular" || sort === "rating") sortCondition = { timesRented: -1 };
 
+    // Build aggregation pipeline
+    // NOTE: $near is NOT supported in aggregation $match stages.
+    // Must use $geoNear as the FIRST pipeline stage for geospatial queries.
+    const pipeline = [];
+    const useGeo = lat && lng && radius;
+
+    if (useGeo) {
+      const radiusInMeters = parseFloat(radius) * 1000;
+      pipeline.push({
+        $geoNear: {
+          near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+          distanceField: "distance",
+          maxDistance: radiusInMeters,
+          spherical: true,
+          query: filter, // other filters applied here alongside geo
+        }
+      });
+    } else {
+      pipeline.push({ $match: filter });
+    }
+
     // Use aggregation to filter by owner subscription status and apply tier boost
     const now = new Date();
     const vehicles = await Vehicle.aggregate([
-      { $match: filter },
+      ...pipeline,
       {
         $lookup: {
           from: "users",
