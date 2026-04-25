@@ -1087,15 +1087,23 @@
   
   .vd-calendar-container {
     padding: 0.5rem !important;
-    overflow-x: auto;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    background: #fff !important;
+    border-radius: 12px;
+  }
+  
+  .vd-calendar-container .ant-picker-calendar {
+    min-width: 700px !important; /* Force horizontal scroll on mobile */
   }
   
   .ant-picker-calendar-full .ant-picker-calendar-date {
-    height: 80px !important;
-    min-width: 40px !important;
+    height: 90px !important;
+    min-width: 50px !important;
   }
   
   .ant-picker-calendar-full .ant-picker-calendar-date-content {
-    height: 50px !important;
+    height: 60px !important;
+    overflow-y: auto;
   }
 }
