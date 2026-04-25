@@ -291,35 +291,35 @@ export default function ManageVehicle() {
             </div>
 
             <Row gutter={[32, 32]}>
-              {/* Left Column: Calendar */}
-              <Col xs={24} lg={14}>
+              {/* Full Width: Calendar */}
+              <Col span={24}>
                 <div className="vd-section">
                   <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}><CalIcon size={20} /> Availability & Blackouts</h3>
-                    <Button type="primary" icon={<AlertTriangle size={14} />} onClick={() => setShowBlackoutModal(true)}>
+                    <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}><CalIcon size={24} /> Availability & Blackouts</h3>
+                    <Button type="primary" icon={<AlertTriangle size={16} />} onClick={() => setShowBlackoutModal(true)} style={{ height: '40px', borderRadius: '8px', fontWeight: 600 }}>
                       Add Blackout
                     </Button>
                   </div>
                   
-                  <div className="vd-calendar-container" style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                  <div className="vd-calendar-container" style={{ padding: '1rem', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                     <Spin spinning={calendarLoading}>
                       <Calendar 
                         className="vd-custom-calendar" 
-                        fullscreen={false} 
+                        fullscreen={true} 
                         cellRender={calendarCellRender}
                       />
                       
-                      <div className="avail-legend-vertical" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
-                          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
+                      <div className="avail-legend-horizontal" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: '2rem', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', fontWeight: 600 }}>
+                          <span style={{ width: '16px', height: '16px', borderRadius: '4px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
                           Booked / Blackout
                         </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
-                          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', fontWeight: 600 }}>
+                          <span style={{ width: '16px', height: '16px', borderRadius: '4px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
                           Pending
                         </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
-                          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', fontWeight: 600 }}>
+                          <span style={{ width: '16px', height: '16px', borderRadius: '4px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
                           Available
                         </span>
                       </div>
@@ -328,21 +328,22 @@ export default function ManageVehicle() {
 
                   {blackouts.length > 0 && (
                     <div className="vd-blackouts-list" style={{ marginTop: '2rem' }}>
-                      <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#1e293b' }}>Active Blackouts</h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: 600, color: '#1e293b' }}>Active Blackouts</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
                         {blackouts.map(b => (
                           <div key={b._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: '#fff1f2', borderRadius: '12px', border: '1px solid #fecaca' }}>
                             <div>
-                              <div style={{ fontWeight: 600, color: '#991b1b', fontSize: '0.95rem' }}>
+                              <div style={{ fontWeight: 700, color: '#991b1b', fontSize: '1rem' }}>
                                 {dayjs(b.startDate).format('MMM D, YYYY')} - {dayjs(b.endDate).format('MMM D, YYYY')}
                               </div>
-                              <div style={{ color: '#b91c1c', fontSize: '0.85rem', marginTop: '6px' }}>{b.reason || 'No reason provided'}</div>
+                              <div style={{ color: '#b91c1c', fontSize: '0.9rem', marginTop: '6px', fontWeight: 500 }}>{b.reason || 'No reason provided'}</div>
                             </div>
                             <Button 
                               danger 
                               type="text" 
-                              icon={<Trash2 size={18} />} 
+                              icon={<Trash2 size={20} />} 
                               onClick={() => handleDeleteBlackout(b._id)}
+                              style={{ marginLeft: '12px' }}
                             />
                           </div>
                         ))}
@@ -352,43 +353,43 @@ export default function ManageVehicle() {
                 </div>
               </Col>
 
-              {/* Right Column: Reviews */}
-              <Col xs={24} lg={10}>
-                <div className="vd-section">
-                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquare size={20} /> Reviews & Ratings</h3>
-                    <span className="vd-review-count" style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}>
+              {/* Reviews moved below */}
+              <Col span={24}>
+                <div className="vd-section" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '3rem', marginTop: '1rem' }}>
+                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}><MessageSquare size={24} /> Reviews & Ratings</h3>
+                    <span className="vd-review-count" style={{ fontSize: '1rem', color: '#64748b', fontWeight: 600, background: '#f1f5f9', padding: '4px 12px', borderRadius: '20px' }}>
                       {vehicleReviews.length} Reviews
                     </span>
                   </div>
                   
-                  <div className="vd-reviews-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="vd-reviews-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
                     {vehicleReviews.length === 0 ? (
-                      <div className="vd-empty-state" style={{ padding: '3rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
-                        <MessageSquare size={40} color="#94a3b8" style={{ margin: '0 auto 1rem' }} />
-                        <p style={{ color: '#64748b', margin: 0 }}>No reviews yet for this vehicle.</p>
+                      <div className="vd-empty-state" style={{ gridColumn: '1 / -1', padding: '4rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
+                        <MessageSquare size={48} color="#94a3b8" style={{ margin: '0 auto 1.5rem' }} />
+                        <p style={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>No reviews yet for this vehicle.</p>
                       </div>
                     ) : (
                       vehicleReviews.map(r => {
                         // Support populated nested user or reviewer
                         const reviewer = r.reviewer || r.user || {};
                         return (
-                          <div key={r._id} className="vd-review-item" style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-                            <div className="vd-review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                              <div className="vd-reviewer" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <Avatar size={40} src={getImageUrl(reviewer.profilePic)} style={{ backgroundColor: 'var(--primary-color)' }}>
+                          <div key={r._id} className="vd-review-item" style={{ padding: '2rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', transition: 'transform 0.2s ease' }}>
+                            <div className="vd-review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                              <div className="vd-reviewer" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <Avatar size={48} src={getImageUrl(reviewer.profilePic)} style={{ backgroundColor: 'var(--primary-color)', boxShadow: '0 0 0 2px white, 0 0 0 4px #e2e8f0' }}>
                                   {reviewer.name?.charAt(0) || 'U'}
                                 </Avatar>
                                 <div>
-                                  <div className="vd-reviewer-name" style={{ fontWeight: 600, color: '#1e293b' }}>{reviewer.name || 'User'}</div>
-                                  <div className="vd-review-date" style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</div>
+                                  <div className="vd-reviewer-name" style={{ fontWeight: 700, color: '#1e293b', fontSize: '1.05rem' }}>{reviewer.name || 'User'}</div>
+                                  <div className="vd-review-date" style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 500 }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</div>
                                 </div>
                               </div>
                             </div>
-                            <div className="vd-review-stars" style={{ marginBottom: '0.75rem' }}>
-                              <Rate disabled defaultValue={r.rating} style={{ fontSize: '14px', color: '#f59e0b' }} />
+                            <div className="vd-review-stars" style={{ marginBottom: '1rem' }}>
+                              <Rate disabled defaultValue={r.rating} style={{ fontSize: '16px', color: '#f59e0b' }} />
                             </div>
-                            <p className="vd-review-text" style={{ margin: 0, color: '#475569', lineHeight: 1.6 }}>{r.comment}</p>
+                            <p className="vd-review-text" style={{ margin: 0, color: '#475569', lineHeight: 1.7, fontSize: '1rem' }}>{r.comment}</p>
                           </div>
                         );
                       })
