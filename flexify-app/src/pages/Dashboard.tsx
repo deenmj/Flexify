@@ -121,7 +121,7 @@ export default function Dashboard() {
         setReviews(r as Review[]);
       }
       
-      if (v.length > 0) setCalendarVehicleId((v as any)[0]._id);
+
     } catch (err) {
       console.error("Failed to refresh dashboard data", err);
     } finally {
