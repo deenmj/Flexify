@@ -397,9 +397,9 @@ export default function Dashboard() {
             <div
               key={b._id}
               className={`dash-cal-event ${b.status === 'CONFIRMED' ? 'cal-confirmed' : b.status === 'PENDING' ? 'cal-pending' : 'cal-other'}`}
-              title={`${renter?.name || 'Renter'} — ${b.status}`}
+              title={`${b.status}`}
             >
-              <span className="cal-event-name">{renter?.name?.split(' ')[0] || '...'}</span>
+              <span className="cal-event-name">{b.status === 'CONFIRMED' ? 'Booked' : 'Pending'}</span>
             </div>
           );
         })}

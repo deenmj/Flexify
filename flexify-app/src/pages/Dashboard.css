@@ -606,6 +606,44 @@
   padding: 0;
   overflow: hidden;
   border-radius: 20px;
+  font-family: var(--font-family);
+}
+
+/* Calendar Event Styling */
+.dash-cal-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.dash-cal-event {
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cal-confirmed {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.cal-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.cal-blackout {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
 }
 
 .vehicle-detail-modal .ant-modal-close {
