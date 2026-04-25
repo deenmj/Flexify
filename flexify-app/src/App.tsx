@@ -117,7 +117,7 @@ export default function App() {
               <Route path="/dashboard" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><Dashboard /></ProtectedRoute></AppLayout>} />
               <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
               <Route path="/vehicles/edit/:id" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></AppLayout>} />
-              <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
+              <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
 
               {/* Admin dashboards */}
               <Route path="/admin" element={<NoNavbarLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></NoNavbarLayout>} />

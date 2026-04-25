@@ -195,9 +195,9 @@ export default function Navbar() {
                       <Car size={16} /> List Vehicle
                     </Link>
                   )}
-                  {user.role === 'owner' && (
+                  {user && !isAdminRole && (
                     <Link to="/subscription" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                      <Shield size={16} /> My Subscription
+                      <DollarSign size={16} /> Pricing & Tiers
                     </Link>
                   )}
                   {user && user.verificationStatus === 'not_submitted' && !isAdminRole && (
@@ -265,8 +265,8 @@ export default function Navbar() {
                   {isAdminRole && (
                     <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> My Vehicles & Bookings</Link>
                   )}
-                  {user?.role === 'owner' && (
-                    <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}><DollarSign size={18} /> My Subscription</Link>
+                  {user && !isAdminRole && (
+                    <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}><DollarSign size={18} /> Pricing & Tiers</Link>
                   )}
                   {user.verificationStatus === 'not_submitted' && !isAdminRole && (
                     <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>

@@ -70,7 +70,8 @@ const SubscriptionManagement: React.FC = () => {
   const [bankDetails, setBankDetails] = useState<BankDetailsData | null>(null);
   const [receiptFile, setReceiptFile] = useState<any>(null);
 
-  const sub = user?.subscription || { tier: 'BASIC', status: 'trial', endDate: null };
+  const sub = user?.subscription || { tier: 'BASIC', status: 'none', endDate: null };
+  const isNone = sub.status === 'none';
   const isTrial = sub.status === 'trial';
   const isExpired = sub.status === 'expired';
 
@@ -218,13 +219,15 @@ const SubscriptionManagement: React.FC = () => {
           {isTrial ? <Clock size={24} /> : isExpired ? <AlertCircle size={24} /> : <Shield size={24} />}
           <div>
             <h3>
-              {isTrial ? 'Free Trial Active' : isExpired ? 'Subscription Expired' : 'Subscription Active'}
-              <span className="tier-badge">{sub.tier}</span>
+              {isNone ? 'Ready to get started?' : isTrial ? 'Free Trial Active' : isExpired ? 'Subscription Expired' : 'Subscription Active'}
+              {!isNone && <span className="tier-badge">{sub.tier}</span>}
             </h3>
             <p>
-              {isExpired
+              {isNone 
+                ? 'Choose a plan below to start listing your vehicles and earning.'
+                : isExpired
                 ? 'Your listings are currently hidden (or will be soon after grace period).'
-                : `Your ${isTrial ? 'trial' : 'subscription'} ends in ${daysLeft} days (${new Date(sub.endDate!).toLocaleDateString()}).`}
+                : `Your ${isTrial ? 'trial' : 'subscription'} ends in ${daysLeft} days (${sub.endDate ? new Date(sub.endDate).toLocaleDateString() : 'N/A'}).`}
             </p>
           </div>
         </div>
