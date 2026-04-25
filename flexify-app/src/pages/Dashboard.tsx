@@ -390,26 +390,25 @@ export default function Dashboard() {
     if (matchingBookings.length === 0 && matchingBlackouts.length === 0) return null;
 
     return (
-      <div className="dash-cal-events">
+      <div className="avail-status-container">
         {matchingBookings.map((b) => {
-          const renter = typeof b.user === 'object' ? b.user : null;
-          return (
-            <div
-              key={b._id}
-              className={`dash-cal-event ${b.status === 'CONFIRMED' ? 'cal-confirmed' : b.status === 'PENDING' ? 'cal-pending' : 'cal-other'}`}
-              title={`${b.status}`}
-            >
-              <span className="cal-event-name">{b.status === 'CONFIRMED' ? 'Booked' : 'Pending'}</span>
-            </div>
-          );
+          if (b.status === 'CONFIRMED') {
+            return (
+              <div key={b._id} className="status-indicator confirmed">
+                <span className="status-text">Booked</span>
+              </div>
+            );
+          } else {
+            return (
+              <div key={b._id} className="status-indicator pending">
+                <span className="status-text">Pending</span>
+              </div>
+            );
+          }
         })}
         {matchingBlackouts.map((b) => (
-          <div
-            key={b._id}
-            className="dash-cal-event cal-blackout"
-            title={`Blackout: ${b.reason || 'Unavailable'}`}
-          >
-            <span className="cal-event-name">Unavailable</span>
+          <div key={b._id} className="status-indicator blackout">
+            <span className="status-text">Unavailable</span>
           </div>
         ))}
       </div>
@@ -1180,7 +1179,11 @@ export default function Dashboard() {
                 <div className="vd-section-header">
                   <h3><MessageSquare size={18} /> Reviews & Ratings</h3>
                   <span className="vd-review-count">
-                    {reviews.filter(r => (typeof r.booking === 'object' && (r.booking as any)?.vehicle?._id === selectedVehicle._id) || (typeof r.booking === 'string' && r.booking === selectedVehicle._id) || r.vehicle === selectedVehicle._id).length} Reviews
+                    {reviews.filter(r => {
+                      const vId = typeof r.vehicle === 'object' ? (r.vehicle as any)._id : r.vehicle;
+                      const bVId = typeof r.booking === 'object' ? ((r.booking as any).vehicle?._id || (r.booking as any).vehicle) : null;
+                      return vId === selectedVehicle._id || bVId === selectedVehicle._id;
+                    }).length} Reviews
                   </span>
                 </div>
                 <div className="vd-reviews-list">
@@ -1226,13 +1229,33 @@ export default function Dashboard() {
                     Add Blackout
                   </Button>
                 </div>
-                <div className="vd-calendar-container">
+                <div className="vd-calendar-container" style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px' }}>
                   <Spin spinning={calendarLoading}>
-                    <Calendar 
-                      className="vd-custom-calendar" 
-                      fullscreen={false} 
-                      fullCellRender={calendarCellRender}
-                    />
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24} md={18}>
+                        <Calendar 
+                          className="vd-custom-calendar" 
+                          fullscreen={false} 
+                          cellRender={calendarCellRender}
+                        />
+                      </Col>
+                      <Col xs={24} md={6}>
+                        <div className="avail-legend-vertical" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
+                            <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
+                            Booked / Blackout
+                          </span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
+                            <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
+                            Pending
+                          </span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
+                            <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
+                            Available
+                          </span>
+                        </div>
+                      </Col>
+                    </Row>
                   </Spin>
                 </div>
                 
