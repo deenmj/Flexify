@@ -158,6 +158,25 @@ export const acceptBooking = async (req, res) => {
     }
 
     booking.status = "CONFIRMED";
+
+    // Auto-reject overlapping pending bookings
+    const overlappingPending = await Booking.find({
+      vehicle: booking.vehicle._id,
+      status: "PENDING",
+      _id: { $ne: booking._id },
+      $or: [{ startDate: { $lte: booking.endDate }, endDate: { $gte: booking.startDate } }],
+    });
+
+    const pendingUserIdsToNotify = [];
+    if (overlappingPending.length > 0) {
+      const pendingIds = overlappingPending.map(b => b._id);
+      await Booking.updateMany(
+        { _id: { $in: pendingIds } },
+        { status: "REJECTED", cancellationReason: "Dates are no longer available (Another booking was confirmed for these dates)" }
+      );
+      overlappingPending.forEach(b => pendingUserIdsToNotify.push({ userId: b.user, bookingId: b._id }));
+    }
+
     // Save booking and increment timesRented in parallel
     await Promise.all([
       booking.save(),
@@ -182,6 +201,26 @@ export const acceptBooking = async (req, res) => {
         status: "CONFIRMED",
         message: `Your booking for ${booking.vehicle.title} has been confirmed!`
       });
+
+      // Notify auto-rejected pending bookings
+      if (pendingUserIdsToNotify.length > 0) {
+        pendingUserIdsToNotify.forEach(({ userId, bookingId }) => {
+          io.to(userId.toString()).emit("bookingStatusUpdate", {
+            bookingId,
+            status: "REJECTED",
+            message: `Your booking for ${booking.vehicle.title} was automatically rejected as the dates are no longer available.`
+          });
+
+          createNotification(
+            io,
+            userId,
+            "Booking Auto-Rejected",
+            `Your booking request for ${booking.vehicle.title} was rejected because the owner confirmed another booking for those dates.`,
+            "booking_update",
+            bookingId
+          ).catch(err => console.error("Notification save failed for auto-reject:", err.message));
+        });
+      }
 
       // PERSISTENT NOTIFICATION (fire-and-forget)
       createNotification(

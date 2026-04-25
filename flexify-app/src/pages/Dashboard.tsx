@@ -371,8 +371,9 @@ export default function Dashboard() {
 
   // Calendar cell renderer for owner dashboard
   const calendarCellRender = useCallback((date: Dayjs) => {
-    // 1. Regular Bookings
+    // 1. Regular Bookings (Only Confirmed or Pending)
     const matchingBookings = bookings.filter((b) => {
+      if (b.status !== 'CONFIRMED' && b.status !== 'PENDING') return false;
       const veh = typeof b.vehicle === 'object' ? (b.vehicle as Vehicle)._id : b.vehicle;
       if (veh !== calendarVehicleId) return false;
       const start = dayjs(b.startDate).startOf('day');
