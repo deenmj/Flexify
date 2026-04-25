@@ -120,7 +120,8 @@ export default function ManageVehicle() {
     // Optional: Auto-fill blackout form or just show modal
     setShowBlackoutModal(true);
     blackoutForm.setFieldsValue({
-      dates: [date, date.add(1, 'day')]
+      startDate: date,
+      endDate: date.add(1, 'day')
     });
   };
 
@@ -169,14 +170,14 @@ export default function ManageVehicle() {
   }, [bookings, blackouts]);
 
   const handleAddBlackout = async (values: any) => {
-    if (!values.dates || !values.dates[0] || !values.dates[1] || !id) return;
+    if (!values.startDate || !values.endDate || !id) return;
 
     setBlackoutSaving(true);
     try {
       const newBlackout = await blackoutApi.create(
         id,
-        values.dates[0].toISOString(),
-        values.dates[1].toISOString(),
+        values.startDate.toISOString(),
+        values.endDate.toISOString(),
         values.reason
       );
       setBlackouts([...blackouts, newBlackout]);
@@ -467,9 +468,31 @@ export default function ManageVehicle() {
           Mark dates as unavailable. Bookings cannot be made during these periods.
         </p>
         <Form form={blackoutForm} layout="vertical" onFinish={handleAddBlackout}>
-          <Form.Item name="dates" label={<span style={{ fontWeight: 500 }}>Select Date Range</span>} rules={[{ required: true, message: 'Please select dates' }]}>
-            <RangePicker style={{ width: '100%', height: '44px', borderRadius: '8px' }} disabledDate={(current) => current && current < dayjs().startOf('day')} />
-          </Form.Item>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+            <Form.Item name="startDate" label={<span style={{ fontWeight: 500 }}>Start Date</span>} rules={[{ required: true, message: 'Required' }]}>
+              <DatePicker 
+                style={{ width: '100%', height: '44px', borderRadius: '8px' }} 
+                disabledDate={(current) => current && current < dayjs().startOf('day')}
+                format="MMM DD, YYYY"
+                placeholder="Select start date"
+                inputReadOnly
+                placement="bottomLeft"
+              />
+            </Form.Item>
+            <Form.Item name="endDate" label={<span style={{ fontWeight: 500 }}>End Date</span>} rules={[{ required: true, message: 'Required' }]}>
+              <DatePicker 
+                style={{ width: '100%', height: '44px', borderRadius: '8px' }} 
+                disabledDate={(current) => {
+                  const startDate = blackoutForm.getFieldValue('startDate');
+                  return current && (current < dayjs().startOf('day') || (startDate && current < startDate));
+                }}
+                format="MMM DD, YYYY"
+                placeholder="Select end date"
+                inputReadOnly
+                placement="bottomLeft"
+              />
+            </Form.Item>
+          </div>
           <Form.Item name="reason" label={<span style={{ fontWeight: 500 }}>Reason (Optional)</span>}>
             <Input.TextArea rows={4} placeholder="e.g. Vehicle maintenance, Personal use" style={{ borderRadius: '8px', padding: '12px' }} />
           </Form.Item>
