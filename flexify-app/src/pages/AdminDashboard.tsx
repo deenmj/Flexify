@@ -389,13 +389,6 @@ export default function AdminDashboard() {
           top: 0
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Button 
-              type="text" 
-              onClick={() => navigate('/explore')} 
-              icon={<ArrowLeft size={20} />} 
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title="Go Back to Explore"
-            />
             {isMobile && (
               <Button 
                 type="text" 
@@ -403,7 +396,7 @@ export default function AdminDashboard() {
                 onClick={() => setMobileMenuOpen(true)} 
               />
             )}
-            <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1e293b', marginLeft: isMobile ? '4px' : '8px' }}>
+            <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1e293b' }}>
               {tab === 'overview' && 'Dashboard Overview'}
               {tab === 'users' && 'User Management'}
               {tab === 'vehicles' && 'Vehicle Directory'}
@@ -413,9 +406,14 @@ export default function AdminDashboard() {
             </Title>
           </div>
           <Space size={isMobile ? "small" : "large"}>
-            {!isMobile && (
-              <Button type="text" onClick={() => navigate('/explore')} icon={<ArrowLeft size={16} />}>Back to Site</Button>
-            )}
+            <Button 
+              type="text" 
+              onClick={() => navigate('/explore')} 
+              icon={<ArrowLeft size={16} />}
+              style={{ display: 'flex', alignItems: 'center' }}
+            >
+              {!isMobile && "Back to Site"}
+            </Button>
             <Dropdown menu={{
               items: [
                 {
