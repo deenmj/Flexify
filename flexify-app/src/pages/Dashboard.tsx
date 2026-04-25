@@ -300,52 +300,7 @@ export default function Dashboard() {
     }
   };
 
-  // Calendar cell renderer for owner dashboard
-  const calendarCellRender = useCallback((date: Dayjs) => {
-    // 1. Regular Bookings (Only Confirmed or Pending)
-    const matchingBookings = bookings.filter((b) => {
-      if (b.status !== 'CONFIRMED' && b.status !== 'PENDING') return false;
-      const veh = typeof b.vehicle === 'object' ? (b.vehicle as Vehicle)._id : b.vehicle;
-      if (veh !== calendarVehicleId) return false;
-      const start = dayjs(b.startDate).startOf('day');
-      const end = dayjs(b.endDate).endOf('day');
-      return date.isBetween(start, end, 'day', '[]');
-    });
 
-    // 2. Blackout Dates
-    const matchingBlackouts = blackouts.filter((b) => {
-      const start = dayjs(b.startDate).startOf('day');
-      const end = dayjs(b.endDate).endOf('day');
-      return date.isBetween(start, end, 'day', '[]');
-    });
-
-    if (matchingBookings.length === 0 && matchingBlackouts.length === 0) return null;
-
-    return (
-      <div className="avail-status-container">
-        {matchingBookings.map((b) => {
-          if (b.status === 'CONFIRMED') {
-            return (
-              <div key={b._id} className="status-indicator confirmed">
-                <span className="status-text">Booked</span>
-              </div>
-            );
-          } else {
-            return (
-              <div key={b._id} className="status-indicator pending">
-                <span className="status-text">Pending</span>
-              </div>
-            );
-          }
-        })}
-        {matchingBlackouts.map((b) => (
-          <div key={b._id} className="status-indicator blackout">
-            <span className="status-text">Unavailable</span>
-          </div>
-        ))}
-      </div>
-    );
-  }, [bookings, blackouts, calendarVehicleId]);
 
   if (!user) return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Please sign in</h2></div>;
 
