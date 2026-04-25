@@ -1087,5 +1087,15 @@
   
   .vd-calendar-container {
     padding: 0.5rem !important;
+    overflow-x: auto;
+  }
+  
+  .ant-picker-calendar-full .ant-picker-calendar-date {
+    height: 80px !important;
+    min-width: 40px !important;
+  }
+  
+  .ant-picker-calendar-full .ant-picker-calendar-date-content {
+    height: 50px !important;
   }
 }

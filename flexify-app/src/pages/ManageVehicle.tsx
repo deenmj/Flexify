@@ -69,25 +69,23 @@ export default function ManageVehicle() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   
-  // Calendar & Blackouts
-  const [calendarLoading, setCalendarLoading] = useState(false);
   const [blackouts, setBlackouts] = useState<Blackout[]>([]);
   const [showBlackoutModal, setShowBlackoutModal] = useState(false);
   const [blackoutSaving, setBlackoutSaving] = useState(false);
   const [blackoutForm] = Form.useForm();
+  const [calendarLoading, setCalendarLoading] = useState(false);
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     if (!id) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
+    setCalendarLoading(true);
+    
     try {
       // Fetch specific vehicle
       const v = await vehicleApi.getById(id);
       setVehicle(v);
 
-      // Fetch all bookings for the owner and filter by vehicle (or just fetch bookings for vehicle)
-      // We will fetch all owner bookings and filter, to match Dashboard logic, 
-      // but ideally we should fetch specifically for this vehicle.
-      // Since bookingApi.getMy() gets all owner bookings:
+      // Fetch bookings for owner and filter
       const allBookings = await bookingApi.getMy().catch(() => []);
       const vBookings = (allBookings as any[]).filter(b => {
         const vId = typeof b.vehicle === 'object' ? b.vehicle._id : b.vehicle;
@@ -105,15 +103,24 @@ export default function ManageVehicle() {
 
     } catch (error: any) {
       message.error("Failed to load vehicle data");
-      navigate('/dashboard');
+      if (!silent) navigate('/dashboard');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+      setCalendarLoading(false);
     }
   };
 
   useEffect(() => {
     loadData();
   }, [id]);
+
+  const onCalendarSelect = (date: Dayjs) => {
+    // Optional: Auto-fill blackout form or just show modal
+    setShowBlackoutModal(true);
+    blackoutForm.setFieldsValue({
+      dates: [date, date.add(1, 'day')]
+    });
+  };
 
   const calendarCellRender = useCallback((date: Dayjs) => {
     // 1. Regular Bookings (Only Confirmed or Pending)
@@ -307,6 +314,7 @@ export default function ManageVehicle() {
                         className="vd-custom-calendar" 
                         fullscreen={true} 
                         cellRender={calendarCellRender}
+                        onSelect={onCalendarSelect}
                       />
                       
                       <div className="avail-legend-horizontal" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: '2rem', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9' }}>
