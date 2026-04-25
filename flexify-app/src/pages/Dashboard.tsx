@@ -342,22 +342,9 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page page-wrapper" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
 
-      <header className="dashboard-header" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)', padding: '2rem 0 3.5rem', textAlign: 'center', color: 'white' }}>
-        <div className="container">
-          <div className="animate-fade-in">
-            <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.25rem', color: 'white' }}>My Dashboard</h1>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', margin: 0 }}>
-              Welcome back, {user.name.split(' ')[0]}! Manage your fleet and activities here.
-            </p>
-          </div>
-        </div>
-      </header>
 
-      <div className="container" style={{ position: 'relative', marginTop: '-1.5rem', marginBottom: '3rem' }}>
-        {/* Stats Section Removed to Simplify View */}
-      </div>
+      <div className="container" style={{ paddingTop: '2rem', marginBottom: '3rem' }}>
 
-      <div className="container" style={{ marginBottom: '4rem' }}>
 
 
         {/* One-Time Verification banner — only for users/renters who haven't uploaded docs */}
@@ -409,27 +396,11 @@ export default function Dashboard() {
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>Loading...</div>
         ) : tab === 'vehicles' ? (
           <div className="dashboard-box">
-            <div className="dashboard-box-header">
-              <h3 className="dashboard-box-title">My Vehicles</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Link to="/list-vehicle" className="btn btn-primary btn-sm" style={{ padding: '0.4rem 0.75rem', fontSize: '0.875rem', height: 'auto', display: 'flex', alignItems: 'center', marginRight: '8px' }}>
-                  <Car size={16} style={{ marginRight: '6px' }} /> List New
-                </Link>
-                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Category:</label>
-                <select
-                  className="input-field"
-                  style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.875rem', height: 'auto' }}
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="All">All Categories</option>
-                  <option value="Car">Car</option>
-                  <option value="SUV">SUV</option>
-                  <option value="Van">Van</option>
-                  <option value="Bike">Bike</option>
-                  <option value="Truck">Truck</option>
-                </select>
-              </div>
+            <div className="dashboard-box-header" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <h3 className="dashboard-box-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>My Vehicles</h3>
+              <Link to="/list-vehicle" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700 }}>
+                <Car size={18} style={{ marginRight: '8px' }} /> List New
+              </Link>
             </div>
 
             {filteredVehicles.length === 0 ? (
