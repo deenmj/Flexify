@@ -183,13 +183,11 @@ export default function Explore() {
       {/* Search Header */}
       <section className="explore-header section-padding">
         <div className="container" style={{ position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
-            <h1 className="explore-title" style={{ margin: 0 }}>Explore Vehicles</h1>
-            {user?.role !== 'superadmin' && (
-              <Link to="/list-vehicle" className="quick-list-btn" style={{ height: '32px', minHeight: '32px', padding: '0 0.75rem', fontSize: '0.75rem' }}>
-                <Plus size={16} /> List Vehicle
-              </Link>
-            )}
+          <div className="explore-title-container">
+            <h1 className="explore-title">Explore Vehicles</h1>
+            <Link to="/list-vehicle" className="explore-list-btn">
+              <Plus size={18} /> <span>List Vehicle</span>
+            </Link>
           </div>
           <p className="explore-subtitle">Find the perfect vehicle for your journey</p>
           

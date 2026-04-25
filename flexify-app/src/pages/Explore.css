@@ -24,8 +24,51 @@
 
 .explore-subtitle {
   color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 1rem;
-  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.explore-title-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.explore-list-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.explore-list-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 15px rgba(24, 144, 255, 0.45);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .explore-title-container {
+    gap: 0.75rem;
+  }
+  .explore-list-btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+  .explore-list-btn span {
+    display: block;
+  }
 }
 
 .explore-controls-container {
