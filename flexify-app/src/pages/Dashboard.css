@@ -1057,8 +1057,35 @@
     margin-top: 0.5rem !important;
   }
   
+  /* Manage Vehicle Page Mobile Fixes */
+  .manage-vehicle-page .container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .manage-vehicle-page .vehicle-detail-panel {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+  
+  .manage-vehicle-page .vd-image-container {
+    height: 200px !important;
+  }
+
+  .manage-vehicle-page .vd-content {
+    padding: 1rem !important;
+  }
+  
+  .manage-vehicle-page .vd-stats-bar {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem !important;
+  }
+  
   .vd-calendar-container {
     padding: 0.5rem !important;
   }
-}  
- 
+}

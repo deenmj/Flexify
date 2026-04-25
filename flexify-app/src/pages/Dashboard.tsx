@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col, Avatar, Spin } from 'antd';
@@ -31,25 +31,11 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'confirmed' | 'past'>('all');
 
-  // Vehicle Detail Panel State
-  const [showVehicleDetail, setShowVehicleDetail] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-
-  // Calendar tab state (owner only)
-  const [calendarVehicleId, setCalendarVehicleId] = useState<string>('');
+  const navigate = useNavigate();
 
   const handleVehicleClick = (v: Vehicle) => {
-    setSelectedVehicle(v);
-    setCalendarVehicleId(v._id);
-    setShowVehicleDetail(true);
+    navigate(`/dashboard/vehicle/${v._id}`);
   };
-  const [calendarRanges, setCalendarRanges] = useState<BookedRange[]>([]);
-  const [blackoutRanges, setBlackoutRanges] = useState<BlackoutRange[]>([]);
-  const [blackouts, setBlackouts] = useState<Blackout[]>([]);
-  const [calendarLoading, setCalendarLoading] = useState(false);
-  const [showBlackoutModal, setShowBlackoutModal] = useState(false);
-  const [blackoutForm] = Form.useForm();
-  const [blackoutSaving, setBlackoutSaving] = useState(false);
 
   // Review state
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -182,62 +168,7 @@ export default function Dashboard() {
     };
   }, [socket, user]);
 
-  // Fetch calendar availability & blackouts when vehicle changes
-  useEffect(() => {
-    if (!calendarVehicleId) return;
-    setCalendarLoading(true);
 
-    Promise.all([
-      vehicleApi.getAvailability(calendarVehicleId),
-      blackoutApi.getForVehicle(calendarVehicleId)
-    ])
-      .then(([availData, blackoutData]) => {
-        setCalendarRanges(availData.bookedRanges);
-        setBlackoutRanges(availData.blackoutRanges);
-        setBlackouts(blackoutData);
-      })
-      .catch(() => {
-        setCalendarRanges([]);
-        setBlackoutRanges([]);
-        setBlackouts([]);
-      })
-      .finally(() => setCalendarLoading(false));
-  }, [calendarVehicleId]);
-
-  const handleAddBlackout = async (values: any) => {
-    if (!values.dates || !values.dates[0] || !values.dates[1]) return;
-    if (!calendarVehicleId) return;
-
-    setBlackoutSaving(true);
-    try {
-      const newBlackout = await blackoutApi.create(
-        calendarVehicleId,
-        values.dates[0].toISOString(),
-        values.dates[1].toISOString(),
-        values.reason
-      );
-      setBlackouts([...blackouts, newBlackout]);
-      setBlackoutRanges([...blackoutRanges, { start: newBlackout.startDate, end: newBlackout.endDate }]);
-      message.success('Blackout period added successfully');
-      setShowBlackoutModal(false);
-      blackoutForm.resetFields();
-    } catch (err: any) {
-      message.error(err.message || 'Failed to add blackout period');
-    } finally {
-      setBlackoutSaving(false);
-    }
-  };
-
-  const handleDeleteBlackout = async (id: string, startDay: string, endDay: string) => {
-    try {
-      await blackoutApi.delete(id);
-      setBlackouts(prev => prev.filter(b => b._id !== id));
-      setBlackoutRanges(prev => prev.filter(br => br.start !== startDay || br.end !== endDay));
-      message.success('Blackout period removed');
-    } catch (err: any) {
-      message.error(err.message || 'Failed to remove blackout');
-    }
-  };
 
   const handleToggleStatus = async (id: string) => {
     try {
@@ -1100,218 +1031,6 @@ export default function Dashboard() {
         ) : <Spin />}
       </Modal>
 
-      {/* VEHICLE DETAIL PANEL MODAL */}
-      <Modal
-        title={null}
-        open={showVehicleDetail}
-        onCancel={() => {
-          setShowVehicleDetail(false);
-          setSelectedVehicle(null);
-          setCalendarVehicleId('');
-        }}
-        footer={null}
-        width={800}
-        className="vehicle-detail-modal"
-        destroyOnClose
-      >
-        {selectedVehicle ? (
-          <div className="vehicle-detail-panel">
-            <div className="vd-header">
-              <div className="vd-image-container">
-                {selectedVehicle.photos?.[0] ? (
-                  <img src={getImageUrl(selectedVehicle.photos[0])} alt={selectedVehicle.title} className="vd-main-image" />
-                ) : (
-                  <div className="vd-image-placeholder"><Car size={64} /></div>
-                )}
-                <div className="vd-badges">
-                  {vehicleStatusBadge(selectedVehicle.status, selectedVehicle.isActive)}
-                </div>
-              </div>
-              <div className="vd-title-bar">
-                <div>
-                  <h2 className="vd-title">{selectedVehicle.title}</h2>
-                  <p className="vd-subtitle">{selectedVehicle.make} {selectedVehicle.model} • {selectedVehicle.year}</p>
-                </div>
-                <div className="vd-price">
-                  <span className="vd-price-amount">LKR {selectedVehicle.pricePerDay.toLocaleString()}</span>
-                  <span className="vd-price-unit">/day</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="vd-content">
-              {/* Stats Bar */}
-              <div className="vd-stats-bar">
-                <div className="vd-stat-item">
-                  <div className="stat-icon-wrap" style={{ background: '#fef3c7', color: '#d97706' }}><Star size={20} /></div>
-                  <div className="vd-stat-info">
-                    <span className="vd-stat-value">{selectedVehicle.averageRating > 0 ? selectedVehicle.averageRating.toFixed(1) : 'N/A'}</span>
-                    <span className="vd-stat-label">Rating</span>
-                  </div>
-                </div>
-                <div className="vd-stat-item">
-                  <div className="stat-icon-wrap" style={{ background: '#e0e7ff', color: '#4f46e5' }}><CheckCircle size={20} /></div>
-                  <div className="vd-stat-info">
-                    <span className="vd-stat-value">{selectedVehicle.totalBookings || 0}</span>
-                    <span className="vd-stat-label">Total Bookings</span>
-                  </div>
-                </div>
-                <div className="vd-stat-item">
-                  <div className="stat-icon-wrap" style={{ background: '#dcfce7', color: '#16a34a' }}><Zap size={20} /></div>
-                  <div className="vd-stat-info">
-                    <span className="vd-stat-value">{selectedVehicle.isBoosted ? 'Yes' : 'No'}</span>
-                    <span className="vd-stat-label">Boosted</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <Link to={`/vehicles/${selectedVehicle._id}`} className="btn" style={{ flex: 1, background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', justifyContent: 'center' }}>
-                  <Eye size={18} style={{ marginRight: '8px' }} /> View Public Page
-                </Link>
-                <Link to={`/vehicles/edit/${selectedVehicle._id}`} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
-                  <Edit size={18} style={{ marginRight: '8px' }} /> Edit Vehicle Details
-                </Link>
-              </div>
-
-              {/* Reviews Section */}
-              <div className="vd-section">
-                <div className="vd-section-header">
-                  <h3><MessageSquare size={18} /> Reviews & Ratings</h3>
-                  <span className="vd-review-count">
-                    {reviews.filter(r => {
-                      const vId = typeof r.vehicle === 'object' ? (r.vehicle as any)._id : r.vehicle;
-                      const bVId = typeof r.booking === 'object' ? ((r.booking as any).vehicle?._id || (r.booking as any).vehicle) : null;
-                      return vId === selectedVehicle._id || bVId === selectedVehicle._id;
-                    }).length} Reviews
-                  </span>
-                </div>
-                <div className="vd-reviews-list">
-                  {(() => {
-                    const vehicleReviews = reviews.filter(r => {
-                      const vId = typeof r.vehicle === 'object' ? (r.vehicle as any)._id : r.vehicle;
-                      const bVId = typeof r.booking === 'object' ? ((r.booking as any).vehicle?._id || (r.booking as any).vehicle) : null;
-                      return vId === selectedVehicle._id || bVId === selectedVehicle._id;
-                    });
-                    
-                    if (vehicleReviews.length === 0) {
-                      return (
-                        <div className="vd-empty-state">
-                          <MessageSquare size={32} color="#cbd5e1" />
-                          <p>No reviews yet for this vehicle.</p>
-                        </div>
-                      );
-                    }
-                    return vehicleReviews.map(r => (
-                      <div key={r._id} className="vd-review-item">
-                        <div className="vd-review-header">
-                          <div className="vd-reviewer">
-                            <Avatar size={32} src={getImageUrl((r.user as any)?.profilePic)}>{(r.user as any)?.name?.charAt(0)}</Avatar>
-                            <span className="vd-reviewer-name">{(r.user as any)?.name || 'User'}</span>
-                          </div>
-                          <span className="vd-review-date">{dayjs(r.createdAt).format('MMM D, YYYY')}</span>
-                        </div>
-                        <div className="vd-review-stars">
-                          <Rate disabled defaultValue={r.rating} style={{ fontSize: '14px' }} />
-                        </div>
-                        <p className="vd-review-text">{r.comment}</p>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              </div>
-
-              {/* Calendar & Blackout Section */}
-              <div className="vd-section">
-                <div className="vd-section-header">
-                  <h3><CalIcon size={18} /> Availability & Blackouts</h3>
-                  <Button type="primary" icon={<AlertTriangle size={14} />} onClick={() => setShowBlackoutModal(true)}>
-                    Add Blackout
-                  </Button>
-                </div>
-                <div className="vd-calendar-container" style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px' }}>
-                  <Spin spinning={calendarLoading}>
-                    <Row gutter={[16, 16]}>
-                      <Col xs={24} md={18}>
-                        <Calendar 
-                          className="vd-custom-calendar" 
-                          fullscreen={false} 
-                          cellRender={calendarCellRender}
-                        />
-                      </Col>
-                      <Col xs={24} md={6}>
-                        <div className="avail-legend-vertical" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
-                            <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
-                            Booked / Blackout
-                          </span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
-                            <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
-                            Pending
-                          </span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
-                            <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
-                            Available
-                          </span>
-                        </div>
-                      </Col>
-                    </Row>
-                  </Spin>
-                </div>
-                
-                {blackouts.length > 0 && (
-                  <div className="vd-blackouts-list">
-                    <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.95rem', color: '#64748b' }}>Active Blackouts</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {blackouts.map(b => (
-                        <div key={b._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#fff1f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
-                          <div>
-                            <div style={{ fontWeight: 600, color: '#991b1b', fontSize: '0.9rem' }}>
-                              {dayjs(b.startDate).format('MMM D, YYYY')} - {dayjs(b.endDate).format('MMM D, YYYY')}
-                            </div>
-                            <div style={{ color: '#b91c1c', fontSize: '0.8rem', marginTop: '4px' }}>{b.reason || 'No reason provided'}</div>
-                          </div>
-                          <Button 
-                            danger 
-                            type="text" 
-                            icon={<Trash2 size={16} />} 
-                            onClick={() => handleDeleteBlackout(b._id, b.startDate, b.endDate)}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : <Spin />}
-      </Modal>
-
-      {/* ADD BLACKOUT MODAL */}
-      <Modal
-        title="Add Blackout Period"
-        open={showBlackoutModal}
-        onCancel={() => {
-          setShowBlackoutModal(false);
-          blackoutForm.resetFields();
-        }}
-        footer={null}
-        destroyOnClose
-      >
-        <Form form={blackoutForm} layout="vertical" onFinish={handleAddBlackout} style={{ marginTop: '1rem' }}>
-          <Form.Item name="dates" label="Select Date Range" rules={[{ required: true, message: 'Please select dates' }]}>
-            <RangePicker style={{ width: '100%' }} disabledDate={(current) => current && current < dayjs().startOf('day')} />
-          </Form.Item>
-          <Form.Item name="reason" label="Reason (Optional)">
-            <Input.TextArea rows={3} placeholder="e.g. Vehicle maintenance, Personal use" />
-          </Form.Item>
-          <Button type="primary" htmlType="submit" loading={blackoutSaving} block danger style={{ height: '44px' }}>
-            Confirm Blackout
-          </Button>
-        </Form>
-      </Modal>
     </div>
   );
 }

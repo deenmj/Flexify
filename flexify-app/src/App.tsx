@@ -31,6 +31,7 @@ import SubscriptionManagement from './pages/SubscriptionManagement';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Notifications from './pages/Notifications';
 import EditVehicle from './pages/EditVehicle';
+import ManageVehicle from './pages/ManageVehicle';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -116,6 +117,7 @@ export default function App() {
               <Route path="/list-vehicle" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ListVehicle /></ProtectedRoute></NoFooterLayout>} />
               <Route path="/dashboard" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><Dashboard /></ProtectedRoute></AppLayout>} />
               <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
+              <Route path="/dashboard/vehicle/:id" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ManageVehicle /></ProtectedRoute></AppLayout>} />
               <Route path="/vehicles/edit/:id" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></AppLayout>} />
               <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
 

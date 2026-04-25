@@ -1,0 +1,436 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { 
+  Car, Star, CheckCircle, Zap, Eye, Edit, MessageSquare, 
+  Calendar as CalIcon, AlertTriangle, Trash2, ArrowLeft
+} from 'lucide-react';
+import { vehicleApi, bookingApi, reviewApi, blackoutApi, getImageUrl } from '../api';
+import { useAuth } from '../context/AuthContext';
+import dayjs, { Dayjs } from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
+
+import { Spin, Calendar, Form, Input, Button, Row, Col, DatePicker, message, Avatar, Rate, Modal, Tag } from 'antd';
+import './Dashboard.css'; // Reusing dashboard styles
+
+dayjs.extend(isBetween);
+const { RangePicker } = DatePicker;
+
+// Define basic interfaces locally or export from somewhere
+interface Vehicle {
+  _id: string;
+  title: string;
+  make: string;
+  model: string;
+  year: number;
+  pricePerDay: number;
+  status: string;
+  isActive: boolean;
+  averageRating: number;
+  totalBookings: number;
+  isBoosted: boolean;
+  photos: any[];
+}
+
+interface Booking {
+  _id: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  user: any;
+}
+
+interface Review {
+  _id: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  user?: any;
+  reviewer?: any;
+  vehicle: any;
+  booking: any;
+}
+
+interface Blackout {
+  _id: string;
+  startDate: string;
+  endDate: string;
+  reason?: string;
+}
+
+export default function ManageVehicle() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // States copied from Dashboard
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  
+  // Calendar & Blackouts
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [blackouts, setBlackouts] = useState<Blackout[]>([]);
+  const [showBlackoutModal, setShowBlackoutModal] = useState(false);
+  const [blackoutSaving, setBlackoutSaving] = useState(false);
+  const [blackoutForm] = Form.useForm();
+
+  const loadData = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      // Fetch specific vehicle
+      const v = await vehicleApi.getById(id);
+      setVehicle(v);
+
+      // Fetch all bookings for the owner and filter by vehicle (or just fetch bookings for vehicle)
+      // We will fetch all owner bookings and filter, to match Dashboard logic, 
+      // but ideally we should fetch specifically for this vehicle.
+      // Since bookingApi.getMy() gets all owner bookings:
+      const allBookings = await bookingApi.getMy().catch(() => []);
+      const vBookings = (allBookings as any[]).filter(b => {
+        const vId = typeof b.vehicle === 'object' ? b.vehicle._id : b.vehicle;
+        return vId === id;
+      });
+      setBookings(vBookings);
+
+      // Fetch reviews
+      const allReviews = await reviewApi.getMyReviews().catch(() => []);
+      setReviews(allReviews as any[]);
+
+      // Fetch blackouts
+      const bOuts = await blackoutApi.getForVehicle(id).catch(() => []);
+      setBlackouts(bOuts);
+
+    } catch (error: any) {
+      message.error("Failed to load vehicle data");
+      navigate('/dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [id]);
+
+  const calendarCellRender = useCallback((date: Dayjs) => {
+    // 1. Regular Bookings (Only Confirmed or Pending)
+    const matchingBookings = bookings.filter((b) => {
+      if (b.status !== 'CONFIRMED' && b.status !== 'PENDING') return false;
+      const start = dayjs(b.startDate).startOf('day');
+      const end = dayjs(b.endDate).endOf('day');
+      return date.isBetween(start, end, 'day', '[]');
+    });
+
+    // 2. Blackout Dates
+    const matchingBlackouts = blackouts.filter((b) => {
+      const start = dayjs(b.startDate).startOf('day');
+      const end = dayjs(b.endDate).endOf('day');
+      return date.isBetween(start, end, 'day', '[]');
+    });
+
+    if (matchingBookings.length === 0 && matchingBlackouts.length === 0) return null;
+
+    return (
+      <div className="avail-status-container">
+        {matchingBookings.map((b) => {
+          if (b.status === 'CONFIRMED') {
+            return (
+              <div key={b._id} className="status-indicator confirmed">
+                <span className="status-text">Booked</span>
+              </div>
+            );
+          } else {
+            return (
+              <div key={b._id} className="status-indicator pending">
+                <span className="status-text">Pending</span>
+              </div>
+            );
+          }
+        })}
+        {matchingBlackouts.map((b) => (
+          <div key={b._id} className="status-indicator blackout">
+            <span className="status-text">Unavailable</span>
+          </div>
+        ))}
+      </div>
+    );
+  }, [bookings, blackouts]);
+
+  const handleAddBlackout = async (values: any) => {
+    if (!values.dates || !values.dates[0] || !values.dates[1] || !id) return;
+
+    setBlackoutSaving(true);
+    try {
+      const newBlackout = await blackoutApi.create(
+        id,
+        values.dates[0].toISOString(),
+        values.dates[1].toISOString(),
+        values.reason
+      );
+      setBlackouts([...blackouts, newBlackout]);
+      message.success('Blackout period added successfully');
+      setShowBlackoutModal(false);
+      blackoutForm.resetFields();
+    } catch (err: any) {
+      message.error(err.message || 'Failed to add blackout period');
+    } finally {
+      setBlackoutSaving(false);
+    }
+  };
+
+  const handleDeleteBlackout = async (bId: string) => {
+    try {
+      await blackoutApi.delete(bId);
+      setBlackouts(prev => prev.filter(b => b._id !== bId));
+      message.success('Blackout period removed');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to remove blackout');
+    }
+  };
+
+  const vehicleStatusBadge = (status: string, isActive: boolean) => {
+    if (status === 'pending') return <Tag color="warning">Pending</Tag>;
+    if (status === 'rejected') return <Tag color="error">Rejected</Tag>;
+    if (!isActive) return <Tag color="error">Hidden</Tag>;
+    return <Tag color="success">Active</Tag>;
+  };
+
+  if (loading) {
+    return (
+      <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!vehicle) {
+    return (
+      <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
+        <h2>Vehicle not found</h2>
+        <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+      </div>
+    );
+  }
+
+  // Filter reviews for this vehicle
+  const vehicleReviews = reviews.filter(r => {
+    const vId = typeof r.vehicle === 'object' ? r.vehicle._id : r.vehicle;
+    const bVId = typeof r.booking === 'object' ? (r.booking.vehicle?._id || r.booking.vehicle) : null;
+    return vId === id || bVId === id;
+  });
+
+  return (
+    <div className="manage-vehicle-page" style={{ paddingBottom: '4rem' }}>
+      <div className="container" style={{ paddingTop: '2rem' }}>
+        <button onClick={() => navigate('/dashboard')} className="btn btn-secondary btn-sm" style={{ marginBottom: '1.5rem', display: 'inline-flex', alignItems: 'center' }}>
+          <ArrowLeft size={16} style={{ marginRight: '8px' }} /> Back to Dashboard
+        </button>
+
+        <div className="vehicle-detail-panel" style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <div className="vd-header">
+            <div className="vd-image-container" style={{ height: '240px' }}>
+              {vehicle.photos?.[0] ? (
+                <img src={getImageUrl(vehicle.photos[0])} alt={vehicle.title} className="vd-main-image" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div className="vd-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}><Car size={64} color="#94a3b8" /></div>
+              )}
+              <div className="vd-badges" style={{ position: 'absolute', top: '16px', right: '16px' }}>
+                {vehicleStatusBadge(vehicle.status, vehicle.isActive)}
+              </div>
+            </div>
+            
+            <div className="vd-title-bar" style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 className="vd-title" style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>{vehicle.title}</h2>
+                <p className="vd-subtitle" style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '1rem' }}>{vehicle.make} {vehicle.model} • {vehicle.year}</p>
+              </div>
+              <div className="vd-price">
+                <span className="vd-price-amount" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary-color)' }}>LKR {vehicle.pricePerDay.toLocaleString()}</span>
+                <span className="vd-price-unit" style={{ color: '#64748b', marginLeft: '4px' }}>/day</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="vd-content" style={{ padding: '1.5rem' }}>
+            {/* Stats Bar */}
+            <div className="vd-stats-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+              <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fef3c7', color: '#d97706' }}><Star size={20} /></div>
+                <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'N/A'}</span>
+                  <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rating</span>
+                </div>
+              </div>
+              <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4f46e5' }}><CheckCircle size={20} /></div>
+                <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.totalBookings || 0}</span>
+                  <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Bookings</span>
+                </div>
+              </div>
+              <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#dcfce7', color: '#16a34a' }}><Zap size={20} /></div>
+                <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.isBoosted ? 'Yes' : 'No'}</span>
+                  <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Boosted</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+              <Link to={`/vehicles/${vehicle._id}`} className="btn" style={{ flex: '1 1 auto', minWidth: '200px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', justifyContent: 'center', height: '48px' }}>
+                <Eye size={18} style={{ marginRight: '8px' }} /> View Public Page
+              </Link>
+              <Link to={`/vehicles/edit/${vehicle._id}`} className="btn btn-primary" style={{ flex: '1 1 auto', minWidth: '200px', justifyContent: 'center', height: '48px' }}>
+                <Edit size={18} style={{ marginRight: '8px' }} /> Edit Vehicle Details
+              </Link>
+            </div>
+
+            <Row gutter={[32, 32]}>
+              {/* Left Column: Calendar */}
+              <Col xs={24} lg={14}>
+                <div className="vd-section">
+                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}><CalIcon size={20} /> Availability & Blackouts</h3>
+                    <Button type="primary" icon={<AlertTriangle size={14} />} onClick={() => setShowBlackoutModal(true)}>
+                      Add Blackout
+                    </Button>
+                  </div>
+                  
+                  <div className="vd-calendar-container" style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                    <Spin spinning={calendarLoading}>
+                      <Calendar 
+                        className="vd-custom-calendar" 
+                        fullscreen={false} 
+                        cellRender={calendarCellRender}
+                      />
+                      
+                      <div className="avail-legend-vertical" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
+                          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
+                          Booked / Blackout
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
+                          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
+                          Pending
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500 }}>
+                          <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
+                          Available
+                        </span>
+                      </div>
+                    </Spin>
+                  </div>
+
+                  {blackouts.length > 0 && (
+                    <div className="vd-blackouts-list" style={{ marginTop: '2rem' }}>
+                      <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#1e293b' }}>Active Blackouts</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {blackouts.map(b => (
+                          <div key={b._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: '#fff1f2', borderRadius: '12px', border: '1px solid #fecaca' }}>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#991b1b', fontSize: '0.95rem' }}>
+                                {dayjs(b.startDate).format('MMM D, YYYY')} - {dayjs(b.endDate).format('MMM D, YYYY')}
+                              </div>
+                              <div style={{ color: '#b91c1c', fontSize: '0.85rem', marginTop: '6px' }}>{b.reason || 'No reason provided'}</div>
+                            </div>
+                            <Button 
+                              danger 
+                              type="text" 
+                              icon={<Trash2 size={18} />} 
+                              onClick={() => handleDeleteBlackout(b._id)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Col>
+
+              {/* Right Column: Reviews */}
+              <Col xs={24} lg={10}>
+                <div className="vd-section">
+                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquare size={20} /> Reviews & Ratings</h3>
+                    <span className="vd-review-count" style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}>
+                      {vehicleReviews.length} Reviews
+                    </span>
+                  </div>
+                  
+                  <div className="vd-reviews-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {vehicleReviews.length === 0 ? (
+                      <div className="vd-empty-state" style={{ padding: '3rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
+                        <MessageSquare size={40} color="#94a3b8" style={{ margin: '0 auto 1rem' }} />
+                        <p style={{ color: '#64748b', margin: 0 }}>No reviews yet for this vehicle.</p>
+                      </div>
+                    ) : (
+                      vehicleReviews.map(r => {
+                        // Support populated nested user or reviewer
+                        const reviewer = r.reviewer || r.user || {};
+                        return (
+                          <div key={r._id} className="vd-review-item" style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                            <div className="vd-review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                              <div className="vd-reviewer" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <Avatar size={40} src={getImageUrl(reviewer.profilePic)} style={{ backgroundColor: 'var(--primary-color)' }}>
+                                  {reviewer.name?.charAt(0) || 'U'}
+                                </Avatar>
+                                <div>
+                                  <div className="vd-reviewer-name" style={{ fontWeight: 600, color: '#1e293b' }}>{reviewer.name || 'User'}</div>
+                                  <div className="vd-review-date" style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="vd-review-stars" style={{ marginBottom: '0.75rem' }}>
+                              <Rate disabled defaultValue={r.rating} style={{ fontSize: '14px', color: '#f59e0b' }} />
+                            </div>
+                            <p className="vd-review-text" style={{ margin: 0, color: '#475569', lineHeight: 1.6 }}>{r.comment}</p>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </div>
+        </div>
+      </div>
+
+      {/* ADD BLACKOUT MODAL */}
+      <Modal
+        title={
+          <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>Add Blackout Period</div>
+        }
+        open={showBlackoutModal}
+        onCancel={() => {
+          setShowBlackoutModal(false);
+          blackoutForm.resetFields();
+        }}
+        footer={null}
+        destroyOnClose
+        centered
+        className="premium-modal"
+      >
+        <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+          Mark dates as unavailable. Bookings cannot be made during these periods.
+        </p>
+        <Form form={blackoutForm} layout="vertical" onFinish={handleAddBlackout}>
+          <Form.Item name="dates" label={<span style={{ fontWeight: 500 }}>Select Date Range</span>} rules={[{ required: true, message: 'Please select dates' }]}>
+            <RangePicker style={{ width: '100%', height: '44px', borderRadius: '8px' }} disabledDate={(current) => current && current < dayjs().startOf('day')} />
+          </Form.Item>
+          <Form.Item name="reason" label={<span style={{ fontWeight: 500 }}>Reason (Optional)</span>}>
+            <Input.TextArea rows={4} placeholder="e.g. Vehicle maintenance, Personal use" style={{ borderRadius: '8px', padding: '12px' }} />
+          </Form.Item>
+          <Button type="primary" htmlType="submit" loading={blackoutSaving} block danger style={{ height: '48px', borderRadius: '8px', fontWeight: 600, fontSize: '1rem', marginTop: '0.5rem' }}>
+            Confirm Blackout
+          </Button>
+        </Form>
+      </Modal>
+    </div>
+  );
+}
