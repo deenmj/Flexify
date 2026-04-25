@@ -300,15 +300,20 @@ export default function ManageVehicle() {
             <Row gutter={[32, 32]}>
               {/* Full Width: Calendar */}
               <Col span={24}>
-                <div className="vd-section">
-                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div className="vd-section" style={{ marginBottom: '3rem' }}>
+                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', padding: '0 1rem' }}>
                     <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}><CalIcon size={24} /> Availability & Blackouts</h3>
                     <Button type="primary" icon={<AlertTriangle size={16} />} onClick={() => setShowBlackoutModal(true)} style={{ height: '40px', borderRadius: '8px', fontWeight: 600 }}>
                       Add Blackout
                     </Button>
                   </div>
                   
-                  <div className="vd-calendar-container" style={{ padding: '1rem', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                  {/* Vertical Scroll Handle for Mobile */}
+                  <div className="mobile-scroll-hint" style={{ textAlign: 'center', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '8px', display: 'none' }}>
+                    Swipe left/right on calendar • Scroll up/down here
+                  </div>
+
+                  <div className="vd-calendar-container" style={{ padding: '0.5rem', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: '2rem' }}>
                     <Spin spinning={calendarLoading}>
                       <Calendar 
                         className="vd-custom-calendar" 
@@ -335,7 +340,7 @@ export default function ManageVehicle() {
                   </div>
 
                   {blackouts.length > 0 && (
-                    <div className="vd-blackouts-list" style={{ marginTop: '2rem' }}>
+                    <div className="vd-blackouts-list" style={{ marginTop: '3rem', padding: '0 1rem' }}>
                       <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: 600, color: '#1e293b' }}>Active Blackouts</h4>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
                         {blackouts.map(b => (
@@ -363,15 +368,15 @@ export default function ManageVehicle() {
 
               {/* Reviews moved below */}
               <Col span={24}>
-                <div className="vd-section" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '3rem', marginTop: '1rem' }}>
-                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div className="vd-section" style={{ borderTop: '2px solid #f1f5f9', paddingTop: '4rem', marginTop: '2rem', paddingBottom: '6rem' }}>
+                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', padding: '0 1rem' }}>
                     <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}><MessageSquare size={24} /> Reviews & Ratings</h3>
                     <span className="vd-review-count" style={{ fontSize: '1rem', color: '#64748b', fontWeight: 600, background: '#f1f5f9', padding: '4px 12px', borderRadius: '20px' }}>
                       {vehicleReviews.length} Reviews
                     </span>
                   </div>
                   
-                  <div className="vd-reviews-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
+                  <div className="vd-reviews-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem', padding: '0 1rem' }}>
                     {vehicleReviews.length === 0 ? (
                       <div className="vd-empty-state" style={{ gridColumn: '1 / -1', padding: '4rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
                         <MessageSquare size={48} color="#94a3b8" style={{ margin: '0 auto 1.5rem' }} />
