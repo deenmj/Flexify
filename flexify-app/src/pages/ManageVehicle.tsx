@@ -262,150 +262,156 @@ export default function ManageVehicle() {
           </div>
 
           <div className="vd-content" style={{ padding: '1.5rem' }}>
-            {/* Stats Bar */}
-            <div className="vd-stats-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-              <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fef3c7', color: '#d97706' }}><Star size={20} /></div>
-                <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'N/A'}</span>
-                  <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rating</span>
-                </div>
+            {/* 1. THE CENTERPIECE: FULL AVAILABILITY CALENDAR */}
+            <div className="vd-section" style={{ marginBottom: '3rem' }}>
+              <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '12px', color: '#0f172a' }}>
+                  <CalIcon size={28} style={{ color: 'var(--primary-color)' }} /> Availability & Blackouts
+                </h3>
+                <Button 
+                  type="primary" 
+                  size="large"
+                  icon={<AlertTriangle size={18} />} 
+                  onClick={() => setShowBlackoutModal(true)}
+                  style={{ height: '48px', borderRadius: '12px', fontWeight: 700, boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.2)' }}
+                >
+                  Add Blackout Period
+                </Button>
               </div>
-              <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4f46e5' }}><CheckCircle size={20} /></div>
-                <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.totalBookings || 0}</span>
-                  <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Bookings</span>
-                </div>
-              </div>
-              <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#dcfce7', color: '#16a34a' }}><Zap size={20} /></div>
-                <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.isBoosted ? 'Yes' : 'No'}</span>
-                  <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Boosted</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
-              <Link to={`/vehicles/${vehicle._id}`} className="btn" style={{ flex: '1 1 auto', minWidth: '200px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', justifyContent: 'center', height: '48px' }}>
-                <Eye size={18} style={{ marginRight: '8px' }} /> View Public Page
-              </Link>
-              <Link to={`/vehicles/edit/${vehicle._id}`} className="btn btn-primary" style={{ flex: '1 1 auto', minWidth: '200px', justifyContent: 'center', height: '48px' }}>
-                <Edit size={18} style={{ marginRight: '8px' }} /> Edit Vehicle Details
-              </Link>
-            </div>
-
-            <Row gutter={[32, 32]}>
-              {/* Full Width: Calendar */}
-              <Col span={24}>
-                <div className="vd-section">
-                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}><CalIcon size={24} /> Availability & Blackouts</h3>
-                    <Button type="primary" icon={<AlertTriangle size={16} />} onClick={() => setShowBlackoutModal(true)} style={{ height: '40px', borderRadius: '8px', fontWeight: 600 }}>
-                      Add Blackout
-                    </Button>
-                  </div>
-                  
-                  <div className="vd-calendar-container" style={{ padding: '1rem', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                    <Spin spinning={calendarLoading}>
-                      <Calendar 
-                        className="vd-custom-calendar" 
-                        fullscreen={true} 
-                        cellRender={calendarCellRender}
-                        onSelect={onCalendarSelect}
-                      />
-                      
-                      <div className="avail-legend-horizontal" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: '2rem', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', fontWeight: 600 }}>
-                          <span style={{ width: '16px', height: '16px', borderRadius: '4px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
-                          Booked / Blackout
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', fontWeight: 600 }}>
-                          <span style={{ width: '16px', height: '16px', borderRadius: '4px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
-                          Pending
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', fontWeight: 600 }}>
-                          <span style={{ width: '16px', height: '16px', borderRadius: '4px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
-                          Available
-                        </span>
+              
+              <div className="vd-calendar-container" style={{ background: '#fff', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                <Spin spinning={calendarLoading} size="large" tip="Updating availability...">
+                  <div style={{ padding: '2rem' }}>
+                    <Calendar 
+                      className="vd-custom-calendar" 
+                      fullscreen={true} 
+                      cellRender={calendarCellRender}
+                      onSelect={onCalendarSelect}
+                      style={{ minHeight: '700px' }}
+                    />
+                    
+                    <div className="avail-legend-horizontal" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: '2.5rem', marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #f1f5f9' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', fontWeight: 600 }}>
+                        <span style={{ width: '20px', height: '20px', borderRadius: '6px', background: '#fee2e2', border: '1.5px solid #fca5a5' }}></span>
+                        <span style={{ color: '#475569' }}>Booked / Blackout</span>
                       </div>
-                    </Spin>
-                  </div>
-
-                  {blackouts.length > 0 && (
-                    <div className="vd-blackouts-list" style={{ marginTop: '2rem' }}>
-                      <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: 600, color: '#1e293b' }}>Active Blackouts</h4>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
-                        {blackouts.map(b => (
-                          <div key={b._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: '#fff1f2', borderRadius: '12px', border: '1px solid #fecaca' }}>
-                            <div>
-                              <div style={{ fontWeight: 700, color: '#991b1b', fontSize: '1rem' }}>
-                                {dayjs(b.startDate).format('MMM D, YYYY')} - {dayjs(b.endDate).format('MMM D, YYYY')}
-                              </div>
-                              <div style={{ color: '#b91c1c', fontSize: '0.9rem', marginTop: '6px', fontWeight: 500 }}>{b.reason || 'No reason provided'}</div>
-                            </div>
-                            <Button 
-                              danger 
-                              type="text" 
-                              icon={<Trash2 size={20} />} 
-                              onClick={() => handleDeleteBlackout(b._id)}
-                              style={{ marginLeft: '12px' }}
-                            />
-                          </div>
-                        ))}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', fontWeight: 600 }}>
+                        <span style={{ width: '20px', height: '20px', borderRadius: '6px', background: '#fef3c7', border: '1.5px solid #fcd34d' }}></span>
+                        <span style={{ color: '#475569' }}>Pending Request</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', fontWeight: 600 }}>
+                        <span style={{ width: '20px', height: '20px', borderRadius: '6px', background: '#f0fdf4', border: '1.5px solid #86efac' }}></span>
+                        <span style={{ color: '#475569' }}>Available Date</span>
                       </div>
                     </div>
-                  )}
+                  </div>
+                </Spin>
+              </div>
+
+              {blackouts.length > 0 && (
+                <div className="vd-blackouts-list" style={{ marginTop: '2.5rem' }}>
+                  <h4 style={{ margin: '0 0 1.25rem 0', fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    Active Blackout Dates
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+                    {blackouts.map(b => (
+                      <div key={b._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#fff1f2', borderRadius: '16px', border: '1px solid #fecaca', boxShadow: '0 2px 4px rgba(225, 29, 72, 0.05)' }}>
+                        <div>
+                          <div style={{ fontWeight: 800, color: '#991b1b', fontSize: '1.1rem' }}>
+                            {dayjs(b.startDate).format('MMM D, YYYY')} - {dayjs(b.endDate).format('MMM D, YYYY')}
+                          </div>
+                          <div style={{ color: '#b91c1c', fontSize: '0.95rem', marginTop: '6px', fontWeight: 500 }}>{b.reason || 'No reason provided'}</div>
+                        </div>
+                        <Button 
+                          danger 
+                          type="primary"
+                          ghost
+                          shape="circle"
+                          icon={<Trash2 size={20} />} 
+                          onClick={() => handleDeleteBlackout(b._id)}
+                          style={{ border: 'none' }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. STATS & QUICK ACTIONS */}
+            <Row gutter={[24, 24]} style={{ marginBottom: '3rem' }}>
+              <Col xs={24} lg={16}>
+                <div className="vd-stats-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }}>
+                  <div className="vd-stat-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                    <div className="stat-icon-wrap" style={{ width: '50px', height: '50px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fef3c7', color: '#d97706', marginBottom: '0.75rem' }}><Star size={24} /></div>
+                    <span className="vd-stat-value" style={{ fontSize: '1.5rem', fontWeight: 800 }}>{vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'N/A'}</span>
+                    <span className="vd-stat-label" style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>AVERAGE RATING</span>
+                  </div>
+                  <div className="vd-stat-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                    <div className="stat-icon-wrap" style={{ width: '50px', height: '50px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4f46e5', marginBottom: '0.75rem' }}><CheckCircle size={24} /></div>
+                    <span className="vd-stat-value" style={{ fontSize: '1.5rem', fontWeight: 800 }}>{vehicle.totalBookings || 0}</span>
+                    <span className="vd-stat-label" style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>TOTAL BOOKINGS</span>
+                  </div>
+                  <div className="vd-stat-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                    <div className="stat-icon-wrap" style={{ width: '50px', height: '50px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#dcfce7', color: '#16a34a', marginBottom: '0.75rem' }}><Zap size={24} /></div>
+                    <span className="vd-stat-value" style={{ fontSize: '1.5rem', fontWeight: 800 }}>{vehicle.isBoosted ? 'Yes' : 'No'}</span>
+                    <span className="vd-stat-label" style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>BOOSTED STATUS</span>
+                  </div>
                 </div>
               </Col>
-
-              {/* Reviews moved below */}
-              <Col span={24}>
-                <div className="vd-section" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '3rem', marginTop: '1rem' }}>
-                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}><MessageSquare size={24} /> Reviews & Ratings</h3>
-                    <span className="vd-review-count" style={{ fontSize: '1rem', color: '#64748b', fontWeight: 600, background: '#f1f5f9', padding: '4px 12px', borderRadius: '20px' }}>
-                      {vehicleReviews.length} Reviews
-                    </span>
-                  </div>
-                  
-                  <div className="vd-reviews-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
-                    {vehicleReviews.length === 0 ? (
-                      <div className="vd-empty-state" style={{ gridColumn: '1 / -1', padding: '4rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
-                        <MessageSquare size={48} color="#94a3b8" style={{ margin: '0 auto 1.5rem' }} />
-                        <p style={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>No reviews yet for this vehicle.</p>
-                      </div>
-                    ) : (
-                      vehicleReviews.map(r => {
-                        // Support populated nested user or reviewer
-                        const reviewer = r.reviewer || r.user || {};
-                        return (
-                          <div key={r._id} className="vd-review-item" style={{ padding: '2rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', transition: 'transform 0.2s ease' }}>
-                            <div className="vd-review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
-                              <div className="vd-reviewer" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                <Avatar size={48} src={getImageUrl(reviewer.profilePic)} style={{ backgroundColor: 'var(--primary-color)', boxShadow: '0 0 0 2px white, 0 0 0 4px #e2e8f0' }}>
-                                  {reviewer.name?.charAt(0) || 'U'}
-                                </Avatar>
-                                <div>
-                                  <div className="vd-reviewer-name" style={{ fontWeight: 700, color: '#1e293b', fontSize: '1.05rem' }}>{reviewer.name || 'User'}</div>
-                                  <div className="vd-review-date" style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 500 }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="vd-review-stars" style={{ marginBottom: '1rem' }}>
-                              <Rate disabled defaultValue={r.rating} style={{ fontSize: '16px', color: '#f59e0b' }} />
-                            </div>
-                            <p className="vd-review-text" style={{ margin: 0, color: '#475569', lineHeight: 1.7, fontSize: '1rem' }}>{r.comment}</p>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
+              <Col xs={24} lg={8}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+                  <Link to={`/vehicles/${vehicle._id}`} className="btn" style={{ flex: 1, background: '#f1f5f9', color: '#334155', border: '1.2px solid #cbd5e1', justifyContent: 'center', fontSize: '1rem', fontWeight: 700 }}>
+                    <Eye size={20} style={{ marginRight: '10px' }} /> View Public Page
+                  </Link>
+                  <Link to={`/vehicles/edit/${vehicle._id}`} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center', fontSize: '1rem', fontWeight: 700 }}>
+                    <Edit size={20} style={{ marginRight: '10px' }} /> Edit Vehicle Details
+                  </Link>
                 </div>
               </Col>
             </Row>
+
+            {/* 3. REVIEWS SECTION */}
+            <div className="vd-section" style={{ borderTop: '2px solid #f1f5f9', paddingTop: '3rem' }}>
+              <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '12px' }}><MessageSquare size={28} /> Reviews & Ratings</h3>
+                <span className="vd-review-count" style={{ fontSize: '1.1rem', color: '#475569', fontWeight: 700, background: '#f1f5f9', padding: '6px 16px', borderRadius: '24px' }}>
+                  {vehicleReviews.length} Reviews Total
+                </span>
+              </div>
+              
+              <div className="vd-reviews-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
+                {vehicleReviews.length === 0 ? (
+                  <div className="vd-empty-state" style={{ gridColumn: '1 / -1', padding: '5rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '30px', border: '2px dashed #cbd5e1' }}>
+                    <MessageSquare size={56} color="#94a3b8" style={{ margin: '0 auto 1.5rem' }} />
+                    <p style={{ color: '#64748b', fontSize: '1.25rem', fontWeight: 600 }}>No reviews received yet.</p>
+                  </div>
+                ) : (
+                  vehicleReviews.map(r => {
+                    const reviewer = r.reviewer || r.user || {};
+                    return (
+                      <div key={r._id} className="vd-review-item" style={{ padding: '2rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                        <div className="vd-review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                          <div className="vd-reviewer" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <Avatar size={52} src={getImageUrl(reviewer.profilePic)} style={{ backgroundColor: 'var(--primary-color)', boxShadow: '0 0 0 4px #f1f5f9' }}>
+                              {reviewer.name?.charAt(0) || 'U'}
+                            </Avatar>
+                            <div>
+                              <div className="vd-reviewer-name" style={{ fontWeight: 700, color: '#0f172a', fontSize: '1.1rem' }}>{reviewer.name || 'Anonymous User'}</div>
+                              <div className="vd-review-date" style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 500 }}>{dayjs(r.createdAt).format('MMMM D, YYYY')}</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="vd-review-stars" style={{ marginBottom: '1rem' }}>
+                          <Rate disabled defaultValue={r.rating} style={{ fontSize: '18px', color: '#f59e0b' }} />
+                        </div>
+                        <p className="vd-review-text" style={{ margin: 0, color: '#334155', lineHeight: 1.8, fontSize: '1.05rem' }}>{r.comment}</p>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
