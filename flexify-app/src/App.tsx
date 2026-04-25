@@ -57,6 +57,15 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function NoNavbarLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="page-wrapper">
+      <main className="main-content">{children}</main>
+      <GlobalFeedback />
+    </div>
+  );
+}
+
 import { SocketProvider } from './context/SocketContext';
 
 import { Navigate } from 'react-router-dom';
@@ -111,8 +120,8 @@ export default function App() {
               <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
 
               {/* Admin dashboards */}
-              <Route path="/admin" element={<AppLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></AppLayout>} />
-              <Route path="/subadmin" element={<AppLayout><ProtectedRoute roles={['subadmin', 'superadmin']}><SubAdminDashboard /></ProtectedRoute></AppLayout>} />
+              <Route path="/admin" element={<NoNavbarLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
+              <Route path="/subadmin" element={<NoNavbarLayout><ProtectedRoute roles={['subadmin', 'superadmin']}><SubAdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
               
               {/* Catch-all 404 Route */}
               <Route path="*" element={<NotFound />} />
