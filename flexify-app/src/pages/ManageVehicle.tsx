@@ -10,6 +10,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 
 import { Spin, Calendar, Form, Input, Button, Row, Col, DatePicker, message, Avatar, Rate, Modal, Tag } from 'antd';
+import { useIsMobile } from '../hooks/useIsMobile';
 import './Dashboard.css'; // Reusing dashboard styles
 
 dayjs.extend(isBetween);
@@ -61,6 +62,7 @@ export default function ManageVehicle() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile(640);
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -317,7 +319,7 @@ export default function ManageVehicle() {
                     <Spin spinning={calendarLoading}>
                       <Calendar 
                         className="vd-custom-calendar" 
-                        fullscreen={true} 
+                        fullscreen={!isMobile} 
                         cellRender={calendarCellRender}
                         onSelect={onCalendarSelect}
                       />
