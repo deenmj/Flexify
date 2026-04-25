@@ -106,24 +106,12 @@ export default function Navbar() {
               <Link to="/home" className="nav-link nav-link-highlight">
                 <Home size={18} /> Home
               </Link>
-              <NavDropdown
-                label="Fleet & Brands"
-                items={[
-                  { label: 'Premium Cars', href: '/explore?type=Car', icon: Car, desc: 'Standard & luxury sedans' },
-                  { label: 'Family SUVs', href: '/explore?type=SUV', icon: Users, desc: 'Spacious 7-seater vehicles' },
-                  { label: 'Vans & Minivans', href: '/explore?type=Van', icon: Globe, desc: 'Group transportation' },
-                  { label: 'Heavy Trucks', href: '/explore?type=Truck', icon: Zap, desc: 'For heavy cargo needs' },
-                  { label: 'Motorbikes', href: '/explore?type=Bike', icon: Zap, desc: 'Quick city travel' },
-                ]}
-              />
-              <NavDropdown
-                label="Host"
-                items={[
-                  { label: 'List your Vehicle', href: '/list-vehicle', icon: Car, desc: 'Start earning today' },
-                  { label: 'Pricing & Tiers', href: '/subscription', icon: DollarSign, desc: 'Subscription plans' },
-                  { label: 'Listing Guide', href: '/help', icon: HelpCircle, desc: 'How to get started' },
-                ]}
-              />
+              <Link to="/explore" className="nav-link">
+                <Compass size={18} /> Explore
+              </Link>
+              <Link to="/list-vehicle" className="nav-link">
+                <Car size={18} /> List Vehicle
+              </Link>
               <NavDropdown
                 label="Company"
                 items={[
@@ -265,10 +253,8 @@ export default function Navbar() {
               )}
               <div className="mobile-section-title">Main Menu</div>
               <Link to="/home" className="mobile-link" onClick={() => setMobileOpen(false)}><Home size={18} /> Home</Link>
-              <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}><Compass size={18} /> Explore Vehicles</Link>
-              {!isSuperAdmin && (
-                 <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List your Vehicle</Link>
-              )}
+              <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}><Compass size={18} /> Explore</Link>
+              <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List Vehicle</Link>
 
               {user && (
                 <>
