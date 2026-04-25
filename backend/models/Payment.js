@@ -9,7 +9,7 @@ const paymentSchema = new mongoose.Schema(
     },
     tier: {
       type: String,
-      enum: ["BASIC", "STANDARD", "ENTERPRISE"],
+      enum: ["STANDARD", "PRO"],
       required: true,
     },
     duration: {

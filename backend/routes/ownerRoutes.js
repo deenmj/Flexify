@@ -36,7 +36,7 @@ const paymentUpload = multer({
 router.post("/subscribe", protect, paymentUpload.single("receipt"), async (req, res) => {
   try {
     const { tier, duration, amount, reference } = req.body;
-    if (!['BASIC', 'STANDARD', 'ENTERPRISE'].includes(tier)) {
+    if (!['STANDARD', 'PRO'].includes(tier)) {
       return res.status(400).json({ message: "Invalid tier" });
     }
     if (!['MONTHLY', 'BI_ANNUAL'].includes(duration)) {

@@ -16,7 +16,8 @@ const manageSubscriptions = async () => {
     // 1. Find users needing 7-day reminder
     const sevenDaysFromNow = new Date(now.getTime() + 7 * oneDay);
     const users7d = await User.find({
-        "subscription.status": { $in: ["active", "trial"] },
+        "subscription.status": "active",
+        "subscription.tier": { $in: ["STANDARD", "PRO"] },
         "subscription.endDate": { 
             $gte: new Date(sevenDaysFromNow.setHours(0,0,0,0)), 
             $lt: new Date(sevenDaysFromNow.setHours(23,59,59,999)) 
@@ -31,7 +32,8 @@ const manageSubscriptions = async () => {
     // 2. Find users needing 1-day reminder
     const oneDayFromNow = new Date(now.getTime() + oneDay);
     const users1d = await User.find({
-        "subscription.status": { $in: ["active", "trial"] },
+        "subscription.status": "active",
+        "subscription.tier": { $in: ["STANDARD", "PRO"] },
         "subscription.endDate": { 
             $gte: new Date(oneDayFromNow.setHours(0,0,0,0)), 
             $lt: new Date(oneDayFromNow.setHours(23,59,59,999)) 
@@ -45,7 +47,8 @@ const manageSubscriptions = async () => {
 
     // 3. Mark as EXPIRED when endDate is passed
     const expiredUsers = await User.find({
-        "subscription.status": { $in: ["active", "trial"] },
+        "subscription.status": "active",
+        "subscription.tier": { $in: ["STANDARD", "PRO"] },
         "subscription.endDate": { $lt: now }
     });
 

@@ -178,13 +178,13 @@ export const updateUserRole = async (req, res) => {
       user.ownerType = null;
     }
 
-    // Subadmins and superadmins are auto KYC verified + free enterprise subscription
+    // Subadmins and superadmins are auto KYC verified + free PRO subscription
     if (role === "subadmin" || role === "superadmin") {
       user.isKycVerified = true;
       user.verificationStatus = "approved";
-      // Grant free enterprise subscription (unlimited vehicle listings, no expiry)
+      // Grant free PRO subscription (unlimited vehicle listings, no expiry)
       user.subscription = {
-        tier: "ENTERPRISE",
+        tier: "PRO",
         status: "active",
         startDate: new Date(),
         endDate: null, // Never expires for staff

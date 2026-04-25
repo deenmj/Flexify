@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import { Check, Shield, Zap, AlertCircle, Clock, Info, CreditCard, Landmark, ArrowLeft, Loader2 } from 'lucide-react';
+import { Check, Shield, Zap, AlertCircle, Clock, Info, CreditCard, Landmark, ArrowLeft, Loader2, Crown, Sparkles } from 'lucide-react';
 import { ownerApi, bankDetailsApi, type BankDetailsData } from '../api';
 import './SubscriptionManagement.css';
 import { notification, message, Button, Tooltip, Upload } from 'antd';
@@ -9,51 +9,54 @@ import { CopyOutlined, UploadOutlined, FileImageOutlined } from '@ant-design/ico
 
 const PLANS = [
   {
-    id: 'BASIC',
-    name: 'Basic',
-    price: 1500,
-    description: 'Perfect for casual owners',
+    id: 'FREE',
+    name: 'Free',
+    price: 0,
+    description: 'Get started with 2 vehicle listings',
     features: [
-      'Up to 2 vehicle listings',
-      'Standard search visibility',
-      'Email support',
-      'Basic analytics'
+      '2 vehicle listings',
+      'Basic search visibility',
+      'Email notifications',
+      'Reviews & ratings',
     ],
     icon: <Shield className="plan-icon" />,
-    color: '#0d6efd',
-    limit: '2 Vehicles'
+    color: '#64748b',
+    limit: '2 Vehicles',
+    popular: false,
   },
   {
     id: 'STANDARD',
     name: 'Standard',
-    price: 3500,
-    description: 'Recommended for active owners',
+    price: 990,
+    description: 'Perfect for growing vehicle owners',
     features: [
-      'Up to 6 vehicle listings',
-      'Higher search visibility',
-      'Priority email support',
-      'Standard analytics'
+      'Up to 8 vehicle listings',
+      'Boosted search visibility',
+      'Email notifications',
+      'Standard badge on listings',
+      'Reviews & ratings',
     ],
     icon: <Zap className="plan-icon" style={{ color: '#f59e0b' }} />,
     color: '#f59e0b',
-    limit: '6 Vehicles'
+    limit: '8 Vehicles',
+    popular: false,
   },
   {
-    id: 'ENTERPRISE',
-    name: 'Enterprise',
-    price: 5000,
-    price6: 25000,
-    description: 'For professional fleet owners',
+    id: 'PRO',
+    name: 'Pro',
+    price: 2490,
+    description: 'For serious rental businesses',
     features: [
       'Unlimited vehicle listings',
-      'Priority sort boost + Badge',
-      '24/7 Priority support',
-      'Advanced performance metrics',
-      'Featured listing status'
+      'Top priority in search results',
+      'Pro badge on all listings',
+      'Email notifications',
+      'Reviews highlighted',
     ],
-    icon: <Zap className="plan-icon pro" />,
+    icon: <Crown className="plan-icon pro" />,
     color: '#6610f2',
-    limit: 'Unlimited'
+    limit: 'Unlimited',
+    popular: true,
   }
 ];
 
@@ -64,16 +67,15 @@ const SubscriptionManagement: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [selectedTier, setSelectedTier] = useState<any>(null);
-  const [is6Month, setIs6Month] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'CARD' | 'BANK'>('BANK');
   const [payhereParams, setPayhereParams] = useState<any>(null);
   const [bankDetails, setBankDetails] = useState<BankDetailsData | null>(null);
   const [receiptFile, setReceiptFile] = useState<any>(null);
 
-  const sub = user?.subscription || { tier: 'BASIC', status: 'none', endDate: null };
-  const isNone = sub.status === 'none';
-  const isTrial = sub.status === 'trial';
+  const sub = user?.subscription || { tier: 'FREE', status: 'free', endDate: null };
+  const isFree = sub.status === 'free' || sub.tier === 'FREE';
   const isExpired = sub.status === 'expired';
+  const isActive = sub.status === 'active';
 
   useEffect(() => {
     if (socket) {
@@ -98,6 +100,7 @@ const SubscriptionManagement: React.FC = () => {
   }, []);
 
   const handleRequestUpgrade = (plan: any) => {
+    if (plan.id === 'FREE') return; // Can't "buy" free
     setSelectedTier(plan);
     setShowPayment(true);
   };
@@ -105,10 +108,7 @@ const SubscriptionManagement: React.FC = () => {
   const handlePayHere = async () => {
     setLoading(true);
     try {
-      const duration = (selectedTier.id === 'ENTERPRISE' && is6Month) ? 'BI_ANNUAL' : 'MONTHLY';
-      const amount = (selectedTier.id === 'ENTERPRISE' && is6Month) ? selectedTier.price6 : selectedTier.price;
-
-      const params = await ownerApi.getPayHereParams(selectedTier.id, duration, amount);
+      const params = await ownerApi.getPayHereParams(selectedTier.id, 'MONTHLY', selectedTier.price);
       setPayhereParams(params);
 
       setTimeout(() => {
@@ -129,13 +129,10 @@ const SubscriptionManagement: React.FC = () => {
 
     setLoading(true);
     try {
-      const duration = (selectedTier.id === 'ENTERPRISE' && is6Month) ? 'BI_ANNUAL' : 'MONTHLY';
-      const amount = (selectedTier.id === 'ENTERPRISE' && is6Month) ? selectedTier.price6 : selectedTier.price;
-
       const formData = new FormData();
       formData.append('tier', selectedTier.id);
-      formData.append('duration', duration);
-      formData.append('amount', amount.toString());
+      formData.append('duration', 'MONTHLY');
+      formData.append('amount', selectedTier.price.toString());
       formData.append('reference', user?.email || 'Unknown');
       formData.append('receipt', receiptFile);
 
@@ -207,27 +204,43 @@ const SubscriptionManagement: React.FC = () => {
     handleCopy(details, 'All bank details');
   };
 
+  const getButtonLabel = (plan: any) => {
+    if (plan.id === 'FREE') {
+      if (isFree) return 'Current Plan';
+      return 'Downgrade';
+    }
+    if (plan.id === sub.tier && !isExpired) return 'Active Plan';
+    if (isExpired) return 'Subscribe Now';
+    if (plan.id === sub.tier) return 'Renew';
+    // If upgrading
+    const planIndex = PLANS.findIndex(p => p.id === plan.id);
+    const currentIndex = PLANS.findIndex(p => p.id === sub.tier);
+    return planIndex > currentIndex ? 'Upgrade' : 'Switch Plan';
+  };
+
   return (
     <div className="subscription-container">
       <div className="subscription-header">
-        <h1>Subscription Management</h1>
-        <p>Keep your listings visible and reach more customers</p>
+        <div className="sub-header-icon"><Sparkles size={28} /></div>
+        <h1>Pricing Plans</h1>
+        <p>Choose the perfect plan for your rental business</p>
       </div>
 
+      {/* Current Status Banner */}
       <div className={`status-banner ${sub.status}`}>
         <div className="status-info">
-          {isTrial ? <Clock size={24} /> : isExpired ? <AlertCircle size={24} /> : <Shield size={24} />}
+          {isFree ? <Shield size={22} /> : isExpired ? <AlertCircle size={22} /> : <Zap size={22} />}
           <div>
             <h3>
-              {isNone ? 'Ready to get started?' : isTrial ? 'Free Trial Active' : isExpired ? 'Subscription Expired' : 'Subscription Active'}
-              {!isNone && <span className="tier-badge">{sub.tier}</span>}
+              {isFree ? 'Free Plan' : isExpired ? 'Plan Expired' : 'Plan Active'}
+              <span className="tier-badge" style={{ background: PLANS.find(p => p.id === sub.tier)?.color || '#64748b' }}>{sub.tier}</span>
             </h3>
             <p>
-              {isNone 
-                ? 'Choose a plan below to start listing your vehicles and earning.'
+              {isFree
+                ? 'You can list up to 2 vehicles for free. Upgrade anytime!'
                 : isExpired
-                ? 'Your listings are currently hidden (or will be soon after grace period).'
-                : `Your ${isTrial ? 'trial' : 'subscription'} ends in ${daysLeft} days (${sub.endDate ? new Date(sub.endDate).toLocaleDateString() : 'N/A'}).`}
+                ? 'Your plan has expired. Renew or your listings will be hidden.'
+                : `Your plan is active${daysLeft !== null ? ` — ${daysLeft} days remaining` : ''}.`}
             </p>
           </div>
         </div>
@@ -235,7 +248,7 @@ const SubscriptionManagement: React.FC = () => {
 
       {statusMessage && (
         <div className={`message-banner ${statusMessage.type}`}>
-          {statusMessage.type === 'error' ? <AlertCircle size={20} /> : <Check size={20} />}
+          {statusMessage.type === 'error' ? <AlertCircle size={18} /> : <Check size={18} />}
           <span>{statusMessage.text}</span>
         </div>
       )}
@@ -245,34 +258,22 @@ const SubscriptionManagement: React.FC = () => {
           {PLANS.map((plan) => (
             <div
               key={plan.id}
-              className={`plan-card ${plan.id === sub.tier && !isExpired ? 'active' : ''}`}
+              className={`plan-card ${plan.id === sub.tier && !isExpired ? 'active' : ''} ${plan.popular ? 'popular' : ''}`}
               style={{ '--accent-color': plan.color } as React.CSSProperties}
             >
-              {plan.id === sub.tier && !isExpired && <div className="current-label">Active</div>}
+              {plan.popular && <div className="popular-label">Most Popular</div>}
+              {plan.id === sub.tier && !isExpired && <div className="current-label">Current</div>}
+              
               <div className="plan-icon-wrapper">{plan.icon}</div>
               <h2 className="plan-name">{plan.name}</h2>
 
-              {plan.id === 'ENTERPRISE' ? (
-                <div className="enterprise-toggle-container">
-                  <div className="toggle-switch">
-                    <button
-                      className={!is6Month ? 'active' : ''}
-                      onClick={() => setIs6Month(false)}
-                    >Monthly</button>
-                    <button
-                      className={is6Month ? 'active' : ''}
-                      onClick={() => setIs6Month(true)}
-                    >6-Months</button>
-                  </div>
-                  <div className="plan-price">
-                    LKR {is6Month ? plan.price6!.toLocaleString() : plan.price.toLocaleString()}
-                    <span className="duration">/{is6Month ? '6mo' : 'mo'}</span>
-                  </div>
-                  {is6Month && <div className="save-badge">Save 14%</div>}
-                </div>
-              ) : (
-                <div className="plan-price">LKR {plan.price.toLocaleString()}<span className="duration">/mo</span></div>
-              )}
+              <div className="plan-price">
+                {plan.price === 0 ? (
+                  <>Free<span className="duration"> forever</span></>
+                ) : (
+                  <>LKR {plan.price.toLocaleString()}<span className="duration">/mo</span></>
+                )}
+              </div>
 
               <p className="plan-desc">{plan.description}</p>
               <div className="plan-limit-info"><Info size={14} /> {plan.limit}</div>
@@ -284,11 +285,11 @@ const SubscriptionManagement: React.FC = () => {
               </ul>
 
               <button
-                className="plan-button"
-                disabled={loading || (plan.id === sub.tier && !isExpired)}
+                className={`plan-button ${plan.popular ? 'plan-button-popular' : ''}`}
+                disabled={loading || (plan.id === sub.tier && !isExpired) || (plan.id === 'FREE' && isFree)}
                 onClick={() => handleRequestUpgrade(plan)}
               >
-                {plan.id === sub.tier && !isExpired ? 'Active Plan' : isExpired ? 'Renew Now' : 'Select Plan'}
+                {getButtonLabel(plan)}
               </button>
             </div>
           ))}
@@ -302,9 +303,9 @@ const SubscriptionManagement: React.FC = () => {
               <h2>Checkout: {selectedTier.name}</h2>
               <div className="amount-display">
                 <span className="label">Total to Pay:</span>
-                <span className="value">LKR {(selectedTier.id === 'ENTERPRISE' && is6Month ? selectedTier.price6 : selectedTier.price).toLocaleString()}</span>
+                <span className="value">LKR {selectedTier.price.toLocaleString()}</span>
               </div>
-              <p className="duration-text">Subscription for {is6Month ? '6 months' : '1 month'}</p>
+              <p className="duration-text">Monthly subscription</p>
             </div>
 
             <div className="method-selector">

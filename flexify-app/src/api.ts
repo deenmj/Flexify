@@ -52,8 +52,8 @@ export interface User {
   status?: string;
   createdAt?: string;
   subscription?: {
-    tier: 'BASIC' | 'STANDARD' | 'ENTERPRISE';
-    status: 'trial' | 'active' | 'expired';
+    tier: 'FREE' | 'STANDARD' | 'PRO';
+    status: 'free' | 'active' | 'expired';
     startDate: string;
     endDate: string | null;
   };

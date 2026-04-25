@@ -24,54 +24,49 @@ export const createVehicle = async (req, res) => {
 
     // Subscription Check & Initialization — only for owners (staff/admins get free unlimited access)
     if (owner.role === "owner") {
-      // If no subscription found, start the 3-month trial now
+      // If no subscription found, initialize with FREE tier (permanent, no expiry)
       if (!owner.subscription || !owner.subscription.status) {
-        const trialEndDate = new Date();
-        trialEndDate.setMonth(trialEndDate.getMonth() + 3);
-        
         await User.findByIdAndUpdate(owner._id, {
           subscription: {
-            tier: 'BASIC',
-            status: 'trial',
+            tier: 'FREE',
+            status: 'free',
             startDate: new Date(),
-            endDate: trialEndDate
+            endDate: null
           }
         });
         
         // Update local owner object for subsequent checks
         owner.subscription = {
-          tier: 'BASIC',
-          status: 'trial',
+          tier: 'FREE',
+          status: 'free',
           startDate: new Date(),
-          endDate: trialEndDate
+          endDate: null
         };
       }
 
       const sub = owner.subscription;
       const now = new Date();
       
-      // Check if trial/subscription is expired
-      const isExpired = sub.status === 'expired' || (sub.endDate && now > new Date(sub.endDate));
-      if (isExpired) {
-        const inGrace = sub.gracePeriodEnd && now <= new Date(sub.gracePeriodEnd);
-        if (!inGrace) {
-          return res.status(403).json({ 
-            message: "Your subscription has expired. Please renew to list new vehicles.",
-            subscriptionExpired: true
-          });
+      // Check if paid subscription is expired (FREE tier never expires)
+      if (sub.tier !== 'FREE' && sub.status !== 'free') {
+        const isExpired = sub.status === 'expired' || (sub.endDate && now > new Date(sub.endDate));
+        if (isExpired) {
+          const inGrace = sub.gracePeriodEnd && now <= new Date(sub.gracePeriodEnd);
+          if (!inGrace) {
+            return res.status(403).json({ 
+              message: "Your subscription has expired. Please renew or you'll be downgraded to the Free plan (2 vehicles).",
+              subscriptionExpired: true
+            });
+          }
         }
       }
 
-      if (sub.tier === 'BASIC') {
-        const vehicleCount = await Vehicle.countDocuments({ owner: owner._id });
-        if (vehicleCount >= 2) {
-          return res.status(403).json({ message: "BASIC tier limit reached (2 vehicles). Please upgrade for more listings." });
-        }
-      } else if (sub.tier === 'STANDARD') {
-        const vehicleCount = await Vehicle.countDocuments({ owner: owner._id });
-        if (vehicleCount >= 6) {
-          return res.status(403).json({ message: "STANDARD tier limit reached (6 vehicles). Please upgrade for more listings." });
-        }
+      // Vehicle limits per tier: FREE=2, STANDARD=8, PRO=unlimited
+      const vehicleCount = await Vehicle.countDocuments({ owner: owner._id });
+      if (sub.tier === 'FREE' && vehicleCount >= 2) {
+        return res.status(403).json({ message: "Free plan limit reached (2 vehicles). Upgrade to Standard for up to 8 listings." });
+      } else if (sub.tier === 'STANDARD' && vehicleCount >= 8) {
+        return res.status(403).json({ message: "Standard plan limit reached (8 vehicles). Upgrade to Pro for unlimited listings." });
       }
     }
     // Subadmins and superadmins skip all subscription checks — free unlimited access
@@ -334,7 +329,7 @@ export const listVehicles = async (req, res) => {
             { "ownerInfo.subscription": null },
             { "ownerInfo.subscription": { $exists: false } }, // Handle missing field
             { "ownerInfo.subscription.status": "active" },
-            { "ownerInfo.subscription.status": "trial" },
+            { "ownerInfo.subscription.status": "free" },
             { 
               "ownerInfo.subscription.status": "expired",
               "ownerInfo.subscription.gracePeriodEnd": { $gte: now }
@@ -351,10 +346,10 @@ export const listVehicles = async (req, res) => {
           tierBoost: {
             $switch: {
               branches: [
-                { case: { $eq: ["$ownerInfo.subscription.tier", "ENTERPRISE"] }, then: 100 },
+                { case: { $eq: ["$ownerInfo.subscription.tier", "PRO"] }, then: 100 },
                 { case: { $eq: ["$ownerInfo.subscription.tier", "STANDARD"] }, then: 50 },
-                { case: { $eq: ["$ownerInfo.subscription.tier", "BASIC"] }, then: 10 },
-                { case: { $eq: ["$ownerInfo.subscription.status", "trial"] }, then: 5 }
+                { case: { $eq: ["$ownerInfo.subscription.tier", "FREE"] }, then: 5 },
+                { case: { $eq: ["$ownerInfo.subscription.status", "free"] }, then: 5 }
               ],
               default: 0
             }
