@@ -556,7 +556,7 @@ export default function Dashboard() {
             ) : (
               <div className="dashboard-grid">
                 {filteredVehicles.map(v => (
-                  <Link to={`/vehicles/edit/${v._id}`} key={v._id} className="dash-vehicle-card" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
+                  <div key={v._id} className="dash-vehicle-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }} onClick={() => handleVehicleClick(v)}>
                     <div className="dash-vehicle-card-img">
                       {v.photos?.[0] ? (
                         <img src={getImageUrl(v.photos[0])} alt={v.title} />
@@ -580,7 +580,7 @@ export default function Dashboard() {
                         <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}
