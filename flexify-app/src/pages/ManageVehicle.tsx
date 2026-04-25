@@ -264,41 +264,6 @@ export default function ManageVehicle() {
           </div>
 
           <div className="vd-content" style={{ padding: '1.5rem' }}>
-            {/* Stats Bar */}
-            <div className="vd-stats-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-              <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fef3c7', color: '#d97706' }}><Star size={20} /></div>
-                <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'N/A'}</span>
-                  <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rating</span>
-                </div>
-              </div>
-              <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4f46e5' }}><CheckCircle size={20} /></div>
-                <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.totalBookings || 0}</span>
-                  <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Bookings</span>
-                </div>
-              </div>
-              <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#dcfce7', color: '#16a34a' }}><Zap size={20} /></div>
-                <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.isBoosted ? 'Yes' : 'No'}</span>
-                  <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Boosted</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
-              <Link to={`/vehicles/${vehicle._id}`} className="btn" style={{ flex: '1 1 auto', minWidth: '200px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', justifyContent: 'center', height: '48px' }}>
-                <Eye size={18} style={{ marginRight: '8px' }} /> View Public Page
-              </Link>
-              <Link to={`/vehicles/edit/${vehicle._id}`} className="btn btn-primary" style={{ flex: '1 1 auto', minWidth: '200px', justifyContent: 'center', height: '48px' }}>
-                <Edit size={18} style={{ marginRight: '8px' }} /> Edit Vehicle Details
-              </Link>
-            </div>
-
             <Row gutter={[32, 32]}>
               {/* Full Width: Calendar */}
               <Col span={24}>
@@ -365,6 +330,46 @@ export default function ManageVehicle() {
                       </div>
                     </div>
                   )}
+                </div>
+              </Col>
+
+              {/* Stats Bar moved here */}
+              <Col span={24}>
+                <div className="vd-section" style={{ background: '#f8fafc', padding: '2rem', borderRadius: '24px', border: '1px solid #e2e8f0', marginTop: '1rem' }}>
+                  <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>Vehicle Performance</h3>
+                  <div className="vd-stats-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                    <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                      <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fef3c7', color: '#d97706' }}><Star size={20} /></div>
+                      <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'N/A'}</span>
+                        <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rating</span>
+                      </div>
+                    </div>
+                    <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                      <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4f46e5' }}><CheckCircle size={20} /></div>
+                      <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.totalBookings || 0}</span>
+                        <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Bookings</span>
+                      </div>
+                    </div>
+                    <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                      <div className="stat-icon-wrap" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#dcfce7', color: '#16a34a' }}><Zap size={20} /></div>
+                      <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className="vd-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{vehicle.isBoosted ? 'Yes' : 'No'}</span>
+                        <span className="vd-stat-label" style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Boosted</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    <Link to={`/vehicles/${vehicle._id}`} className="btn" style={{ flex: '1 1 auto', minWidth: '200px', background: 'white', color: '#334155', border: '1px solid #cbd5e1', justifyContent: 'center', height: '48px' }}>
+                      <Eye size={18} style={{ marginRight: '8px' }} /> View Public Page
+                    </Link>
+                    <Link to={`/vehicles/edit/${vehicle._id}`} className="btn btn-primary" style={{ flex: '1 1 auto', minWidth: '200px', justifyContent: 'center', height: '48px' }}>
+                      <Edit size={18} style={{ marginRight: '8px' }} /> Edit Vehicle Details
+                    </Link>
+                  </div>
                 </div>
               </Col>
 
