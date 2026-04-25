@@ -233,32 +233,35 @@ export default function ManageVehicle() {
 
   return (
     <div className="manage-vehicle-page" style={{ paddingBottom: '4rem' }}>
-      <div className="container" style={{ paddingTop: '2rem' }}>
-        <button onClick={() => navigate('/dashboard')} className="btn btn-secondary btn-sm" style={{ marginBottom: '1.5rem', display: 'inline-flex', alignItems: 'center' }}>
-          <ArrowLeft size={16} style={{ marginRight: '8px' }} /> Back to Dashboard
-        </button>
+      <div className="container" style={{ paddingTop: isMobile ? '1rem' : '2rem' }}>
 
-        <div className="vehicle-detail-panel" style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+        <div className="vehicle-detail-panel" style={{ background: 'white', borderRadius: isMobile ? '0' : '24px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}>
           <div className="vd-header">
-            <div className="vd-image-container" style={{ height: '240px' }}>
+            <div className="vd-image-container" style={{ height: isMobile ? '220px' : '350px', position: 'relative' }}>
               {vehicle.photos?.[0] ? (
                 <img src={getImageUrl(vehicle.photos[0])} alt={vehicle.title} className="vd-main-image" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <div className="vd-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}><Car size={64} color="#94a3b8" /></div>
               )}
-              <div className="vd-badges" style={{ position: 'absolute', top: '16px', right: '16px' }}>
+              <div className="vd-badges" style={{ position: 'absolute', top: '20px', left: '20px' }}>
                 {vehicleStatusBadge(vehicle.status, vehicle.isActive)}
+              </div>
+              <div className="vd-price-overlay" style={{ position: 'absolute', bottom: '20px', right: '20px', background: 'rgba(255,255,255,0.95)', padding: '10px 20px', borderRadius: '16px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-color)' }}>LKR {vehicle.pricePerDay.toLocaleString()}</span>
+                <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginLeft: '4px' }}>/day</span>
               </div>
             </div>
             
-            <div className="vd-title-bar" style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <h2 className="vd-title" style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>{vehicle.title}</h2>
-                <p className="vd-subtitle" style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '1rem' }}>{vehicle.make} {vehicle.model} • {vehicle.year}</p>
-              </div>
-              <div className="vd-price">
-                <span className="vd-price-amount" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary-color)' }}>LKR {vehicle.pricePerDay.toLocaleString()}</span>
-                <span className="vd-price-unit" style={{ color: '#64748b', marginLeft: '4px' }}>/day</span>
+            <div className="vd-title-bar" style={{ padding: isMobile ? '1.5rem' : '2.5rem', borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(to bottom, #ffffff, #f8fafc)' }}>
+              <div style={{ maxWidth: '800px' }}>
+                <h2 className="vd-title" style={{ margin: 0, fontSize: isMobile ? '1.75rem' : '2.5rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{vehicle.title}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '0.75rem' }}>
+                  <p className="vd-subtitle" style={{ margin: 0, color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>{vehicle.make} {vehicle.model} • {vehicle.year}</p>
+                  <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f59e0b', fontWeight: 600 }}>
+                    <Star size={16} fill="#f59e0b" /> {vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'New'}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -383,7 +386,7 @@ export default function ManageVehicle() {
                     </span>
                   </div>
                   
-                  <div className="vd-reviews-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem', padding: '0 1rem' }}>
+                  <div className="vd-reviews-list" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem', padding: isMobile ? '0' : '0 1rem' }}>
                     {vehicleReviews.length === 0 ? (
                       <div className="vd-empty-state" style={{ gridColumn: '1 / -1', padding: '4rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
                         <MessageSquare size={48} color="#94a3b8" style={{ margin: '0 auto 1.5rem' }} />
@@ -394,22 +397,22 @@ export default function ManageVehicle() {
                         // Support populated nested user or reviewer
                         const reviewer = r.reviewer || r.user || {};
                         return (
-                          <div key={r._id} className="vd-review-item" style={{ padding: '2rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', transition: 'transform 0.2s ease' }}>
+                          <div key={r._id} className="vd-review-item" style={{ padding: isMobile ? '1.5rem' : '2rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', transition: 'transform 0.2s ease' }}>
                             <div className="vd-review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
                               <div className="vd-reviewer" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                <Avatar size={48} src={getImageUrl(reviewer.profilePic)} style={{ backgroundColor: 'var(--primary-color)', boxShadow: '0 0 0 2px white, 0 0 0 4px #e2e8f0' }}>
+                                <Avatar size={isMobile ? 40 : 48} src={getImageUrl(reviewer.profilePic)} style={{ backgroundColor: 'var(--primary-color)', boxShadow: '0 0 0 2px white, 0 0 0 4px #e2e8f0' }}>
                                   {reviewer.name?.charAt(0) || 'U'}
                                 </Avatar>
                                 <div>
-                                  <div className="vd-reviewer-name" style={{ fontWeight: 700, color: '#1e293b', fontSize: '1.05rem' }}>{reviewer.name || 'User'}</div>
-                                  <div className="vd-review-date" style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 500 }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</div>
+                                  <div className="vd-reviewer-name" style={{ fontWeight: 700, color: '#1e293b', fontSize: isMobile ? '1rem' : '1.05rem' }}>{reviewer.name || 'User'}</div>
+                                  <div className="vd-review-date" style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500 }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</div>
                                 </div>
                               </div>
                             </div>
-                            <div className="vd-review-stars" style={{ marginBottom: '1rem' }}>
-                              <Rate disabled defaultValue={r.rating} style={{ fontSize: '16px', color: '#f59e0b' }} />
+                            <div className="vd-review-stars" style={{ marginBottom: '0.75rem' }}>
+                              <Rate disabled defaultValue={r.rating} style={{ fontSize: '14px', color: '#f59e0b' }} />
                             </div>
-                            <p className="vd-review-text" style={{ margin: 0, color: '#475569', lineHeight: 1.7, fontSize: '1rem' }}>{r.comment}</p>
+                            <p className="vd-review-text" style={{ margin: 0, color: '#475569', lineHeight: 1.6, fontSize: isMobile ? '0.95rem' : '1rem' }}>{r.comment}</p>
                           </div>
                         );
                       })
