@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag } from 'antd';
-import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit } from 'lucide-react';
+import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button } from 'antd';
+import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl } from '../api';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './VehicleDetail.css';
@@ -61,6 +61,11 @@ export default function VehicleDetail() {
   // Reviews
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  // Reporting
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -326,6 +331,26 @@ export default function VehicleDetail() {
         }
       }
     });
+  };
+
+  const handleReportSubmit = async () => {
+    if (!reportReason.trim()) {
+      return message.error('Please provide a reason for reporting');
+    }
+    setReportLoading(true);
+    try {
+      await feedbackApi.submit({
+        type: 'general',
+        message: `[REPORT] User reported Vehicle ID: ${id}\nReason: ${reportReason}`
+      });
+      message.success('Listing reported. Our team will review it shortly.');
+      setShowReportModal(false);
+      setReportReason('');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to submit report');
+    } finally {
+      setReportLoading(false);
+    }
   };
 
   if (loading) {
@@ -775,6 +800,11 @@ export default function VehicleDetail() {
                 ) : (
                   <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Verified Rentify Host</div>
                 )}
+                <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border-color-light)', paddingTop: '1rem', textAlign: 'center' }}>
+                  <Button type="text" danger icon={<Flag size={14} />} onClick={() => setShowReportModal(true)}>
+                    Report this Listing
+                  </Button>
+                </div>
               </Card>
             </div>
           </Col>
@@ -960,6 +990,27 @@ export default function VehicleDetail() {
             </div>
           </>
         )}
+      </Modal>
+
+      {/* REPORT MODAL */}
+      <Modal
+        title={<span><Flag size={18} style={{ color: '#ef4444', marginRight: 8, verticalAlign: 'middle' }} /> Report Listing</span>}
+        open={showReportModal}
+        onCancel={() => { setShowReportModal(false); setReportReason(''); }}
+        footer={[
+          <Button key="cancel" onClick={() => { setShowReportModal(false); setReportReason(''); }}>Cancel</Button>,
+          <Button key="submit" type="primary" danger loading={reportLoading} onClick={handleReportSubmit}>Submit Report</Button>
+        ]}
+      >
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+          If you noticed something wrong with this listing (e.g. fake details, scam, inappropriate images), please let us know.
+        </p>
+        <Input.TextArea
+          rows={4}
+          placeholder="Please describe why you are reporting this vehicle..."
+          value={reportReason}
+          onChange={e => setReportReason(e.target.value)}
+        />
       </Modal>
     </div>
   );

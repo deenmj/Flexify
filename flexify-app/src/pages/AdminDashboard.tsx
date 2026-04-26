@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, bankDetailsApi, feedbackApi, getImageUrl, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData } from '../api';
 import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star } from 'lucide-react';
-import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image } from 'antd';
+import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
@@ -40,6 +40,12 @@ export default function AdminDashboard() {
   const [siteSettingsLoading, setSiteSettingsLoading] = useState(false);
   const [district, setDistrict] = useState<string>('All Sri Lanka');
   const [timeRange, setTimeRange] = useState<string>('30d');
+
+  // Modals for admin viewing
+  const [selectedAdminVehicle, setSelectedAdminVehicle] = useState<Vehicle | null>(null);
+  const [adminVehicleModalOpen, setAdminVehicleModalOpen] = useState(false);
+  const [selectedAdminBooking, setSelectedAdminBooking] = useState<Booking | null>(null);
+  const [adminBookingModalOpen, setAdminBookingModalOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -761,11 +767,14 @@ export default function AdminDashboard() {
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'active' ? 'green' : s === 'pending' ? 'orange' : 'red'}>{s}</Tag> },
                       {
                         title: 'Actions', render: (_, v) => (
-                          user?.role === 'superadmin' ? (
-                            <Tooltip title="Delete Vehicle">
-                              <Button size="small" type="text" danger onClick={() => handleDeleteVehicle(v)} icon={<Trash2 size={14} />} />
-                            </Tooltip>
-                          ) : <Text type="secondary" style={{ fontSize: '12px' }}>Read Only</Text>
+                          <Space>
+                            <Button size="small" type="default" onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View</Button>
+                            {user?.role === 'superadmin' ? (
+                              <Tooltip title="Delete Vehicle">
+                                <Button size="small" type="text" danger onClick={() => handleDeleteVehicle(v)} icon={<Trash2 size={14} />} />
+                              </Tooltip>
+                            ) : <Text type="secondary" style={{ fontSize: '12px' }}>Read Only</Text>}
+                          </Space>
                         )
                       }
                     ]}
@@ -789,11 +798,14 @@ export default function AdminDashboard() {
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> },
                       {
                         title: 'Actions', render: (_, b) => (
-                          user?.role === 'superadmin' && (b.status === 'CONFIRMED' || b.status === 'PENDING') ? (
-                            <Tooltip title="Force Cancel">
-                              <Button size="small" danger onClick={() => handleCancelBooking(b)}>Cancel</Button>
-                            </Tooltip>
-                          ) : null
+                          <Space>
+                            <Button size="small" type="default" onClick={() => { setSelectedAdminBooking(b); setAdminBookingModalOpen(true); }}>View</Button>
+                            {user?.role === 'superadmin' && (b.status === 'CONFIRMED' || b.status === 'PENDING') ? (
+                              <Tooltip title="Force Cancel">
+                                <Button size="small" danger onClick={() => handleCancelBooking(b)}>Cancel</Button>
+                              </Tooltip>
+                            ) : null}
+                          </Space>
                         )
                       }
                     ]}
@@ -1081,6 +1093,152 @@ export default function AdminDashboard() {
             </div>
           </div>
         ) : <Spin />}
+      </Modal>
+
+      {/* ADMIN VEHICLE DETAIL MODAL */}
+      <Modal
+        title="Vehicle Administrative View"
+        open={adminVehicleModalOpen}
+        onCancel={() => setAdminVehicleModalOpen(false)}
+        footer={null}
+        width={700}
+        destroyOnClose
+      >
+        {selectedAdminVehicle && (() => {
+          const v = selectedAdminVehicle;
+          const owner = typeof v.owner === 'object' ? v.owner : allUsers.find(u => (u._id || u.id) === v.owner);
+          const vehicleBookings = allBookings.filter(b => typeof b.vehicle === 'object' ? b.vehicle._id === v._id : b.vehicle === v._id);
+          
+          return (
+            <div style={{ padding: '10px 0' }}>
+              <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+                <Image src={getImageUrl(v.photos?.[0])} width={120} height={120} style={{ borderRadius: '8px', objectFit: 'cover' }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Title level={4} style={{ margin: 0 }}>{v.title}</Title>
+                    <Button type="primary" size="small" onClick={() => window.open(`/vehicles/${v._id}`, '_blank')}>
+                      View Public Page
+                    </Button>
+                  </div>
+                  <Text type="secondary">{v.make} {v.model} ({v.year}) - {v.district}</Text>
+                  <div style={{ marginTop: '8px' }}>
+                    <Tag color={v.status === 'active' ? 'green' : 'red'}>{v.status.toUpperCase()}</Tag>
+                    <Tag color="blue">LKR {v.pricePerDay?.toLocaleString()}/day</Tag>
+                  </div>
+                </div>
+              </div>
+
+              <Divider orientation="left">Owner Information</Divider>
+              {owner ? (
+                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', display: 'flex', gap: '16px' }}>
+                  <Avatar src={getImageUrl((owner as any).profilePic)} size={50}>{(owner as any).name?.charAt(0)}</Avatar>
+                  <div>
+                    <Text strong>{(owner as any).name}</Text> <br/>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>{(owner as any).email} | {(owner as any).phone}</Text>
+                    <div style={{ marginTop: '8px' }}>
+                      <Tag color={(owner as any).subscription?.status === 'active' ? 'gold' : 'default'}>Sub: {(owner as any).subscription?.tier || 'FREE'}</Tag>
+                      <Tag color={(owner as any).isKycVerified ? 'success' : 'warning'}>KYC: {(owner as any).isKycVerified ? 'Verified' : 'Unverified'}</Tag>
+                    </div>
+                  </div>
+                </div>
+              ) : <Text type="secondary">Owner info not found</Text>}
+
+              <Divider orientation="left">Booking History ({vehicleBookings.length})</Divider>
+              <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                {vehicleBookings.length > 0 ? (
+                  <Table 
+                    size="small"
+                    pagination={false}
+                    dataSource={vehicleBookings}
+                    rowKey="_id"
+                    columns={[
+                      { title: 'Dates', render: (_, b) => <Text style={{fontSize: '12px'}}>{new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()}</Text> },
+                      { title: 'Amount', render: (_, b) => <Text style={{fontSize: '12px'}}>LKR {b.totalAmount.toLocaleString()}</Text> },
+                      { title: 'Status', render: (_, b) => <Tag style={{fontSize: '10px'}} color={b.status === 'CONFIRMED' ? 'green' : b.status === 'CANCELLED' ? 'red' : 'default'}>{b.status}</Tag> }
+                    ]}
+                  />
+                ) : <Text type="secondary">No bookings for this vehicle yet.</Text>}
+              </div>
+            </div>
+          );
+        })()}
+      </Modal>
+
+      {/* ADMIN BOOKING DETAIL MODAL */}
+      <Modal
+        title="Booking Administrative View"
+        open={adminBookingModalOpen}
+        onCancel={() => setAdminBookingModalOpen(false)}
+        footer={null}
+        width={600}
+        destroyOnClose
+      >
+        {selectedAdminBooking && (() => {
+          const b = selectedAdminBooking;
+          const renter = typeof b.user === 'object' ? b.user as User : null;
+          const owner = typeof b.owner === 'object' ? b.owner as User : null;
+          const vehicle = typeof b.vehicle === 'object' ? b.vehicle as Vehicle : null;
+
+          return (
+            <div style={{ padding: '10px 0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <Text strong style={{ fontSize: '16px' }}>Reference: #{b._id}</Text>
+                <Tag color={b.status === 'CONFIRMED' ? 'green' : b.status === 'CANCELLED' ? 'red' : 'orange'}>{b.status}</Tag>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                <Card size="small" title="Renter Info" style={{ background: '#f8fafc' }}>
+                  {renter ? (
+                    <>
+                      <Text strong>{renter.name}</Text><br/>
+                      <Text type="secondary" style={{fontSize: '12px'}}>{renter.email}</Text><br/>
+                      <Text type="secondary" style={{fontSize: '12px'}}>{renter.phone}</Text>
+                    </>
+                  ) : 'Unknown'}
+                </Card>
+                <Card size="small" title="Owner Info" style={{ background: '#f8fafc' }}>
+                  {owner ? (
+                    <>
+                      <Text strong>{owner.name}</Text><br/>
+                      <Text type="secondary" style={{fontSize: '12px'}}>{owner.email}</Text><br/>
+                      <Text type="secondary" style={{fontSize: '12px'}}>{owner.phone}</Text>
+                    </>
+                  ) : 'Unknown'}
+                </Card>
+              </div>
+
+              <Card size="small" title="Vehicle & Trip Details" style={{ marginBottom: '24px' }}>
+                {vehicle && (
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+                    <Avatar src={getImageUrl(vehicle.photos?.[0])} shape="square" size={50} />
+                    <div>
+                      <Text strong>{vehicle.title}</Text><br/>
+                      <Text type="secondary" style={{fontSize: '12px'}}>{vehicle.district}</Text>
+                    </div>
+                  </div>
+                )}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
+                  <div>
+                    <Text type="secondary" style={{fontSize: '10px'}}>START</Text><br/>
+                    <Text strong style={{fontSize: '13px'}}>{new Date(b.startDate).toLocaleDateString()}</Text>
+                  </div>
+                  <div>
+                    <Text type="secondary" style={{fontSize: '10px'}}>END</Text><br/>
+                    <Text strong style={{fontSize: '13px'}}>{new Date(b.endDate).toLocaleDateString()}</Text>
+                  </div>
+                  <div>
+                    <Text type="secondary" style={{fontSize: '10px'}}>PAYOUT</Text><br/>
+                    <Text strong style={{color: '#16a34a'}}>LKR {b.totalAmount.toLocaleString()}</Text>
+                  </div>
+                </div>
+              </Card>
+
+              {b.cancellationReason && (
+                <Alert type="error" message="Cancellation Reason" description={b.cancellationReason} showIcon />
+              )}
+            </div>
+          );
+        })()}
       </Modal>
 
     </Layout>
