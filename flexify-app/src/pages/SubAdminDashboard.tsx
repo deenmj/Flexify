@@ -36,6 +36,7 @@ export default function SubAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback'>('users');
   const [searchQuery, setSearchQuery] = useState('');
+  const [reviewSearchQuery, setReviewSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -340,6 +341,13 @@ export default function SubAdminDashboard() {
     u.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredReviews = reviews.filter(r => 
+    r.reviewer.name.toLowerCase().includes(reviewSearchQuery.toLowerCase()) ||
+    r.reviewer.email.toLowerCase().includes(reviewSearchQuery.toLowerCase()) ||
+    r.vehicle?.title?.toLowerCase().includes(reviewSearchQuery.toLowerCase()) ||
+    r.comment.toLowerCase().includes(reviewSearchQuery.toLowerCase())
+  );
+
   if (!user || (user.role !== 'subadmin' && user.role !== 'superadmin')) {
     return (
       <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
@@ -623,10 +631,23 @@ export default function SubAdminDashboard() {
 
               {tab === 'reviews' && (
                 <div className="animate-fade-in">
-                  <Title level={5} style={{ marginBottom: '1.5rem' }}>Review Moderation</Title>
+                  <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center' }}>
+                    <Title level={5} style={{ margin: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>Review Moderation</Title>
+                    <div style={{ display: 'flex', width: isMobile ? '100%' : 'auto', gap: '8px' }}>
+                      <Input
+                        prefix={<Search size={16} />}
+                        placeholder="Search by user, email, vehicle, or comment..."
+                        style={{ flex: 1, minWidth: isMobile ? 0 : 350, borderRadius: '8px' }}
+                        value={reviewSearchQuery}
+                        onChange={e => setReviewSearchQuery(e.target.value)}
+                        allowClear
+                      />
+                      <Button type="primary" onClick={fetchData}>Refresh</Button>
+                    </div>
+                  </div>
                   <Table
                     scroll={{ x: true }}
-                    dataSource={reviews}
+                    dataSource={filteredReviews}
                     rowKey="_id"
                     pagination={{ pageSize: 12 }}
                     style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
