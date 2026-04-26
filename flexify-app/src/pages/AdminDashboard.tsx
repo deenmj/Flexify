@@ -767,14 +767,7 @@ export default function AdminDashboard() {
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'active' ? 'green' : s === 'pending' ? 'orange' : 'red'}>{s}</Tag> },
                       {
                         title: 'Actions', render: (_, v) => (
-                          <Space>
-                            <Button size="small" type="default" onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View</Button>
-                            {user?.role === 'superadmin' ? (
-                              <Tooltip title="Delete Vehicle">
-                                <Button size="small" type="text" danger onClick={() => handleDeleteVehicle(v)} icon={<Trash2 size={14} />} />
-                              </Tooltip>
-                            ) : <Text type="secondary" style={{ fontSize: '12px' }}>Read Only</Text>}
-                          </Space>
+                          <Button size="small" type="default" onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View Details</Button>
                         )
                       }
                     ]}
@@ -798,14 +791,7 @@ export default function AdminDashboard() {
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> },
                       {
                         title: 'Actions', render: (_, b) => (
-                          <Space>
-                            <Button size="small" type="default" onClick={() => { setSelectedAdminBooking(b); setAdminBookingModalOpen(true); }}>View</Button>
-                            {user?.role === 'superadmin' && (b.status === 'CONFIRMED' || b.status === 'PENDING') ? (
-                              <Tooltip title="Force Cancel">
-                                <Button size="small" danger onClick={() => handleCancelBooking(b)}>Cancel</Button>
-                              </Tooltip>
-                            ) : null}
-                          </Space>
+                          <Button size="small" type="default" onClick={() => { setSelectedAdminBooking(b); setAdminBookingModalOpen(true); }}>View Details</Button>
                         )
                       }
                     ]}
@@ -1100,7 +1086,15 @@ export default function AdminDashboard() {
         title="Vehicle Administrative View"
         open={adminVehicleModalOpen}
         onCancel={() => setAdminVehicleModalOpen(false)}
-        footer={null}
+        footer={selectedAdminVehicle ? [
+          <Button key="close" onClick={() => setAdminVehicleModalOpen(false)}>Close</Button>,
+          ...(user?.role === 'superadmin' ? [
+            <Button key="delete" danger icon={<Trash2 size={14} />} onClick={() => {
+              handleDeleteVehicle(selectedAdminVehicle);
+              setAdminVehicleModalOpen(false);
+            }}>Delete Vehicle</Button>
+          ] : [])
+        ] : null}
         width={700}
         destroyOnClose
       >
@@ -1169,7 +1163,15 @@ export default function AdminDashboard() {
         title="Booking Administrative View"
         open={adminBookingModalOpen}
         onCancel={() => setAdminBookingModalOpen(false)}
-        footer={null}
+        footer={selectedAdminBooking ? [
+          <Button key="close" onClick={() => setAdminBookingModalOpen(false)}>Close</Button>,
+          ...(user?.role === 'superadmin' && (selectedAdminBooking.status === 'CONFIRMED' || selectedAdminBooking.status === 'PENDING') ? [
+            <Button key="cancel" danger onClick={() => {
+              handleCancelBooking(selectedAdminBooking);
+              setAdminBookingModalOpen(false);
+            }}>Force Cancel Booking</Button>
+          ] : [])
+        ] : null}
         width={600}
         destroyOnClose
       >
