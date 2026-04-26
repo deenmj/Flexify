@@ -194,27 +194,7 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleDeleteUser = async (user: User) => {
-    const id = (user.id || user._id)!;
-    Modal.confirm({
-      title: 'Delete User Permanently',
-      content: `Are you sure you want to delete ${user.name}? This action cannot be undone.`,
-      okText: 'Delete',
-      okType: 'danger',
-      onOk: async () => {
-        try {
-          setActionLoadingId(id);
-          await adminApi.deleteUser(id);
-          setAllUsers((prev: User[]) => prev.filter((u: User) => (u.id || u._id) !== id));
-          message.success('User deleted permanently');
-        } catch (err: any) {
-          message.error(err.message);
-        } finally {
-          setActionLoadingId(null);
-        }
-      }
-    });
-  };
+
 
   const handleViewKyc = async (user: User) => {
     const id = (user.id || user._id)!;
@@ -729,9 +709,6 @@ export default function AdminDashboard() {
                                   </Tooltip>
                                   <Tooltip title="View KYC Documents">
                                     <Button size="small" type="text" onClick={() => handleViewKyc(u)} loading={actionLoadingId === id} icon={<FileText size={14} />} />
-                                  </Tooltip>
-                                  <Tooltip title="Delete Permanently">
-                                    <Button size="small" type="text" danger onClick={() => handleDeleteUser(u)} icon={<Trash2 size={14} />} />
                                   </Tooltip>
                                 </>
                               ) : (
