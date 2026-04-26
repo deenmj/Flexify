@@ -10,7 +10,7 @@ const bankDetailsSchema = new mongoose.Schema(
     accountName: {
       type: String,
       required: true,
-      default: "Flexify Pvt Ltd",
+      default: "Rentify Pvt Ltd",
     },
     accountNumber: {
       type: String,
@@ -20,7 +20,7 @@ const bankDetailsSchema = new mongoose.Schema(
     referenceEmail: {
       type: String,
       required: true,
-      default: "luxury@flexify.com",
+      default: "luxury@rentify.lk",
     },
     notes: {
       type: String,

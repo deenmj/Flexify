@@ -762,13 +762,13 @@ export default function AdminDashboard() {
                           <Input size="large" placeholder="Commercial Bank" />
                         </Form.Item>
                         <Form.Item name="accountName" label="Account Name" rules={[{ required: true }]}>
-                          <Input size="large" placeholder="Flexify Pvt Ltd" />
+                          <Input size="large" placeholder="Rentify Pvt Ltd" />
                         </Form.Item>
                         <Form.Item name="accountNumber" label="Account Number" rules={[{ required: true }]}>
                           <Input size="large" placeholder="8010045622" />
                         </Form.Item>
                         <Form.Item name="referenceEmail" label="Reference Email (for clarifications)" rules={[{ required: true, type: 'email' }]}>
-                          <Input size="large" placeholder="luxury@flexify.com" />
+                          <Input size="large" placeholder="luxury@rentify.lk" />
                         </Form.Item>
                         <Form.Item name="notes" label="Additional Notes (e.g., branch name, message to users)">
                           <Input.TextArea rows={3} placeholder="Any specific instructions for manual transfers..." />

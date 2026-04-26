@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -67,11 +68,6 @@ function NoNavbarLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-import { SocketProvider } from './context/SocketContext';
-
-import { Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-
 function RootRedirect() {
   const { user, loading } = useAuth();
 
@@ -126,7 +122,7 @@ export default function App() {
               <Route path="/subadmin" element={<NoNavbarLayout><ProtectedRoute roles={['subadmin', 'superadmin']}><SubAdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
               
               {/* Catch-all 404 Route */}
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<AppLayout><NotFound /></AppLayout>} />
             </Routes>
           </Suspense>
           </ErrorBoundary>

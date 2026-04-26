@@ -12,7 +12,7 @@ export default function Contact() {
   
   // Dynamic Settings
   const [contactDetails, setContactDetails] = useState({
-    email: 'support@flexify.com',
+    email: 'support@rentify.lk',
     phone: '+1 (555) 123-4567',
     address: 'Colombo, Sri Lanka',
     workingHours: 'Mon-Sat: 9:00 AM - 6:00 PM'

@@ -10,9 +10,9 @@ export const getBankDetails = async (req, res) => {
       // Create defaults if not found
       details = await BankDetails.create({
         bankName: "Commercial Bank",
-        accountName: "Flexify Pvt Ltd",
+        accountName: "Rentify Pvt Ltd",
         accountNumber: "8010045622",
-        referenceEmail: "luxury@flexify.com",
+        referenceEmail: "luxury@rentify.lk",
       });
     }
     res.json(details);

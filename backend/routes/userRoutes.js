@@ -222,7 +222,7 @@ router.get("/test-email", protect, async (req, res) => {
     const userEmail = req.user.email;
     const info = await sendEmail({
       to: userEmail,
-      subject: "Test Email from Flexify Production",
+      subject: "Test Email from Rentify Production",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Email Test Successful</h2>

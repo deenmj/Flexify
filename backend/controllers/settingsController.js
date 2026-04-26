@@ -11,7 +11,7 @@ export const getContactDetails = async (req, res) => {
     if (!settings) {
       settings = {
         value: {
-          email: 'support@flexify.com',
+          email: 'support@rentify.lk',
           phone: '+94 11 234 5678',
           address: '123 Business Avenue, Colombo 03, Sri Lanka',
           workingHours: 'Mon-Sat: 9:00 AM - 6:00 PM',

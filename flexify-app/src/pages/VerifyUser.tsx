@@ -326,7 +326,7 @@ export default function VerifyUser() {
           <AntTitle level={5}>4. Your Rights</AntTitle>
           <Paragraph>
             <ul>
-              <li>You may request access to, correction of, or deletion of your personal data by emailing support@flexify.lk.</li>
+              <li>You may request access to, correction of, or deletion of your personal data by emailing support@rentify.lk.</li>
               <li>We will respond within 30 days in line with the Personal Data Protection Act No. 9 of 2022 (PDPA).</li>
               <li>You may withdraw consent at any time, but this may result in suspension of your account or inability to use certain features.</li>
             </ul>

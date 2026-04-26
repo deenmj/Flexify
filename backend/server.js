@@ -148,7 +148,7 @@ import feedbackRoutes from "./routes/feedbackRoutes.js";
 import { protect } from "./middleware/authMiddleware.js";
 
 app.get("/", (req, res) => {
-  res.send("Flexify Backend is Running Successfully!");
+  res.send("Rentify Backend is Running Successfully!");
 });
 
 app.use("/api/auth", authRoutes);

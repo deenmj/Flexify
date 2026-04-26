@@ -4,7 +4,6 @@ import logoImage from '../assets/logo.png';
 interface RentifyLogoProps {
   className?: string;
   style?: React.CSSProperties;
-  isDarkTheme?: boolean;
 }
 
 const RentifyLogo: React.FC<RentifyLogoProps> = ({ className = "", style }) => {

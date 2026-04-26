@@ -832,7 +832,7 @@ export default function SubAdminDashboard() {
                         help="This is where we'll send alerts when new work is assigned or pending."
                         rules={[{ type: 'email', message: 'Please enter a valid email' }]}
                       >
-                        <Input prefix={<Mail size={16} style={{ color: '#94a3b8' }} />} placeholder="e.g. staff.work@flexify.com" size="large" />
+                        <Input prefix={<Mail size={16} style={{ color: '#94a3b8' }} />} placeholder="e.g. staff.work@rentify.lk" size="large" />
                       </Form.Item>
 
                       <Form.Item 
