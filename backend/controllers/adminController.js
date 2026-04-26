@@ -345,6 +345,30 @@ export const getAllVehicles = async (req, res) => {
 };
 
 /**
+ * Superadmin: Delete or Suspend Vehicle
+ */
+export const deleteVehicle = async (req, res) => {
+  try {
+    const vehicle = await Vehicle.findById(req.params.id);
+    if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
+
+    // Cancel all pending or confirmed bookings for this vehicle
+    await Booking.updateMany(
+      { vehicle: vehicle._id, status: { $in: ["PENDING", "CONFIRMED"] } },
+      { $set: { status: "CANCELLED" } }
+    );
+
+    const vehicleInfo = { title: vehicle.title, make: vehicle.make, model: vehicle.model };
+    await vehicle.deleteOne();
+
+    logAdminAction(req, "vehicle_delete", vehicle._id, { vehicleInfo });
+    res.json({ message: "Vehicle deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
  * Get ALL bookings (superadmin)
  */
 export const getAllBookings = async (req, res) => {
@@ -355,6 +379,29 @@ export const getAllBookings = async (req, res) => {
       .populate("vehicle", "title make model")
       .sort({ createdAt: -1 });
     res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Superadmin: Force Cancel Booking
+ */
+export const cancelBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    if (booking.status === "CANCELLED" || booking.status === "COMPLETED") {
+      return res.status(400).json({ message: `Cannot cancel a booking that is already ${booking.status}` });
+    }
+
+    const oldStatus = booking.status;
+    booking.status = "CANCELLED";
+    await booking.save();
+
+    logAdminAction(req, "booking_cancel", booking._id, { oldStatus, reason: req.body.reason || "Admin Intervention" });
+    res.json({ message: "Booking cancelled successfully", booking });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

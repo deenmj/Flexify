@@ -15,6 +15,8 @@ import {
   updateUserSubscription,
   getPendingPayments,
   verifyPayment,
+  deleteVehicle,
+  cancelBooking,
 } from "../controllers/adminController.js";
 import { protect, requireSuperAdmin, requireSubAdmin } from "../middleware/authMiddleware.js";
 
@@ -30,7 +32,9 @@ router.delete("/users/:id/kyc", protect, requireSuperAdmin, deleteUserKyc);
 router.patch("/users/:id/subscription", protect, requireSuperAdmin, updateUserSubscription);
 router.delete("/users/:id", protect, requireSuperAdmin, deleteUser);
 router.get("/vehicles", protect, requireSuperAdmin, getAllVehicles);
+router.delete("/vehicles/:id", protect, requireSuperAdmin, deleteVehicle);
 router.get("/bookings", protect, requireSuperAdmin, getAllBookings);
+router.patch("/bookings/:id/cancel", protect, requireSuperAdmin, cancelBooking);
 router.get("/audit-logs", protect, requireSuperAdmin, getAuditLogs);
 router.get("/payments/pending", protect, requireSubAdmin, getPendingPayments);
 router.post("/payments/verify", protect, requireSubAdmin, verifyPayment);

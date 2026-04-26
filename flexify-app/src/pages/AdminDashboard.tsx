@@ -31,11 +31,13 @@ export default function AdminDashboard() {
   const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
-  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings' | 'feedback'>('overview');
+  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings' | 'site-settings' | 'feedback'>('overview');
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(false);
   const [bankDetails, setBankDetails] = useState<BankDetailsData | null>(null);
   const [bankDetailsLoading, setBankDetailsLoading] = useState(false);
+  const [siteSettings, setSiteSettings] = useState<any>(null);
+  const [siteSettingsLoading, setSiteSettingsLoading] = useState(false);
   const [district, setDistrict] = useState<string>('All Sri Lanka');
   const [timeRange, setTimeRange] = useState<string>('30d');
 
@@ -256,6 +258,78 @@ export default function AdminDashboard() {
     });
   };
 
+  const handleDeleteVehicle = async (vehicle: Vehicle) => {
+    const id = vehicle._id!;
+    Modal.confirm({
+      title: 'Delete Vehicle',
+      content: `Are you sure you want to delete "${vehicle.title}"? All related pending/confirmed bookings will be cancelled.`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await adminApi.deleteVehicle(id);
+          setAllVehicles(prev => prev.filter(v => v._id !== id));
+          message.success('Vehicle deleted successfully');
+        } catch (err: any) {
+          message.error(err.message || 'Failed to delete vehicle');
+        }
+      }
+    });
+  };
+
+  const handleCancelBooking = async (booking: Booking) => {
+    const id = booking._id!;
+    let reason = '';
+    Modal.confirm({
+      title: 'Force Cancel Booking',
+      content: (
+        <div style={{ marginTop: '16px' }}>
+          <p style={{ marginBottom: '12px' }}>Are you sure you want to force cancel this booking?</p>
+          <Input.TextArea 
+            placeholder="Reason for cancellation (Optional)"
+            onChange={(e) => { reason = e.target.value; }}
+            rows={3}
+          />
+        </div>
+      ),
+      okText: 'Force Cancel',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await adminApi.cancelBooking(id, reason);
+          setAllBookings(prev => prev.map(b => b._id === id ? { ...b, status: 'CANCELLED' } : b));
+          message.success('Booking cancelled successfully');
+        } catch (err: any) {
+          message.error(err.message || 'Failed to cancel booking');
+        }
+      }
+    });
+  };
+
+  const handleSiteSettingsUpdate = async (values: any) => {
+    try {
+      setSiteSettingsLoading(true);
+      const { settingsApi } = await import('../api');
+      const updated = await settingsApi.updateContactDetails(values);
+      setSiteSettings(updated);
+      message.success('Site settings updated successfully!');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update site settings');
+    } finally {
+      setSiteSettingsLoading(false);
+    }
+  };
+
+  // Load Site Settings when tab opens
+  useEffect(() => {
+    if (tab === 'site-settings' && !siteSettings) {
+      setSiteSettingsLoading(true);
+      import('../api').then(m => m.settingsApi.getContactDetails())
+        .then(setSiteSettings)
+        .catch(() => message.error('Failed to load site settings'))
+        .finally(() => setSiteSettingsLoading(false));
+    }
+  }, [tab, siteSettings]);
   const filteredUsers = allUsers.filter(u =>
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -338,6 +412,7 @@ export default function AdminDashboard() {
               { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
               { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: `Bank Settings` },
+              { key: 'site-settings', icon: <Edit2 size={18} />, label: `Site Settings` },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
             ]}
           />
@@ -369,7 +444,8 @@ export default function AdminDashboard() {
               { key: 'vehicles', icon: <Car size={18} />, label: 'Vehicles' },
               { key: 'bookings', icon: <Calendar size={18} />, label: 'Bookings' },
               { key: 'payments', icon: <DollarSign size={18} />, label: 'Payments' },
-              { key: 'bank-settings', icon: <Landmark size={18} />, label: 'Settings' },
+              { key: 'bank-settings', icon: <Landmark size={18} />, label: 'Bank Settings' },
+              { key: 'site-settings', icon: <Edit2 size={18} />, label: 'Site Settings' },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: 'Feedback' },
             ]}
           />
@@ -402,6 +478,7 @@ export default function AdminDashboard() {
               {tab === 'vehicles' && 'Vehicle Directory'}
               {tab === 'payments' && 'Subscription Payments'}
               {tab === 'bank-settings' && 'Bank Settings Configuration'}
+              {tab === 'site-settings' && 'Platform Site Settings'}
               {tab === 'feedback' && 'User Feedback & Bug Reports'}
             </Title>
           </div>
@@ -681,7 +758,16 @@ export default function AdminDashboard() {
                       },
                       { title: 'Price/day', dataIndex: 'pricePerDay', render: p => `LKR ${(p || 0).toLocaleString()}` },
                       { title: 'Performance', render: (_, v) => <div><Tag color="blue">{v.bookingsCount || 0} Bookings</Tag><br /><Tag icon={<Star size={12} />} color="gold" style={{ marginTop: '4px' }}>{v.averageRating ? `${v.averageRating} / 5` : 'No rating'}</Tag></div> },
-                      { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'active' ? 'green' : s === 'pending' ? 'orange' : 'red'}>{s}</Tag> }
+                      { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'active' ? 'green' : s === 'pending' ? 'orange' : 'red'}>{s}</Tag> },
+                      {
+                        title: 'Actions', render: (_, v) => (
+                          user?.role === 'superadmin' ? (
+                            <Tooltip title="Delete Vehicle">
+                              <Button size="small" type="text" danger onClick={() => handleDeleteVehicle(v)} icon={<Trash2 size={14} />} />
+                            </Tooltip>
+                          ) : <Text type="secondary" style={{ fontSize: '12px' }}>Read Only</Text>
+                        )
+                      }
                     ]}
                   />
                 </div>
@@ -700,7 +786,16 @@ export default function AdminDashboard() {
                       { title: 'Vehicle', render: (_, b) => { const v = typeof b.vehicle === 'object' ? b.vehicle : null; return v ? (v as Vehicle).title : 'Vehicle'; } },
                       { title: 'Dates', render: (_, b) => <Text style={{ fontSize: '13px' }}>{b.startDate ? new Date(b.startDate).toLocaleDateString() : 'N/A'} — {b.endDate ? new Date(b.endDate).toLocaleDateString() : 'N/A'}</Text> },
                       { title: 'Amount', dataIndex: 'totalAmount', render: a => `LKR ${(a || 0).toLocaleString()}` },
-                      { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> }
+                      { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> },
+                      {
+                        title: 'Actions', render: (_, b) => (
+                          user?.role === 'superadmin' && (b.status === 'CONFIRMED' || b.status === 'PENDING') ? (
+                            <Tooltip title="Force Cancel">
+                              <Button size="small" danger onClick={() => handleCancelBooking(b)}>Cancel</Button>
+                            </Tooltip>
+                          ) : null
+                        )
+                      }
                     ]}
                   />
                 </div>
@@ -775,6 +870,41 @@ export default function AdminDashboard() {
                         </Form.Item>
                         <Button type="primary" htmlType="submit" size="large" loading={bankDetailsLoading} block>
                           Save Changes
+                        </Button>
+                      </Form>
+                    )}
+                  </Card>
+                </div>
+              )}
+
+              {tab === 'site-settings' && (
+                <div className="animate-fade-in" style={{ maxWidth: '600px' }}>
+                  <Card title="Platform Contact Settings" bordered={false} style={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '14px' }}>
+                      Update the official platform contact details. These are displayed publicly on the Contact Us page and footer.
+                    </p>
+                    {siteSettingsLoading && !siteSettings ? (
+                      <div style={{ textAlign: 'center', padding: '2rem' }}><Spin size="large" /></div>
+                    ) : (
+                      <Form
+                        layout="vertical"
+                        initialValues={siteSettings || {}}
+                        onFinish={handleSiteSettingsUpdate}
+                      >
+                        <Form.Item name="email" label="Support Email" rules={[{ required: true, type: 'email' }]}>
+                          <Input size="large" placeholder="support@rentify.lk" prefix={<MessageSquare size={16} style={{ color: '#94a3b8' }} />} />
+                        </Form.Item>
+                        <Form.Item name="phone" label="Support Phone Number" rules={[{ required: true }]}>
+                          <Input size="large" placeholder="+94 11 234 5678" />
+                        </Form.Item>
+                        <Form.Item name="address" label="Office Address" rules={[{ required: true }]}>
+                          <Input size="large" placeholder="Colombo 03, Sri Lanka" prefix={<MapPin size={16} style={{ color: '#94a3b8' }} />} />
+                        </Form.Item>
+                        <Form.Item name="workingHours" label="Working Hours" rules={[{ required: true }]}>
+                          <Input size="large" placeholder="Mon-Sat: 9:00 AM - 6:00 PM" />
+                        </Form.Item>
+                        <Button type="primary" htmlType="submit" size="large" loading={siteSettingsLoading} block>
+                          Save Site Settings
                         </Button>
                       </Form>
                     )}

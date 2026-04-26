@@ -461,8 +461,17 @@ export const adminApi = {
     apiFetch<{ message: string }>(`/admin/users/${userId}`, { method: 'DELETE' }),
 
   getAllVehicles: () => apiFetch<Vehicle[]>('/admin/vehicles'),
+  
+  deleteVehicle: (vehicleId: string) =>
+    apiFetch<{ message: string }>(`/admin/vehicles/${vehicleId}`, { method: 'DELETE' }),
 
   getAllBookings: () => apiFetch<Booking[]>('/admin/bookings'),
+  
+  cancelBooking: (bookingId: string, reason?: string) =>
+    apiFetch<{ message: string; booking: Booking }>(`/admin/bookings/${bookingId}/cancel`, { 
+      method: 'PATCH',
+      body: JSON.stringify({ reason })
+    }),
 
   getAuditLogs: (page: number = 1, limit: number = 20) =>
     apiFetch<AuditLogResponse>(`/admin/audit-logs?page=${page}&limit=${limit}`),
