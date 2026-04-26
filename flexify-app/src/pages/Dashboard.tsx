@@ -657,7 +657,7 @@ export default function Dashboard() {
               setShowRenterModal(false);
             }}
           >
-            Reject Booking
+            Reject
           </Button>,
           <Button 
             key="approve" 
@@ -668,31 +668,32 @@ export default function Dashboard() {
               setShowRenterModal(false);
             }}
           >
-            Approve Booking
+            Approve
           </Button>
         ]}
         width={700}
+        styles={{ body: { padding: 0 } }}
         destroyOnClose
       >
         {selectedRenter ? (
-          <div className="renter-review-content" style={{ display: 'flex', flexDirection: 'column', minHeight: '400px', background: '#f8fafc', borderRadius: '12px', overflow: 'hidden' }}>
+          <div className="renter-review-content" style={{ display: 'flex', flexDirection: 'column', background: '#f8fafc', overflow: 'hidden' }}>
             {/* Top Bar with User Info */}
-            <div style={{ padding: '24px 32px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '1 1 300px' }}>
+            <div style={{ padding: '16px', background: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 250px' }}>
                 <Avatar 
-                  size={64} 
+                  size={56} 
                   src={getImageUrl(selectedRenter.profilePic)}
-                  style={{ background: '#1890ff' }}
+                  style={{ background: '#1890ff', flexShrink: 0 }}
                 >
                   {selectedRenter.name?.charAt(0)}
                 </Avatar>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>{selectedRenter.name}</h3>
-                  <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{selectedRenter.email}</p>
+                <div style={{ minWidth: 0 }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedRenter.name}</h3>
+                  <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedRenter.email}</p>
                 </div>
               </div>
 
-              <div style={{ flex: '1 1 250px' }}>
+              <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                 <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>Contact Info</h4>
                 <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '4px' }}>{selectedRenter.phone || 'Phone not provided'}</div>
                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedRenter.documents?.address || selectedRenter.address || 'Address not listed'}</div>
@@ -700,12 +701,12 @@ export default function Dashboard() {
             </div>
 
             {/* Document display area */}
-            <div style={{ padding: '24px', background: '#ffffff', overflowY: 'auto', maxHeight: '60vh' }}>
-              <h4 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem', fontWeight: 600 }}>
-                <FileText size={20} /> Documentation Verification
+            <div style={{ padding: '16px', background: '#f8fafc', overflowY: 'auto', maxHeight: '60vh' }}>
+              <h4 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', fontWeight: 700 }}>
+                <FileText size={18} /> Documentation Verification
               </h4>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
                 {[
                   { label: 'NIC Front View', field: 'nicFront' },
                   { label: 'NIC Back View', field: 'nicBack' },
@@ -730,18 +731,18 @@ export default function Dashboard() {
                       border: '1px solid #f1f5f9',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                     }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', marginBottom: '12px', textTransform: 'uppercase' }}>{doc.label}</div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>{doc.label}</div>
                       {url ? (
-                        <div className="doc-image-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
+                        <div className="doc-image-wrapper" style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#fff' }}>
                           <Image
                             src={fullUrl}
                             alt={doc.label}
-                            style={{ width: '100%', height: '180px', objectFit: 'contain' }}
-                            placeholder={<div style={{ height: '180px', background: '#f8fafc' }} />}
+                            style={{ width: '100%', height: '140px', objectFit: 'cover' }}
+                            placeholder={<div style={{ height: '140px', background: '#f8fafc' }} />}
                           />
                         </div>
                       ) : (
-                        <div style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderRadius: '12px', color: '#94a3b8', fontSize: '0.85rem' }}>
+                        <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderRadius: '8px', color: '#94a3b8', fontSize: '0.8rem' }}>
                           Not Uploaded
                         </div>
                       )}
@@ -820,22 +821,22 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem', marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                     <div>
-                      <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Pickup Date</div>
-                      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#334155', marginTop: '4px' }}>{dayjs(selectedBooking.startDate).format('MMM D, YYYY')}</div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Pickup Date</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#334155', marginTop: '2px' }}>{dayjs(selectedBooking.startDate).format('MMM D, YYYY')}</div>
                     </div>
                     <div>
-                      <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Return Date</div>
-                      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#334155', marginTop: '4px' }}>{dayjs(selectedBooking.endDate).format('MMM D, YYYY')}</div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Return Date</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#334155', marginTop: '2px' }}>{dayjs(selectedBooking.endDate).format('MMM D, YYYY')}</div>
                     </div>
                     <div>
-                      <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Duration</div>
-                      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#334155', marginTop: '4px' }}>{selectedBooking.days} Days</div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Duration</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#334155', marginTop: '2px' }}>{selectedBooking.days} Days</div>
                     </div>
                     <div>
-                      <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Total Price</div>
-                      <div style={{ fontWeight: 800, fontSize: '1.2rem', color: '#16a34a', marginTop: '4px' }}>LKR {selectedBooking.totalAmount.toLocaleString()}</div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Total Price</div>
+                      <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#16a34a', marginTop: '2px' }}>LKR {selectedBooking.totalAmount.toLocaleString()}</div>
                     </div>
                   </div>
 
@@ -898,12 +899,12 @@ export default function Dashboard() {
                         </div>
 
                         {/* Document display area directly integrated */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
                           {[
                             { label: 'NIC Front View', field: 'nicFront' },
                             { label: 'NIC Back View', field: 'nicBack' },
                             { label: 'Driver License', field: 'license' },
-                            { label: 'Selfie Verification', field: 'selfie' },
+                            { label: 'Selfie', field: 'selfie' },
                           ].map((doc, idx) => {
                             const url = renterObj.documents?.[doc.field] || 
                                         renterObj[doc.field] || 
@@ -914,21 +915,21 @@ export default function Dashboard() {
                             return (
                               <div key={idx} style={{ 
                                 background: '#f8fafc', 
-                                padding: '10px', 
-                                borderRadius: '12px', 
-                                border: '1px solid #f1f5f9'
+                                padding: '8px', 
+                                borderRadius: '8px', 
+                                border: '1px solid #e2e8f0'
                               }}>
-                                <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>{doc.label}</div>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', marginBottom: '6px', textTransform: 'uppercase' }}>{doc.label}</div>
                                 {url ? (
-                                  <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0', background: 'white' }}>
+                                  <div style={{ borderRadius: '6px', overflow: 'hidden', border: '1px solid #e2e8f0', background: 'white' }}>
                                     <Image
                                       src={fullUrl}
                                       alt={doc.label}
-                                      style={{ width: '100%', height: '100px', objectFit: 'contain' }}
+                                      style={{ width: '100%', height: '90px', objectFit: 'cover' }}
                                     />
                                   </div>
                                 ) : (
-                                  <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', borderRadius: '8px', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600 }}>
+                                  <div style={{ height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', borderRadius: '6px', color: '#94a3b8', fontSize: '0.7rem', fontWeight: 600 }}>
                                     Not Uploaded
                                   </div>
                                 )}
