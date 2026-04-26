@@ -1,33 +1,38 @@
-<svg viewBox="0 0 160 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="400" height="100">
+<svg viewBox="0 0 170 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="400" height="100">
   <defs>
     <!-- Vibrant modern gradient -->
     <linearGradient id="rentify-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stopColor="#0ea5e9" /> <!-- Sky blue -->
       <stop offset="100%" stopColor="#2563eb" /> <!-- Deep blue -->
     </linearGradient>
-    
-    <!-- Mask to cut out the wheel from the map pin -->
-    <mask id="pin-hole">
-      <rect width="30" height="35" fill="white" />
-      <circle cx="15" cy="13" r="6" fill="black" />
-    </mask>
   </defs>
 
-  <!-- Icon Group -->
-  <g transform="translate(2, 4)">
-    <!-- The Map Pin Shape -->
+  <!-- Car Icon Group -->
+  <g transform="translate(0, 4)">
+    <!-- Speed lines for motion effect -->
+    <path d="M-8 16 L -2 16" stroke="url(#rentify-gradient)" stroke-width="3" stroke-linecap="round" opacity="0.8" />
+    <path d="M-12 22 L 2 22" stroke="url(#rentify-gradient)" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+
+    <!-- Solid Car Silhouette -->
     <path 
-      d="M15 0C6.716 0 0 6.716 0 15C0 25.5 15 32 15 32C15 32 30 25.5 30 15C30 6.716 23.284 0 15 0Z" 
-      fill="url(#rentify-gradient)"
-      mask="url(#pin-hole)"
+      d="M 4.5 16.5 L 12.5 12.5 L 18.5 4.5 C 20.5 2.5 24.5 2.5 28.5 2.5 L 36.5 2.5 C 40.5 2.5 44.5 4.5 46.5 8.5 L 50.5 12.5 C 52.5 12.5 54.5 14.5 54.5 16.5 L 54.5 24.5 C 54.5 26.5 52.5 28.5 50.5 28.5 L 48.5 28.5 A 6.5 6.5 0 0 0 35.5 28.5 L 28.5 28.5 A 6.5 6.5 0 0 0 15.5 28.5 L 8.5 28.5 C 6.5 28.5 4.5 26.5 4.5 24.5 L 4.5 16.5 Z" 
+      fill="url(#rentify-gradient)" 
     />
-    <!-- Inner steering wheel dot -->
-    <circle cx="15" cy="13" r="2" fill="url(#rentify-gradient)" />
+    
+    <!-- Wheels (in the negative space wells) -->
+    <circle cx="22" cy="28.5" r="4" fill="url(#rentify-gradient)" />
+    <circle cx="42" cy="28.5" r="4" fill="url(#rentify-gradient)" />
+
+    <!-- Back Window Cutout -->
+    <path d="M 17 14 L 21 8 C 22 6 24 6 26 6 L 26 14 Z" fill="#ffffff" />
+    
+    <!-- Front Window Cutout -->
+    <path d="M 28 6 L 33 6 C 36 6 38 7 40 10 L 42 14 L 28 14 Z" fill="#ffffff" />
   </g>
 
   <!-- Typography -->
   <text 
-    x="42" 
+    x="65" 
     y="28" 
     font-family="'Inter', system-ui, -apple-system, sans-serif" 
     font-weight="800" 
@@ -39,5 +44,5 @@
   </text>
   
   <!-- Small modern dot at the end -->
-  <circle cx="140" cy="28" r="3" fill="#0ea5e9" />
+  <circle cx="160" cy="28" r="3" fill="#0ea5e9" />
 </svg>
