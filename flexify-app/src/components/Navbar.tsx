@@ -124,18 +124,14 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="navbar-actions">
-            {!isSuperAdmin && (
-              <>
-                <Link to="/explore" className="nav-action-btn" title="Search">
-                  <Search size={20} />
-                </Link>
-                <button className="nav-action-btn notification-btn" title="Notifications" onClick={() => navigate('/notifications')}>
-                  <Badge count={unreadCount} size="small" offset={[-2, 2]}>
-                    <Bell size={20} style={{ color: 'inherit' }} />
-                  </Badge>
-                </button>
-              </>
-            )}
+            <Link to="/explore" className="nav-action-btn" title="Search">
+              <Search size={20} />
+            </Link>
+            <button className="nav-action-btn notification-btn" title="Notifications" onClick={() => navigate('/notifications')}>
+              <Badge count={unreadCount} size="small" offset={[-2, 2]}>
+                <Bell size={20} style={{ color: 'inherit' }} />
+              </Badge>
+            </button>
 
             {/* Profile */}
             <div className="profile-wrapper" ref={profileRef}>
