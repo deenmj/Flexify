@@ -4,7 +4,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin } from 'lucide-react';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './VehicleDetail.css';
@@ -295,6 +295,37 @@ export default function VehicleDetail() {
       return;
     }
     setShowBookingModal(true);
+  };
+
+  const handleToggleStatus = async () => {
+    if (!id || !vehicle) return;
+    try {
+      await vehicleApi.toggleStatus(id);
+      setVehicle({ ...vehicle, isActive: !vehicle.isActive });
+      message.success(vehicle.isActive ? 'Vehicle is now hidden' : 'Vehicle is now visible');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update status');
+    }
+  };
+
+  const handleDeleteVehicle = () => {
+    if (!id) return;
+    Modal.confirm({
+      title: 'Delete Vehicle',
+      content: 'Are you sure you want to delete this vehicle? This action cannot be undone.',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await vehicleApi.delete(id);
+          message.success('Vehicle deleted successfully');
+          navigate('/dashboard');
+        } catch (err: any) {
+          message.error(err.message || 'Failed to delete vehicle');
+        }
+      }
+    });
   };
 
   if (loading) {
@@ -682,10 +713,22 @@ export default function VehicleDetail() {
                 )}
 
                 {user && user._id === (owner?._id || vehicle.owner) ? (
-                  <div className="box-highlight" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
-                    <p style={{ fontWeight: 600, color: '#475569', marginBottom: '4px' }}>This is your vehicle</p>
-                    <p style={{ color: '#64748b', fontSize: '0.875rem' }}>Manage this listing in your dashboard.</p>
-                    <Link to="/dashboard" className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }}>Go to Dashboard</Link>
+                  <div className="box-highlight" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '1.25rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
+                    <p style={{ fontWeight: 600, color: '#475569', marginBottom: '12px', fontSize: '1rem' }}>Vehicle Management</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <Link to={`/edit-vehicle/${id}`} className="btn btn-secondary btn-sm btn-full" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <Edit size={16} /> Edit Details
+                      </Link>
+                      <button className="btn btn-sm btn-full" onClick={handleToggleStatus} style={{ background: 'white', color: '#475569', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        {vehicle.isActive ? <><EyeOff size={16} /> Hide Listing</> : <><Eye size={16} /> Show Listing</>}
+                      </button>
+                      <button className="btn btn-sm btn-full" onClick={handleDeleteVehicle} style={{ background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <Trash2 size={16} /> Delete Vehicle
+                      </button>
+                      <div style={{ marginTop: '4px', borderTop: '1px solid #e2e8f0', paddingTop: '8px' }}>
+                        <Link to="/dashboard" style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textDecoration: 'underline' }}>Back to Dashboard</Link>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <button

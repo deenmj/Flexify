@@ -308,14 +308,6 @@ export default function EditVehicle() {
         <div className="container" style={{ position: 'relative' }}>
           <h1>Edit Vehicle</h1>
           <p>Update your vehicle information and pricing</p>
-          <div className="edit-vehicle-actions" style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', right: '1rem', display: 'flex', gap: '8px' }}>
-            <button className="btn" onClick={handleToggleStatus} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.5rem 1rem' }}>
-              {form.isActive ? <><EyeOff size={16} style={{ marginRight: '6px' }} /> Hide</> : <><Eye size={16} style={{ marginRight: '6px' }} /> Show</>}
-            </button>
-            <button className="btn" onClick={handleDeleteVehicle} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem' }}>
-              <Trash2 size={16} style={{ marginRight: '6px' }} /> Delete
-            </button>
-          </div>
         </div>
       </section>
 
