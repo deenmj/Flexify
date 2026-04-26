@@ -13,7 +13,14 @@ const RentifyLogo: React.FC<RentifyLogoProps> = ({ className = "", style }) => {
       src={logoImage} 
       alt="Rentify Logo" 
       className={className} 
-      style={{ height: '40px', width: 'auto', objectFit: 'contain', ...style }} 
+      style={{ 
+        height: '70px', 
+        width: 'auto', 
+        objectFit: 'contain', 
+        transform: 'scale(1.4)',
+        transformOrigin: 'left center',
+        ...style 
+      }} 
     />
   );
 };

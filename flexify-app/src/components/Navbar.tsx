@@ -90,8 +90,8 @@ export default function Navbar() {
               <Menu size={24} strokeWidth={2.5} />
             </button>
             
-            <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', height: '40px' }}>
-              <RentifyLogo className="logo-svg" />
+            <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '10px' }}>
+              <RentifyLogo className="logo-img" />
             </Link>
           </div>
 
