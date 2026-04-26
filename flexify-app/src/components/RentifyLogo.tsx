@@ -14,11 +14,9 @@ const RentifyLogo: React.FC<RentifyLogoProps> = ({ className = "", style }) => {
       alt="Rentify Logo" 
       className={className} 
       style={{ 
-        height: '70px', 
+        height: '45px', 
         width: 'auto', 
         objectFit: 'contain', 
-        transform: 'scale(1.4)',
-        transformOrigin: 'left center',
         ...style 
       }} 
     />
