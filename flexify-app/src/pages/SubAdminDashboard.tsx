@@ -6,7 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
-  LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon
+  LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon,
+  Eye, EyeOff
 } from 'lucide-react';
 import { subadminApi, adminApi, userApi, feedbackApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { DollarSign } from 'lucide-react';
@@ -633,22 +634,38 @@ export default function SubAdminDashboard() {
                       {
                         title: 'Reviewer',
                         render: (_, r) => (
+                          <Space>
+                            <Avatar size="small" src={getImageUrl(r.reviewer.profilePic)}>{r.reviewer.name.charAt(0)}</Avatar>
+                            <div>
+                              <Text strong>{r.reviewer.name}</Text><br />
+                              <Text type="secondary" style={{ fontSize: '11px' }}>{r.reviewer.email}</Text>
+                            </div>
+                          </Space>
+                        )
+                      },
+                      {
+                        title: 'Vehicle',
+                        render: (_, r) => (
                           <div>
-                            <Text strong>{r.reviewer.name}</Text><br />
-                            <Text type="secondary" style={{ fontSize: '12px' }}>Rating: {r.rating}/5</Text>
+                            <Text strong>{r.vehicle?.title || 'Unknown Vehicle'}</Text><br />
+                            <Text type="secondary" style={{ fontSize: '11px' }}>{r.vehicle?.make} {r.vehicle?.model}</Text>
                           </div>
                         )
                       },
                       { title: 'Rating', dataIndex: 'rating', render: r => <Rate disabled defaultValue={r} style={{ fontSize: 14 }} /> },
-                      { title: 'Comment', dataIndex: 'comment', width: '35%', render: c => <Text type="secondary" style={{ fontSize: '13px' }}>{c}</Text> },
+                      { title: 'Comment', dataIndex: 'comment', width: '30%', render: c => <Text type="secondary" style={{ fontSize: '13px' }}>{c}</Text> },
                       { title: 'Status', render: (_, r) => <Tag color={r.status === 'visible' ? 'success' : 'red'}>{r.status.toUpperCase()}</Tag> },
+                      { title: 'Date', dataIndex: 'createdAt', render: d => new Date(d).toLocaleDateString() },
                       {
                         title: 'Actions',
                         render: (_, r) => (
                           <Button
                             danger={r.status === 'visible'}
                             type={r.status === 'visible' ? 'primary' : 'default'}
+                            size="small"
+                            icon={r.status === 'visible' ? <EyeOff size={14} /> : <Eye size={14} />}
                             onClick={() => handleToggleReviewStatus(r._id, r.status)}
+                            className="review-action-btn"
                           >
                             {r.status === 'visible' ? 'Hide Review' : 'Restore'}
                           </Button>

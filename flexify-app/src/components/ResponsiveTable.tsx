@@ -75,7 +75,7 @@ export default function ResponsiveTable({ columns, dataSource, rowKey, paginatio
               </div>
 
               {actionCol && (
-                <div className="mobile-action-bar" style={{ padding: '10px 16px', background: '#f1f5f9', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <div className="mobile-action-bar" style={{ padding: '12px 16px', background: 'white', borderTop: '1px dashed #e2e8f0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                    {actionCol.render ? actionCol.render(actionCol.dataIndex ? record[actionCol.dataIndex] : undefined, record, index) : record[actionCol.dataIndex]}
                 </div>
               )}

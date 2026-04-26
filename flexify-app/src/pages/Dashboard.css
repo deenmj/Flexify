@@ -1096,3 +1096,32 @@
     border-radius: 12px;
   }
 }
+
+/* Review Moderation Enhancements */
+.review-action-btn {
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 4px 14px !important;
+  height: 34px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+}
+
+.review-action-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+}
+
+.review-action-btn.ant-btn-primary.ant-btn-dangerous {
+  background: #fff1f2 !important;
+  color: #e11d48 !important;
+  border: 1px solid #fda4af !important;
+}
+
+.review-action-btn.ant-btn-primary.ant-btn-dangerous:hover {
+  background: #ffe4e6 !important;
+  border-color: #f43f5e !important;
+}
