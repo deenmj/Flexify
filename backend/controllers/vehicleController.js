@@ -251,8 +251,14 @@ export const deleteVehicle = async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
+    // Cancel all pending or confirmed bookings associated with this vehicle
+    await Booking.updateMany(
+      { vehicle: vehicle._id, status: { $in: ["PENDING", "CONFIRMED"] } },
+      { $set: { status: "CANCELLED", cancellationReason: "Vehicle removed by the owner." } }
+    );
+
     await vehicle.deleteOne();
-    res.json({ message: "Vehicle deleted successfully" });
+    res.json({ message: "Vehicle deleted successfully, and associated active bookings were canceled." });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

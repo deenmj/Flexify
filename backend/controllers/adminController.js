@@ -95,6 +95,14 @@ export const getAdminStats = async (req, res) => {
     const totalUsers = await User.countDocuments();
     const pendingKyc = await User.countDocuments({ verificationStatus: "pending" });
 
+    // 5. Platform Revenue from Subscriptions
+    const paymentMatch = { status: "approved", ...timeMatch };
+    const platformRevenue = await Payment.aggregate([
+      { $match: paymentMatch },
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+    const totalPlatformRevenue = platformRevenue[0]?.total || 0;
+
     // Format response
     const confirmedCount = bookings.counts.find(c => c._id === "CONFIRMED")?.count || 0;
     const pendingCount = bookings.counts.find(c => c._id === "PENDING")?.count || 0;
@@ -119,7 +127,7 @@ export const getAdminStats = async (req, res) => {
       totalVehicles: vehicleInfo.counts.reduce((acc, curr) => acc + curr.count, 0),
       activeVehicles: vehicleInfo.counts.find(c => c._id === "active")?.count || 0,
       pendingVehicles: vehicleInfo.counts.find(c => c._id === "pending")?.count || 0,
-      totalEarnings: bookings.earnings[0]?.total || 0,
+      totalEarnings: totalPlatformRevenue,
       bookings: {
         total: totalBookingsCount,
         confirmed: confirmedCount,
