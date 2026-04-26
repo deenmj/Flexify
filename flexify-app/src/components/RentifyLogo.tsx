@@ -3,9 +3,10 @@ import React from 'react';
 interface RentifyLogoProps {
   className?: string;
   isDarkTheme?: boolean;
+  style?: React.CSSProperties;
 }
 
-const RentifyLogo: React.FC<RentifyLogoProps> = ({ className = "h-10 w-auto", isDarkTheme = false }) => {
+const RentifyLogo: React.FC<RentifyLogoProps> = ({ className = "", isDarkTheme = false, style }) => {
   const textColor = isDarkTheme ? "#FFFFFF" : "#0f172a"; // White for dark theme, Slate-900 for light theme
 
   return (
@@ -14,6 +15,7 @@ const RentifyLogo: React.FC<RentifyLogoProps> = ({ className = "h-10 w-auto", is
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      style={{ height: '36px', width: 'auto', ...style }}
     >
       <defs>
         {/* Vibrant modern gradient */}
