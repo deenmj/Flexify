@@ -110,6 +110,7 @@ export default function App() {
               <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
               <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
               <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
+              <Route path="/subscription" element={<AppLayout><SubscriptionManagement /></AppLayout>} />
 
               {/* Protected pages */}
               <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
@@ -119,7 +120,6 @@ export default function App() {
               <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
               <Route path="/dashboard/vehicle/:id" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ManageVehicle /></ProtectedRoute></NoFooterLayout>} />
               <Route path="/vehicles/edit/:id" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></AppLayout>} />
-              <Route path="/subscription" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><SubscriptionManagement /></ProtectedRoute></AppLayout>} />
 
               {/* Admin dashboards */}
               <Route path="/admin" element={<NoNavbarLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></NoNavbarLayout>} />

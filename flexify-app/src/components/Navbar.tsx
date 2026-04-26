@@ -104,6 +104,9 @@ export default function Navbar() {
               <Link to="/explore" className="nav-link">
                 <Compass size={18} /> Explore
               </Link>
+              <Link to="/subscription" className="nav-link">
+                <DollarSign size={18} /> Pricing
+              </Link>
               <Link to="/list-vehicle" className="nav-link">
                 <Car size={18} /> List Vehicle
               </Link>
@@ -249,6 +252,7 @@ export default function Navbar() {
               <div className="mobile-section-title">Main Menu</div>
               <Link to="/home" className="mobile-link" onClick={() => setMobileOpen(false)}><Home size={18} /> Home</Link>
               <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}><Compass size={18} /> Explore</Link>
+              <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}><DollarSign size={18} /> Pricing</Link>
               <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List Vehicle</Link>
 
               {user && (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
 import { Check, Shield, Zap, AlertCircle, Clock, Info, CreditCard, Landmark, ArrowLeft, Loader2, Crown, Sparkles } from 'lucide-react';
 import { ownerApi, bankDetailsApi, type BankDetailsData } from '../api';
@@ -62,6 +63,7 @@ const PLANS = [
 
 const SubscriptionManagement: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const navigate = useNavigate();
   const { socket } = useSocket();
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -101,6 +103,10 @@ const SubscriptionManagement: React.FC = () => {
 
   const handleRequestUpgrade = (plan: any) => {
     if (plan.id === 'FREE') return; // Can't "buy" free
+    if (!user) {
+      navigate('/auth', { state: { returnTo: '/subscription' } });
+      return;
+    }
     setSelectedTier(plan);
     setShowPayment(true);
   };
