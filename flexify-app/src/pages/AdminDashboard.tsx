@@ -511,7 +511,7 @@ export default function AdminDashboard() {
                         </Card>
                         <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #f8fafc, #f1f5f9)' }} bordered={false}>
                           <Statistic
-                            title="Total Earnings"
+                            title="Booking Volume"
                             value={stats.totalEarnings}
                             prefix={<span style={{ fontWeight: 'bold', color: '#8b5cf6', marginRight: 8 }}>LKR</span>}
                           />

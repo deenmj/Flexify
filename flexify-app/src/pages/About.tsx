@@ -41,9 +41,10 @@ export default function About() {
             <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>{stats?.totalDistricts || 0}</h2>
             <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Districts in Sri Lanka</p>
           </div>
-          <div className="card" style={{ padding: '2rem', background: 'var(--bg-primary)', border: '1px solid var(--border-color-light)', borderRadius: '16px' }}>
-            <h2 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>{stats?.averageRating ? stats.averageRating + '/5' : 'New'}</h2>
-            <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Average Rating</p>
+          <div className="card" style={{ padding: '2rem', background: 'var(--bg-primary)', border: '1px solid var(--border-color-light)', borderRadius: '16px', position: 'relative' }}>
+            <h2 style={{ fontSize: '2rem', color: 'var(--text-tertiary)', fontWeight: 800, marginBottom: '0.5rem' }}>⭐</h2>
+            <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>User Reviews</p>
+            <span style={{ fontSize: '0.7rem', background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '20px', fontWeight: 700, marginTop: '0.5rem', display: 'inline-block' }}>Coming Soon</span>
           </div>
         </div>
 
