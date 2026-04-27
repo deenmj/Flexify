@@ -4,7 +4,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag } from 'lucide-react';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './VehicleDetail.css';
@@ -633,7 +633,71 @@ export default function VehicleDetail() {
               
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={18}>
-                  <Calendar fullscreen={false} cellRender={(date) => dateCellRender(date as Dayjs)} />
+                  <Calendar 
+                    fullscreen={false} 
+                    cellRender={(date) => dateCellRender(date as Dayjs)} 
+                    headerRender={({ value, type, onChange, onTypeChange }) => {
+                      const start = 0;
+                      const end = 12;
+                      const monthOptions = [];
+                      const current = value.clone();
+                      const localeData = value.localeData();
+                      const months = [];
+                      for (let i = 0; i < 12; i++) {
+                        current.month(i);
+                        months.push(localeData.monthsShort(current));
+                      }
+
+                      for (let index = start; index < end; index++) {
+                        monthOptions.push(
+                          <Select.Option className="month-item" key={`${index}`}>
+                            {months[index]}
+                          </Select.Option>,
+                        );
+                      }
+                      const month = value.month();
+                      const year = value.year();
+
+                      return (
+                        <div style={{ padding: '8px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>
+                              {value.format('MMMM YYYY')}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <Button 
+                              size="small" 
+                              icon={<ChevronLeft size={16} />} 
+                              onClick={() => {
+                                const now = value.clone().subtract(1, 'month');
+                                onChange(now);
+                              }}
+                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            />
+                            <Button 
+                              size="small"
+                              onClick={() => {
+                                onChange(dayjs());
+                              }}
+                              style={{ fontSize: '0.75rem', fontWeight: 600 }}
+                            >
+                              Today
+                            </Button>
+                            <Button 
+                              size="small" 
+                              icon={<ChevronRight size={16} />} 
+                              onClick={() => {
+                                const now = value.clone().add(1, 'month');
+                                onChange(now);
+                              }}
+                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
                 </Col>
                 <Col xs={24} md={6}>
                   <div className="avail-legend-vertical" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

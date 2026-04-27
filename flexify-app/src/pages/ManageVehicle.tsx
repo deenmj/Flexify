@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Car, Star, CheckCircle, Zap, Eye, Edit, MessageSquare, 
-  Calendar as CalIcon, AlertTriangle, Trash2, ArrowLeft
+  Calendar as CalIcon, AlertTriangle, Trash2, ArrowLeft,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { vehicleApi, bookingApi, reviewApi, blackoutApi, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -354,6 +355,46 @@ export default function ManageVehicle() {
                         fullscreen={!isMobile} 
                         cellRender={calendarCellRender}
                         onSelect={onCalendarSelect}
+                        headerRender={({ value, type, onChange, onTypeChange }) => {
+                          return (
+                            <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                                  {value.format('MMMM YYYY')}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <Button 
+                                  size="middle" 
+                                  icon={<ChevronLeft size={20} />} 
+                                  onClick={() => {
+                                    const now = value.clone().subtract(1, 'month');
+                                    onChange(now);
+                                  }}
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px' }}
+                                />
+                                <Button 
+                                  size="middle"
+                                  onClick={() => {
+                                    onChange(dayjs());
+                                  }}
+                                  style={{ fontWeight: 700, borderRadius: '10px' }}
+                                >
+                                  Today
+                                </Button>
+                                <Button 
+                                  size="middle" 
+                                  icon={<ChevronRight size={20} />} 
+                                  onClick={() => {
+                                    const now = value.clone().add(1, 'month');
+                                    onChange(now);
+                                  }}
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px' }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        }}
                       />
                       
                       <div className="avail-legend-horizontal" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: '1.5rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
