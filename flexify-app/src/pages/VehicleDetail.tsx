@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button } from 'antd';
+import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button, Select } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl } from '../api';
 import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -637,27 +637,6 @@ export default function VehicleDetail() {
                     fullscreen={false} 
                     cellRender={(date) => dateCellRender(date as Dayjs)} 
                     headerRender={({ value, type, onChange, onTypeChange }) => {
-                      const start = 0;
-                      const end = 12;
-                      const monthOptions = [];
-                      const current = value.clone();
-                      const localeData = value.localeData();
-                      const months = [];
-                      for (let i = 0; i < 12; i++) {
-                        current.month(i);
-                        months.push(localeData.monthsShort(current));
-                      }
-
-                      for (let index = start; index < end; index++) {
-                        monthOptions.push(
-                          <Select.Option className="month-item" key={`${index}`}>
-                            {months[index]}
-                          </Select.Option>,
-                        );
-                      }
-                      const month = value.month();
-                      const year = value.year();
-
                       return (
                         <div style={{ padding: '8px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
