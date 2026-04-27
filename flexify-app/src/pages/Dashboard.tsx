@@ -317,12 +317,19 @@ export default function Dashboard() {
     return <Tag color="success">Active</Tag>;
   };
 
-  const bookingStatusBadge = (status: string) => {
+  const bookingStatusBadge = (status: string, startDate?: any) => {
+    const isExpired = status === 'PENDING' && startDate && dayjs(startDate).isBefore(dayjs(), 'day');
+    
+    if (isExpired) {
+      return <Tag color="error" icon={<Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}>Expired</Tag>;
+    }
+
     switch (status) {
       case 'PENDING': return <Tag color="warning">Pending</Tag>;
       case 'CONFIRMED': return <Tag color="success">Confirmed</Tag>;
       case 'CANCELLED': return <Tag color="error">Cancelled</Tag>;
       case 'COMPLETED': return <Tag color="processing">Completed</Tag>;
+      case 'REJECTED': return <Tag color="error">Rejected</Tag>;
       default: return <Tag>{status}</Tag>;
     }
   };
@@ -539,7 +546,7 @@ export default function Dashboard() {
                                 </div>
                               </div>
                             </div>
-                            {bookingStatusBadge(b.status)}
+                            {bookingStatusBadge(b.status, b.startDate)}
                           </div>
                           
                           <div className="booking-card-meta" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
@@ -591,13 +598,20 @@ export default function Dashboard() {
                               <div style={{ display: 'flex', width: '100%' }}>
                                 <button 
                                   className="btn btn-sm btn-primary" 
-                                  style={{ flex: 1, background: '#1890ff', fontWeight: 600, height: '32px' }}
+                                  disabled={dayjs(b.startDate).isBefore(dayjs(), 'day')}
+                                  style={{ 
+                                    flex: 1, 
+                                    background: dayjs(b.startDate).isBefore(dayjs(), 'day') ? '#cbd5e1' : '#1890ff', 
+                                    fontWeight: 600, 
+                                    height: '32px',
+                                    cursor: dayjs(b.startDate).isBefore(dayjs(), 'day') ? 'not-allowed' : 'pointer'
+                                  }}
                                   onClick={() => { 
                                     const renter = typeof b.user === 'object' ? b.user : null;
                                     handleReviewRenter(b._id, renter);
                                   }}
                                 >
-                                  Review & Respond
+                                  {dayjs(b.startDate).isBefore(dayjs(), 'day') ? 'Request Expired' : 'Review & Respond'}
                                 </button>
                               </div>
                             )}
@@ -816,7 +830,7 @@ export default function Dashboard() {
                     </div>
                     <div style={{ flex: 1 }}>
                       <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>{typeof selectedBooking.vehicle === 'object' ? (selectedBooking.vehicle as Vehicle).title : 'Vehicle Details'}</h3>
-                      <div style={{ marginTop: '8px' }}>{bookingStatusBadge(selectedBooking.status)}</div>
+                      <div style={{ marginTop: '8px' }}>{bookingStatusBadge(selectedBooking.status, selectedBooking.startDate)}</div>
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '8px', fontWeight: 600 }}>REF ID: {selectedBooking._id}</div>
                     </div>
                   </div>

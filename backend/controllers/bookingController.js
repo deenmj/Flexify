@@ -143,6 +143,12 @@ export const acceptBooking = async (req, res) => {
       return res.status(400).json({ message: "Booking is not in pending state" });
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(booking.startDate) < today) {
+      return res.status(400).json({ message: "This booking request has expired because the start date has already passed." });
+    }
+
     // Authorization: vehicle owner (no KYC needed) or subadmin/superadmin
     const isOwner = booking.owner._id.toString() === req.user._id.toString();
     const isAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
