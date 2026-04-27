@@ -40,6 +40,12 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ message: "Invalid dates" });
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (s < today) {
+      return res.status(400).json({ message: "Cannot book a vehicle for a past date" });
+    }
+
     const days = Math.ceil((e - s) / (1000 * 60 * 60 * 24)) || 1;
 
     // Run overlap checks in PARALLEL for speed
