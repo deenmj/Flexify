@@ -51,6 +51,13 @@ export const createReview = async (req, res) => {
       return res.status(400).json({ message: "Only confirmed or completed bookings can be reviewed" });
     }
 
+    // NEW: Ensure the trip has actually ended before allowing a review
+    const tripEndDate = new Date(booking.endDate);
+    const now = new Date();
+    if (now < tripEndDate) {
+      return res.status(400).json({ message: "You can only leave a review after the trip has ended." });
+    }
+
     // Check if already reviewed
     const existingReview = await Review.findOne({ booking: bookingId });
     if (existingReview) {

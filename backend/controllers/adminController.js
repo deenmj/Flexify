@@ -259,6 +259,27 @@ export const updateUserStatus = async (req, res) => {
     user.status = status;
     await user.save();
 
+    // Cascading logic: If user is blocked, deactivate their vehicles and cancel active bookings
+    if (status === "blocked") {
+      const Vehicle = (await import("../models/Vehicle.js")).default;
+      const Booking = (await import("../models/booking.js")).default;
+      
+      // Hide all listings
+      await Vehicle.updateMany({ owner: user._id }, { isActive: false });
+      
+      // Cancel all active/pending bookings (both as owner and renter)
+      await Booking.updateMany(
+        { 
+          $or: [{ owner: user._id }, { user: user._id }], 
+          status: { $in: ["PENDING", "CONFIRMED"] } 
+        },
+        { 
+          status: "CANCELLED", 
+          cancellationReason: "Account associated with this booking has been suspended." 
+        }
+      );
+    }
+
     logAdminAction(req, "user_status_change", user._id, { oldStatus, newStatus: status });
     res.json({ message: `User status set to ${status}`, user });
   } catch (err) {

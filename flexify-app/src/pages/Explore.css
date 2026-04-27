@@ -145,6 +145,23 @@
   }
 }
 
+.search-date-picker {
+  border-left: 1px solid #e2e8f0;
+  padding-left: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.search-date-picker .ant-picker {
+  padding: 0 8px;
+}
+
+.search-date-picker .ant-picker-input > input {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
 .explore-search-input {
   flex: 1;
   border: none;

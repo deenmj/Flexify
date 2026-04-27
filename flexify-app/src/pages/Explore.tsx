@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Row, Col } from 'antd';
+import { Row, Col, DatePicker } from 'antd';
+const { RangePicker } = DatePicker;
 import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown, X, Car, Plus } from 'lucide-react';
 import { vehicleApi, type Vehicle, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -30,7 +31,8 @@ interface Filters {
   radius: string;
   sort: string;
   province: string;
-  district: string;
+  startDate: string;
+  endDate: string;
 }
 
 const RADIUS_OPTIONS = [
@@ -108,6 +110,8 @@ export default function Explore() {
     sort: searchParams.get('sort') || 'newest',
     province: searchParams.get('province') || '',
     district: searchParams.get('district') || '',
+    startDate: searchParams.get('startDate') || '',
+    endDate: searchParams.get('endDate') || '',
   });
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
@@ -132,6 +136,8 @@ export default function Explore() {
       if (activeFilters.province) params.province = activeFilters.province;
       if (activeFilters.district) params.district = activeFilters.district;
       if (activeFilters.sort) params.sort = activeFilters.sort;
+      if (activeFilters.startDate) params.startDate = activeFilters.startDate;
+      if (activeFilters.endDate) params.endDate = activeFilters.endDate;
 
       const data = await vehicleApi.getAll(params);
       
@@ -175,7 +181,11 @@ export default function Explore() {
   };
 
   const clearFilters = () => {
-    setFilters({ transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', lat: '', lng: '', radius: '10', sort: 'newest', province: '', district: '' });
+    setFilters({ 
+      transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', 
+      lat: '', lng: '', radius: '10', sort: 'newest', province: '', district: '',
+      startDate: '', endDate: ''
+    });
     setQuery('');
   };
 
@@ -212,14 +222,33 @@ export default function Explore() {
               <form onSubmit={handleSearch} className="explore-search">
                 <div className="explore-search-inner">
                   <Search size={18} className="explore-search-icon" />
-                  <input
-                    type="text"
-                    placeholder="Search by name, model, location..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="explore-search-input"
-                  />
-                  <button type="button" className="filter-toggle-btn" onClick={() => setShowFilters(!showFilters)}>
+                    <input
+                      type="text"
+                      placeholder="Search by name, model..."
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      className="explore-search-input"
+                    />
+                    <div className="search-date-picker d-none-mobile">
+                      <RangePicker 
+                        variant="borderless"
+                        placeholder={['Start Date', 'End Date']}
+                        style={{ width: '230px' }}
+                        onChange={(dates) => {
+                          if (dates) {
+                            setFilters({ 
+                              ...filters, 
+                              startDate: dates[0]?.toISOString() || '', 
+                              endDate: dates[1]?.toISOString() || '' 
+                            });
+                          } else {
+                            setFilters({ ...filters, startDate: '', endDate: '' });
+                          }
+                        }}
+                        disabledDate={(current) => current && current < dayjs().startOf('day')}
+                      />
+                    </div>
+                    <button type="button" className="filter-toggle-btn" onClick={() => setShowFilters(!showFilters)}>
                     <SlidersHorizontal size={14} />
                     Filters
                   </button>
@@ -328,6 +357,24 @@ export default function Explore() {
                   <option value="">Any District</option>
                   {filters.province && SRI_LANKA_LOCATIONS[filters.province as keyof typeof SRI_LANKA_LOCATIONS].map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
+              </div>
+              <div className="input-group d-block-mobile d-none-desktop">
+                <label>Travel Dates</label>
+                <RangePicker 
+                  style={{ width: '100%', height: '42px', borderRadius: '8px' }}
+                  onChange={(dates) => {
+                    if (dates) {
+                      setFilters({ 
+                        ...filters, 
+                        startDate: dates[0]?.toISOString() || '', 
+                        endDate: dates[1]?.toISOString() || '' 
+                      });
+                    } else {
+                      setFilters({ ...filters, startDate: '', endDate: '' });
+                    }
+                  }}
+                  disabledDate={(current) => current && current < dayjs().startOf('day')}
+                />
               </div>
             </div>
 

@@ -269,7 +269,7 @@ export const deleteVehicle = async (req, res) => {
  */
 export const listVehicles = async (req, res) => {
   try {
-    const { q, transmission, minPrice, maxPrice, seats, vehicleType, lat, lng, radius, sort, province, district } = req.query;
+    const { q, transmission, minPrice, maxPrice, seats, vehicleType, lat, lng, radius, sort, province, district, startDate, endDate } = req.query;
 
     let filter = {
       status: "active",
@@ -299,6 +299,29 @@ export const listVehicles = async (req, res) => {
 
     if (province) filter.province = province;
     if (district) filter.district = district;
+
+    // Date Availability Filtering
+    if (startDate && endDate) {
+      const sDate = new Date(startDate);
+      const eDate = new Date(endDate);
+
+      // Find vehicles that ARE booked or blacked out during these dates
+      const [bookedVehicleIds, blackoutVehicleIds] = await Promise.all([
+        Booking.find({
+          status: "CONFIRMED",
+          $or: [{ startDate: { $lte: eDate }, endDate: { $gte: sDate } }]
+        }).distinct("vehicle"),
+        Blackout.find({
+          $or: [{ startDate: { $lte: eDate }, endDate: { $gte: sDate } }]
+        }).distinct("vehicle")
+      ]);
+
+      // Combine and EXCLUDE these IDs from the main filter
+      const unavailableIds = [...new Set([...bookedVehicleIds, ...blackoutVehicleIds])];
+      if (unavailableIds.length > 0) {
+        filter._id = { $nin: unavailableIds };
+      }
+    }
 
     let sortCondition = { createdAt: -1 };
     if (sort === "price_low") sortCondition = { pricePerDay: 1 };
