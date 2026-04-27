@@ -145,16 +145,25 @@ export const acceptBooking = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to accept this booking" });
     }
 
-    // Check no overlapping confirmed bookings
-    const overlap = await Booking.findOne({
-      vehicle: booking.vehicle._id,
-      status: "CONFIRMED",
-      _id: { $ne: booking._id },
-      $or: [{ startDate: { $lte: booking.endDate }, endDate: { $gte: booking.startDate } }],
-    }).lean();
+    // Check no overlapping confirmed bookings OR blackouts
+    const [overlap, overlappingBlackout] = await Promise.all([
+      Booking.findOne({
+        vehicle: booking.vehicle._id,
+        status: "CONFIRMED",
+        _id: { $ne: booking._id },
+        $or: [{ startDate: { $lte: booking.endDate }, endDate: { $gte: booking.startDate } }],
+      }).lean(),
+      Blackout.findOne({
+        vehicle: booking.vehicle._id,
+        $or: [{ startDate: { $lte: booking.endDate }, endDate: { $gte: booking.startDate } }],
+      }).lean()
+    ]);
 
     if (overlap) {
       return res.status(409).json({ message: "Vehicle already booked for these dates" });
+    }
+    if (overlappingBlackout) {
+      return res.status(409).json({ message: "Cannot accept booking during your blacked-out dates" });
     }
 
     booking.status = "CONFIRMED";

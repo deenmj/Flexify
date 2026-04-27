@@ -6,7 +6,6 @@ import {
   updateUserInfo,
   updateUserRole,
   updateUserStatus,
-  deleteUser,
   getUserKyc,
   deleteUserKyc,
   getAllVehicles,
@@ -30,7 +29,6 @@ router.patch("/users/:id/status", protect, requireSuperAdmin, updateUserStatus);
 router.get("/users/:id/kyc", protect, requireSuperAdmin, getUserKyc);
 router.delete("/users/:id/kyc", protect, requireSuperAdmin, deleteUserKyc);
 router.patch("/users/:id/subscription", protect, requireSuperAdmin, updateUserSubscription);
-router.delete("/users/:id", protect, requireSuperAdmin, deleteUser);
 router.get("/vehicles", protect, requireSuperAdmin, getAllVehicles);
 router.delete("/vehicles/:id", protect, requireSuperAdmin, deleteVehicle);
 router.get("/bookings", protect, requireSuperAdmin, getAllBookings);
