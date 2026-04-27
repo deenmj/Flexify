@@ -190,7 +190,7 @@ router.get("/verify-email/:token", async (req, res) => {
   user.emailVerificationToken = undefined;
   await user.save();
 
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
   res.redirect(`${frontendUrl}/auth`);
 });
 
@@ -217,7 +217,7 @@ router.get(
 router.get(
   "/google/callback",
   (req, res, next) => {
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
     passport.authenticate("google", {
       session: false,
       failureRedirect: `${frontendUrl}/auth`,
@@ -225,7 +225,7 @@ router.get(
   },
   (req, res) => {
     const token = generateToken(req.user._id);
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
     res.redirect(`${frontendUrl}/google-success?token=${token}`);
   }
 );
@@ -250,7 +250,7 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
     await user.save();
 
     // Send the UNHASHED token to the user via email (they need it to reset)
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
     const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     await sendEmail({

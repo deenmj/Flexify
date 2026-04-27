@@ -40,10 +40,8 @@ const httpServer = createServer(app);
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
   : [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "http://localhost:5174",
       "https://flexify-three.vercel.app",
+      "http://localhost:5173",
       "https://flexify-production.up.railway.app",
     ];
 
