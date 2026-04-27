@@ -400,7 +400,10 @@ export default function Dashboard() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>Loading...</div>
+          <div style={{ textAlign: 'center', padding: '5rem 0' }}>
+            <Spin size="large" />
+            <p style={{ marginTop: '1rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>Fetching details...</p>
+          </div>
         ) : tab === 'vehicles' ? (
           <div className="dashboard-box">
             <div className="dashboard-box-header" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>

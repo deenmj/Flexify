@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle, getImageUrl } from '../api';
 import { Select as AntSelect, message, Row, Col, Modal } from 'antd';
 import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff } from 'lucide-react';
+import LoadingScreen from '../components/LoadingScreen';
 import './ListVehicle.css';
 
 const { Option } = AntSelect;
@@ -300,7 +301,7 @@ export default function EditVehicle() {
     }
   };
 
-  if (loading) return <div className="container section-padding">Loading vehicle details...</div>;
+  if (loading) return <LoadingScreen message="Loading vehicle details..." />;
 
   return (
     <div className="list-vehicle-page">
