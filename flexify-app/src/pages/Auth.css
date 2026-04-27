@@ -93,7 +93,7 @@
   flex: 1;
   padding: 0.625rem;
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-secondary);
   transition: all var(--transition-fast);
@@ -198,7 +198,7 @@
   border: 1.5px solid var(--border-color);
   border-radius: var(--radius-lg);
   background: var(--bg-primary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
   transition: all var(--transition-fast);

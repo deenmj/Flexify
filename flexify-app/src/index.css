@@ -355,7 +355,7 @@ select {
   border-radius: var(--radius-lg);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   transition: all var(--transition-fast);
 }
 
@@ -1252,7 +1252,7 @@ select {
   
   .input-field {
     padding: 0.75rem !important;
-    font-size: 0.8rem !important;
+    font-size: 1rem !important;
   }
 }
 
