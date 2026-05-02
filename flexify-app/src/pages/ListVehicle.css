@@ -332,6 +332,101 @@
   transform: scale(1.1);
 }
 
+/* Km Limit Section */
+.km-limit-section {
+  margin-top: 0.5rem;
+  padding: 1.75rem;
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+  border: 1.5px solid #fde68a;
+  border-radius: 16px;
+}
+
+.km-limit-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.km-limit-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.km-limit-header label {
+  font-weight: 800 !important;
+  color: #92400e !important;
+  font-size: 0.95rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.km-limit-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #a16207;
+  line-height: 1.4;
+}
+
+.km-limit-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.km-limit-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.km-preset-btn {
+  padding: 0.5rem 1rem;
+  border: 2px solid #fde68a;
+  border-radius: 12px;
+  background: white;
+  color: #92400e;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.km-preset-btn:hover {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  transform: translateY(-1px);
+}
+
+.km-preset-btn.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: white;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.km-limit-custom {
+  position: relative;
+  max-width: 280px;
+}
+
+.km-limit-custom .input-field {
+  padding-right: 70px !important;
+  background: white !important;
+}
+
+.km-suffix {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #92400e;
+  pointer-events: none;
+}
+
 @media (max-width: 768px) {
   .list-vehicle-wrapper {
     padding: 0;
@@ -355,5 +450,28 @@
   }
   .upload-dropzone {
     padding: 3rem 1.5rem;
+  }
+  .km-limit-section {
+    padding: 1.25rem;
+  }
+  .km-limit-header {
+    gap: 0.75rem;
+  }
+  .km-limit-icon {
+    font-size: 1.35rem;
+  }
+  .km-limit-header label {
+    font-size: 0.85rem !important;
+  }
+  .km-limit-hint {
+    font-size: 0.7rem;
+  }
+  .km-preset-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 10px;
+  }
+  .km-limit-custom {
+    max-width: 100%;
   }
 }

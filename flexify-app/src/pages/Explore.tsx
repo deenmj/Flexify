@@ -467,6 +467,8 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <div className="explore-vehicle-specs">
           <span>🪑 {vehicle.seats} seats</span>
           {vehicle.engineCapacity && <span>⚡ {vehicle.engineCapacity}</span>}
+          {vehicle.kmLimitPerDay && <span>🛣️ {vehicle.kmLimitPerDay}km/day</span>}
+          {!vehicle.kmLimitPerDay && <span style={{ color: '#10b981' }}>∞ Unlimited km</span>}
           {(vehicle.city || vehicle.district) && (
             <span><MapPin size={12} /> {vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
           )}

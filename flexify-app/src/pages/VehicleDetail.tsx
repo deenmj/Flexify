@@ -549,6 +549,12 @@ export default function VehicleDetail() {
                   </div>
                 )}
                 <div className="spec-item">
+                  <span className="spec-label">Km Limit / Day</span>
+                  <span className="spec-value" style={{ color: vehicle.kmLimitPerDay ? '#ea580c' : '#10b981', fontWeight: 700 }}>
+                    {vehicle.kmLimitPerDay ? `${vehicle.kmLimitPerDay} km` : '∞ Unlimited'}
+                  </span>
+                </div>
+                <div className="spec-item">
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
                 </div>
@@ -758,6 +764,18 @@ export default function VehicleDetail() {
                     )}
                   </div>
                 )}
+
+                <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: vehicle.kmLimitPerDay ? '#fff7ed' : '#f0fdf4', border: `1px solid ${vehicle.kmLimitPerDay ? '#fed7aa' : '#bbf7d0'}` }}>
+                  <span style={{ fontSize: '1.2rem' }}>{vehicle.kmLimitPerDay ? '🛣️' : '∞'}</span>
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: vehicle.kmLimitPerDay ? '#c2410c' : '#15803d' }}>
+                      {vehicle.kmLimitPerDay ? `${vehicle.kmLimitPerDay} km / day limit` : 'Unlimited Kilometers'}
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                      {vehicle.kmLimitPerDay ? 'Extra charges may apply beyond this limit' : 'Drive as much as you need'}
+                    </div>
+                  </div>
+                </div>
 
                 {(bookedRanges.length > 0 || blackoutRanges.length > 0) && (
                   <Tag 

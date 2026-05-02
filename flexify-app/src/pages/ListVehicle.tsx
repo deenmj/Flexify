@@ -81,7 +81,8 @@ export default function ListVehicle() {
     district: '',
     city: '',
     pricePerWeek: '',
-    pricePerMonth: ''
+    pricePerMonth: '',
+    kmLimitPerDay: ''
   });
 
   // Derived state for make/model selection
@@ -287,7 +288,7 @@ export default function ListVehicle() {
         serviceType: '', description: '', address: '', lat: '', lng: '',
         engineCapacity: '', fuelConsumption: '', features: [],
         province: '', district: '', city: '',
-        pricePerWeek: '', pricePerMonth: ''
+        pricePerWeek: '', pricePerMonth: '', kmLimitPerDay: ''
       });
       setSelectedMake('');
       setCustomMake('');
@@ -417,6 +418,41 @@ export default function ListVehicle() {
                   <div className="input-group">
                     <label>Price / Month (Optional)</label>
                     <input type="number" className="input-field" placeholder="LKR / month" value={form.pricePerMonth} onChange={(e) => setForm({ ...form, pricePerMonth: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="km-limit-section">
+                  <div className="km-limit-header">
+                    <span className="km-limit-icon">🛣️</span>
+                    <div>
+                      <label>Daily Km Limit (Optional)</label>
+                      <p className="km-limit-hint">Set a maximum km per day renters can drive. Leave empty for unlimited.</p>
+                    </div>
+                  </div>
+                  <div className="km-limit-input-row">
+                    <div className="km-limit-presets">
+                      {[100, 150, 200, 250, 300].map(km => (
+                        <button
+                          key={km}
+                          type="button"
+                          className={`km-preset-btn ${form.kmLimitPerDay === km.toString() ? 'active' : ''}`}
+                          onClick={() => setForm({ ...form, kmLimitPerDay: km.toString() })}
+                        >
+                          {km} km
+                        </button>
+                      ))}
+                    </div>
+                    <div className="km-limit-custom">
+                      <input
+                        type="number"
+                        className="input-field"
+                        placeholder="Custom km limit"
+                        value={form.kmLimitPerDay}
+                        onChange={(e) => setForm({ ...form, kmLimitPerDay: e.target.value })}
+                        min="0"
+                      />
+                      <span className="km-suffix">km/day</span>
+                    </div>
                   </div>
                 </div>
               </div>

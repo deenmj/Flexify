@@ -88,6 +88,7 @@ export interface Vehicle {
   features?: string[];
   engineCapacity?: string;
   fuelConsumption?: string;
+  kmLimitPerDay?: number;
   province?: string;
   city?: string;
   district?: string;

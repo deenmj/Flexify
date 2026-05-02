@@ -27,6 +27,7 @@ const vehicleSchema = new mongoose.Schema(
     pricePerDay: { type: Number, required: true },
     pricePerWeek: { type: Number, default: null },
     pricePerMonth: { type: Number, default: null },
+    kmLimitPerDay: { type: Number, default: null }, // Daily km limit (e.g., 200, 250, 300)
     transmission: { type: String, enum: ["Automatic", "Manual"], required: true },
     fuelType: { type: String, required: true },
     seats: { type: Number, required: true },
