@@ -82,7 +82,8 @@ export default function ListVehicle() {
     city: '',
     pricePerWeek: '',
     pricePerMonth: '',
-    kmLimitPerDay: ''
+    kmLimitPerDay: '',
+    extraKmPrice: ''
   });
 
   // Derived state for make/model selection
@@ -288,7 +289,7 @@ export default function ListVehicle() {
         serviceType: '', description: '', address: '', lat: '', lng: '',
         engineCapacity: '', fuelConsumption: '', features: [],
         province: '', district: '', city: '',
-        pricePerWeek: '', pricePerMonth: '', kmLimitPerDay: ''
+        pricePerWeek: '', pricePerMonth: '', kmLimitPerDay: '', extraKmPrice: ''
       });
       setSelectedMake('');
       setCustomMake('');
@@ -454,6 +455,29 @@ export default function ListVehicle() {
                       <span className="km-suffix">km/day</span>
                     </div>
                   </div>
+
+                  {form.kmLimitPerDay && (
+                    <div className="extra-km-price-row">
+                      <div className="extra-km-label">
+                        <span>💰</span>
+                        <div>
+                          <label>Extra Km Charge (LKR)</label>
+                          <p className="km-limit-hint">Price per extra km beyond the {form.kmLimitPerDay} km limit</p>
+                        </div>
+                      </div>
+                      <div className="km-limit-custom">
+                        <input
+                          type="number"
+                          className="input-field"
+                          placeholder="e.g. 50"
+                          value={form.extraKmPrice}
+                          onChange={(e) => setForm({ ...form, extraKmPrice: e.target.value })}
+                          min="0"
+                        />
+                        <span className="km-suffix">LKR/km</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

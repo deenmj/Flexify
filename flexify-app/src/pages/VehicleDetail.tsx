@@ -554,6 +554,14 @@ export default function VehicleDetail() {
                     {vehicle.kmLimitPerDay ? `${vehicle.kmLimitPerDay} km` : '∞ Unlimited'}
                   </span>
                 </div>
+                {vehicle.kmLimitPerDay && vehicle.extraKmPrice && (
+                  <div className="spec-item">
+                    <span className="spec-label">Extra Km Price</span>
+                    <span className="spec-value" style={{ color: '#c2410c', fontWeight: 700 }}>
+                      LKR {vehicle.extraKmPrice} /km
+                    </span>
+                  </div>
+                )}
                 <div className="spec-item">
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
@@ -767,14 +775,24 @@ export default function VehicleDetail() {
 
                 <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: vehicle.kmLimitPerDay ? '#fff7ed' : '#f0fdf4', border: `1px solid ${vehicle.kmLimitPerDay ? '#fed7aa' : '#bbf7d0'}` }}>
                   <span style={{ fontSize: '1.2rem' }}>{vehicle.kmLimitPerDay ? '🛣️' : '∞'}</span>
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: vehicle.kmLimitPerDay ? '#c2410c' : '#15803d' }}>
                       {vehicle.kmLimitPerDay ? `${vehicle.kmLimitPerDay} km / day limit` : 'Unlimited Kilometers'}
                     </div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                      {vehicle.kmLimitPerDay ? 'Extra charges may apply beyond this limit' : 'Drive as much as you need'}
+                      {vehicle.kmLimitPerDay && vehicle.extraKmPrice
+                        ? `LKR ${vehicle.extraKmPrice.toLocaleString()} per extra km`
+                        : vehicle.kmLimitPerDay
+                        ? 'Contact owner for extra km charges'
+                        : 'Drive as much as you need'}
                     </div>
                   </div>
+                  {vehicle.kmLimitPerDay && vehicle.extraKmPrice && (
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#c2410c' }}>LKR {vehicle.extraKmPrice}</div>
+                      <div style={{ fontSize: '0.6rem', color: '#a16207' }}>per extra km</div>
+                    </div>
+                  )}
                 </div>
 
                 {(bookedRanges.length > 0 || blackoutRanges.length > 0) && (

@@ -427,6 +427,38 @@
   pointer-events: none;
 }
 
+/* Extra Km Price Row */
+.extra-km-price-row {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1.5px dashed #fde68a;
+  animation: slideDown 0.3s ease;
+}
+
+.extra-km-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.extra-km-label > span {
+  font-size: 1.35rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.extra-km-label label {
+  font-weight: 700 !important;
+  color: #92400e !important;
+  font-size: 0.9rem !important;
+  margin-bottom: 0.15rem !important;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 @media (max-width: 768px) {
   .list-vehicle-wrapper {
     padding: 0;

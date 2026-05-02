@@ -63,6 +63,7 @@ export default function EditVehicle() {
     pricePerWeek: '',
     pricePerMonth: '',
     kmLimitPerDay: '',
+    extraKmPrice: '',
     isActive: true
   });
 
@@ -143,6 +144,7 @@ export default function EditVehicle() {
           pricePerWeek: vehicle.pricePerWeek?.toString() || '',
           pricePerMonth: vehicle.pricePerMonth?.toString() || '',
           kmLimitPerDay: vehicle.kmLimitPerDay?.toString() || '',
+          extraKmPrice: vehicle.extraKmPrice?.toString() || '',
           isActive: vehicle.isActive
         });
 
@@ -433,6 +435,29 @@ export default function EditVehicle() {
                       <span className="km-suffix">km/day</span>
                     </div>
                   </div>
+
+                  {form.kmLimitPerDay && (
+                    <div className="extra-km-price-row">
+                      <div className="extra-km-label">
+                        <span>💰</span>
+                        <div>
+                          <label>Extra Km Charge (LKR)</label>
+                          <p className="km-limit-hint">Price per extra km beyond the {form.kmLimitPerDay} km limit</p>
+                        </div>
+                      </div>
+                      <div className="km-limit-custom">
+                        <input
+                          type="number"
+                          className="input-field"
+                          placeholder="e.g. 50"
+                          value={form.extraKmPrice}
+                          onChange={(e) => setForm({ ...form, extraKmPrice: e.target.value })}
+                          min="0"
+                        />
+                        <span className="km-suffix">LKR/km</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

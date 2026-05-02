@@ -19,7 +19,7 @@ export const createVehicle = async (req, res) => {
       title, make, model, year, pricePerDay, transmission, fuelType,
       seats, description, lat, lng, address, serviceType,
       engineCapacity, fuelConsumption, features, province, district, city,
-      pricePerWeek, pricePerMonth, kmLimitPerDay
+      pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice
     } = req.body;
 
     // Subscription Check & Initialization — only for owners (staff/admins get free unlimited access)
@@ -158,6 +158,7 @@ export const createVehicle = async (req, res) => {
       pricePerWeek: pricePerWeek ? parseFloat(pricePerWeek) : null,
       pricePerMonth: pricePerMonth ? parseFloat(pricePerMonth) : null,
       kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null,
+      extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null,
       transmission,
       fuelType,
       seats: parseInt(seats),
@@ -199,14 +200,15 @@ export const updateVehicle = async (req, res) => {
     const { 
       title, make, model, year, pricePerDay, transmission, fuelType, seats, description, 
       lat, lng, address, engineCapacity, fuelConsumption, features, province, district, city,
-      pricePerWeek, pricePerMonth, kmLimitPerDay
+      pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice
     } = req.body;
     
     const updates = { 
       title, make, model, year, pricePerDay, transmission, fuelType, seats, description,
       engineCapacity, fuelConsumption, province, district, city,
       pricePerWeek, pricePerMonth,
-      kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null
+      kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null,
+      extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null
     };
 
     if (features) {
@@ -435,6 +437,7 @@ export const listVehicles = async (req, res) => {
           district: 1,
           city: 1,
           kmLimitPerDay: 1,
+          extraKmPrice: 1,
           createdAt: 1
         }
       }
