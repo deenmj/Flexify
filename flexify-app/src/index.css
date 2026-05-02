@@ -111,7 +111,6 @@ html {
   -moz-osx-font-smoothing: grayscale;
   width: 100%;
   overflow-x: hidden;
-  overflow-y: auto !important;
 }
 
 body {
@@ -122,8 +121,13 @@ body {
   background-color: var(--bg-secondary);
   width: 100%;
   overflow-x: hidden;
-  overflow-y: auto !important;
   min-height: 100vh;
+}
+
+/* Fix mobile scroll chaining for Ant Design Selects */
+.ant-select-dropdown {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 #root {
