@@ -600,11 +600,19 @@ textarea.input-field {
   .form-card-body {
     padding: 0 1rem;
   }
-  .form-grid-2,
   .form-grid-3 {
     display: flex;
     flex-direction: column;
     gap: 0;
+    margin-bottom: 0;
+  }
+  
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid #f1f5f9;
     margin-bottom: 0;
   }
   
@@ -621,10 +629,12 @@ textarea.input-field {
   }
   
   .list-vehicle-form-refined .form-card-body > .input-group:last-child,
-  .list-vehicle-form-refined .form-card-body > div:last-child > .input-group:last-child {
+  .list-vehicle-form-refined .form-card-body > div:last-child > .input-group:last-child,
+  .list-vehicle-form-refined .form-card-body > .form-grid-2:last-child {
     border-bottom: none;
   }
 
+  /* Default Row label/input sizing */
   .list-vehicle-form-refined .input-group > label {
     width: 38%;
     margin-bottom: 0 !important;
@@ -638,8 +648,44 @@ textarea.input-field {
   .list-vehicle-form-refined .input-group > *:not(label) {
     width: 62%;
   }
+
+  /* Custom Make/Model secondary inputs in default row */
+  .list-vehicle-form-refined .input-group > *:not(label):nth-child(n+3) {
+    margin-left: 38%;
+    margin-top: 0.5rem;
+  }
+
+  /* Exemption 1: form-grid-2 children (Make & Model) become stacked inside their 50% grid columns */
+  .list-vehicle-form-refined .form-grid-2 .input-group {
+    padding: 0;
+    border-bottom: none;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .list-vehicle-form-refined .form-grid-2 .input-group > label {
+    width: 100%;
+    margin-bottom: 0.5rem !important;
+  }
+  .list-vehicle-form-refined .form-grid-2 .input-group > *:not(label) {
+    width: 100%;
+    margin-left: 0 !important;
+  }
   
-  /* Inputs inside the right column */
+  /* Exemption 2: full-width groups (like Description) become stacked full width */
+  .list-vehicle-form-refined .input-group.full-width {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .list-vehicle-form-refined .input-group.full-width > label {
+    width: 100%;
+    margin-bottom: 0.75rem !important;
+  }
+  .list-vehicle-form-refined .input-group.full-width > *:not(label) {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+  
+  /* Inputs inside the right column / grid */
   .input-field,
   .antd-select-full .ant-select-selector {
     height: 40px !important;
@@ -651,12 +697,6 @@ textarea.input-field {
   .antd-select-full .ant-select-selection-placeholder,
   .antd-select-full .ant-select-selection-item {
     line-height: 36px !important;
-  }
-
-  /* Custom Make/Model secondary inputs */
-  .list-vehicle-form-refined .input-group > *:not(label):nth-child(n+3) {
-    margin-left: 38%;
-    margin-top: 0.5rem;
   }
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
