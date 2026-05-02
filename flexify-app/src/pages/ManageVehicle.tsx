@@ -239,29 +239,29 @@ export default function ManageVehicle() {
 
         <div className="vehicle-detail-panel" style={{ background: 'white', borderRadius: isMobile ? '0' : '24px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}>
           <div className="vd-header">
-            <div className="vd-image-container" style={{ height: isMobile ? '220px' : '380px', position: 'relative' }}>
+            <div className="vd-image-container" style={{ height: isMobile ? '160px' : '380px', position: 'relative' }}>
               {vehicle.photos?.[0] ? (
                 <img src={getImageUrl(vehicle.photos[0])} alt={vehicle.title} className="vd-main-image" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <div className="vd-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}><Car size={64} color="#94a3b8" /></div>
+                <div className="vd-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}><Car size={isMobile ? 48 : 64} color="#94a3b8" /></div>
               )}
-              <div className="vd-badges" style={{ position: 'absolute', top: '20px', left: '20px' }}>
+              <div className="vd-badges" style={{ position: 'absolute', top: isMobile ? '12px' : '20px', left: isMobile ? '12px' : '20px' }}>
                 {vehicleStatusBadge(vehicle.status, vehicle.isActive)}
               </div>
-              <div className="vd-price-overlay" style={{ position: 'absolute', bottom: '20px', right: '20px', background: 'rgba(255,255,255,0.95)', padding: '10px 20px', borderRadius: '16px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
-                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-color)' }}>LKR {vehicle.pricePerDay.toLocaleString()}</span>
-                <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginLeft: '4px' }}>/day</span>
+              <div className="vd-price-overlay" style={{ position: 'absolute', bottom: isMobile ? '12px' : '20px', right: isMobile ? '12px' : '20px', background: 'rgba(255,255,255,0.95)', padding: isMobile ? '6px 12px' : '10px 20px', borderRadius: isMobile ? '12px' : '16px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
+                <span style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 800, color: 'var(--primary-color)' }}>LKR {vehicle.pricePerDay.toLocaleString()}</span>
+                <span style={{ fontSize: isMobile ? '0.7rem' : '0.8rem', color: '#64748b', fontWeight: 600, marginLeft: '4px' }}>/day</span>
               </div>
             </div>
             
-            <div className="vd-title-bar" style={{ padding: isMobile ? '1.5rem' : '2.5rem', borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(to bottom, #ffffff, #f8fafc)' }}>
+            <div className="vd-title-bar" style={{ padding: isMobile ? '1rem' : '2.5rem', borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(to bottom, #ffffff, #f8fafc)' }}>
               <div style={{ maxWidth: '800px' }}>
-                <h2 className="vd-title" style={{ margin: 0, fontSize: isMobile ? '1.75rem' : '2.5rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{vehicle.title}</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '0.75rem' }}>
-                  <p className="vd-subtitle" style={{ margin: 0, color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>{vehicle.make} {vehicle.model} • {vehicle.year}</p>
+                <h2 className="vd-title" style={{ margin: 0, fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{vehicle.title}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: isMobile ? '0.5rem' : '0.75rem', flexWrap: 'wrap' }}>
+                  <p className="vd-subtitle" style={{ margin: 0, color: '#64748b', fontSize: isMobile ? '0.9rem' : '1.1rem', fontWeight: 500 }}>{vehicle.make} {vehicle.model} • {vehicle.year}</p>
                   <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1' }} />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f59e0b', fontWeight: 600 }}>
-                    <Star size={16} fill="#f59e0b" /> {vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'New'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f59e0b', fontWeight: 600, fontSize: isMobile ? '0.9rem' : '1rem' }}>
+                    <Star size={isMobile ? 14 : 16} fill="#f59e0b" /> {vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'New'}
                   </div>
                 </div>
               </div>
@@ -274,28 +274,28 @@ export default function ManageVehicle() {
               <Col xs={24} lg={9}>
                 <div style={{ position: isMobile ? 'static' : 'sticky', top: '100px' }}>
                   {/* Stats Bar */}
-                  <div className="vd-section" style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0', marginBottom: '2rem' }}>
-                    <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>Performance</h3>
-                    <div className="vd-stats-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                      <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.75rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                        <div className="stat-icon-wrap" style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fef3c7', color: '#d97706' }}><Star size={16} /></div>
+                  <div className="vd-section" style={{ background: '#f8fafc', padding: isMobile ? '1rem' : '1.5rem', borderRadius: isMobile ? '16px' : '24px', border: '1px solid #e2e8f0', marginBottom: isMobile ? '1.5rem' : '2rem' }}>
+                    <h3 style={{ margin: isMobile ? '0 0 1rem 0' : '0 0 1.25rem 0', fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 700, color: '#0f172a' }}>Performance</h3>
+                    <div className="vd-stats-bar" style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                      <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: isMobile ? '0.5rem' : '0.75rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <div className="stat-icon-wrap" style={{ width: isMobile ? '28px' : '32px', height: isMobile ? '28px' : '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fef3c7', color: '#d97706' }}><Star size={isMobile ? 14 : 16} /></div>
                         <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span className="vd-stat-value" style={{ fontSize: '1.1rem', fontWeight: 700 }}>{vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'N/A'}</span>
-                          <span className="vd-stat-label" style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Rating</span>
+                          <span className="vd-stat-value" style={{ fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 700 }}>{vehicle.averageRating > 0 ? vehicle.averageRating.toFixed(1) : 'N/A'}</span>
+                          <span className="vd-stat-label" style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Rating</span>
                         </div>
                       </div>
-                      <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.75rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                        <div className="stat-icon-wrap" style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4f46e5' }}><CheckCircle size={16} /></div>
+                      <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: isMobile ? '0.5rem' : '0.75rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <div className="stat-icon-wrap" style={{ width: isMobile ? '28px' : '32px', height: isMobile ? '28px' : '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4f46e5' }}><CheckCircle size={isMobile ? 14 : 16} /></div>
                         <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span className="vd-stat-value" style={{ fontSize: '1.1rem', fontWeight: 700 }}>{vehicle.totalBookings || 0}</span>
-                          <span className="vd-stat-label" style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Bookings</span>
+                          <span className="vd-stat-value" style={{ fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 700 }}>{vehicle.totalBookings || 0}</span>
+                          <span className="vd-stat-label" style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Bookings</span>
                         </div>
                       </div>
-                      <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.75rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                        <div className="stat-icon-wrap" style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#dcfce7', color: '#16a34a' }}><Zap size={16} /></div>
+                      <div className="vd-stat-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: isMobile ? '0.5rem' : '0.75rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', gridColumn: isMobile ? '1 / -1' : 'auto' }}>
+                        <div className="stat-icon-wrap" style={{ width: isMobile ? '28px' : '32px', height: isMobile ? '28px' : '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#dcfce7', color: '#16a34a' }}><Zap size={isMobile ? 14 : 16} /></div>
                         <div className="vd-stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span className="vd-stat-value" style={{ fontSize: '1.1rem', fontWeight: 700 }}>{vehicle.isBoosted ? 'Yes' : 'No'}</span>
-                          <span className="vd-stat-label" style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Boosted</span>
+                          <span className="vd-stat-value" style={{ fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 700 }}>{vehicle.isBoosted ? 'Yes' : 'No'}</span>
+                          <span className="vd-stat-label" style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Boosted</span>
                         </div>
                       </div>
                     </div>
@@ -443,27 +443,27 @@ export default function ManageVehicle() {
 
               {/* Reviews - Back to Full Width at bottom */}
               <Col span={24}>
-                <div className="vd-section" style={{ borderTop: '2px solid #f1f5f9', paddingTop: '3rem', marginTop: '1rem', paddingBottom: '6rem' }}>
-                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', padding: '0 1rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}><MessageSquare size={24} /> Reviews & Ratings</h3>
-                    <span className="vd-review-count" style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600, background: '#f1f5f9', padding: '6px 16px', borderRadius: '20px' }}>
+                <div className="vd-section" style={{ borderTop: '2px solid #f1f5f9', paddingTop: isMobile ? '1.5rem' : '3rem', marginTop: '1rem', paddingBottom: isMobile ? '2rem' : '6rem' }}>
+                  <div className="vd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '1rem' : '2rem', padding: '0 1rem' }}>
+                    <h3 style={{ margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}><MessageSquare size={isMobile ? 20 : 24} /> Reviews</h3>
+                    <span className="vd-review-count" style={{ fontSize: isMobile ? '0.8rem' : '0.9rem', color: '#64748b', fontWeight: 600, background: '#f1f5f9', padding: '6px 16px', borderRadius: '20px' }}>
                       {vehicleReviews.length} Reviews
                     </span>
                   </div>
                   
-                  <div className="vd-reviews-list" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', padding: isMobile ? '0' : '0 1rem' }}>
+                  <div className="vd-reviews-list" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: isMobile ? '1rem' : '1.5rem', padding: isMobile ? '0 0.5rem' : '0 1rem' }}>
                     {vehicleReviews.length === 0 ? (
-                      <div className="vd-empty-state" style={{ gridColumn: '1 / -1', padding: '4rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
-                        <MessageSquare size={48} color="#94a3b8" style={{ margin: '0 auto 1.5rem' }} />
-                        <p style={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>No reviews yet for this vehicle.</p>
+                      <div className="vd-empty-state" style={{ gridColumn: '1 / -1', padding: isMobile ? '2rem 1rem' : '4rem 1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
+                        <MessageSquare size={isMobile ? 32 : 48} color="#94a3b8" style={{ margin: '0 auto 1.5rem' }} />
+                        <p style={{ color: '#64748b', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: 500 }}>No reviews yet for this vehicle.</p>
                       </div>
                     ) : (
                       vehicleReviews.map(r => {
                         // Support populated nested user or reviewer
                         const reviewer = r.reviewer || r.user || {};
                         return (
-                          <div key={r._id} className="vd-review-item" style={{ padding: isMobile ? '1.5rem' : '1.75rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', transition: 'transform 0.2s ease' }}>
-                            <div className="vd-review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                          <div key={r._id} className="vd-review-item" style={{ padding: isMobile ? '1rem' : '1.75rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: isMobile ? '16px' : '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', transition: 'transform 0.2s ease' }}>
+                            <div className="vd-review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: isMobile ? '0.75rem' : '1.25rem' }}>
                               <div className="vd-reviewer" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                                 <Avatar size={isMobile ? 40 : 44} src={getImageUrl(reviewer.profilePic)} style={{ backgroundColor: 'var(--primary-color)', boxShadow: '0 0 0 2px white, 0 0 0 4px #e2e8f0' }}>
                                   {reviewer.name?.charAt(0) || 'U'}
@@ -474,10 +474,10 @@ export default function ManageVehicle() {
                                 </div>
                               </div>
                             </div>
-                            <div className="vd-review-stars" style={{ marginBottom: '0.75rem' }}>
-                              <Rate disabled defaultValue={r.rating} style={{ fontSize: '14px', color: '#f59e0b' }} />
+                            <div className="vd-review-stars" style={{ marginBottom: isMobile ? '0.5rem' : '0.75rem' }}>
+                              <Rate disabled defaultValue={r.rating} style={{ fontSize: isMobile ? '12px' : '14px', color: '#f59e0b' }} />
                             </div>
-                            <p className="vd-review-text" style={{ margin: 0, color: '#475569', lineHeight: 1.6, fontSize: isMobile ? '0.95rem' : '1rem' }}>{r.comment}</p>
+                            <p className="vd-review-text" style={{ margin: 0, color: '#475569', lineHeight: 1.5, fontSize: isMobile ? '0.85rem' : '1rem' }}>{r.comment}</p>
                           </div>
                         );
                       })
