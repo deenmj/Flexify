@@ -598,11 +598,65 @@ textarea.input-field {
     height: 28px;
   }
   .form-card-body {
-    padding: 1.25rem 1rem;
+    padding: 0 1rem;
   }
+  .form-grid-2,
   .form-grid-3 {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 0;
+  }
+  
+  /* Mobile 2-column row layout (Label Left, Input Right) */
+  .list-vehicle-form-refined .input-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 0;
+    gap: 0;
+  }
+  
+  .list-vehicle-form-refined .form-card-body > .input-group:last-child,
+  .list-vehicle-form-refined .form-card-body > div:last-child > .input-group:last-child {
+    border-bottom: none;
+  }
+
+  .list-vehicle-form-refined .input-group > label {
+    width: 38%;
+    margin-bottom: 0 !important;
+    padding-right: 0.5rem;
+    font-size: 0.8rem !important;
+    line-height: 1.2;
+    color: #1e293b !important;
+    font-weight: 700 !important;
+  }
+
+  .list-vehicle-form-refined .input-group > *:not(label) {
+    width: 62%;
+  }
+  
+  /* Inputs inside the right column */
+  .input-field,
+  .antd-select-full .ant-select-selector {
+    height: 40px !important;
+    padding: 0 0.75rem !important;
+    font-size: 0.85rem !important;
+    border-radius: 10px !important;
+  }
+  
+  .antd-select-full .ant-select-selection-placeholder,
+  .antd-select-full .ant-select-selection-item {
+    line-height: 36px !important;
+  }
+
+  /* Custom Make/Model secondary inputs */
+  .list-vehicle-form-refined .input-group > *:not(label):nth-child(n+3) {
+    margin-left: 38%;
+    margin-top: 0.5rem;
   }
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
