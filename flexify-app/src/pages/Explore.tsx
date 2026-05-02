@@ -359,24 +359,56 @@ export default function Explore() {
                   {filters.province && SRI_LANKA_LOCATIONS[filters.province as keyof typeof SRI_LANKA_LOCATIONS].map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
-              <div className="input-group d-block-mobile d-none-desktop">
-                <label>Travel Dates</label>
-                <RangePicker 
-                  style={{ width: '100%', height: '42px', borderRadius: '8px' }}
-                  onChange={(dates) => {
-                    if (dates) {
-                      setFilters({ 
-                        ...filters, 
-                        startDate: dates[0]?.toISOString() || '', 
-                        endDate: dates[1]?.toISOString() || '' 
-                      });
-                    } else {
-                      setFilters({ ...filters, startDate: '', endDate: '' });
-                    }
-                  }}
-                  disabledDate={(current) => current && current < dayjs().startOf('day')}
-                />
-              </div>
+              {isMobile ? (
+                <>
+                  <div className="input-group">
+                    <label>Start Date</label>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={filters.startDate ? dayjs(filters.startDate).format('YYYY-MM-DD') : ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFilters({ ...filters, startDate: val ? new Date(val).toISOString() : '' });
+                      }}
+                      min={dayjs().format('YYYY-MM-DD')}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>End Date</label>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={filters.endDate ? dayjs(filters.endDate).format('YYYY-MM-DD') : ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFilters({ ...filters, endDate: val ? new Date(val).toISOString() : '' });
+                      }}
+                      min={filters.startDate ? dayjs(filters.startDate).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD')}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="input-group">
+                  <label>Travel Dates</label>
+                  <RangePicker 
+                    style={{ width: '100%', height: '42px', borderRadius: '8px' }}
+                    value={filters.startDate && filters.endDate ? [dayjs(filters.startDate), dayjs(filters.endDate)] : null}
+                    onChange={(dates) => {
+                      if (dates) {
+                        setFilters({ 
+                          ...filters, 
+                          startDate: dates[0]?.toISOString() || '', 
+                          endDate: dates[1]?.toISOString() || '' 
+                        });
+                      } else {
+                        setFilters({ ...filters, startDate: '', endDate: '' });
+                      }
+                    }}
+                    disabledDate={(current) => current && current < dayjs().startOf('day')}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="desktop-filters-actions">
