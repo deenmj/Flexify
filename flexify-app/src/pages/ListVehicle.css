@@ -116,7 +116,14 @@
 }
 
 /* Mobile defaults */
-.form-grid-2, .form-grid-3 {
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-grid-3 {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -593,7 +600,7 @@ textarea.input-field {
   .form-card-body {
     padding: 1.25rem 1rem;
   }
-  .form-grid-2, .form-grid-3 {
+  .form-grid-3 {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
