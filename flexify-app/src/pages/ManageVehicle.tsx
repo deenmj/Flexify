@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Car, Star, CheckCircle, Zap, Eye, Edit, MessageSquare, 
   Calendar as CalIcon, AlertTriangle, Trash2, ArrowLeft,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, EyeOff
 } from 'lucide-react';
 import { vehicleApi, bookingApi, reviewApi, blackoutApi, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -202,6 +202,33 @@ export default function ManageVehicle() {
     }
   };
 
+  const handleToggleStatus = async () => {
+    if (!vehicle || !id) return;
+    try {
+      await vehicleApi.toggleStatus(id);
+      setVehicle({ ...vehicle, isActive: !vehicle.isActive });
+      message.success('Vehicle status updated');
+    } catch (err: any) { message.error(err.message || 'Failed to update status'); }
+  };
+
+  const handleDeleteVehicle = async () => {
+    if (!vehicle || !id) return;
+    Modal.confirm({
+      title: 'Delete Vehicle',
+      content: 'Are you sure you want to delete this vehicle? This action cannot be undone.',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await vehicleApi.delete(id);
+          message.success('Vehicle deleted');
+          navigate('/dashboard?tab=vehicles');
+        } catch (err: any) { message.error(err.message || 'Failed to delete vehicle'); }
+      },
+    });
+  };
+
   const vehicleStatusBadge = (status: string, isActive: boolean) => {
     if (status === 'pending') return <Tag color="warning">Pending</Tag>;
     if (status === 'rejected') return <Tag color="error">Rejected</Tag>;
@@ -301,13 +328,28 @@ export default function ManageVehicle() {
                     </div>
 
                     {/* Quick Actions */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <Link to={`/vehicles/${vehicle._id}`} className="btn" style={{ background: 'white', color: '#334155', border: '1px solid #cbd5e1', justifyContent: 'center', height: '44px', borderRadius: '12px', fontSize: '0.9rem' }}>
-                        <Eye size={16} style={{ marginRight: '8px' }} /> View Public Page
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <Link to={`/vehicles/${vehicle._id}`} className="btn" style={{ background: 'white', color: '#1e293b', border: '1px solid #cbd5e1', justifyContent: 'center', height: '48px', borderRadius: '16px', fontSize: '1rem', fontWeight: 600 }}>
+                        <Eye size={18} style={{ marginRight: '8px' }} /> View Public Page
                       </Link>
-                      <Link to={`/vehicles/edit/${vehicle._id}`} className="btn btn-primary" style={{ justifyContent: 'center', height: '44px', borderRadius: '12px', fontSize: '0.9rem' }}>
-                        <Edit size={16} style={{ marginRight: '8px' }} /> Edit Details
-                      </Link>
+
+                      {/* Vehicle Management Block */}
+                      <div style={{ border: '1px dashed #cbd5e1', borderRadius: '20px', padding: '1.25rem', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                        <h4 style={{ textAlign: 'center', color: '#1e3a8a', fontSize: '1.05rem', margin: '0 0 0.5rem 0', fontWeight: 600 }}>Vehicle Management</h4>
+                        
+                        <Link to={`/edit-vehicle/${vehicle._id}`} className="btn" style={{ background: 'white', color: '#0f172a', border: '1px solid #cbd5e1', justifyContent: 'center', height: '44px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
+                          <Edit size={16} style={{ marginRight: '8px' }} /> Edit Details
+                        </Link>
+                        
+                        <button className="btn" onClick={handleToggleStatus} style={{ background: 'white', color: '#0f172a', border: '1px solid #cbd5e1', justifyContent: 'center', height: '44px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
+                          {vehicle.isActive ? <EyeOff size={16} style={{ marginRight: '8px' }} /> : <Eye size={16} style={{ marginRight: '8px' }} />}
+                          {vehicle.isActive ? 'Hide Listing' : 'Show Listing'}
+                        </button>
+                        
+                        <button className="btn" onClick={handleDeleteVehicle} style={{ background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', justifyContent: 'center', height: '44px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
+                          <Trash2 size={16} style={{ marginRight: '8px' }} /> Delete Vehicle
+                        </button>
+                      </div>
                     </div>
                   </div>
                   
