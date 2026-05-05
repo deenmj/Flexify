@@ -27,7 +27,12 @@ export default function Dashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'subscription'>(user?.role === 'user' ? 'bookings' : 'vehicles');
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'subscription'>(() => {
+    const urlTab = searchParams.get('tab');
+    if (urlTab === 'bookings') return 'bookings';
+    return user?.role === 'user' ? 'bookings' : 'vehicles';
+  });
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'confirmed' | 'past'>('all');
 
@@ -623,6 +628,10 @@ export default function Dashboard() {
                               <button className="btn btn-sm btn-danger" style={{ minWidth: '120px' }} onClick={() => handleCancelBooking(b._id)}>Cancel Trip</button>
                             )}
 
+                            {b.status === 'CONFIRMED' && (isIamRenterOfThis || isIamOwnerOfThis) && (
+                              <button className="btn btn-sm btn-cancel-booking" onClick={() => handleCancelBooking(b._id)}>Cancel Booking</button>
+                            )}
+
                             {(b.status === 'COMPLETED' || b.status === 'CONFIRMED') && isIamRenterOfThis && !b.isReviewed && (
                               <button className="btn btn-sm btn-primary" onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>Leave Review</button>
                             )}
@@ -783,6 +792,7 @@ export default function Dashboard() {
         onCancel={() => setShowDetailModal(false)}
         footer={(() => {
           const isPending = selectedBooking?.status === 'PENDING';
+          const isConfirmed = selectedBooking?.status === 'CONFIRMED';
           const bOwnerId = String(typeof selectedBooking?.owner === 'object' ? (selectedBooking?.owner as any)._id : selectedBooking?.owner);
           const bRenterId = String(typeof selectedBooking?.user === 'object' ? (selectedBooking?.user as any)._id : selectedBooking?.user);
           const myId = String(user?._id || user?.id || '');
@@ -803,6 +813,12 @@ export default function Dashboard() {
             buttons.push(
               <Button key="reject-owner" danger onClick={() => { if (selectedBooking?._id) handleRejectBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Booking</Button>,
               <Button key="accept-owner" type="primary" style={{ background: '#16a34a', borderColor: '#16a34a' }} onClick={() => { if (selectedBooking?._id) handleAcceptBooking(selectedBooking._id); setShowDetailModal(false); }}>Accept Booking</Button>
+            );
+          }
+
+          if (isConfirmed && (isRenter || isOwner)) {
+            buttons.push(
+              <Button key="cancel-confirmed" danger onClick={() => { if (selectedBooking?._id) handleCancelBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Booking</Button>
             );
           }
 

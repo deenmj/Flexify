@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Zap, Users, Globe, DollarSign, Compass, Home } from 'lucide-react';
-import { Badge } from 'antd';
+import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Zap, Users, Globe, DollarSign, Compass, Home, CalendarCheck } from 'lucide-react';
+import { Badge, Tooltip } from 'antd';
 import { useSocket } from '../context/SocketContext';
-import { notificationApi } from '../api';
+import { notificationApi, bookingApi } from '../api';
 import './Navbar.css';
 import RentifyLogo from './RentifyLogo';
 
@@ -17,11 +17,20 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [activeBookingCount, setActiveBookingCount] = useState(0);
 
   useEffect(() => {
     if (user) {
       notificationApi.getUnreadCount()
         .then(res => setUnreadCount(res.unreadCount))
+        .catch(console.error);
+
+      // Fetch active bookings count (CONFIRMED bookings for this user)
+      bookingApi.getMy()
+        .then(bookings => {
+          const active = bookings.filter(b => b.status === 'CONFIRMED' || b.status === 'PENDING').length;
+          setActiveBookingCount(active);
+        })
         .catch(console.error);
     }
   }, [user]);
@@ -31,11 +40,26 @@ export default function Navbar() {
     const handleNewNotification = () => {
       setUnreadCount(prev => prev + 1);
     };
+    const handleBookingUpdate = () => {
+      // Re-fetch active booking count when a booking status changes
+      if (user) {
+        bookingApi.getMy()
+          .then(bookings => {
+            const active = bookings.filter(b => b.status === 'CONFIRMED' || b.status === 'PENDING').length;
+            setActiveBookingCount(active);
+          })
+          .catch(console.error);
+      }
+    };
     socket.on('newNotification', handleNewNotification);
+    socket.on('bookingStatusUpdate', handleBookingUpdate);
+    socket.on('newBookingRequest', handleBookingUpdate);
     return () => {
       socket.off('newNotification', handleNewNotification);
+      socket.off('bookingStatusUpdate', handleBookingUpdate);
+      socket.off('newBookingRequest', handleBookingUpdate);
     };
-  }, [socket]);
+  }, [socket, user]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -127,6 +151,15 @@ export default function Navbar() {
             <Link to="/explore" className="nav-action-btn" title="Search">
               <Search size={20} />
             </Link>
+            {user && activeBookingCount > 0 && (
+              <Tooltip title={`${activeBookingCount} active booking${activeBookingCount > 1 ? 's' : ''}`}>
+                <button className="nav-action-btn active-booking-btn" title="Active Bookings" onClick={() => navigate('/dashboard?tab=bookings')}>
+                  <Badge count={activeBookingCount} size="small" offset={[-2, 2]} color="#16a34a">
+                    <CalendarCheck size={20} style={{ color: 'inherit' }} />
+                  </Badge>
+                </button>
+              </Tooltip>
+            )}
             <button className="nav-action-btn notification-btn" title="Notifications" onClick={() => navigate('/notifications')}>
               <Badge count={unreadCount} size="small" offset={[-2, 2]}>
                 <Bell size={20} style={{ color: 'inherit' }} />

@@ -380,6 +380,13 @@ export const cancelBooking = async (req, res) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
+    // Only allow cancellation of active bookings
+    if (!["PENDING", "CONFIRMED"].includes(booking.status)) {
+      return res.status(400).json({
+        message: `This booking cannot be cancelled (already ${booking.status.toLowerCase()})`,
+      });
+    }
+
     const isUser = booking.user.toString() === req.user._id.toString();
     const isOwner = booking.owner.toString() === req.user._id.toString();
     const isAdmin = req.user.role === "superadmin";
@@ -398,6 +405,31 @@ export const cancelBooking = async (req, res) => {
       { path: "user" },
       { path: "vehicle" }
     ]);
+
+    // SOCKET NOTIFICATION — notify the OTHER party
+    const io = req.app.get("io");
+    if (io) {
+      const notifyUserId = isUser ? booking.owner._id.toString() : booking.user._id.toString();
+      const cancellerName = req.user.name || "Someone";
+      const vehicleTitle = booking.vehicle?.title || "a vehicle";
+
+      io.to(notifyUserId).emit("bookingStatusUpdate", {
+        bookingId: booking._id,
+        status: "CANCELLED",
+        message: `${cancellerName} has cancelled the booking for ${vehicleTitle}.`,
+      });
+
+      // PERSISTENT NOTIFICATION (fire-and-forget)
+      createNotification(
+        io,
+        notifyUserId,
+        "Booking Cancelled",
+        `${cancellerName} has cancelled the booking for ${vehicleTitle}.${booking.cancellationReason ? ` Reason: ${booking.cancellationReason}` : ""}`,
+        "booking_update",
+        booking._id
+      ).catch((err) => console.error("Notification save failed:", err.message));
+    }
+
     if (booking.owner && booking.user && booking.vehicle) {
       sendBookingUpdateEmail(booking.owner, booking.user, booking.vehicle, "CANCELLED", booking.cancellationReason);
     }

@@ -1129,3 +1129,20 @@
   background: #ffe4e6 !important;
   border-color: #f43f5e !important;
 }
+
+/* Cancel Booking Button — Soft Danger for CONFIRMED bookings */
+.btn-cancel-booking {
+  background: #fff1f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+  font-weight: 600;
+  min-width: 120px;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-booking:hover {
+  background: #fee2e2 !important;
+  border-color: #f87171 !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+  transform: translateY(-1px);
+}

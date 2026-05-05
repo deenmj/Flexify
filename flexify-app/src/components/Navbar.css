@@ -568,3 +568,27 @@
   margin-left: -0.25rem;
   color: var(--text-primary);
 }
+
+/* Active Booking Indicator */
+.active-booking-btn {
+  color: #16a34a !important;
+  position: relative;
+}
+
+.active-booking-btn:hover {
+  background: #f0fdf4 !important;
+  color: #15803d !important;
+}
+
+@media (max-width: 768px) {
+  .active-booking-btn {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+  }
+  .active-booking-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
