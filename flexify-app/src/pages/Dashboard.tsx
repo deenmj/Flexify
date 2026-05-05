@@ -343,10 +343,12 @@ export default function Dashboard() {
     : vehicles.filter(v => v.serviceType && v.serviceType.includes(selectedCategory));
 
   const filteredBookings = bookings.filter(b => {
+    const isPast = dayjs(b.endDate).isBefore(dayjs(), 'day');
+
     if (bookingFilter === 'all') return true;
     if (bookingFilter === 'pending') return b.status === 'PENDING';
-    if (bookingFilter === 'confirmed') return b.status === 'CONFIRMED';
-    if (bookingFilter === 'past') return b.status === 'COMPLETED' || b.status === 'CANCELLED' || b.status === 'REJECTED';
+    if (bookingFilter === 'confirmed') return b.status === 'CONFIRMED' && !isPast;
+    if (bookingFilter === 'past') return isPast || b.status === 'COMPLETED' || b.status === 'CANCELLED' || b.status === 'REJECTED';
     return true;
   });
 
@@ -530,6 +532,7 @@ export default function Dashboard() {
                   const isIamRenterOfThis = myId === bRenterId;
                   const isIamOwnerOfThis = (myId === bOwnerId || isStaff) && !isIamRenterOfThis;
                   const owner = typeof b.owner === 'object' ? b.owner : null;
+                  const isPast = dayjs(b.endDate).isBefore(dayjs(), 'day');
 
                   return (
                     <div key={b._id} className="booking-card" id={`booking-${b._id}`} style={{ padding: '0', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
@@ -627,7 +630,7 @@ export default function Dashboard() {
                               <button className="btn btn-sm btn-danger" style={{ minWidth: '120px' }} onClick={() => handleCancelBooking(b._id)}>Cancel Trip</button>
                             )}
 
-                            {b.status === 'CONFIRMED' && (isIamRenterOfThis || isIamOwnerOfThis) && (
+                            {b.status === 'CONFIRMED' && !isPast && (isIamRenterOfThis || isIamOwnerOfThis) && (
                               <button className="btn btn-sm btn-cancel-booking" onClick={() => handleCancelBooking(b._id)}>Cancel Booking</button>
                             )}
 
@@ -815,7 +818,9 @@ export default function Dashboard() {
             );
           }
 
-          if (isConfirmed && (isRenter || isOwner)) {
+          const isPast = selectedBooking ? dayjs(selectedBooking.endDate).isBefore(dayjs(), 'day') : false;
+
+          if (isConfirmed && !isPast && (isRenter || isOwner)) {
             buttons.push(
               <Button key="cancel-confirmed" danger onClick={() => { if (selectedBooking?._id) handleCancelBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Booking</Button>
             );
