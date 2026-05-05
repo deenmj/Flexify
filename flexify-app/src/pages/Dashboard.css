@@ -526,12 +526,6 @@
   .booking-card-meta {
     gap: 10px !important;
     padding: 0.75rem !important;
-    flex-direction: column;
-  }
-  .booking-card-meta > div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
   .booking-card-footer {
     padding-top: 0.75rem !important;
