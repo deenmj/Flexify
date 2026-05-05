@@ -674,19 +674,19 @@ select {
 
   :root {
     --navbar-height: 52px;
-    --font-size-xs: 0.65rem;
-    --font-size-sm: 0.775rem;
-    --font-size-base: 0.85rem;
-    --font-size-lg: 0.95rem;
-    --font-size-xl: 1.05rem;
-    --font-size-2xl: 1.2rem;
-    --font-size-3xl: 1.4rem;
-    --font-size-4xl: 1.7rem;
-    --font-size-5xl: 2.1rem;
+    --font-size-xs: 0.6rem;
+    --font-size-sm: 0.7rem;
+    --font-size-base: 0.8rem;
+    --font-size-lg: 0.875rem;
+    --font-size-xl: 0.95rem;
+    --font-size-2xl: 1.1rem;
+    --font-size-3xl: 1.3rem;
+    --font-size-4xl: 1.5rem;
+    --font-size-5xl: 1.8rem;
   }
 
   body {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   /* Compact buttons on mobile */

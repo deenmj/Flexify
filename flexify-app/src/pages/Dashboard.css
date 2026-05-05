@@ -289,13 +289,26 @@
     height: 120px;
   }
   .dash-vehicle-card-body {
-    padding: 0.75rem;
+    padding: 0.75rem !important;
   }
   .dash-vehicle-card-title {
-    font-size: 0.95rem;
+    font-size: 0.95rem !important;
   }
   .dash-vehicle-card-price {
-    font-size: 0.95rem;
+    font-size: 0.9rem !important;
+  }
+  .dash-vehicle-card-actions {
+    margin-top: 0.75rem !important;
+    padding-top: 0.75rem !important;
+    gap: 6px !important;
+  }
+  .dash-vehicle-card-actions .btn {
+    font-size: 0.75rem !important;
+    padding: 0.4rem !important;
+  }
+  .dash-vehicle-card-meta {
+    font-size: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
   }
 }
 
@@ -498,7 +511,38 @@
 
 @media (max-width: 768px) {
   .booking-cards-container {
-    padding: 1rem;
+    padding: 0.75rem !important;
+    gap: 1rem !important;
+  }
+  .booking-card {
+    border-radius: 12px !important;
+  }
+  .booking-card-content {
+    padding: 1rem !important;
+  }
+  .booking-card-info h4 {
+    font-size: 1rem !important;
+  }
+  .booking-card-meta {
+    gap: 10px !important;
+    padding: 0.75rem !important;
+    flex-direction: column;
+  }
+  .booking-card-meta > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .booking-card-footer {
+    padding-top: 0.75rem !important;
+    gap: 0.75rem !important;
+  }
+  .booking-card-actions .btn {
+    font-size: 0.75rem !important;
+    padding: 0.4rem 0.5rem !important;
+  }
+  .booking-card-img {
+    height: 120px !important;
   }
 }
 
