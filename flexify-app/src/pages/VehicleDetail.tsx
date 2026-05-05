@@ -817,22 +817,12 @@ export default function VehicleDetail() {
                 )}
 
                 {user && user._id === (owner?._id || vehicle.owner) ? (
-                  <div className="box-highlight" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '1.25rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
-                    <p style={{ fontWeight: 600, color: '#475569', marginBottom: '12px', fontSize: '1rem' }}>Vehicle Management</p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <Link to={`/edit-vehicle/${id}`} className="btn btn-secondary btn-sm btn-full" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <Edit size={16} /> Edit Details
-                      </Link>
-                      <button className="btn btn-sm btn-full" onClick={handleToggleStatus} style={{ background: 'white', color: '#475569', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        {vehicle.isActive ? <><EyeOff size={16} /> Hide Listing</> : <><Eye size={16} /> Show Listing</>}
-                      </button>
-                      <button className="btn btn-sm btn-full" onClick={handleDeleteVehicle} style={{ background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <Trash2 size={16} /> Delete Vehicle
-                      </button>
-                      <div style={{ marginTop: '4px', borderTop: '1px solid #e2e8f0', paddingTop: '8px' }}>
-                        <Link to="/dashboard" style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textDecoration: 'underline' }}>Back to Dashboard</Link>
-                      </div>
-                    </div>
+                  <div className="box-highlight" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
+                    <p style={{ fontWeight: 600, color: '#0f172a', margin: 0, fontSize: '1rem' }}>You own this vehicle</p>
+                    <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px', marginBottom: '12px' }}>This is how your vehicle appears to the public.</p>
+                    <Link to={`/dashboard/vehicle/${id}`} className="btn btn-primary btn-sm btn-full" style={{ height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      Go to Manage Vehicle
+                    </Link>
                   </div>
                 ) : (
                   <button
