@@ -57,7 +57,6 @@ export default function Dashboard() {
   const [selectedRenter, setSelectedRenter] = useState<any>(null);
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
 
-  const [searchParams] = useSearchParams();
 
   const handleViewDetail = (booking: Booking) => {
     setSelectedBooking(booking);

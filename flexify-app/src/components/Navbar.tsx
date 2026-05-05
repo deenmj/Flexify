@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Zap, Users, Globe, DollarSign, Compass, Home, CalendarCheck } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, DollarSign, Compass, Home, CalendarCheck } from 'lucide-react';
 import { Badge, Tooltip } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { notificationApi, bookingApi } from '../api';
