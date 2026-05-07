@@ -394,7 +394,7 @@ export default function Dashboard() {
           {user.role === 'user' && vehicles.length === 0 ? (
             <button 
               className={`nav-item active`} 
-              onClick={() => setTab('bookings')}
+              onClick={() => { setTab('bookings'); setBookingType('trips'); }}
             >
               <CalIcon size={16} /> My Trip History
             </button>
@@ -407,10 +407,16 @@ export default function Dashboard() {
                 <Car size={16} /> My Vehicles
               </button>
               <button 
-                className={`nav-item ${tab === 'bookings' ? 'active' : ''}`} 
-                onClick={() => setTab('bookings')}
+                className={`nav-item ${tab === 'bookings' && bookingType === 'received' ? 'active' : ''}`} 
+                onClick={() => { setTab('bookings'); setBookingType('received'); }}
               >
-                <CalIcon size={16} /> {user.role === 'user' ? 'My Trip History' : 'Manage Bookings'}
+                <CalIcon size={16} /> Manage Bookings
+              </button>
+              <button 
+                className={`nav-item ${tab === 'bookings' && bookingType === 'trips' ? 'active' : ''}`} 
+                onClick={() => { setTab('bookings'); setBookingType('trips'); }}
+              >
+                <Compass size={16} /> My Trips
               </button>
             </>
           )}
@@ -483,28 +489,8 @@ export default function Dashboard() {
           <div className="dashboard-box">
             <div className="dashboard-box-header" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
               <h3 className="dashboard-box-title" style={{ marginBottom: '1rem' }}>
-                {user.role === 'user' ? 'My Trip History' : 'Bookings & Trips'}
+                {user.role === 'user' ? 'My Trip History' : bookingType === 'received' ? 'Manage Bookings' : 'My Trips'}
               </h3>
-              
-              {/* If user is owner/staff, let them toggle between received requests and their own trips */}
-              {user.role !== 'user' && (
-                <div className="dashboard-nav" style={{ marginBottom: '1rem', borderBottom: 'none' }}>
-                  <button 
-                    className={`nav-item ${bookingType === 'received' ? 'active' : ''}`} 
-                    onClick={() => setBookingType('received')}
-                    style={{ minWidth: '140px', justifyContent: 'center' }}
-                  >
-                    Received Requests
-                  </button>
-                  <button 
-                    className={`nav-item ${bookingType === 'trips' ? 'active' : ''}`} 
-                    onClick={() => setBookingType('trips')}
-                    style={{ minWidth: '140px', justifyContent: 'center' }}
-                  >
-                    My Trips
-                  </button>
-                </div>
-              )}
 
               {/* Booking Filters */}
               <div className="dashboard-nav" style={{ marginBottom: 0 }}>
