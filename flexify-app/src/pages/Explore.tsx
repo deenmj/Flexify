@@ -262,9 +262,9 @@ export default function Explore() {
                   type="button" 
                   className="quick-locate-btn" 
                   onClick={handleLocateMe}
-                  title="Locate Me"
+                  title="Near Me"
                 >
-                  <Locate size={14} /> <span className="quick-locate-text">Locate Me</span>
+                  <Locate size={14} /> <span className="quick-locate-text">Near Me</span>
                 </button>
                 {isMobile ? (
                   <RadiusPicker

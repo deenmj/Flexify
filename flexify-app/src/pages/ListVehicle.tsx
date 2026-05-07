@@ -544,7 +544,7 @@ export default function ListVehicle() {
                 <MapPin size={20} />
                 <h3>Location Details</h3>
                 <button type="button" className="btn btn-ghost btn-sm locate-me-btn" onClick={handleGetLocation}>
-                  <Locate size={14} /> Locate Me
+                  <Locate size={14} /> Use My Location
                 </button>
               </div>
               <div className="form-card-body">
