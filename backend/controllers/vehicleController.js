@@ -1,4 +1,5 @@
 // backend/controllers/vehicleController.js
+import mongoose from "mongoose";
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/booking.js";
 import Blackout from "../models/Blackout.js";
@@ -88,8 +89,7 @@ export const createVehicle = async (req, res) => {
     let vehicleStatus = "active";
 
     // Normalization & Dynamic Creation
-    let makeId = make;
-    let modelId = model;
+    const isObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
     // Helper to find or create approved/pending make/model
     const getNormalizedMake = async (name) => {
@@ -110,31 +110,26 @@ export const createVehicle = async (req, res) => {
       return m;
     };
 
-    // If text values were passed directly (new/other), normalize them
-    // Note: If make/model are IDs, we use them, but if they are strings, we create/find
-    const mongoose = (await import("mongoose")).default;
-    const isObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
-
     let finalMakeName = make;
     let finalModelName = model;
 
+    // Resolve make first (needed for model lookup)
+    let resolvedMakeObj = null;
     if (!isObjectId(make)) {
-      const makeObj = await getNormalizedMake(make);
-      finalMakeName = makeObj.name;
+      resolvedMakeObj = await getNormalizedMake(make);
+      finalMakeName = resolvedMakeObj.name;
     } else {
       const m = await VehicleMake.findById(make);
-      if (m) finalMakeName = m.name;
+      if (m) {
+        finalMakeName = m.name;
+        resolvedMakeObj = m;
+      }
     }
 
+    // Resolve model (uses resolved make)
     if (!isObjectId(model)) {
-      if (isObjectId(make)) {
-        const modelObj = await getNormalizedModel(make, model);
-        finalModelName = modelObj.name;
-      } else {
-        // If make is also new, we'll wait for subadmin to link them or just use strings for vehicle
-        // But for consistency let's link to the newly created make
-        const makeObj = await getNormalizedMake(make);
-        const modelObj = await getNormalizedModel(makeObj._id, model);
+      if (resolvedMakeObj) {
+        const modelObj = await getNormalizedModel(resolvedMakeObj._id, model);
         finalModelName = modelObj.name;
       }
     } else {

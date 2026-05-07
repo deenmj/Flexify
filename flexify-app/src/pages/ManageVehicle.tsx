@@ -337,7 +337,7 @@ export default function ManageVehicle() {
                       <div style={{ border: '1px dashed #cbd5e1', borderRadius: '20px', padding: '1.25rem', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
                         <h4 style={{ textAlign: 'center', color: '#1e3a8a', fontSize: '1.05rem', margin: '0 0 0.5rem 0', fontWeight: 600 }}>Vehicle Management</h4>
                         
-                        <Link to={`/edit-vehicle/${vehicle._id}`} className="btn" style={{ background: 'white', color: '#0f172a', border: '1px solid #cbd5e1', justifyContent: 'center', height: '44px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
+                        <Link to={`/vehicles/edit/${vehicle._id}`} className="btn" style={{ background: 'white', color: '#0f172a', border: '1px solid #cbd5e1', justifyContent: 'center', height: '44px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
                           <Edit size={16} style={{ marginRight: '8px' }} /> Edit Details
                         </Link>
                         

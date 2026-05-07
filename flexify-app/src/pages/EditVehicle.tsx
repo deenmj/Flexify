@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle, getImageUrl } from '../api';
 import { Select as AntSelect, message, Row, Col, Modal } from 'antd';
 import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff } from 'lucide-react';
-import LoadingScreen from '../components/LoadingScreen';
+import { Spin } from 'antd';
 import './ListVehicle.css';
 
 const { Option } = AntSelect;
@@ -305,7 +305,12 @@ export default function EditVehicle() {
     }
   };
 
-  if (loading) return <LoadingScreen message="Loading vehicle details..." />;
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1rem' }}>
+      <Spin size="large" />
+      <p style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: 500 }}>Loading vehicle details...</p>
+    </div>
+  );
 
   return (
     <div className="list-vehicle-page">

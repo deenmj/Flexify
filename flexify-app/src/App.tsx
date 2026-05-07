@@ -5,7 +5,7 @@ import { SocketProvider } from './context/SocketContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoadingScreen from './components/LoadingScreen';
+import { Spin } from 'antd';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import GlobalFeedback from './components/GlobalFeedback';
 
@@ -71,7 +71,11 @@ function NoNavbarLayout({ children }: { children: React.ReactNode }) {
 function RootRedirect() {
   const { user, loading } = useAuth();
 
-  if (loading) return <LoadingScreen message="Preparing your dashboard..." />;
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <Spin size="large" />
+    </div>
+  );
 
   if (!user) return <Navigate to="/explore" replace />;
   if (user.role === 'superadmin') return <Navigate to="/admin" replace />;
@@ -86,7 +90,11 @@ export default function App() {
       <AuthProvider>
         <SocketProvider>
           <ErrorBoundary>
-            <Suspense fallback={<LoadingScreen message="Loading page..." />}>
+            <Suspense fallback={
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+                <Spin size="large" />
+              </div>
+            }>
               <Routes>
               {/* Landing / Redirection */}
               <Route path="/" element={<RootRedirect />} />

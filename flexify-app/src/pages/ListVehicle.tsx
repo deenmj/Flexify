@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel } from '../api';
 import { Select as AntSelect, message } from 'antd';
@@ -59,6 +60,7 @@ export default function ListVehicle() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     title: '',
@@ -279,25 +281,14 @@ export default function ListVehicle() {
       });
 
       await vehicleApi.createWithPhotos(formData);
-      await refreshUser();
-      setSuccess('Vehicle submitted successfully! Your listing is now active and visible on the explore page.');
+      // Refresh user in background (non-blocking) so UI responds instantly
+      refreshUser();
+      message.success('Vehicle listed successfully! Redirecting to your vehicles...');
 
-      // Reset form
-      setForm({
-        title: '', make: '', model: '', year: '', pricePerDay: '',
-        transmission: 'Automatic', fuelType: 'Petrol', seats: '4',
-        serviceType: '', description: '', address: '', lat: '', lng: '',
-        engineCapacity: '', fuelConsumption: '', features: [],
-        province: '', district: '', city: '',
-        pricePerWeek: '', pricePerMonth: '', kmLimitPerDay: '', extraKmPrice: ''
-      });
-      setSelectedMake('');
-      setCustomMake('');
-      setSelectedModel('');
-      setCustomModel('');
-      setPhotos([]);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      window.scrollTo(0, 0);
+      // Redirect to dashboard vehicles tab after a brief delay
+      setTimeout(() => {
+        navigate('/dashboard?tab=vehicles');
+      }, 1500);
 
     } catch (err: any) {
       setError(err.message || 'Error uploading vehicle');
