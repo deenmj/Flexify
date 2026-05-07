@@ -463,6 +463,16 @@ export default function SubAdminDashboard() {
             </Title>
           </div>
           <Space size={isMobile ? "small" : "large"}>
+            {user?.role === 'superadmin' && (
+              <Button 
+                type="primary" 
+                onClick={() => navigate('/admin')} 
+                icon={<Shield size={16} />}
+                style={{ display: 'flex', alignItems: 'center', background: '#7c3aed' }}
+              >
+                {!isMobile && "Main Admin"}
+              </Button>
+            )}
             <Button 
               type="text" 
               onClick={() => navigate('/explore')} 

@@ -470,6 +470,14 @@ export default function AdminDashboard() {
           </div>
           <Space size={isMobile ? "small" : "large"}>
             <Button 
+              type="primary" 
+              onClick={() => navigate('/subadmin')} 
+              icon={<ShieldAlert size={16} />}
+              style={{ display: 'flex', alignItems: 'center', background: '#0d9488' }}
+            >
+              {!isMobile && "Staff Dashboard"}
+            </Button>
+            <Button 
               type="text" 
               onClick={() => navigate('/explore')} 
               icon={<ArrowLeft size={16} />}
