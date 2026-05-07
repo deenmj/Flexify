@@ -629,7 +629,7 @@ export default function EditVehicle() {
                 )}
 
                 {/* New Photo Upload */}
-                <div className="upload-dropzone" onClick={() => fileInputRef.current?.click()} style={{ marginTop: '1.5rem' }}>
+                <div className="upload-dropzone" onClick={() => fileInputRef.current?.click()} style={{ marginTop: '1.5rem', marginBottom: '2rem' }}>
                   <Image size={32} />
                   <p>Click to add more photos</p>
                   <input type="file" multiple accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handlePhotoChange} />

@@ -16,8 +16,8 @@
 .list-vehicle-form-refined {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
-  padding: 4rem 0;
+  gap: 3.5rem;
+  padding: 3rem 0;
 }
 
 .form-card {
@@ -59,7 +59,7 @@
 }
 
 .form-card-body {
-  padding: 0 2.5rem;
+  padding: 0.5rem 2.5rem 2.5rem;
 }
 
 /* Premium Desktop Row Layout */
@@ -379,8 +379,9 @@ textarea.input-field {
   font-size: 1.125rem !important;
   font-weight: 800 !important;
   border-radius: 18px !important;
-  margin-top: 2rem;
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2) !important;
+  margin-top: 3.5rem;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25) !important;
+  margin-bottom: 2rem;
 }
 
 /* Edit Vehicle - Existing Photos */
@@ -598,7 +599,7 @@ textarea.input-field {
     height: 28px;
   }
   .form-card-body {
-    padding: 0 1rem;
+    padding: 0.5rem 1.25rem 1.75rem;
   }
   .form-grid-3 {
     display: flex;
@@ -853,5 +854,37 @@ textarea.input-field {
   }
   .photo-info {
     font-size: 0.85rem;
+  }
+}
+
+/* Enhanced Responsiveness for Small Devices */
+@media (max-width: 480px) {
+  .list-vehicle-form-refined .input-group {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 1rem 0 !important;
+  }
+
+  .list-vehicle-form-refined .input-group > label {
+    width: 100% !important;
+    margin-bottom: 0.5rem !important;
+    padding-right: 0 !important;
+    font-size: 0.85rem !important;
+  }
+
+  .list-vehicle-form-refined .input-group > *:not(label) {
+    width: 100% !important;
+  }
+
+  .list-vehicle-form-refined .input-group > *:not(label):nth-child(n+3) {
+    margin-left: 0 !important;
+  }
+  
+  .form-card-header {
+    padding: 1rem !important;
+  }
+  
+  .form-card-body {
+    padding: 0 1rem 1.5rem !important;
   }
 }
