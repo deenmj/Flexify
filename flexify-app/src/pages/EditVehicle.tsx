@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle, getImageUrl } from '../api';
 import { Select as AntSelect, message, Row, Col, Modal } from 'antd';
-import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff, ChevronLeft, ChevronRight, Menu as MenuIcon } from 'lucide-react';
 import { Spin } from 'antd';
 import './ListVehicle.css';
 
@@ -598,39 +599,32 @@ export default function EditVehicle() {
                 {/* Existing Photos */}
                 {existingPhotos.length > 0 && (
                   <div className="existing-photos-management">
-                    <label>Current Photos</label>
-                    <div className="photo-edit-grid">
+                    <label>Current Photos (Drag to reorder)</label>
+                    <Reorder.Group 
+                      axis="y" 
+                      values={existingPhotos} 
+                      onReorder={setExistingPhotos}
+                      className="photo-reorder-list"
+                    >
                       {existingPhotos.map((photo, i) => (
-                        <div key={i} className="photo-edit-item">
-                          <img src={getImageUrl(photo)} alt={`Vehicle ${i}`} />
-                          
-                          <div className="photo-order-controls">
-                            <button 
-                              type="button" 
-                              className="photo-order-btn" 
-                              onClick={() => movePhotoLeft(i)} 
-                              disabled={i === 0}
-                              title="Move Left"
-                            >
-                              <ChevronLeft size={14} />
-                            </button>
-                            <button 
-                              type="button" 
-                              className="photo-order-btn" 
-                              onClick={() => movePhotoRight(i)} 
-                              disabled={i === existingPhotos.length - 1}
-                              title="Move Right"
-                            >
-                              <ChevronRight size={14} />
-                            </button>
+                        <Reorder.Item 
+                          key={photo.public_id || `photo-${i}`}
+                          value={photo}
+                          className="photo-reorder-item"
+                        >
+                          <div className="reorder-handle">
+                            <MenuIcon size={18} />
                           </div>
-
-                          <button type="button" className="photo-delete-badge" onClick={() => removeExistingPhoto(i)}>
-                            <Trash2 size={12} />
+                          <img src={getImageUrl(photo)} alt={`Vehicle ${i}`} />
+                          <div className="photo-info">
+                            <span>Photo {i + 1} {i === 0 && <Tag color="gold" style={{ marginLeft: '8px' }}>Cover</Tag>}</span>
+                          </div>
+                          <button type="button" className="photo-delete-badge-static" onClick={() => removeExistingPhoto(i)}>
+                            <Trash2 size={16} />
                           </button>
-                        </div>
+                        </Reorder.Item>
                       ))}
-                    </div>
+                    </Reorder.Group>
                   </div>
                 )}
 
