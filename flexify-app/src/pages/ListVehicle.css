@@ -770,3 +770,67 @@ textarea.input-field {
     margin-top: 1rem;
   }
 }
+
+/* Photo Reordering Styles */
+.photo-order-controls {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  padding: 4px 8px;
+  border-radius: 24px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+}
+
+.photo-edit-item:hover .photo-order-controls {
+  opacity: 1;
+  bottom: 12px;
+}
+
+.photo-order-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.photo-order-btn:hover:not(:disabled) {
+  background: var(--color-primary, #2563eb);
+  color: white;
+  border-color: var(--color-primary, #2563eb);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+.photo-order-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+
+@media (max-width: 768px) {
+  .photo-order-controls {
+    opacity: 1;
+    bottom: 8px;
+    padding: 3px 6px;
+  }
+  .photo-order-btn {
+    width: 24px;
+    height: 24px;
+  }
+}

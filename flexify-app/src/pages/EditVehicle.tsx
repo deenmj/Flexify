@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle, getImageUrl } from '../api';
 import { Select as AntSelect, message, Row, Col, Modal } from 'antd';
-import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff } from 'lucide-react';
+import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Spin } from 'antd';
 import './ListVehicle.css';
 
@@ -226,6 +226,24 @@ export default function EditVehicle() {
 
   const removeExistingPhoto = (index: number) => {
     setExistingPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const movePhotoLeft = (index: number) => {
+    if (index === 0) return;
+    setExistingPhotos(prev => {
+      const newPhotos = [...prev];
+      [newPhotos[index - 1], newPhotos[index]] = [newPhotos[index], newPhotos[index - 1]];
+      return newPhotos;
+    });
+  };
+
+  const movePhotoRight = (index: number) => {
+    if (index === existingPhotos.length - 1) return;
+    setExistingPhotos(prev => {
+      const newPhotos = [...prev];
+      [newPhotos[index], newPhotos[index + 1]] = [newPhotos[index + 1], newPhotos[index]];
+      return newPhotos;
+    });
   };
 
   const handleGetLocation = () => {
@@ -585,6 +603,28 @@ export default function EditVehicle() {
                       {existingPhotos.map((photo, i) => (
                         <div key={i} className="photo-edit-item">
                           <img src={getImageUrl(photo)} alt={`Vehicle ${i}`} />
+                          
+                          <div className="photo-order-controls">
+                            <button 
+                              type="button" 
+                              className="photo-order-btn" 
+                              onClick={() => movePhotoLeft(i)} 
+                              disabled={i === 0}
+                              title="Move Left"
+                            >
+                              <ChevronLeft size={14} />
+                            </button>
+                            <button 
+                              type="button" 
+                              className="photo-order-btn" 
+                              onClick={() => movePhotoRight(i)} 
+                              disabled={i === existingPhotos.length - 1}
+                              title="Move Right"
+                            >
+                              <ChevronRight size={14} />
+                            </button>
+                          </div>
+
                           <button type="button" className="photo-delete-badge" onClick={() => removeExistingPhoto(i)}>
                             <Trash2 size={12} />
                           </button>
