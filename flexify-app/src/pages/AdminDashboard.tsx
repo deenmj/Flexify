@@ -753,7 +753,7 @@ export default function AdminDashboard() {
                       {
                         title: 'Actions', render: (_, v) => (
                           <Space>
-                            <Button size="small" type="primary" style={{ backgroundColor: '#7c3aed', borderColor: '#7c3aed', color: '#fff' }} icon={<Edit2 size={14} />} onClick={() => navigate(`/edit-vehicle/${v._id}`)}>Edit</Button>
+                            <Button size="small" type="primary" style={{ backgroundColor: '#7c3aed', borderColor: '#7c3aed', color: '#fff' }} icon={<Edit2 size={14} />} onClick={() => navigate(`/vehicles/edit/${v._id}`)}>Edit</Button>
                             <Button size="small" type="default" icon={<Eye size={14} />} onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View</Button>
                           </Space>
                         )
