@@ -748,13 +748,16 @@ export default function AdminDashboard() {
                         }
                       },
                       { title: 'Price/day', dataIndex: 'pricePerDay', render: p => `LKR ${(p || 0).toLocaleString()}` },
-                      { title: 'Performance', render: (_, v) => <div><Tag color="blue">{v.bookingsCount || 0} Bookings</Tag><br /><Tag icon={<Star size={12} />} color="gold" style={{ marginTop: '4px' }}>{v.averageRating ? `${v.averageRating} / 5` : 'No rating'}</Tag></div> },
+                      { title: 'Performance', render: (_, v) => {
+                          const bCount = allBookings.filter((b: any) => (b.vehicle?._id || b.vehicle) === v._id).length;
+                          return <div><Tag color="blue">{bCount} Bookings</Tag><br /><Tag icon={<Star size={12} />} color="gold" style={{ marginTop: '4px' }}>{v.averageRating ? `${v.averageRating} / 5` : 'No rating'}</Tag></div>
+                      } },
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'active' ? 'green' : s === 'pending' ? 'orange' : 'red'}>{s}</Tag> },
                       {
                         title: 'Actions', render: (_, v) => (
                           <Space>
-                            <Button size="small" type="default" onClick={() => navigate(`/vehicles/edit/${v._id}`)}>Edit</Button>
-                            <Button size="small" type="default" onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View</Button>
+                            <Button size="small" type="default" style={{ fontSize: '12px', padding: '0 10px', height: '26px', lineHeight: '24px' }} onClick={() => navigate(`/vehicles/edit/${v._id}`)}>Edit</Button>
+                            <Button size="small" type="default" style={{ fontSize: '12px', padding: '0 10px', height: '26px', lineHeight: '24px' }} onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View</Button>
                           </Space>
                         )
                       }
@@ -779,7 +782,7 @@ export default function AdminDashboard() {
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> },
                       {
                         title: 'Actions', render: (_, b) => (
-                          <Button size="small" type="default" icon={<Eye size={14} />} onClick={() => { setSelectedAdminBooking(b); setAdminBookingModalOpen(true); }}>View Details</Button>
+                          <Button size="small" type="default" style={{ fontSize: '12px', padding: '0 10px', height: '26px', lineHeight: '24px' }} icon={<Eye size={14} />} onClick={() => { setSelectedAdminBooking(b); setAdminBookingModalOpen(true); }}>View Details</Button>
                         )
                       }
                     ]}
@@ -817,8 +820,8 @@ export default function AdminDashboard() {
                       {
                         title: 'Actions', render: (_, p: any) => (
                           <Space>
-                            <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
-                            <Button size="small" danger icon={<XCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
+                            <Button size="small" type="primary" style={{ fontSize: '12px', padding: '0 10px', height: '26px', lineHeight: '24px' }} icon={<CheckCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
+                            <Button size="small" danger style={{ fontSize: '12px', padding: '0 10px', height: '26px', lineHeight: '24px' }} icon={<XCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
                           </Space>
                         )
                       }
