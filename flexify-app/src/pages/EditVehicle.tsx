@@ -3,7 +3,7 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle, getImageUrl } from '../api';
-import { Select as AntSelect, message, Row, Col, Modal } from 'antd';
+import { Select as AntSelect, message, Row, Col, Modal, Tag } from 'antd';
 import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff, ChevronLeft, ChevronRight, Menu as MenuIcon } from 'lucide-react';
 import { Spin } from 'antd';
 import './ListVehicle.css';
