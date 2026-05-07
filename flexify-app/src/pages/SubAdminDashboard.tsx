@@ -724,9 +724,9 @@ export default function SubAdminDashboard() {
                           {
                             title: 'Action',
                             render: (_, m) => (
-                              <Space>
-                                <Button size="small" type="primary" onClick={() => handleApproveMake(m._id)}>Approve</Button>
-                                <Button size="small" danger onClick={() => handleDeleteMake(m._id)}>Delete</Button>
+                            <Space>
+                                <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleApproveMake(m._id)}>Approve</Button>
+                                <Button size="small" danger icon={<Trash2 size={14} />} onClick={() => handleDeleteMake(m._id)}>Delete</Button>
                               </Space>
                             )
                           }
@@ -749,8 +749,8 @@ export default function SubAdminDashboard() {
                             title: 'Action',
                             render: (_, mo) => (
                               <Space>
-                                <Button size="small" type="primary" onClick={() => handleApproveModel(mo._id)}>Approve</Button>
-                                <Button size="small" danger onClick={() => handleDeleteModel(mo._id)}>Delete</Button>
+                                <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleApproveModel(mo._id)}>Approve</Button>
+                                <Button size="small" danger icon={<Trash2 size={14} />} onClick={() => handleDeleteModel(mo._id)}>Delete</Button>
                               </Space>
                             )
                           }
@@ -805,8 +805,8 @@ export default function SubAdminDashboard() {
                               <Tag color="success">Verified</Tag>
                             ) : (
                               <>
-                                <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')} loading={actionLoading === p._id}>Approve</Button>
-                                <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')} loading={actionLoading === p._id}>Reject</Button>
+                                <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'approved')} loading={actionLoading === p._id}>Approve</Button>
+                                <Button size="small" danger icon={<XCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'rejected')} loading={actionLoading === p._id}>Reject</Button>
                               </>
                             )}
                           </Space>

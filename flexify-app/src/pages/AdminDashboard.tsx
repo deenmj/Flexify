@@ -753,8 +753,8 @@ export default function AdminDashboard() {
                       {
                         title: 'Actions', render: (_, v) => (
                           <Space>
-                            <Button size="small" type="primary" style={{ background: '#7c3aed' }} onClick={() => navigate(`/edit-vehicle/${v._id}`)}>Edit</Button>
-                            <Button size="small" type="default" onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View</Button>
+                            <Button size="small" type="primary" style={{ backgroundColor: '#7c3aed', borderColor: '#7c3aed', color: '#fff' }} icon={<Edit2 size={14} />} onClick={() => navigate(`/edit-vehicle/${v._id}`)}>Edit</Button>
+                            <Button size="small" type="default" icon={<Eye size={14} />} onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View</Button>
                           </Space>
                         )
                       }
@@ -779,7 +779,7 @@ export default function AdminDashboard() {
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> },
                       {
                         title: 'Actions', render: (_, b) => (
-                          <Button size="small" type="default" onClick={() => { setSelectedAdminBooking(b); setAdminBookingModalOpen(true); }}>View Details</Button>
+                          <Button size="small" type="default" icon={<Eye size={14} />} onClick={() => { setSelectedAdminBooking(b); setAdminBookingModalOpen(true); }}>View Details</Button>
                         )
                       }
                     ]}
@@ -817,8 +817,8 @@ export default function AdminDashboard() {
                       {
                         title: 'Actions', render: (_, p: any) => (
                           <Space>
-                            <Button size="small" type="primary" onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
-                            <Button size="small" danger onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
+                            <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
+                            <Button size="small" danger icon={<XCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
                           </Space>
                         )
                       }
