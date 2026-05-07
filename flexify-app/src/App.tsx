@@ -90,11 +90,7 @@ export default function App() {
       <AuthProvider>
         <SocketProvider>
           <ErrorBoundary>
-            <Suspense fallback={
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-                <Spin size="large" />
-              </div>
-            }>
+            <Suspense fallback={<div className="page-loading-placeholder" />}>
               <Routes>
               {/* Landing / Redirection */}
               <Route path="/" element={<RootRedirect />} />

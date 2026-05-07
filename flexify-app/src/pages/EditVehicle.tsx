@@ -324,12 +324,7 @@ export default function EditVehicle() {
     }
   };
 
-  if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1rem' }}>
-      <Spin size="large" />
-      <p style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: 500 }}>Loading vehicle details...</p>
-    </div>
-  );
+  if (loading) return null;
 
   return (
     <div className="list-vehicle-page">

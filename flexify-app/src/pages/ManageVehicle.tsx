@@ -236,13 +236,7 @@ export default function ManageVehicle() {
     return <Tag color="success">Active</Tag>;
   };
 
-  if (loading) {
-    return (
-      <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
+  if (loading) return null;
 
   if (!vehicle) {
     return (
