@@ -35,6 +35,7 @@ export default function Dashboard() {
   });
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'confirmed' | 'past'>('all');
+  const [bookingType, setBookingType] = useState<'received' | 'trips'>('received');
 
   const navigate = useNavigate();
 
@@ -145,7 +146,7 @@ export default function Dashboard() {
           description: `${data.renterName} wants to rent your ${data.vehicleTitle}.`,
           duration: 10,
           placement: 'topRight',
-          onClick: () => setTab('bookings')
+          onClick: () => { setTab('bookings'); setBookingType('received'); }
         });
         // Add to local state
         handleRefreshData();
@@ -343,6 +344,20 @@ export default function Dashboard() {
     : vehicles.filter(v => v.serviceType && v.serviceType.includes(selectedCategory));
 
   const filteredBookings = bookings.filter(b => {
+    // 1. First filter by Type (Received Requests vs My Trips) if not a normal user
+    if (user.role !== 'user') {
+      const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)?._id || (b.owner as any)?.id : b.owner);
+      const bRenterId = String(typeof b.user === 'object' ? (b.user as any)?._id || (b.user as any)?.id : b.user);
+      const myId = String(user._id || user.id);
+      
+      const isMyVehicle = myId === bOwnerId;
+      const amIRenter = myId === bRenterId;
+
+      if (bookingType === 'received' && !isMyVehicle) return false;
+      if (bookingType === 'trips' && !amIRenter) return false;
+    }
+
+    // 2. Then filter by Status (All, Pending, Confirmed, Past)
     const isPast = dayjs(b.endDate).isBefore(dayjs(), 'day');
 
     if (bookingFilter === 'all') return true;
@@ -468,9 +483,29 @@ export default function Dashboard() {
           <div className="dashboard-box">
             <div className="dashboard-box-header" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
               <h3 className="dashboard-box-title" style={{ marginBottom: '1rem' }}>
-                {user.role === 'user' ? 'My Trip History' : 'Manage Bookings'}
+                {user.role === 'user' ? 'My Trip History' : 'Bookings & Trips'}
               </h3>
               
+              {/* If user is owner/staff, let them toggle between received requests and their own trips */}
+              {user.role !== 'user' && (
+                <div className="dashboard-nav" style={{ marginBottom: '1rem', borderBottom: 'none' }}>
+                  <button 
+                    className={`nav-item ${bookingType === 'received' ? 'active' : ''}`} 
+                    onClick={() => setBookingType('received')}
+                    style={{ minWidth: '140px', justifyContent: 'center' }}
+                  >
+                    Received Requests
+                  </button>
+                  <button 
+                    className={`nav-item ${bookingType === 'trips' ? 'active' : ''}`} 
+                    onClick={() => setBookingType('trips')}
+                    style={{ minWidth: '140px', justifyContent: 'center' }}
+                  >
+                    My Trips
+                  </button>
+                </div>
+              )}
+
               {/* Booking Filters */}
               <div className="dashboard-nav" style={{ marginBottom: 0 }}>
                 <button 
@@ -526,7 +561,7 @@ export default function Dashboard() {
                   const myId = String(user?._id || user?.id || '');
                   
                   const isIamRenterOfThis = myId === bRenterId;
-                  const isIamOwnerOfThis = (myId === bOwnerId || isStaff) && !isIamRenterOfThis;
+                  const isIamOwnerOfThis = myId === bOwnerId || isStaff;
                   const owner = typeof b.owner === 'object' ? b.owner : null;
                   const isPast = dayjs(b.endDate).isBefore(dayjs(), 'day');
 
@@ -599,7 +634,7 @@ export default function Dashboard() {
                           </div>
 
                           <div className="booking-card-actions">
-                            {b.status === 'PENDING' && isIamOwnerOfThis && (
+                            {b.status === 'PENDING' && isIamOwnerOfThis && bookingType === 'received' && (
                               <div style={{ display: 'flex', width: '100%' }}>
                                 <button 
                                   className="btn btn-sm btn-primary" 
@@ -621,15 +656,17 @@ export default function Dashboard() {
                               </div>
                             )}
 
-                            {b.status === 'PENDING' && isIamRenterOfThis && (
+                            {b.status === 'PENDING' && isIamRenterOfThis && (bookingType === 'trips' || user?.role === 'user') && (
                               <button className="btn btn-sm btn-danger" style={{ minWidth: '120px' }} onClick={() => handleCancelBooking(b._id)}>Cancel Trip</button>
                             )}
 
-                            {b.status === 'CONFIRMED' && !isPast && (isIamRenterOfThis || isIamOwnerOfThis) && (
+                            {b.status === 'CONFIRMED' && !isPast && (
+                               ((isIamOwnerOfThis && bookingType === 'received') || (isIamRenterOfThis && (bookingType === 'trips' || user?.role === 'user')))
+                            ) && (
                               <button className="btn btn-sm btn-cancel-booking" onClick={() => handleCancelBooking(b._id)}>Cancel Booking</button>
                             )}
 
-                            {(b.status === 'COMPLETED' || b.status === 'CONFIRMED') && isIamRenterOfThis && !b.isReviewed && (
+                            {(b.status === 'COMPLETED' || b.status === 'CONFIRMED') && isIamRenterOfThis && !b.isReviewed && (bookingType === 'trips' || user?.role === 'user') && (
                               <button className="btn btn-sm btn-primary" onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>Leave Review</button>
                             )}
                           </div>

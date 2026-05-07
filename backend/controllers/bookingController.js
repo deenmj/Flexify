@@ -446,11 +446,8 @@ export const cancelBooking = async (req, res) => {
 export const getMyBookings = async (req, res) => {
   try {
     let filter;
-    if (req.user.role === "owner") {
-      // Owners see bookings for their vehicles
-      filter = { owner: req.user._id };
-    } else if (req.user.role === "subadmin" || req.user.role === "superadmin") {
-      // Staff sees bookings as both owner (their vehicles) AND renter
+    if (req.user.role === "owner" || req.user.role === "subadmin" || req.user.role === "superadmin") {
+      // Owners and Staff see bookings as both owner (their vehicles) AND renter (trips they take)
       filter = { $or: [{ owner: req.user._id }, { user: req.user._id }] };
     } else {
       // Users (renters) see their own bookings
