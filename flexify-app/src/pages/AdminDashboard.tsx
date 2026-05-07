@@ -752,7 +752,10 @@ export default function AdminDashboard() {
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'active' ? 'green' : s === 'pending' ? 'orange' : 'red'}>{s}</Tag> },
                       {
                         title: 'Actions', render: (_, v) => (
-                          <Button size="small" type="default" onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View Details</Button>
+                          <Space>
+                            <Button size="small" type="primary" style={{ background: '#7c3aed' }} onClick={() => navigate(`/edit-vehicle/${v._id}`)}>Edit</Button>
+                            <Button size="small" type="default" onClick={() => { setSelectedAdminVehicle(v); setAdminVehicleModalOpen(true); }}>View</Button>
+                          </Space>
                         )
                       }
                     ]}
