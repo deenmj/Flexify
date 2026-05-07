@@ -297,7 +297,7 @@ export default function EditVehicle() {
 
       await vehicleApi.updateWithPhotos(id, formData);
       message.success('Vehicle details updated successfully');
-      navigate('/dashboard');
+      navigate(-1);
     } catch (err: any) {
       setError(err.message || 'Error updating vehicle');
     } finally {

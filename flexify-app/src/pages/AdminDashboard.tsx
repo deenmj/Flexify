@@ -4,7 +4,7 @@ import { adminApi, bankDetailsApi, feedbackApi, getImageUrl, type AdminStats, ty
 import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert } from 'antd';
 import Table from '../components/ResponsiveTable';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
 
@@ -31,7 +31,13 @@ export default function AdminDashboard() {
   const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
-  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings' | 'site-settings' | 'feedback'>('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as any) || 'overview';
+  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings' | 'site-settings' | 'feedback'>(initialTab);
+
+  useEffect(() => {
+    setSearchParams({ tab });
+  }, [tab, setSearchParams]);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(false);
   const [bankDetails, setBankDetails] = useState<BankDetailsData | null>(null);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image } from 'antd';
 import Table from '../components/ResponsiveTable';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
@@ -34,7 +34,13 @@ export default function SubAdminDashboard() {
   const [pendingModels, setPendingModels] = useState<VehicleModel[]>([]);
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback'>('users');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as any) || 'users';
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback'>(initialTab);
+
+  useEffect(() => {
+    setSearchParams({ tab });
+  }, [tab, setSearchParams]);
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewSearchQuery, setReviewSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
