@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, ArrowLeft, Check, X, Mail } from 'lucide-react';
 import './Auth.css';
 
 export default function Auth() {
@@ -12,7 +12,8 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [signupComplete, setSignupComplete] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
 
   const { user, login, signup } = useAuth();
   const navigate = useNavigate();
@@ -26,25 +27,42 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
+  // Real-time password validation
+  const passwordChecks = useMemo(() => ({
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+  }), [password]);
+
+  const allChecksPassed = Object.values(passwordChecks).every(Boolean);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccessMsg('');
     setLoading(true);
 
     try {
       if (mode === 'login') {
         await login(email, password);
-        // Redirect based on role
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (user.role === 'superadmin') navigate('/admin');
         else if (user.role === 'subadmin') navigate('/subadmin');
         else if (user.role === 'owner') navigate('/dashboard?tab=vehicles');
         else navigate('/explore');
       } else {
-        const msg = await signup(name, email, password);
-        setSuccessMsg(msg || 'Verification email sent! Check your inbox.');
-        setMode('login');
+        if (!allChecksPassed) {
+          setError('Please meet all password requirements.');
+          setLoading(false);
+          return;
+        }
+        await signup(name, email, password);
+        setSignupEmail(email);
+        setSignupComplete(true);
+        // Clear form
+        setName('');
+        setEmail('');
+        setPassword('');
       }
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
@@ -54,10 +72,59 @@ export default function Auth() {
   };
 
   const handleGoogleLogin = () => {
-    // Explicitly navigate to the backend to start the OAuth sequence
     const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}/api`;
     window.location.href = `${API_BASE_URL}/auth/google`;
   };
+
+  // Show verification success screen after signup
+  if (signupComplete) {
+    return (
+      <div className="auth-page">
+        <div className="auth-bg">
+          <div className="auth-bg-gradient" />
+          <div className="auth-bg-pattern" />
+        </div>
+        <div className="auth-container">
+          <div className="auth-card animate-scale-in" style={{ textAlign: 'center' }}>
+            <div style={{ 
+              width: '80px', height: '80px', borderRadius: '50%', 
+              background: 'linear-gradient(135deg, #10b981, #059669)', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              margin: '0 auto 1.5rem',
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'
+            }}>
+              <Mail size={36} color="white" />
+            </div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.75rem' }}>
+              Check Your Email
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '0.5rem' }}>
+              We've sent a verification link to
+            </p>
+            <p style={{ 
+              color: '#0f172a', fontWeight: 700, fontSize: '1.05rem', 
+              background: '#f1f5f9', padding: '0.75rem 1.25rem', borderRadius: '12px',
+              marginBottom: '1.5rem', wordBreak: 'break-all'
+            }}>
+              {signupEmail}
+            </p>
+            <p style={{ color: '#94a3b8', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+              Click the link in the email to activate your account. Once verified, you can sign in below.
+            </p>
+            <button 
+              className="btn btn-primary btn-full btn-lg"
+              onClick={() => { setSignupComplete(false); setMode('login'); }}
+            >
+              Go to Sign In <ArrowRight size={18} />
+            </button>
+            <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '1.5rem' }}>
+              Didn't receive it? Check your spam folder.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-page">
@@ -84,13 +151,13 @@ export default function Auth() {
           <div className="auth-tabs">
             <button
               className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
-              onClick={() => { setMode('login'); setError(''); setSuccessMsg(''); }}
+              onClick={() => { setMode('login'); setError(''); }}
             >
               Sign In
             </button>
             <button
               className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
-              onClick={() => { setMode('signup'); setError(''); setSuccessMsg(''); }}
+              onClick={() => { setMode('signup'); setError(''); }}
             >
               Sign Up
             </button>
@@ -98,7 +165,6 @@ export default function Auth() {
 
           {/* Messages */}
           {error && <div className="auth-message error">{error}</div>}
-          {successMsg && <div className="auth-message success">{successMsg}</div>}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="auth-form">
@@ -137,7 +203,7 @@ export default function Auth() {
                   id="auth-password"
                   type={showPassword ? 'text' : 'password'}
                   className="input-field"
-                  placeholder="Enter your password"
+                  placeholder={mode === 'signup' ? 'Create a strong password' : 'Enter your password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -154,11 +220,49 @@ export default function Auth() {
               </div>
             </div>
 
+            {/* Password strength indicator - only during signup */}
+            {mode === 'signup' && password.length > 0 && (
+              <div className="password-requirements" style={{
+                background: '#f8fafc', borderRadius: '12px', padding: '0.875rem 1rem',
+                border: '1px solid #e2e8f0', marginTop: '-0.5rem',
+                animation: 'fadeIn 0.2s ease'
+              }}>
+                <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.5rem' }}>
+                  Password Requirements
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.375rem' }}>
+                  {[
+                    { key: 'length', label: '8+ characters' },
+                    { key: 'uppercase', label: 'Uppercase letter' },
+                    { key: 'lowercase', label: 'Lowercase letter' },
+                    { key: 'number', label: 'A number' },
+                  ].map(({ key, label }) => (
+                    <div key={key} style={{
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      fontSize: '0.8rem', fontWeight: 500,
+                      color: passwordChecks[key as keyof typeof passwordChecks] ? '#16a34a' : '#94a3b8',
+                      transition: 'color 0.2s ease'
+                    }}>
+                      {passwordChecks[key as keyof typeof passwordChecks] 
+                        ? <Check size={14} style={{ flexShrink: 0 }} /> 
+                        : <X size={14} style={{ flexShrink: 0 }} />
+                      }
+                      {label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {mode === 'login' && (
               <a href="/forgot-password" className="forgot-link">Forgot password?</a>
             )}
 
-            <button type="submit" className="btn btn-primary btn-full btn-lg auth-submit" disabled={loading}>
+            <button 
+              type="submit" 
+              className="btn btn-primary btn-full btn-lg auth-submit" 
+              disabled={loading || (mode === 'signup' && password.length > 0 && !allChecksPassed)}
+            >
               {loading ? (
                 <span className="spinner" />
               ) : (
