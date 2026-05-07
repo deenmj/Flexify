@@ -806,12 +806,12 @@ export default function VehicleDetail() {
                 )}
 
                 {user && user.verificationStatus === 'not_submitted' && (
-                  <div className="verification-alert box-highlight" style={{ background: '#fff7ed', border: '1px solid #fdba74', padding: '1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
-                    <Shield size={20} style={{ color: '#ea580c', flexShrink: 0 }} />
-                    <div style={{ fontSize: '0.875rem' }}>
-                      <p style={{ fontWeight: 600, color: '#9a3412', marginBottom: '4px' }}>One-Time Verification Required</p>
-                      <p style={{ color: '#c2410c' }}>Verify your identity once to start booking vehicles.</p>
-                      <Link to={`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`} style={{ color: 'var(--primary-color)', fontWeight: 600, marginTop: '8px', display: 'inline-block' }}>Verify Now &rarr;</Link>
+                  <div className="verification-alert box-highlight" style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.875rem 1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
+                    <Shield size={18} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ fontSize: '0.85rem' }}>
+                      <p style={{ fontWeight: 600, color: '#92400e', marginBottom: '4px' }}>Verification needed to book</p>
+                      <p style={{ color: '#a16207', margin: 0 }}>Complete a quick one-time verification to rent this vehicle.</p>
+                      <Link to={`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`} style={{ color: '#d97706', fontWeight: 600, marginTop: '6px', display: 'inline-block', fontSize: '0.85rem' }}>Verify Now &rarr;</Link>
                     </div>
                   </div>
                 )}

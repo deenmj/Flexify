@@ -360,21 +360,17 @@ export default function Dashboard() {
 
 
 
-        {/* One-Time Verification banner — only for users/renters who haven't uploaded docs */}
+        {/* Verification reminder — only for renters who haven't uploaded docs. 
+             This is just a HINT, NOT a blocker — dashboard is fully accessible without KYC */}
         {user.verificationStatus === 'not_submitted' && !isStaff && user.role === 'user' && (
-          <div className="card" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #fed7aa', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <div style={{ background: '#ff7e33', color: 'white', padding: '10px', borderRadius: '12px' }}><Shield size={24} /></div>
-              <div>
-                <h3 style={{ color: '#9a3412', marginBottom: '4px' }}>
-                  One-Time Verification
-                </h3>
-                <p style={{ color: '#c2410c' }}>
-                  Verify your identity once to start booking vehicles. It only takes a minute!
-                </p>
-              </div>
+          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem', borderRadius: '12px' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <Shield size={18} color="#d97706" />
+              <p style={{ color: '#92400e', fontSize: '0.875rem', margin: 0 }}>
+                <strong>Tip:</strong> Complete one-time verification to book vehicles. You can still browse and manage everything here.
+              </p>
             </div>
-            <Link to="/verify" className="btn btn-primary">Verify Now</Link>
+            <Link to="/verify" className="btn btn-sm" style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '6px 16px', borderRadius: '8px', fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Verify Now</Link>
           </div>
         )}
 
