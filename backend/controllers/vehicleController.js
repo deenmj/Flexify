@@ -7,6 +7,7 @@ import User from "../models/User.js";
 import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
+import cloudinary from "../utils/cloudinary.js";
 
 /**
  * Owner creates a vehicle listing.
@@ -218,11 +219,46 @@ export const updateVehicle = async (req, res) => {
       };
     }
 
+    let finalPhotos = [];
+    if (req.body.existingPhotos) {
+      try {
+        finalPhotos = JSON.parse(req.body.existingPhotos);
+      } catch (e) {
+        // Fallback if it's already an array or parsed differently
+        finalPhotos = Array.isArray(req.body.existingPhotos) ? req.body.existingPhotos : [];
+      }
+    } else if (req.body.existingPhotos === "[]") {
+      finalPhotos = [];
+    } else if (vehicle.photos && req.body.existingPhotos === undefined && (!req.files || req.files.length === 0)) {
+        // If frontend didn't send existingPhotos and no new files, keep current
+        finalPhotos = vehicle.photos;
+    }
+
     if (req.files && req.files.length > 0) {
-      updates.photos = req.files.map((f) => ({
+      const newPhotos = req.files.map((f) => ({
         url: f.path,
         public_id: f.filename
       }));
+      finalPhotos = [...finalPhotos, ...newPhotos];
+    }
+    
+    // Identify deleted photos to remove them from Cloudinary
+    if (req.body.existingPhotos !== undefined) {
+      const existingPublicIds = finalPhotos.map(p => p.public_id);
+      const deletedPhotos = (vehicle.photos || []).filter(op => op.public_id && !existingPublicIds.includes(op.public_id));
+      
+      for (const dp of deletedPhotos) {
+        try {
+          await cloudinary.uploader.destroy(dp.public_id);
+        } catch (cloudinaryErr) {
+          console.error("Failed to delete photo from Cloudinary:", cloudinaryErr);
+        }
+      }
+    }
+    
+    // Only update the database if existingPhotos was provided or new files were uploaded
+    if (req.body.existingPhotos !== undefined || (req.files && req.files.length > 0)) {
+       updates.photos = finalPhotos;
     }
 
     Object.keys(updates).forEach((key) => {
