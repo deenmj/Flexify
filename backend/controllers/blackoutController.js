@@ -23,8 +23,8 @@ export const createBlackout = async (req, res) => {
 
     const sDate = new Date(startDate);
     const eDate = new Date(endDate);
-    if (sDate >= eDate) {
-      return res.status(400).json({ message: "Start date must be before end date" });
+    if (sDate > eDate) {
+      return res.status(400).json({ message: "Start date cannot be after end date" });
     }
 
     // Verify ownership

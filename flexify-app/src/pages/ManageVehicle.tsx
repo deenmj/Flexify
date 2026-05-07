@@ -567,7 +567,7 @@ export default function ManageVehicle() {
                 style={{ width: '100%', height: '44px', borderRadius: '8px' }} 
                 disabledDate={(current) => {
                   const startDate = blackoutForm.getFieldValue('startDate');
-                  return current && (current < dayjs().startOf('day') || (startDate && current < startDate));
+                  return current && (current < dayjs().startOf('day') || (startDate && current < startDate.startOf('day')));
                 }}
                 format="MMM DD, YYYY"
                 placeholder="Select end date"
