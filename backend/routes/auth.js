@@ -107,7 +107,7 @@ router.post("/signup", async (req, res) => {
       to: user.email,
       subject: "Verify your Rentify account",
       html: `
-        <h2>Welcome to Rentify 🚗</h2>
+        <h2>Welcome to Rentify</h2>
         <p>Please verify your email to activate your account:</p>
         <a href="${verifyUrl}" style="display:inline-block;background:#1890ff;color:white;padding:10px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email</a>
       `,
