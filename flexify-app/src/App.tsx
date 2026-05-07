@@ -108,22 +108,22 @@ export default function App() {
               {/* Public pages */}
               <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
               <Route path="/explore" element={<NoFooterLayout><Explore /></NoFooterLayout>} />
-              <Route path="/vehicles/:id" element={<AppLayout><VehicleDetail /></AppLayout>} />
+              <Route path="/vehicles/:id" element={<NoFooterLayout><VehicleDetail /></NoFooterLayout>} />
               <Route path="/about" element={<AppLayout><About /></AppLayout>} />
               <Route path="/faq" element={<AppLayout><FAQ /></AppLayout>} />
               <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
               <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
               <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
-              <Route path="/subscription" element={<AppLayout><SubscriptionManagement /></AppLayout>} />
+              <Route path="/subscription" element={<NoFooterLayout><SubscriptionManagement /></NoFooterLayout>} />
 
               {/* Protected pages */}
-              <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
-              <Route path="/verify" element={<AppLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></AppLayout>} />
+              <Route path="/profile" element={<NoFooterLayout><ProtectedRoute><Profile /></ProtectedRoute></NoFooterLayout>} />
+              <Route path="/verify" element={<NoFooterLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></NoFooterLayout>} />
               <Route path="/list-vehicle" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ListVehicle /></ProtectedRoute></NoFooterLayout>} />
-              <Route path="/dashboard" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><Dashboard /></ProtectedRoute></AppLayout>} />
-              <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
+              <Route path="/dashboard" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><Dashboard /></ProtectedRoute></NoFooterLayout>} />
+              <Route path="/notifications" element={<NoFooterLayout><ProtectedRoute><Notifications /></ProtectedRoute></NoFooterLayout>} />
               <Route path="/dashboard/vehicle/:id" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ManageVehicle /></ProtectedRoute></NoFooterLayout>} />
-              <Route path="/vehicles/edit/:id" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></AppLayout>} />
+              <Route path="/vehicles/edit/:id" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></NoFooterLayout>} />
 
               {/* Admin dashboards */}
               <Route path="/admin" element={<NoNavbarLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
