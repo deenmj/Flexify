@@ -495,8 +495,12 @@ export default function VehicleDetail() {
             <div className="detail-overview card" style={{ marginTop: '1.5rem', padding: isMobile ? '1.25rem' : '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ flex: 1, minWidth: '200px' }}>
-                  <h1 className="detail-title">{vehicle.title}</h1>
-                  <p className="detail-subtitle">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
+                  <h1 className="detail-title" style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                    {vehicle.title}
+                  </h1>
+                  <p className="detail-subtitle" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
+                    {vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}
+                  </p>
                 </div>
                 <div 
                   className="detail-rating" 
@@ -785,22 +789,20 @@ export default function VehicleDetail() {
                 {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
                   <div className="bulk-pricing-options" style={{ marginTop: isMobile ? '0' : '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {vehicle.pricePerWeek && (
-                      <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 600 }}>
-                        <Zap size={14} style={{ display: 'inline', marginRight: 6 }} />
-                        LKR {vehicle.pricePerWeek.toLocaleString()} / week
+                      <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Zap size={14} /> LKR {vehicle.pricePerWeek.toLocaleString()} / week
                       </div>
                     )}
                     {vehicle.pricePerMonth && (
-                      <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 600 }}>
-                        <Zap size={14} style={{ display: 'inline', marginRight: 6 }} />
-                        LKR {vehicle.pricePerMonth.toLocaleString()} / month
+                      <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Zap size={14} /> LKR {vehicle.pricePerMonth.toLocaleString()} / month
                       </div>
                     )}
                   </div>
                 )}
 
                 <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: vehicle.kmLimitPerDay ? '#fff7ed' : '#f0fdf4', border: `1px solid ${vehicle.kmLimitPerDay ? '#fed7aa' : '#bbf7d0'}` }}>
-                  <span style={{ fontSize: '1.2rem' }}>{vehicle.kmLimitPerDay ? '🛣️' : '∞'}</span>
+                  <Gauge size={20} color={vehicle.kmLimitPerDay ? '#c2410c' : '#15803d'} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: vehicle.kmLimitPerDay ? '#c2410c' : '#15803d' }}>
                       {vehicle.kmLimitPerDay ? `${vehicle.kmLimitPerDay} km / day limit` : 'Unlimited Kilometers'}
@@ -823,7 +825,7 @@ export default function VehicleDetail() {
 
                 {vehicle.driverOption !== 'self-drive' && (
                   <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: '#faf5ff', border: '1px solid #e9d5ff' }}>
-                    <span style={{ fontSize: '1.2rem' }}>👨‍✈️</span>
+                    <Users size={20} color="#6b21a8" />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6b21a8' }}>
                         {vehicle.driverOption === 'both' ? 'Driver available as option' : 'Driver included / required'}

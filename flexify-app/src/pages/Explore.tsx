@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { Row, Col, DatePicker } from 'antd';
 const { RangePicker } = DatePicker;
-import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown, X, Car, Plus, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown, X, Car, Plus, ChevronRight, Users, Gauge, Zap } from 'lucide-react';
 import { vehicleApi, type Vehicle, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -513,24 +513,21 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </div>
           <p className="explore-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
           <div className="explore-vehicle-specs">
-            <span>🪑 {vehicle.seats} seats</span>
-            {vehicle.engineCapacity && <span>⚡ {vehicle.engineCapacity}</span>}
-            {vehicle.kmLimitPerDay && <span>🛣️ {vehicle.kmLimitPerDay}km/day</span>}
-            {!vehicle.kmLimitPerDay && <span style={{ color: '#10b981' }}>∞ Unlimited km</span>}
-            {vehicle.driverOption === 'both' && <span style={{ color: '#8b5cf6' }}>🚗 / 👨‍✈️ Both</span>}
-            {vehicle.driverOption === 'with-driver' && <span style={{ color: '#8b5cf6' }}>👨‍✈️ With Driver</span>}
-            {(!vehicle.driverOption || vehicle.driverOption === 'self-drive') && <span>🚗 Self Drive</span>}
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={12} /> {vehicle.seats} seats</span>
+            {vehicle.engineCapacity && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Zap size={12} /> {vehicle.engineCapacity}</span>}
+            {vehicle.kmLimitPerDay && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Gauge size={12} /> {vehicle.kmLimitPerDay}km/day</span>}
+            {!vehicle.kmLimitPerDay && <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Gauge size={12} /> Unlimited km</span>}
+            {vehicle.driverOption === 'both' && <span style={{ color: '#8b5cf6' }}>Self / With Driver</span>}
+            {vehicle.driverOption === 'with-driver' && <span style={{ color: '#8b5cf6' }}>With Driver</span>}
+            {(!vehicle.driverOption || vehicle.driverOption === 'self-drive') && <span>Self Drive</span>}
             {(vehicle.city || vehicle.district) && (
               <span><MapPin size={12} /> {vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
             )}
           </div>
-          <div className="explore-vehicle-footer" style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+          <div className="explore-vehicle-footer" style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
             <div className="explore-vehicle-price">
               <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
               <span className="price-unit">/day</span>
-            </div>
-            <div style={{ color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-              View Details <ChevronRight size={14} />
             </div>
           </div>
         </div>
