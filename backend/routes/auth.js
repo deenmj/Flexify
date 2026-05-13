@@ -148,6 +148,13 @@ router.post("/login", loginLimiter, async (req, res, next) => {
       });
     }
 
+    // Block suspended/banned users from logging in
+    if (user.status === "blocked") {
+      return res.status(403).json({
+        message: "Your account has been suspended. Please contact support for assistance.",
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
@@ -223,8 +230,14 @@ router.get(
     })(req, res, next);
   },
   (req, res) => {
-    const token = generateToken(req.user._id);
     const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+
+    // Block suspended/banned users from logging in via Google
+    if (req.user.status === "blocked") {
+      return res.redirect(`${frontendUrl}/auth?error=account_suspended`);
+    }
+
+    const token = generateToken(req.user._id);
     res.redirect(`${frontendUrl}/google-success?token=${token}`);
   }
 );
