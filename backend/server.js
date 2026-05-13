@@ -31,6 +31,23 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
+import Booking from "./models/booking.js";
+
+// Routes
+import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/userRoutes.js";
+import vehicleRoutes from "./routes/vehicleRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import subadminRoutes from "./routes/subadminRoutes.js";
+import blackoutRoutes from "./routes/blackoutRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import ownerRoutes from "./routes/ownerRoutes.js";
+import bankDetailsRoutes from "./routes/bankDetailsRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import settingsRoutes from "./routes/settingsRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
+import { protect } from "./middleware/authMiddleware.js";
 
 connectDB();
 
@@ -134,22 +151,6 @@ app.use(passport.initialize());
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Routes
-import authRoutes from "./routes/auth.js";
-import userRoutes from "./routes/userRoutes.js";
-import vehicleRoutes from "./routes/vehicleRoutes.js";
-import bookingRoutes from "./routes/bookingRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
-import subadminRoutes from "./routes/subadminRoutes.js";
-import blackoutRoutes from "./routes/blackoutRoutes.js";
-import reviewRoutes from "./routes/reviewRoutes.js";
-import ownerRoutes from "./routes/ownerRoutes.js";
-import bankDetailsRoutes from "./routes/bankDetailsRoutes.js";
-import notificationRoutes from "./routes/notificationRoutes.js";
-import settingsRoutes from "./routes/settingsRoutes.js";
-import feedbackRoutes from "./routes/feedbackRoutes.js";
-
-import { protect } from "./middleware/authMiddleware.js";
-
 app.get("/", (req, res) => {
   res.send("Rentify Backend is Running Successfully!");
 });
@@ -194,7 +195,6 @@ app.use((err, req, res, next) => {
 // Runs every hour to transition CONFIRMED bookings
 // whose end date has passed to COMPLETED status.
 // ============================================
-import Booking from "./models/booking.js";
 
 const autoCompleteBookings = async () => {
   try {
