@@ -163,6 +163,12 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/feedback", feedbackRoutes);
 
+// Google OAuth Fallback: in case Google console is misconfigured without the /api prefix
+app.use("/auth/google/callback", (req, res) => {
+  const query = req.url.split('?')[1] || '';
+  res.redirect(`/api/auth/google/callback?${query}`);
+});
+
 // 404 handler for unknown routes
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "API Route Not Found" });

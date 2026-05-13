@@ -14,7 +14,7 @@ import { createNotification } from "./notificationController.js";
 export const createBooking = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { vehicleId, startDate, endDate } = req.body;
+    const { vehicleId, startDate, endDate, withDriver } = req.body;
 
     // Check KYC documents uploaded (no staff approval needed — just must have submitted)
     const isStaffOrAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
@@ -68,7 +68,17 @@ export const createBooking = async (req, res) => {
       return res.status(409).json({ message: "Vehicle not available for selected dates (Owner unavailable)" });
     }
 
-    const totalAmount = (vehicle.pricePerDay || 0) * days;
+    let totalAmount = (vehicle.pricePerDay || 0) * days;
+    let isDriverIncluded = false;
+
+    // Driver Calculation
+    if (vehicle.driverOption === 'with-driver') {
+      isDriverIncluded = true;
+      totalAmount += (vehicle.driverPricePerDay || 0) * days;
+    } else if (vehicle.driverOption === 'both' && withDriver) {
+      isDriverIncluded = true;
+      totalAmount += (vehicle.driverPricePerDay || 0) * days;
+    }
 
     const booking = await Booking.create({
       user: userId,
@@ -78,6 +88,7 @@ export const createBooking = async (req, res) => {
       endDate: e,
       days,
       totalAmount,
+      withDriver: isDriverIncluded,
       status: "PENDING",
     });
 

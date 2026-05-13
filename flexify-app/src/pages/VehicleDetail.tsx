@@ -54,6 +54,7 @@ export default function VehicleDetail() {
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [createdBooking, setCreatedBooking] = useState<any>(null);
+  const [withDriver, setWithDriver] = useState(false);
 
   // active carousel image
   const [activeImage, setActiveImage] = useState(0);
@@ -263,7 +264,7 @@ export default function VehicleDetail() {
     const endStr = dateRange[1].toISOString();
 
     try {
-      const resp = await bookingApi.create(id!, startStr, endStr);
+      const resp = await bookingApi.create(id!, startStr, endStr, withDriver);
       setCreatedBooking(resp);
       message.success('Booking request submitted!');
       
@@ -452,6 +453,11 @@ export default function VehicleDetail() {
       totalAmount = (weeks * vehicle.pricePerWeek) + (remainingDays * vehicle.pricePerDay);
     } else {
       totalAmount = days * vehicle.pricePerDay;
+    }
+    
+    // Add driver cost if applicable
+    if (vehicle.driverOption === 'with-driver' || (vehicle.driverOption === 'both' && withDriver)) {
+      totalAmount += days * (vehicle.driverPricePerDay || 0);
     }
   }
 
@@ -927,7 +933,7 @@ export default function VehicleDetail() {
       {/* BOOKING MODAL */}
       <Modal
         open={showBookingModal}
-        onCancel={() => { setShowBookingModal(false); setCreatedBooking(null); setDateRange(null); }}
+        onCancel={() => { setShowBookingModal(false); setCreatedBooking(null); setDateRange(null); setWithDriver(false); }}
         footer={null}
         centered
         width={isMobile ? '95%' : 520}
@@ -1020,6 +1026,23 @@ export default function VehicleDetail() {
                   )}
                 </div>
 
+                {vehicle.driverOption === 'both' && (
+                  <div className="input-group" style={{ marginBottom: '0.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: '#faf5ff', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e9d5ff' }}>
+                      <input
+                        type="checkbox"
+                        checked={withDriver}
+                        onChange={(e) => setWithDriver(e.target.checked)}
+                        style={{ width: '18px', height: '18px', accentColor: '#8b5cf6' }}
+                      />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 600, color: '#6b21a8' }}>Add a Driver (Optional)</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>+ LKR {vehicle.driverPricePerDay?.toLocaleString() || 0} / day</span>
+                      </div>
+                    </label>
+                  </div>
+                )}
+
                 <div className="avail-legend modal-legend" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '-0.5rem' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
                     <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#f5f5f5', border: '1px solid #d9d9d9' }}></span>
@@ -1062,14 +1085,20 @@ export default function VehicleDetail() {
                         </>
                       ) : (
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Daily Rate x {days} days</span>
-                          <span>LKR {(days * vehicle.pricePerDay).toLocaleString()}</span>
+                          <span>LKR {vehicle.pricePerDay.toLocaleString()} x {days} days</span>
+                          <span>LKR {(vehicle.pricePerDay * days).toLocaleString()}</span>
+                        </div>
+                      )}
+
+                      {(vehicle.driverOption === 'with-driver' || (vehicle.driverOption === 'both' && withDriver)) && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b21a8', marginTop: '4px' }}>
+                          <span>Driver fee ({vehicle.driverPricePerDay?.toLocaleString()} x {days} days)</span>
+                          <span>LKR {((vehicle.driverPricePerDay || 0) * days).toLocaleString()}</span>
                         </div>
                       )}
                     </div>
-                    <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1rem 0' }} />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1.1rem' }}>
-                      <span>Total Amount</span>
+                    <div className="summary-total" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 800, marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color-light)' }}>
+                      <span>Total</span>
                       <span>LKR {totalAmount.toLocaleString()}</span>
                     </div>
                   </div>

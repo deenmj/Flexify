@@ -10,6 +10,10 @@ const bookingSchema = new mongoose.Schema(
     endDate: { type: Date, required: true },
     days: { type: Number, required: true },
     totalAmount: { type: Number, required: true },
+    withDriver: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: ["PENDING", "CONFIRMED", "REJECTED", "COMPLETED", "CANCELLED"],

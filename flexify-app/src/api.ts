@@ -382,10 +382,10 @@ export const vehicleApi = {
 
 // =================== BOOKINGS ===================
 export const bookingApi = {
-  create: (vehicleId: string, startDate: string, endDate: string) =>
+  create: (vehicleId: string, startDate: string, endDate: string, withDriver: boolean = false) =>
     apiFetch<Booking>('/bookings', {
       method: 'POST',
-      body: JSON.stringify({ vehicleId, startDate, endDate }),
+      body: JSON.stringify({ vehicleId, startDate, endDate, withDriver }),
     }),
 
   getMy: () => apiFetch<Booking[]>('/bookings/my'),
