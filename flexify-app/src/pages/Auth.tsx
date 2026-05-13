@@ -12,10 +12,13 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [signupComplete, setSignupComplete] = useState(false);
+  const [otpMode, setOtpMode] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
 
-  const { user, login, signup } = useAuth();
+  const { user, login, signup, verifyOtp, resendOtp } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,13 +59,11 @@ export default function Auth() {
           setLoading(false);
           return;
         }
-        await signup(name, email, password);
-        setSignupEmail(email);
-        setSignupComplete(true);
-        // Clear form
-        setName('');
-        setEmail('');
-        setPassword('');
+        const resp = await signup(name, email, password);
+        if (resp.requireOtp) {
+          setSignupEmail(resp.email || email);
+          setOtpMode(true);
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
@@ -76,8 +77,38 @@ export default function Auth() {
     window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
-  // Show verification success screen after signup
-  if (signupComplete) {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await verifyOtp(signupEmail, otpCode);
+      // AuthContext sets user and redirect triggers.
+    } catch (err: any) {
+      setError(err.message || 'Invalid OTP code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setError('');
+    try {
+      if (isEditingEmail) {
+        if (!newEmail) return setError('Please enter a new email');
+        const resp = await resendOtp(signupEmail, newEmail);
+        setSignupEmail(resp.email);
+        setIsEditingEmail(false);
+      } else {
+        await resendOtp(signupEmail);
+      }
+      alert('A new OTP has been sent to your email.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend OTP');
+    }
+  };
+
+  if (otpMode) {
     return (
       <div className="auth-page">
         <div className="auth-bg">
@@ -87,38 +118,74 @@ export default function Auth() {
         <div className="auth-container">
           <div className="auth-card animate-scale-in" style={{ textAlign: 'center' }}>
             <div style={{ 
-              width: '80px', height: '80px', borderRadius: '50%', 
-              background: 'linear-gradient(135deg, #10b981, #059669)', 
+              width: '70px', height: '70px', borderRadius: '50%', 
+              background: 'linear-gradient(135deg, #3b82f6, #2563eb)', 
               display: 'flex', alignItems: 'center', justifyContent: 'center', 
               margin: '0 auto 1.5rem',
-              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'
+              boxShadow: '0 8px 24px rgba(59, 130, 246, 0.3)'
             }}>
-              <Mail size={36} color="white" />
+              <Mail size={32} color="white" />
             </div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.75rem' }}>
-              Check Your Email
+              Verify Your Email
             </h2>
-            <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '0.5rem' }}>
-              We've sent a verification link to
+            <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '1rem' }}>
+              Enter the 4-digit code we sent to:
             </p>
-            <p style={{ 
-              color: '#0f172a', fontWeight: 700, fontSize: '1.05rem', 
-              background: '#f1f5f9', padding: '0.75rem 1.25rem', borderRadius: '12px',
-              marginBottom: '1.5rem', wordBreak: 'break-all'
-            }}>
-              {signupEmail}
-            </p>
-            <p style={{ color: '#94a3b8', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-              Click the link in the email to activate your account. Once verified, you can sign in below.
-            </p>
-            <button 
-              className="btn btn-primary btn-full btn-lg"
-              onClick={() => { setSignupComplete(false); setMode('login'); }}
-            >
-              Go to Sign In <ArrowRight size={18} />
-            </button>
-            <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '1.5rem' }}>
-              Didn't receive it? Check your spam folder.
+
+            {isEditingEmail ? (
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '1.5rem' }}>
+                <input
+                  type="email"
+                  className="input-field"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="New email address"
+                  style={{ flex: 1 }}
+                />
+                <button className="btn btn-primary" onClick={handleResendOtp}>Save</button>
+                <button className="btn btn-outline" onClick={() => setIsEditingEmail(false)}><X size={16} /></button>
+              </div>
+            ) : (
+              <div style={{ 
+                color: '#0f172a', fontWeight: 700, fontSize: '1.05rem', 
+                background: '#f1f5f9', padding: '0.75rem 1.25rem', borderRadius: '12px',
+                marginBottom: '1.5rem', wordBreak: 'break-all', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+              }}>
+                {signupEmail}
+                <button 
+                  onClick={() => { setNewEmail(signupEmail); setIsEditingEmail(true); }}
+                  style={{ color: '#2563eb', fontSize: '0.8rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
+                >
+                  Edit
+                </button>
+              </div>
+            )}
+
+            {error && <div className="auth-message error" style={{ marginBottom: '1rem' }}>{error}</div>}
+
+            <form onSubmit={handleVerifyOtp}>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="4-digit code"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+                style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '8px', fontWeight: 700, marginBottom: '1.5rem' }}
+                required
+                maxLength={4}
+              />
+              <button 
+                type="submit" 
+                className="btn btn-primary btn-full btn-lg"
+                disabled={loading || otpCode.length !== 4}
+              >
+                {loading ? <span className="spinner" /> : 'Verify Account'}
+              </button>
+            </form>
+            
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '1.5rem' }}>
+              Didn't receive it? <button onClick={handleResendOtp} style={{ color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Resend Code</button>
             </p>
           </div>
         </div>

@@ -88,7 +88,8 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    const token = crypto.randomBytes(32).toString("hex");
+    const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
     const user = await User.create({
       name,
@@ -96,30 +97,110 @@ router.post("/signup", async (req, res) => {
       password,
       provider: "local",
       verified: false,
-      emailVerificationToken: token,
+      otpCode,
+      otpExpires,
     });
 
-    const backendUrl = process.env.BACKEND_URL || "https://flexify-production.up.railway.app";
-    const verifyUrl = `${backendUrl}/api/auth/verify-email/${token}`;
-
-    // Fire-and-forget: send email in background so user doesn't wait
+    // Send OTP email
     sendEmail({
       to: user.email,
-      subject: "Verify your Rentify account",
+      subject: "Your Rentify Verification Code",
       html: `
-        <h2>Welcome to Rentify</h2>
-        <p>Please verify your email to activate your account:</p>
-        <a href="${verifyUrl}" style="display:inline-block;background:#1890ff;color:white;padding:10px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email</a>
+        <div style="font-family: Arial, sans-serif; text-align: center; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+          <h2 style="color: #0f172a;">Welcome to Rentify!</h2>
+          <p style="color: #64748b; font-size: 16px;">Use the code below to verify your email address and activate your account.</p>
+          <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #2563eb; margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px;">
+            ${otpCode}
+          </div>
+          <p style="color: #94a3b8; font-size: 14px;">This code expires in 10 minutes.</p>
+        </div>
       `,
-    }).catch((emailErr) => {
-      console.error("Email send failed:", emailErr.message);
-    });
+    }).catch(err => console.error("OTP send failed", err));
 
     res.status(201).json({
-      message: "Account created! Please check your email to verify your account.",
+      message: "OTP sent successfully",
+      requireOtp: true,
+      email: user.email,
     });
   } catch (err) {
     console.error("Signup error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================================================
+   VERIFY OTP
+========================================================= */
+router.post("/verify-otp", async (req, res) => {
+  const { email, otp } = req.body;
+  try {
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.verified) return res.status(400).json({ message: "User already verified" });
+    if (user.otpCode !== otp) return res.status(400).json({ message: "Invalid OTP code" });
+    if (new Date() > user.otpExpires) return res.status(400).json({ message: "OTP has expired" });
+
+    user.verified = true;
+    user.otpCode = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    res.status(200).json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      token: generateToken(user._id),
+      message: "Email verified successfully!",
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================================================
+   RESEND OTP / UPDATE EMAIL
+========================================================= */
+router.post("/resend-otp", async (req, res) => {
+  const { oldEmail, newEmail } = req.body;
+  try {
+    const targetEmail = oldEmail.toLowerCase();
+    const user = await User.findOne({ email: targetEmail });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.verified) return res.status(400).json({ message: "User is already verified" });
+
+    if (newEmail && newEmail.toLowerCase() !== targetEmail) {
+      const exists = await User.findOne({ email: newEmail.toLowerCase() });
+      if (exists) return res.status(400).json({ message: "New email is already in use" });
+      user.email = newEmail.toLowerCase();
+    }
+
+    const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+    user.otpCode = otpCode;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    sendEmail({
+      to: user.email,
+      subject: "Your New Rentify Verification Code",
+      html: `
+        <div style="font-family: Arial, sans-serif; text-align: center; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+          <h2 style="color: #0f172a;">Rentify Verification</h2>
+          <p style="color: #64748b; font-size: 16px;">Here is your new verification code.</p>
+          <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #2563eb; margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px;">
+            ${otpCode}
+          </div>
+          <p style="color: #94a3b8; font-size: 14px;">This code expires in 10 minutes.</p>
+        </div>
+      `,
+    }).catch(err => console.error("OTP send failed", err));
+
+    res.status(200).json({ message: "New OTP sent", email: user.email });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -217,7 +298,7 @@ router.get("/me", protect, async (req, res, next) => {
 ========================================================= */
 router.get(
   "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  passport.authenticate("google", { scope: ["profile", "email"], session: false })
 );
 
 router.get(

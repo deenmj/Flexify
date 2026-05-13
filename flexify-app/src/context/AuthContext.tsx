@@ -6,7 +6,9 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<string>;
+  signup: (name: string, email: string, password?: string) => Promise<{ requireOtp?: boolean; email?: string }>;
+  verifyOtp: (email: string, otp: string) => Promise<void>;
+  resendOtp: (oldEmail: string, newEmail?: string) => Promise<{ email: string; message: string }>;
   logout: () => void;
   setUserFromToken: (token: string) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -79,9 +81,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     saveAuth(data.user, data.token);
   };
 
-  const signup = async (name: string, email: string, password: string) => {
+  const signup = async (name: string, email: string, password?: string) => {
     const data = await authApi.signup(name, email, password);
-    return data.message;
+    return { requireOtp: data.requireOtp, email: data.email };
+  };
+
+  const verifyOtp = async (email: string, otp: string) => {
+    const data = await authApi.verifyOtp(email, otp);
+    saveAuth(data.user, data.token);
+  };
+
+  const resendOtp = async (oldEmail: string, newEmail?: string) => {
+    return await authApi.resendOtp(oldEmail, newEmail);
   };
 
   const setUserFromToken = async (tokenStr: string) => {
@@ -96,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, signup, logout, setUserFromToken, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, signup, verifyOtp, resendOtp, logout, setUserFromToken, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

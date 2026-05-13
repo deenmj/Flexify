@@ -304,10 +304,22 @@ export const authApi = {
       body: JSON.stringify({ email, password }),
     }),
 
-  signup: (name: string, email: string, password: string) =>
-    apiFetch<{ message: string }>('/auth/signup', {
+  signup: (name: string, email: string, password?: string) =>
+    apiFetch<{ message: string; requireOtp?: boolean; email?: string }>('/auth/signup', {
       method: 'POST',
       body: JSON.stringify({ name, email, password }),
+    }),
+
+  verifyOtp: (email: string, otp: string) =>
+    apiFetch<AuthResponse>('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    }),
+
+  resendOtp: (oldEmail: string, newEmail?: string) =>
+    apiFetch<{ message: string; email: string }>('/auth/resend-otp', {
+      method: 'POST',
+      body: JSON.stringify({ oldEmail, newEmail }),
     }),
 
   me: () => apiFetch<User>('/auth/me'),

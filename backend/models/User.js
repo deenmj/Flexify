@@ -91,6 +91,8 @@ const userSchema = new mongoose.Schema(
     // Email verification
     emailVerificationToken: { type: String },
     emailVerifiedAt: { type: Date },
+    otpCode: { type: String },
+    otpExpires: { type: Date },
 
     // Password reset
     passwordResetToken: { type: String },
