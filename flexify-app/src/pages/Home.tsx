@@ -19,7 +19,8 @@ export default function Home() {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    vehicleApi.getAll().then((data) => {
+    vehicleApi.getAll().then((response) => {
+      const data = response.vehicles || [];
       const filteredVehicles = user 
         ? data.filter(v => {
             const ownerId = typeof v.owner === 'object' ? (v.owner as any)._id : v.owner;

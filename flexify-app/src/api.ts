@@ -345,7 +345,7 @@ export const authApi = {
 export const vehicleApi = {
   getAll: (params?: Record<string, string>) => {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return apiFetch<Vehicle[]>(`/vehicles${query}`);
+    return apiFetch<{ vehicles: Vehicle[]; pagination: any }>(`/vehicles${query}`);
   },
 
   getPublicStats: () => apiFetch<PublicStats>('/vehicles/stats/public'),

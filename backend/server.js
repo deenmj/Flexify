@@ -130,7 +130,7 @@ app.use(globalLimiter);
 app.use(express.json());
 app.use(passport.initialize());
 
-// Static uploads (No longer serving React frontend as it is on Vercel)// Static uploads
+// Static uploads
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Routes

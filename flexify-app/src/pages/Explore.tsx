@@ -32,9 +32,11 @@ interface Filters {
   radius: string;
   sort: string;
   province: string;
+  district: string;
   startDate: string;
   endDate: string;
   driverOption: string;
+  page?: string;
 }
 
 const RADIUS_OPTIONS = [
