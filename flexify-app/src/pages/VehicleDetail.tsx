@@ -4,7 +4,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button, Select } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './VehicleDetail.css';
@@ -950,18 +950,41 @@ export default function VehicleDetail() {
               Your request has been sent to the owner. You can contact them directly to speed up the process.
             </p>
 
-            <div className="owner-contact-card box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left' }}>
-              <img
-                src={typeof createdBooking.owner === 'object' ? getImageUrl(createdBooking.owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(createdBooking.owner.name) : ''}
-                alt=""
-                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-              />
-              <div>
-                <div style={{ fontWeight: '600' }}>{typeof createdBooking.owner === 'object' ? createdBooking.owner.name : 'Owner'}</div>
-                <div style={{ color: 'var(--primary-color)', fontWeight: '700', fontSize: '1.25rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Phone size={18} /> {typeof createdBooking.owner === 'object' ? createdBooking.owner.phone || 'No phone provided' : ''}
+            <div className="owner-contact-card box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <img
+                  src={typeof createdBooking.owner === 'object' ? getImageUrl(createdBooking.owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(createdBooking.owner.name) : ''}
+                  alt=""
+                  style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                />
+                <div>
+                  <div style={{ fontWeight: '600' }}>{typeof createdBooking.owner === 'object' ? createdBooking.owner.name : 'Owner'}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '2px' }}>
+                    {typeof createdBooking.owner === 'object' ? createdBooking.owner.phone || 'No phone provided' : ''}
+                  </div>
                 </div>
               </div>
+
+              {typeof createdBooking.owner === 'object' && createdBooking.owner.phone && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <a 
+                    href={`tel:${createdBooking.owner.phone}`} 
+                    className="btn btn-outline" 
+                    style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0' }}
+                  >
+                    <Phone size={16} /> Call
+                  </a>
+                  <a 
+                    href={`https://wa.me/${createdBooking.owner.phone.replace(/[^0-9]/g, '')}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="btn" 
+                    style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0', background: '#25D366', color: 'white', border: 'none' }}
+                  >
+                    <MessageCircle size={16} /> WhatsApp
+                  </a>
+                </div>
+              )}
             </div>
 
             <button className="btn btn-primary btn-full" onClick={() => navigate('/dashboard')}>
