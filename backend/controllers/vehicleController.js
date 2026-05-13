@@ -310,7 +310,15 @@ export const deleteVehicle = async (req, res) => {
  */
 export const listVehicles = async (req, res) => {
   try {
-    const { q, transmission, minPrice, maxPrice, seats, vehicleType, lat, lng, radius, sort, province, district, startDate, endDate, driverOption } = req.query;
+    const { 
+      q, transmission, minPrice, maxPrice, seats, vehicleType, 
+      lat, lng, radius, sort, province, district, 
+      startDate, endDate, driverOption,
+      page = 1, limit = 12 
+    } = req.query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
 
     let filter = {
       status: "active",
@@ -318,12 +326,7 @@ export const listVehicles = async (req, res) => {
     };
 
     if (q) {
-      filter.$or = [
-        { make: new RegExp(q, "i") },
-        { model: new RegExp(q, "i") },
-        { title: new RegExp(q, "i") },
-        { "location.address": new RegExp(q, "i") },
-      ];
+      filter.$text = { $search: q };
     }
 
     if (transmission) filter.transmission = transmission;
@@ -445,6 +448,8 @@ export const listVehicles = async (req, res) => {
         }
       },
       { $sort: { tierBoost: -1, ...sortCondition } },
+      { $skip: skip },
+      { $limit: limitNum },
       {
         $project: {
           _id: 1,
@@ -490,7 +495,18 @@ export const listVehicles = async (req, res) => {
       }
     ]);
 
-    res.json(vehicles);
+    // Also return total count for pagination metadata
+    const totalCount = await Vehicle.countDocuments(filter);
+
+    res.json({
+      vehicles,
+      pagination: {
+        total: totalCount,
+        page: parseInt(page),
+        limit: limitNum,
+        totalPages: Math.ceil(totalCount / limitNum)
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

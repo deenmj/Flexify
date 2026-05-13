@@ -116,6 +116,8 @@ export default function Explore() {
     endDate: searchParams.get('endDate') || '',
     driverOption: searchParams.get('driverOption') || '',
   });
+  const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 12, totalPages: 1 });
+  const [isAppending, setIsAppending] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
 
@@ -143,14 +145,21 @@ export default function Explore() {
       if (activeFilters.endDate) params.endDate = activeFilters.endDate;
       if (activeFilters.driverOption) params.driverOption = activeFilters.driverOption;
 
-      const data = await vehicleApi.getAll(params);
+      const response = await vehicleApi.getAll(params);
+      const vehiclesList = response.vehicles || [];
+      const paginationData = response.pagination || { total: 0, page: 1, limit: 12, totalPages: 1 };
       
-      // Filter out user's own vehicles so they can't book their own listings
-      const filteredData = user 
-        ? data.filter((v: any) => v.owner?._id !== user._id && v.owner !== user._id)
-        : data;
+      // Filter out user's own vehicles
+      const filteredVehicles = user 
+        ? vehiclesList.filter((v: any) => v.owner?._id !== user._id && v.owner !== user._id)
+        : vehiclesList;
         
-      setVehicles(filteredData);
+      if (overrideFilters?.page && parseInt(overrideFilters.page as string) > 1) {
+        setVehicles(prev => [...prev, ...filteredVehicles]);
+      } else {
+        setVehicles(filteredVehicles);
+      }
+      setPagination(paginationData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -205,6 +214,15 @@ export default function Explore() {
       }, () => {
         alert("Failed to get location. Please enable location permissions.");
       });
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (pagination.page < pagination.totalPages) {
+      const nextPage = pagination.page + 1;
+      setIsAppending(true);
+      fetchVehicles(undefined, undefined, { page: nextPage.toString() as any });
+      setIsAppending(false);
     }
   };
 
@@ -478,6 +496,21 @@ export default function Explore() {
               <p>Try adjusting your search or filters</p>
             </div>
           )}
+
+          {/* Load More Button */}
+          {pagination.page < pagination.totalPages && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '3rem' }}>
+              <button 
+                onClick={handleLoadMore} 
+                className="btn btn-secondary" 
+                disabled={loading}
+                style={{ minWidth: '160px' }}
+              >
+                {loading ? <span className="spinner" /> : 'Load More Vehicles'}
+              </button>
+            </div>
+          )}
+        </div>
         </div>
       </section>
     </div>

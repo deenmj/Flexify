@@ -73,6 +73,18 @@ const vehicleSchema = new mongoose.Schema(
 
 vehicleSchema.index({ location: "2dsphere" });
 vehicleSchema.index({ owner: 1 });
+vehicleSchema.index({ status: 1, isActive: 1, createdAt: -1 });
+vehicleSchema.index({ pricePerDay: 1 });
+vehicleSchema.index({ transmission: 1 });
+vehicleSchema.index({ seats: 1 });
+vehicleSchema.index({ serviceType: 1 });
+vehicleSchema.index({ driverOption: 1 });
+
+// Text index for general search query (q)
+vehicleSchema.index(
+  { title: "text", make: "text", model: "text", description: "text" },
+  { weights: { title: 10, make: 5, model: 5, description: 1 }, name: "VehicleSearchTextIndex" }
+);
 
 const Vehicle = mongoose.model("Vehicle", vehicleSchema);
 export default Vehicle;

@@ -4,6 +4,7 @@ import "dotenv/config.js";
 import express from "express";
 import path from "path";
 import cors from "cors";
+import compression from "compression";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import passport from "passport";
@@ -90,6 +91,9 @@ app.set("io", io);
 
 // Trust proxy (required for Railway/Render — ensures rate limiter uses real client IP)
 app.set("trust proxy", 1);
+
+// Compression - Gzip responses to reduce bandwidth and speed up mobile load times
+app.use(compression());
 
 // Security headers
 app.use(helmet());
