@@ -487,52 +487,54 @@ export default function Explore() {
 function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const ownerData = typeof vehicle.owner === 'object' ? vehicle.owner : null;
   return (
-    <div className="explore-vehicle-card card">
-      <div className="explore-vehicle-img-wrap">
-        <img
-          src={getImageUrl(vehicle.photos?.[0])}
-          alt={vehicle.title}
-          loading="lazy"
-          className="explore-vehicle-img"
-          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'; }}
-        />
-        <div className="explore-vehicle-badges">
-          {vehicle.transmission && <span className="badge badge-primary">{vehicle.transmission}</span>}
-          {ownerData?.ownerType === 'VERIFIED' && <span className="badge badge-success"><Verified size={12} /> Verified</span>}
-          {ownerData?.subscription?.tier === 'PRO' && <span className="badge badge-premium" style={{ background: '#6610f2', color: 'white' }}><Star size={12} fill="white" /> Pro</span>}
-          {ownerData?.subscription?.tier === 'STANDARD' && <span className="badge" style={{ background: '#f59e0b', color: 'white' }}>Standard</span>}
-        </div>
-      </div>
-      <div className="explore-vehicle-body">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <h3 className="explore-vehicle-title">{vehicle.title}</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600, color: '#f59e0b' }}>
-            <Star size={14} fill="currentColor" /> {vehicle.averageRating || 'New'} <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>({vehicle.reviewCount || 0})</span>
+    <Link to={`/vehicles/${vehicle._id}`} className="explore-vehicle-card-link">
+      <div className="explore-vehicle-card card" style={{ cursor: 'pointer', height: '100%', transition: 'all 0.3s ease' }}>
+        <div className="explore-vehicle-img-wrap">
+          <img
+            src={getImageUrl(vehicle.photos?.[0])}
+            alt={vehicle.title}
+            loading="lazy"
+            className="explore-vehicle-img"
+            onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'; }}
+          />
+          <div className="explore-vehicle-badges">
+            {vehicle.transmission && <span className="badge badge-primary">{vehicle.transmission}</span>}
+            {ownerData?.ownerType === 'VERIFIED' && <span className="badge badge-success"><Verified size={12} /> Verified</span>}
+            {ownerData?.subscription?.tier === 'PRO' && <span className="badge badge-premium" style={{ background: '#6610f2', color: 'white' }}><Star size={12} fill="white" /> Pro</span>}
+            {ownerData?.subscription?.tier === 'STANDARD' && <span className="badge" style={{ background: '#f59e0b', color: 'white' }}>Standard</span>}
           </div>
         </div>
-        <p className="explore-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
-        <div className="explore-vehicle-specs">
-          <span>🪑 {vehicle.seats} seats</span>
-          {vehicle.engineCapacity && <span>⚡ {vehicle.engineCapacity}</span>}
-          {vehicle.kmLimitPerDay && <span>🛣️ {vehicle.kmLimitPerDay}km/day</span>}
-          {!vehicle.kmLimitPerDay && <span style={{ color: '#10b981' }}>∞ Unlimited km</span>}
-          {vehicle.driverOption === 'both' && <span style={{ color: '#8b5cf6' }}>🚗 / 👨‍✈️ Both</span>}
-          {vehicle.driverOption === 'with-driver' && <span style={{ color: '#8b5cf6' }}>👨‍✈️ With Driver</span>}
-          {(!vehicle.driverOption || vehicle.driverOption === 'self-drive') && <span>🚗 Self Drive</span>}
-          {(vehicle.city || vehicle.district) && (
-            <span><MapPin size={12} /> {vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
-          )}
-        </div>
-        <div className="explore-vehicle-footer">
-          <div className="explore-vehicle-price">
-            <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
-            <span className="price-unit">/day</span>
+        <div className="explore-vehicle-body">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <h3 className="explore-vehicle-title">{vehicle.title}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600, color: '#f59e0b' }}>
+              <Star size={14} fill="currentColor" /> {vehicle.averageRating || 'New'} <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>({vehicle.reviewCount || 0})</span>
+            </div>
           </div>
-          <Link to={`/vehicles/${vehicle._id}`} className="btn btn-primary btn-sm">
-            View Now
-          </Link>
+          <p className="explore-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
+          <div className="explore-vehicle-specs">
+            <span>🪑 {vehicle.seats} seats</span>
+            {vehicle.engineCapacity && <span>⚡ {vehicle.engineCapacity}</span>}
+            {vehicle.kmLimitPerDay && <span>🛣️ {vehicle.kmLimitPerDay}km/day</span>}
+            {!vehicle.kmLimitPerDay && <span style={{ color: '#10b981' }}>∞ Unlimited km</span>}
+            {vehicle.driverOption === 'both' && <span style={{ color: '#8b5cf6' }}>🚗 / 👨‍✈️ Both</span>}
+            {vehicle.driverOption === 'with-driver' && <span style={{ color: '#8b5cf6' }}>👨‍✈️ With Driver</span>}
+            {(!vehicle.driverOption || vehicle.driverOption === 'self-drive') && <span>🚗 Self Drive</span>}
+            {(vehicle.city || vehicle.district) && (
+              <span><MapPin size={12} /> {vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
+            )}
+          </div>
+          <div className="explore-vehicle-footer" style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+            <div className="explore-vehicle-price">
+              <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
+              <span className="price-unit">/day</span>
+            </div>
+            <div style={{ color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              View Details <ChevronRight size={14} />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

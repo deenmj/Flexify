@@ -498,7 +498,11 @@ export default function VehicleDetail() {
                   <h1 className="detail-title">{vehicle.title}</h1>
                   <p className="detail-subtitle">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
                 </div>
-                <div className="detail-rating">
+                <div 
+                  className="detail-rating" 
+                  onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  style={{ cursor: 'pointer' }}
+                >
                   <Star size={16} fill="#f59e0b" color="#f59e0b" />
                   <span className="rating-score">{vehicle.averageRating || 'New'}</span>
                   <span className="rating-count">({vehicle.reviewCount || 0})</span>
@@ -519,7 +523,9 @@ export default function VehicleDetail() {
                 </>
               )}
 
-              <h3 className="section-title-minor" style={{ marginTop: '2.5rem' }}>Technical Specifications</h3>
+              <h3 className="section-title-minor" style={{ marginTop: '2.5rem', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', borderLeft: '4px solid var(--primary-color)', paddingLeft: '12px' }}>
+                Technical Specifications
+              </h3>
               <div className="detail-specs-grid" style={{ marginTop: '1.25rem' }}>
                 <div className="spec-item">
                   <span className="spec-label">Transmission</span>
@@ -575,7 +581,7 @@ export default function VehicleDetail() {
                 <div className="spec-item">
                   <span className="spec-label">Driver Option</span>
                   <span className="spec-value" style={{ fontWeight: 600, color: '#6b21a8' }}>
-                    {vehicle.driverOption === 'both' ? '✅ Self / With Driver' : vehicle.driverOption === 'with-driver' ? '👨‍✈️ With Driver' : '🚗 Self Drive'}
+                    {vehicle.driverOption === 'both' ? 'Self / With Driver' : vehicle.driverOption === 'with-driver' ? 'With Driver' : 'Self Drive'}
                   </span>
                 </div>
                 {vehicle.driverOption !== 'self-drive' && vehicle.driverPricePerDay ? (
@@ -732,7 +738,7 @@ export default function VehicleDetail() {
             </div>
 
             {/* REVIEWS SECTION */}
-            <div className="detail-reviews card" style={{ marginTop: '1.5rem', padding: '2rem' }}>
+            <div id="reviews-section" className="detail-reviews card" style={{ marginTop: '1.5rem', padding: '2rem' }}>
               <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <MessageSquare size={20} /> Guest Reviews ({reviews.length})
               </h3>
