@@ -642,7 +642,7 @@ export default function Dashboard() {
                               </div>
                             )}
 
-                            {b.status === 'PENDING' && isIamRenterOfThis && (bookingType === 'trips' || user?.role === 'user') && (
+                            {b.status === 'PENDING' && !isPast && isIamRenterOfThis && (bookingType === 'trips' || user?.role === 'user') && (
                               <button className="btn btn-sm btn-danger" style={{ minWidth: '120px' }} onClick={() => handleCancelBooking(b._id)}>Cancel Trip</button>
                             )}
 
@@ -823,13 +823,15 @@ export default function Dashboard() {
             <Button key="close" onClick={() => setShowDetailModal(false)}>Close</Button>
           ];
 
-          if (isPending && isRenter) {
+          const isDetailPast = selectedBooking ? dayjs(selectedBooking.endDate).isBefore(dayjs(), 'day') : false;
+
+          if (isPending && isRenter && !isDetailPast) {
             buttons.push(
               <Button key="cancel-renter" danger onClick={() => { if (selectedBooking?._id) handleCancelBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Trip</Button>
             );
           }
 
-          if (isPending && isOwner) {
+          if (isPending && isOwner && !isDetailPast) {
             buttons.push(
               <Button key="reject-owner" danger onClick={() => { if (selectedBooking?._id) handleRejectBooking(selectedBooking._id); setShowDetailModal(false); }}>Cancel Booking</Button>,
               <Button key="accept-owner" type="primary" style={{ background: '#16a34a', borderColor: '#16a34a' }} onClick={() => { if (selectedBooking?._id) handleAcceptBooking(selectedBooking._id); setShowDetailModal(false); }}>Accept Booking</Button>
