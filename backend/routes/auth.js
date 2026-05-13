@@ -277,7 +277,9 @@ router.get("/verify-email/:token", async (req, res) => {
   user.emailVerificationToken = undefined;
   await user.save();
 
-  const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+  let frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+  if (!frontendUrl.startsWith("http")) frontendUrl = "https://" + frontendUrl;
+  
   res.redirect(`${frontendUrl}/auth`);
 });
 
@@ -304,14 +306,17 @@ router.get(
 router.get(
   "/google/callback",
   (req, res, next) => {
-    const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+    let frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+    if (!frontendUrl.startsWith("http")) frontendUrl = "https://" + frontendUrl;
+    
     passport.authenticate("google", {
       session: false,
       failureRedirect: `${frontendUrl}/auth`,
     })(req, res, next);
   },
   (req, res) => {
-    const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+    let frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+    if (!frontendUrl.startsWith("http")) frontendUrl = "https://" + frontendUrl;
 
     // Block suspended/banned users from logging in via Google
     if (req.user.status === "blocked") {

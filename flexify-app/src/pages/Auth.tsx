@@ -73,8 +73,10 @@ export default function Auth() {
   };
 
   const handleGoogleLogin = () => {
-    const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}/api`;
-    window.location.href = `${API_BASE_URL}/auth/google`;
+    // We already have API_URL from api.ts, but let's import it safely or define it correctly.
+    // If VITE_API_URL is already defined with /api, we should not append /api again.
+    const BASE_URL = import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app/api';
+    window.location.href = `${BASE_URL}/auth/google`;
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
