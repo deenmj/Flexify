@@ -41,6 +41,13 @@ const vehicleSchema = new mongoose.Schema(
       default: "pending",
     },
 
+    driverOption: {
+      type: String,
+      enum: ["self-drive", "with-driver", "both"],
+      default: "self-drive"
+    },
+    driverPricePerDay: { type: Number, default: 0 },
+
     rejectionReason: { type: String, default: null },
     rejectionComment: { type: String, default: null },
     rejectedAt: { type: Date, default: null },

@@ -566,6 +566,20 @@ export default function VehicleDetail() {
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
                 </div>
+                <div className="spec-item">
+                  <span className="spec-label">Driver Option</span>
+                  <span className="spec-value" style={{ fontWeight: 600, color: '#6b21a8' }}>
+                    {vehicle.driverOption === 'both' ? '✅ Self / With Driver' : vehicle.driverOption === 'with-driver' ? '👨‍✈️ With Driver' : '🚗 Self Drive'}
+                  </span>
+                </div>
+                {vehicle.driverOption !== 'self-drive' && vehicle.driverPricePerDay ? (
+                  <div className="spec-item">
+                    <span className="spec-label">Driver Price</span>
+                    <span className="spec-value" style={{ fontWeight: 600, color: '#c2410c' }}>
+                      LKR {vehicle.driverPricePerDay} /day
+                    </span>
+                  </div>
+                ) : null}
               </div>
 
               {(() => {
@@ -794,6 +808,20 @@ export default function VehicleDetail() {
                     </div>
                   )}
                 </div>
+
+                {vehicle.driverOption !== 'self-drive' && (
+                  <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: '#faf5ff', border: '1px solid #e9d5ff' }}>
+                    <span style={{ fontSize: '1.2rem' }}>👨‍✈️</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6b21a8' }}>
+                        {vehicle.driverOption === 'both' ? 'Driver available as option' : 'Driver included / required'}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                        {vehicle.driverPricePerDay ? `LKR ${vehicle.driverPricePerDay.toLocaleString()} per day for driver` : 'Contact owner for driver pricing'}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {(bookedRanges.length > 0 || blackoutRanges.length > 0) && (
                   <Tag 

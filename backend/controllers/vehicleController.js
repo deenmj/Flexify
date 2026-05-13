@@ -21,7 +21,8 @@ export const createVehicle = async (req, res) => {
       title, make, model, year, pricePerDay, transmission, fuelType,
       seats, description, lat, lng, address, serviceType,
       engineCapacity, fuelConsumption, features, province, district, city,
-      pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice
+      pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
+      driverOption, driverPricePerDay
     } = req.body;
 
     // Subscription Check & Initialization — only for owners (staff/admins get free unlimited access)
@@ -170,6 +171,8 @@ export const createVehicle = async (req, res) => {
       province,
       district,
       city,
+      driverOption: driverOption || "self-drive",
+      driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
     });
 
     res.status(201).json(vehicle);
@@ -196,7 +199,8 @@ export const updateVehicle = async (req, res) => {
     const { 
       title, make, model, year, pricePerDay, transmission, fuelType, seats, description, 
       lat, lng, address, engineCapacity, fuelConsumption, features, province, district, city,
-      pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice
+      pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
+      driverOption, driverPricePerDay
     } = req.body;
     
     const updates = { 
@@ -204,7 +208,9 @@ export const updateVehicle = async (req, res) => {
       engineCapacity, fuelConsumption, province, district, city,
       pricePerWeek, pricePerMonth,
       kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null,
-      extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null
+      extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null,
+      driverOption,
+      driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0
     };
 
     if (features) {
@@ -304,7 +310,7 @@ export const deleteVehicle = async (req, res) => {
  */
 export const listVehicles = async (req, res) => {
   try {
-    const { q, transmission, minPrice, maxPrice, seats, vehicleType, lat, lng, radius, sort, province, district, startDate, endDate } = req.query;
+    const { q, transmission, minPrice, maxPrice, seats, vehicleType, lat, lng, radius, sort, province, district, startDate, endDate, driverOption } = req.query;
 
     let filter = {
       status: "active",
@@ -334,6 +340,14 @@ export const listVehicles = async (req, res) => {
 
     if (province) filter.province = province;
     if (district) filter.district = district;
+
+    if (driverOption) {
+      if (driverOption === 'with-driver') {
+        filter.driverOption = { $in: ['with-driver', 'both'] };
+      } else if (driverOption === 'self-drive') {
+        filter.driverOption = { $in: ['self-drive', 'both'] };
+      }
+    }
 
     // Date Availability Filtering
     if (startDate && endDate) {
@@ -469,6 +483,8 @@ export const listVehicles = async (req, res) => {
           city: 1,
           kmLimitPerDay: 1,
           extraKmPrice: 1,
+          driverOption: 1,
+          driverPricePerDay: 1,
           createdAt: 1
         }
       }

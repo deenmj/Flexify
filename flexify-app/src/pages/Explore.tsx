@@ -34,6 +34,7 @@ interface Filters {
   province: string;
   startDate: string;
   endDate: string;
+  driverOption: string;
 }
 
 const RADIUS_OPTIONS = [
@@ -113,6 +114,7 @@ export default function Explore() {
     district: searchParams.get('district') || '',
     startDate: searchParams.get('startDate') || '',
     endDate: searchParams.get('endDate') || '',
+    driverOption: searchParams.get('driverOption') || '',
   });
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
@@ -139,6 +141,7 @@ export default function Explore() {
       if (activeFilters.sort) params.sort = activeFilters.sort;
       if (activeFilters.startDate) params.startDate = activeFilters.startDate;
       if (activeFilters.endDate) params.endDate = activeFilters.endDate;
+      if (activeFilters.driverOption) params.driverOption = activeFilters.driverOption;
 
       const data = await vehicleApi.getAll(params);
       
@@ -185,7 +188,7 @@ export default function Explore() {
     setFilters({ 
       transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', 
       lat: '', lng: '', radius: '10', sort: 'newest', province: '', district: '',
-      startDate: '', endDate: ''
+      startDate: '', endDate: '', driverOption: ''
     });
     setQuery('');
   };
@@ -330,6 +333,18 @@ export default function Explore() {
                   <option value="Van">Van</option>
                   <option value="Bike">Bike</option>
                   <option value="Truck">Truck</option>
+                </select>
+              </div>
+              <div className="input-group">
+                <label>Driver Option</label>
+                <select
+                  className="input-field"
+                  value={filters.driverOption}
+                  onChange={(e) => setFilters({ ...filters, driverOption: e.target.value })}
+                >
+                  <option value="">Any</option>
+                  <option value="self-drive">Self Drive</option>
+                  <option value="with-driver">With Driver</option>
                 </select>
               </div>
               <div className="input-group">
@@ -501,6 +516,9 @@ function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
           {vehicle.engineCapacity && <span>⚡ {vehicle.engineCapacity}</span>}
           {vehicle.kmLimitPerDay && <span>🛣️ {vehicle.kmLimitPerDay}km/day</span>}
           {!vehicle.kmLimitPerDay && <span style={{ color: '#10b981' }}>∞ Unlimited km</span>}
+          {vehicle.driverOption === 'both' && <span style={{ color: '#8b5cf6' }}>🚗 / 👨‍✈️ Both</span>}
+          {vehicle.driverOption === 'with-driver' && <span style={{ color: '#8b5cf6' }}>👨‍✈️ With Driver</span>}
+          {(!vehicle.driverOption || vehicle.driverOption === 'self-drive') && <span>🚗 Self Drive</span>}
           {(vehicle.city || vehicle.district) && (
             <span><MapPin size={12} /> {vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
           )}

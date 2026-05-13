@@ -90,6 +90,8 @@ export interface Vehicle {
   fuelConsumption?: string;
   kmLimitPerDay?: number;
   extraKmPrice?: number;
+  driverOption?: string;
+  driverPricePerDay?: number;
   province?: string;
   city?: string;
   district?: string;

@@ -65,6 +65,8 @@ export default function EditVehicle() {
     pricePerMonth: '',
     kmLimitPerDay: '',
     extraKmPrice: '',
+    driverOption: 'self-drive',
+    driverPricePerDay: '',
     isActive: true
   });
 
@@ -146,6 +148,8 @@ export default function EditVehicle() {
           pricePerMonth: vehicle.pricePerMonth?.toString() || '',
           kmLimitPerDay: vehicle.kmLimitPerDay?.toString() || '',
           extraKmPrice: vehicle.extraKmPrice?.toString() || '',
+          driverOption: vehicle.driverOption || 'self-drive',
+          driverPricePerDay: vehicle.driverPricePerDay?.toString() || '',
           isActive: vehicle.isActive
         });
 
@@ -526,6 +530,64 @@ export default function EditVehicle() {
                     <label>Mileage / Fuel Consumption (km/L)</label>
                     <input type="number" min="0" step="0.1" className="input-field" placeholder="e.g. 15" value={form.fuelConsumption} onChange={(e) => setForm({ ...form, fuelConsumption: e.target.value })} />
                   </div>
+                </div>
+
+                <div className="features-group" style={{ marginBottom: '1.5rem' }}>
+                  <label>Driver Options</label>
+                  <p className="km-limit-hint" style={{ marginBottom: '1rem' }}>Specify if the vehicle is available for self-drive, with a driver, or both.</p>
+                  
+                  <div className="km-limit-input-row" style={{ marginBottom: form.driverOption !== 'self-drive' ? '1rem' : '0' }}>
+                    <div className="km-limit-presets" style={{ width: '100%' }}>
+                      <button
+                        type="button"
+                        className={`km-preset-btn ${form.driverOption === 'self-drive' ? 'active' : ''}`}
+                        onClick={() => setForm({ ...form, driverOption: 'self-drive', driverPricePerDay: '' })}
+                        style={{ flex: 1 }}
+                      >
+                        🚗 Self Drive
+                      </button>
+                      <button
+                        type="button"
+                        className={`km-preset-btn ${form.driverOption === 'with-driver' ? 'active' : ''}`}
+                        onClick={() => setForm({ ...form, driverOption: 'with-driver' })}
+                        style={{ flex: 1 }}
+                      >
+                        👨‍✈️ With Driver
+                      </button>
+                      <button
+                        type="button"
+                        className={`km-preset-btn ${form.driverOption === 'both' ? 'active' : ''}`}
+                        onClick={() => setForm({ ...form, driverOption: 'both' })}
+                        style={{ flex: 1 }}
+                      >
+                        ✅ Both Available
+                      </button>
+                    </div>
+                  </div>
+
+                  {form.driverOption !== 'self-drive' && (
+                    <div className="extra-km-price-row" style={{ marginTop: '1rem' }}>
+                      <div className="extra-km-label">
+                        <span>👨‍✈️</span>
+                        <div>
+                          <label>Driver Price Per Day (LKR)</label>
+                          <p className="km-limit-hint">Extra amount charged per day for the driver</p>
+                        </div>
+                      </div>
+                      <div className="km-limit-custom">
+                        <input
+                          type="number"
+                          className="input-field"
+                          placeholder="e.g. 5000"
+                          value={form.driverPricePerDay}
+                          onChange={(e) => setForm({ ...form, driverPricePerDay: e.target.value })}
+                          min="0"
+                          required={form.driverOption !== 'self-drive'}
+                        />
+                        <span className="km-suffix">LKR/day</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="features-group">
