@@ -636,16 +636,17 @@ export const getModels = async (req, res) => {
  */
 export const getPublicStats = async (req, res) => {
   try {
-    const totalActiveVehicles = await Vehicle.countDocuments({ status: "active", isActive: true });
-    const totalVerifiedOwners = await User.countDocuments({ role: "owner", ownerType: "VERIFIED" });
-    const totalVerifiedUsers = await User.countDocuments({ isKycVerified: true });
-    
-    // Distinct districts/locations
-    const result = await Vehicle.aggregate([
-      { $match: { status: "active", isActive: true } },
-      { $group: { _id: "$location.address" } }
+    const [totalActiveVehicles, totalVerifiedOwners, totalVerifiedUsers, districtsResult] = await Promise.all([
+      Vehicle.countDocuments({ status: "active", isActive: true }),
+      User.countDocuments({ role: "owner", ownerType: "VERIFIED" }),
+      User.countDocuments({ isKycVerified: true }),
+      Vehicle.aggregate([
+        { $match: { status: "active", isActive: true } },
+        { $group: { _id: "$district" } } // Group by district is faster and more accurate than address
+      ])
     ]);
-    const totalDistricts = result.length > 0 ? result.length : 0;
+
+    const totalDistricts = districtsResult.length;
 
     // Average rating
     const ratingResult = await Vehicle.aggregate([
