@@ -975,7 +975,7 @@ export default function VehicleDetail() {
                     <Phone size={16} /> Call
                   </a>
                   <a 
-                    href={`https://wa.me/${createdBooking.owner.phone.replace(/[^0-9]/g, '')}`} 
+                    href={`https://wa.me/${createdBooking.owner.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${createdBooking.owner.name},\n\nI just requested to book your ${vehicle?.title} on Rentify from ${dayjs(createdBooking.startDate).format('MMM D')} to ${dayjs(createdBooking.endDate).format('MMM D')}.\n\nPlease let me know if it's available!`)}`} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="btn" 

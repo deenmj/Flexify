@@ -49,7 +49,7 @@ export const createBooking = async (req, res) => {
     const days = Math.ceil((e - s) / (1000 * 60 * 60 * 24)) || 1;
 
     // Run overlap checks in PARALLEL for speed
-    const [overlapping, overlappingBlackout] = await Promise.all([
+    const [overlapping, overlappingBlackout, existingUserBooking] = await Promise.all([
       Booking.findOne({
         vehicle: vehicleId,
         status: "CONFIRMED",
@@ -57,6 +57,12 @@ export const createBooking = async (req, res) => {
       }).lean(),
       Blackout.findOne({
         vehicle: vehicleId,
+        $or: [{ startDate: { $lte: e }, endDate: { $gte: s } }],
+      }).lean(),
+      Booking.findOne({
+        user: userId,
+        vehicle: vehicleId,
+        status: { $in: ["PENDING", "CONFIRMED"] },
         $or: [{ startDate: { $lte: e }, endDate: { $gte: s } }],
       }).lean()
     ]);
@@ -66,6 +72,9 @@ export const createBooking = async (req, res) => {
     }
     if (overlappingBlackout) {
       return res.status(409).json({ message: "Vehicle not available for selected dates (Owner unavailable)" });
+    }
+    if (existingUserBooking) {
+      return res.status(409).json({ message: "You already have a pending or confirmed booking for this vehicle on these dates." });
     }
 
     let totalAmount = (vehicle.pricePerDay || 0) * days;
