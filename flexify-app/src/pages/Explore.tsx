@@ -513,7 +513,6 @@ export default function Explore() {
             </div>
           )}
         </div>
-        </div>
       </section>
     </div>
   );
