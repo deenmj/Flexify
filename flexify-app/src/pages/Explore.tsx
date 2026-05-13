@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { Row, Col, DatePicker } from 'antd';
 const { RangePicker } = DatePicker;
-import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown, X, Car, Plus } from 'lucide-react';
+import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown, X, Car, Plus, ChevronRight } from 'lucide-react';
 import { vehicleApi, type Vehicle, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
