@@ -595,16 +595,34 @@ export default function Dashboard() {
                         <div className="booking-card-footer" style={{ borderTop: 'none', paddingTop: '16px', marginTop: 0, flexWrap: 'wrap', gap: '1rem' }}>
                           <div style={{ flex: 1, minWidth: 'fit-content' }}>
                             {b.status === 'CONFIRMED' && isIamRenterOfThis && owner && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #bbf7d0', flexShrink: 0 }}>
                                   <img src={getImageUrl((owner as any).profilePic)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 </div>
-                                <div>
-                                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#166534' }}>HOST: {(owner as any).name}</div>
-                                  <a href={`tel:${(owner as any).phone}`} style={{ fontSize: '12px', fontWeight: 700, color: '#15803d' }}>
-                                    {(owner as any).phone || 'Contact Host'}
-                                  </a>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.03em' }}>HOST: {(owner as any).name}</div>
+                                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#15803d', marginTop: '2px' }}>{(owner as any).phone || 'No phone'}</div>
                                 </div>
+                                {(owner as any).phone && (
+                                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                                    <a
+                                      href={`tel:${(owner as any).phone}`}
+                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '10px', background: '#16a34a', color: 'white', textDecoration: 'none', transition: 'transform 0.15s', boxShadow: '0 2px 6px rgba(22,163,74,0.3)' }}
+                                      title="Call Host"
+                                    >
+                                      <Phone size={16} />
+                                    </a>
+                                    <a
+                                      href={`https://wa.me/${(owner as any).phone.replace(/[^0-9]/g, '').replace(/^0/, '94')}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '10px', background: '#25D366', color: 'white', textDecoration: 'none', transition: 'transform 0.15s', boxShadow: '0 2px 6px rgba(37,211,102,0.3)' }}
+                                      title="WhatsApp Host"
+                                    >
+                                      <MessageSquare size={16} />
+                                    </a>
+                                  </div>
+                                )}
                               </div>
                             )}
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: b.status === 'CONFIRMED' && isIamRenterOfThis && owner ? '1rem' : '0' }}>
@@ -906,17 +924,37 @@ export default function Dashboard() {
                             <User size={18} /> Host Contact Details
                           </h4>
                           {typeof selectedBooking.owner === 'object' ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                              <img 
-                                src={getImageUrl((selectedBooking.owner as any).profilePic)} 
-                                style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
-                              />
-                              <div>
-                                <div style={{ fontWeight: 700, color: '#166534' }}>{(selectedBooking.owner as any).name}</div>
-                                <div style={{ color: '#15803d', fontWeight: 700, fontSize: '1.1rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <Phone size={16} /> {(selectedBooking.owner as any).phone || (selectedBooking.owner as any).phoneNumber || 'No phone provided'}
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '16px' }}>
+                                <img 
+                                  src={getImageUrl((selectedBooking.owner as any).profilePic)} 
+                                  style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #bbf7d0' }} 
+                                />
+                                <div>
+                                  <div style={{ fontWeight: 700, color: '#166534', fontSize: '1rem' }}>{(selectedBooking.owner as any).name}</div>
+                                  <div style={{ color: '#15803d', fontWeight: 700, fontSize: '1.1rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Phone size={16} /> {(selectedBooking.owner as any).phone || (selectedBooking.owner as any).phoneNumber || 'No phone provided'}
+                                  </div>
                                 </div>
                               </div>
+                              {((selectedBooking.owner as any).phone || (selectedBooking.owner as any).phoneNumber) && (
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                  <a
+                                    href={`tel:${(selectedBooking.owner as any).phone || (selectedBooking.owner as any).phoneNumber}`}
+                                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px 16px', borderRadius: '12px', background: '#16a34a', color: 'white', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', boxShadow: '0 2px 8px rgba(22,163,74,0.25)', transition: 'all 0.2s' }}
+                                  >
+                                    <Phone size={18} /> Call Host
+                                  </a>
+                                  <a
+                                    href={`https://wa.me/${((selectedBooking.owner as any).phone || (selectedBooking.owner as any).phoneNumber || '').replace(/[^0-9]/g, '').replace(/^0/, '94')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px 16px', borderRadius: '12px', background: '#25D366', color: 'white', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', boxShadow: '0 2px 8px rgba(37,211,102,0.25)', transition: 'all 0.2s' }}
+                                  >
+                                    <MessageSquare size={18} /> WhatsApp
+                                  </a>
+                                </div>
+                              )}
                             </div>
                           ) : <p style={{ margin: 0, fontSize: '0.9rem' }}>Contact info available upon refresh.</p>}
                         </div>
