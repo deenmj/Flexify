@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Lock, ArrowRight } from 'lucide-react';
 import { authApi } from '../api';
+import logoImage from '../assets/logo.png';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -35,7 +36,7 @@ export default function ResetPassword() {
       <div className="auth-container">
         <div className="auth-card animate-scale-in">
           <div className="auth-header">
-            <h1 className="auth-logo">Rentify</h1>
+            <h1 className="auth-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}><img src={logoImage} alt="Rentify" style={{ height: '38px', width: 'auto' }} /> Rentify</h1>
             <p className="auth-tagline">Enter your new password</p>
           </div>
           {error && <div className="auth-message error">{error}</div>}
