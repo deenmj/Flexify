@@ -16,6 +16,7 @@ const RentifyLogo: React.FC<RentifyLogoProps> = ({ className = "", style }) => {
         height: '45px', 
         width: 'auto', 
         objectFit: 'contain', 
+        mixBlendMode: 'multiply',
         ...style 
       }} 
     />
