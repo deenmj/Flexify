@@ -1,5 +1,5 @@
 import React from 'react';
-import logoImage from '../assets/logo.jpg';
+import logoImage from '../assets/logo.png';
 
 interface RentifyLogoProps {
   className?: string;
@@ -16,7 +16,6 @@ const RentifyLogo: React.FC<RentifyLogoProps> = ({ className = "", style }) => {
         height: '45px', 
         width: 'auto', 
         objectFit: 'contain', 
-        mixBlendMode: 'multiply',
         ...style 
       }} 
     />
