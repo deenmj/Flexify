@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
 import './LoadingScreen.css';
-import logoImage from '../assets/logo.png';
+import RentifyLogo from './RentifyLogo';
 
 interface LoadingScreenProps {
   message?: string;
@@ -21,7 +21,7 @@ export default function LoadingScreen({ message = 'Finding your perfect ride...'
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <img src={logoImage} alt="Rentify" className="loading-logo-icon" style={{ height: '48px', width: 'auto' }} />
+        <RentifyLogo style={{ height: "38px" }} />
         <span className="loading-logo-text">Rentify</span>
       </motion.div>
 

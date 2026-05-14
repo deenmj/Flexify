@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Check, X, Mail } from 'lucide-react';
 import './Auth.css';
-import logoImage from '../assets/logo.png';
+import RentifyLogo from '../components/RentifyLogo';
 
 export default function Auth() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -211,7 +211,7 @@ export default function Auth() {
         <div className="auth-card animate-scale-in">
           {/* Header */}
           <div className="auth-header">
-            <h1 className="auth-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}><img src={logoImage} alt="Rentify" style={{ height: '38px', width: 'auto' }} /> Rentify</h1>
+            <h1 className="auth-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}><RentifyLogo style={{ height: "38px" }} /> Rentify</h1>
             <p className="auth-tagline">
               {mode === 'login' ? 'Welcome back! Sign in to continue.' : 'Create your account to get started.'}
             </p>

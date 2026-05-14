@@ -2,7 +2,7 @@ import { Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Collapse } from 'antd';
 import { Link } from 'react-router-dom'; // Assuming Link is from react-router-dom
-import logoImage from '../assets/logo.png';
+import RentifyLogo from './RentifyLogo';
 import './Footer.css';
 
 export default function Footer() {
@@ -47,7 +47,7 @@ export default function Footer() {
       <div className="footer-main container section-padding">
         <div className="footer-grid">
           <div className="footer-brand">
-            <h2 className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><img src={logoImage} alt="Rentify" style={{ height: '32px', width: 'auto' }} /> Rentify</h2>
+            <h2 className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><RentifyLogo style={{ height: "38px" }} /> Rentify</h2>
             <p className="footer-desc">
               Your trusted platform for renting, selling, and discovering vehicles worldwide. Premium car rental experience.
             </p>
