@@ -1,4 +1,4 @@
-const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app'}/api`;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'https://api.rentify.lk'}/api`;
 
 export const getImageUrl = (path?: any) => {
   const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80';
@@ -13,7 +13,7 @@ export const getImageUrl = (path?: any) => {
     if (path.startsWith('http') || path.startsWith('data:')) return path;
     
     // Ensure no trailing slash on baseUrl and ensure leading slash on path
-    const baseUrl = (import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app').replace(/\/$/, '');
+    const baseUrl = (import.meta.env.VITE_API_URL || 'https://api.rentify.lk').replace(/\/$/, '');
     // Normalize backslashes to forward slashes (fix for Windows local paths)
     const normalizedPath = path.replace(/\\/g, '/');
     const cleanPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;

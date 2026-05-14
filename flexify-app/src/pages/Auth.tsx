@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Check, X, Mail } from 'lucide-react';
 import './Auth.css';
-import logoImage from '../assets/logo.png';
+import logoImage from '../assets/logo.jpg';
 
 export default function Auth() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -76,7 +76,7 @@ export default function Auth() {
   const handleGoogleLogin = () => {
     // We already have API_URL from api.ts, but let's import it safely or define it correctly.
     // If VITE_API_URL is already defined with /api, we should not append /api again.
-    const BASE_URL = import.meta.env.VITE_API_URL || 'https://flexify-production.up.railway.app/api';
+    const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.rentify.lk/api';
     window.location.href = `${BASE_URL}/auth/google`;
   };
 

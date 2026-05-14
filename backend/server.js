@@ -58,9 +58,9 @@ const httpServer = createServer(app);
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
   : [
-      "https://flexify-three.vercel.app",
+      "https://rentify.lk",
       "http://localhost:5173",
-      "https://flexify-production.up.railway.app",
+      "https://api.rentify.lk",
     ];
 
 const io = new Server(httpServer, {

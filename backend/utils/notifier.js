@@ -18,7 +18,7 @@ export const sendSubadminAlert = async ({ subject, type, details, linkPath }) =>
             return;
         }
 
-        const dashboardUrl = (process.env.FRONTEND_URL || "https://flexify-three.vercel.app") + (linkPath || "/subadmin");
+        const dashboardUrl = (process.env.FRONTEND_URL || "https://rentify.lk") + (linkPath || "/subadmin");
 
         const html = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -87,7 +87,7 @@ export const sendRejectionEmail = async (user, type, reason, comment) => {
         };
 
         const linkPath = resubmitLinks[type] || '/';
-        const dashboardUrl = (process.env.FRONTEND_URL || "https://flexify-three.vercel.app") + linkPath;
+        const dashboardUrl = (process.env.FRONTEND_URL || "https://rentify.lk") + linkPath;
 
         const html = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -137,7 +137,7 @@ export const sendRejectionEmail = async (user, type, reason, comment) => {
  */
 export const sendApprovalEmail = async (user, type, itemName) => {
     try {
-        const dashboardUrl = (process.env.FRONTEND_URL || "https://flexify-three.vercel.app") + (type === 'KYC' ? '/dashboard' : '/owner/vehicles');
+        const dashboardUrl = (process.env.FRONTEND_URL || "https://rentify.lk") + (type === 'KYC' ? '/dashboard' : '/owner/vehicles');
         
         const html = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -179,7 +179,7 @@ export const sendApprovalEmail = async (user, type, itemName) => {
  */
 export const sendBookingUpdateEmail = async (bookingOwner, renter, vehicle, status, reason) => {
     try {
-        const dashboardUrl = (process.env.FRONTEND_URL || "https://flexify-three.vercel.app") + "/dashboard?tab=bookings";
+        const dashboardUrl = (process.env.FRONTEND_URL || "https://rentify.lk") + "/dashboard?tab=bookings";
         const isCancellation = status === 'CANCELLED';
         
         const html = `
@@ -229,7 +229,7 @@ export const sendBookingUpdateEmail = async (bookingOwner, renter, vehicle, stat
  */
 export const sendKycResetEmail = async (user, reason) => {
     try {
-        const dashboardUrl = (process.env.FRONTEND_URL || "https://flexify-three.vercel.app") + "/profile/verify";
+        const dashboardUrl = (process.env.FRONTEND_URL || "https://rentify.lk") + "/profile/verify";
         
         const html = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -272,7 +272,7 @@ export const sendKycResetEmail = async (user, reason) => {
  */
 export const sendNewBookingEmail = async (owner, renterName, vehicleTitle, startDate, endDate, totalAmount) => {
     try {
-        const dashboardUrl = (process.env.FRONTEND_URL || "https://flexify-three.vercel.app") + "/dashboard?tab=bookings";
+        const dashboardUrl = (process.env.FRONTEND_URL || "https://rentify.lk") + "/dashboard?tab=bookings";
         
         // Determine recipient email: use notificationEmail if active, otherwise fallback to login email
         const recipientEmail = (owner.isNotificationEmailActive && owner.notificationEmail) 
@@ -328,7 +328,7 @@ export const sendNewBookingEmail = async (owner, renterName, vehicleTitle, start
  */
 export const sendSubscriptionReminder = async (user, daysLeft) => {
     try {
-        const dashboardUrl = (process.env.FRONTEND_URL || "https://flexify-three.vercel.app") + "/subscription";
+        const dashboardUrl = (process.env.FRONTEND_URL || "https://rentify.lk") + "/subscription";
         const subject = daysLeft === 1 
             ? "Urgent: Your Rentify Subscription expires tomorrow!" 
             : `Reminder: Your Rentify Subscription expires in ${daysLeft} days`;
@@ -361,7 +361,7 @@ export const sendSubscriptionReminder = async (user, daysLeft) => {
  */
 export const sendSubscriptionExpired = async (user) => {
     try {
-        const dashboardUrl = (process.env.FRONTEND_URL || "https://flexify-three.vercel.app") + "/subscription";
+        const dashboardUrl = (process.env.FRONTEND_URL || "https://rentify.lk") + "/subscription";
         const html = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
                 <div style="background-color: #ef4444; padding: 24px; text-align: center;">

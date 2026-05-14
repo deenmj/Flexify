@@ -7,7 +7,7 @@ if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
   throw new Error("Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET in environment variables.");
 }
 
-const GOOGLE_CALLBACK = process.env.GOOGLE_CALLBACK_URL || "https://flexify-production.up.railway.app/api/auth/google/callback";
+const GOOGLE_CALLBACK = process.env.GOOGLE_CALLBACK_URL || "https://api.rentify.lk/api/auth/google/callback";
 
 passport.use(
   new GoogleStrategy(

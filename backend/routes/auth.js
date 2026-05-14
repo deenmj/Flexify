@@ -277,7 +277,7 @@ router.get("/verify-email/:token", async (req, res) => {
   user.emailVerificationToken = undefined;
   await user.save();
 
-  let frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+  let frontendUrl = process.env.FRONTEND_URL || "https://rentify.lk";
   if (!frontendUrl.startsWith("http")) frontendUrl = "https://" + frontendUrl;
   
   res.redirect(`${frontendUrl}/auth`);
@@ -306,7 +306,7 @@ router.get(
 router.get(
   "/google/callback",
   (req, res, next) => {
-    let frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+    let frontendUrl = process.env.FRONTEND_URL || "https://rentify.lk";
     if (!frontendUrl.startsWith("http")) frontendUrl = "https://" + frontendUrl;
     
     passport.authenticate("google", {
@@ -315,7 +315,7 @@ router.get(
     })(req, res, next);
   },
   (req, res) => {
-    let frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+    let frontendUrl = process.env.FRONTEND_URL || "https://rentify.lk";
     if (!frontendUrl.startsWith("http")) frontendUrl = "https://" + frontendUrl;
 
     // Block suspended/banned users from logging in via Google
@@ -348,7 +348,7 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
     await user.save();
 
     // Send the UNHASHED token to the user via email (they need it to reset)
-    const frontendUrl = process.env.FRONTEND_URL || "https://flexify-three.vercel.app";
+    const frontendUrl = process.env.FRONTEND_URL || "https://rentify.lk";
     const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     await sendEmail({

@@ -301,7 +301,7 @@ export const acceptBooking = async (req, res) => {
               <p><strong>Owner:</strong> ${ownerUser.name}</p>
               ${ownerUser.phone ? `<p><strong>Owner Phone:</strong> ${ownerUser.phone}</p>` : ""}
             </div>
-            <p>You can view your booking details in your <a href="${process.env.FRONTEND_URL || "https://flexify-three.vercel.app"}/dashboard?tab=bookings" style="color: #1890ff;">dashboard</a>.</p>
+            <p>You can view your booking details in your <a href="${process.env.FRONTEND_URL || "https://rentify.lk"}/dashboard?tab=bookings" style="color: #1890ff;">dashboard</a>.</p>
           </div>
         `,
       }),
@@ -319,7 +319,7 @@ export const acceptBooking = async (req, res) => {
               <p><strong>Renter:</strong> ${renter.name}</p>
               ${renter.phone ? `<p><strong>Renter Phone:</strong> ${renter.phone}</p>` : ""}
             </div>
-            <p>Manage your bookings in your <a href="${process.env.FRONTEND_URL || "https://flexify-three.vercel.app"}/dashboard?tab=bookings" style="color: #1890ff;">dashboard</a>.</p>
+            <p>Manage your bookings in your <a href="${process.env.FRONTEND_URL || "https://rentify.lk"}/dashboard?tab=bookings" style="color: #1890ff;">dashboard</a>.</p>
           </div>
         `,
       })
