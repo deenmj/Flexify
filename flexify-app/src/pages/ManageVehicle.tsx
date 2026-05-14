@@ -84,24 +84,25 @@ export default function ManageVehicle() {
     setCalendarLoading(true);
     
     try {
-      // Fetch specific vehicle
-      const v = await vehicleApi.getById(id);
+      // Fetch all data in PARALLEL instead of sequentially
+      const [v, allBookings, vehicleReviewsData, bOuts] = await Promise.all([
+        vehicleApi.getById(id),
+        bookingApi.getMy().catch(() => []),
+        // Use vehicle-specific endpoint instead of fetching ALL owner reviews
+        reviewApi.getForVehicle(id).catch(() => []),
+        blackoutApi.getForVehicle(id).catch(() => []),
+      ]);
+
       setVehicle(v);
 
-      // Fetch bookings for owner and filter
-      const allBookings = await bookingApi.getMy().catch(() => []);
+      // Filter bookings for this vehicle only
       const vBookings = (allBookings as any[]).filter(b => {
         const vId = typeof b.vehicle === 'object' ? b.vehicle._id : b.vehicle;
         return vId === id;
       });
       setBookings(vBookings);
 
-      // Fetch reviews
-      const allReviews = await reviewApi.getMyReviews().catch(() => []);
-      setReviews(allReviews as any[]);
-
-      // Fetch blackouts
-      const bOuts = await blackoutApi.getForVehicle(id).catch(() => []);
+      setReviews(vehicleReviewsData as any[]);
       setBlackouts(bOuts);
 
     } catch (error: any) {
@@ -247,12 +248,8 @@ export default function ManageVehicle() {
     );
   }
 
-  // Filter reviews for this vehicle
-  const vehicleReviews = reviews.filter(r => {
-    const vId = typeof r.vehicle === 'object' ? r.vehicle._id : r.vehicle;
-    const bVId = typeof r.booking === 'object' ? (r.booking.vehicle?._id || r.booking.vehicle) : null;
-    return vId === id || bVId === id;
-  });
+  // Reviews are already fetched for this specific vehicle via reviewApi.getForVehicle
+  const vehicleReviews = reviews;
 
   return (
     <div className="manage-vehicle-page" style={{ paddingBottom: '4rem' }}>
