@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Lock, ArrowRight } from 'lucide-react';
 import { authApi } from '../api';
-import logoImage from '../assets/logo.jpg';
+import logoImage from '../assets/logo.png';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();

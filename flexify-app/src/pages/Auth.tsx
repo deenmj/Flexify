@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Check, X, Mail } from 'lucide-react';
 import './Auth.css';
-import logoImage from '../assets/logo.jpg';
+import logoImage from '../assets/logo.png';
 
 export default function Auth() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');

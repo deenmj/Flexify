@@ -2,7 +2,7 @@ import { Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Collapse } from 'antd';
 import { Link } from 'react-router-dom'; // Assuming Link is from react-router-dom
-import logoImage from '../assets/logo.jpg';
+import logoImage from '../assets/logo.png';
 import './Footer.css';
 
 export default function Footer() {

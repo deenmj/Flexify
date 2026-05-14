@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
 import './LoadingScreen.css';
-import logoImage from '../assets/logo.jpg';
+import logoImage from '../assets/logo.png';
 
 interface LoadingScreenProps {
   message?: string;

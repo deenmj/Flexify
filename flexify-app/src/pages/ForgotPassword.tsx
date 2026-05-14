@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, ArrowRight } from 'lucide-react';
 import { authApi } from '../api';
-import logoImage from '../assets/logo.jpg';
+import logoImage from '../assets/logo.png';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
