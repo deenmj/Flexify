@@ -803,31 +803,89 @@ export default function AdminDashboard() {
                     dataSource={pendingPayments}
                     rowKey="_id"
                     pagination={{ pageSize: 15 }}
-                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}
                     columns={[
-                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
-                      { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
-                      { title: 'Duration', dataIndex: 'duration' },
-                      { title: 'Amount', dataIndex: 'amount', render: (a: number) => `LKR ${a?.toLocaleString()}` },
-                      { title: 'Reference', dataIndex: 'reference' },
+                      { 
+                        title: 'Owner Details', 
+                        render: (_, p: any) => (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <Avatar src={getImageUrl(p.user?.profilePic)} style={{ backgroundColor: '#2563eb' }}>
+                              {p.user?.name?.charAt(0) || 'U'}
+                            </Avatar>
+                            <div>
+                              <div style={{ fontWeight: 700, color: '#1e293b' }}>{p.user?.name}</div>
+                              <div style={{ color: '#64748b', fontSize: '12px' }}>{p.user?.email}</div>
+                            </div>
+                          </div>
+                        )
+                      },
+                      { 
+                        title: 'Plan & Duration', 
+                        render: (_, p: any) => (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <Tag color={p.tier === 'PRO' ? 'purple' : 'blue'} style={{ width: 'fit-content', fontWeight: 600, letterSpacing: '0.05em' }}>{p.tier}</Tag>
+                            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>{p.duration === 'MONTHLY' ? 'Monthly Plan' : 'Bi-Annual Plan'}</span>
+                          </div>
+                        )
+                      },
+                      { 
+                        title: 'Payment Info', 
+                        render: (_, p: any) => (
+                          <div>
+                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>LKR {p.amount?.toLocaleString()}</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>Ref: {p.reference}</div>
+                          </div>
+                        )
+                      },
                       { 
                         title: 'Receipt', 
+                        align: 'center',
                         render: (_, p: any) => p.receiptImage ? (
                           <Button 
+                            type="primary"
+                            ghost
                             size="small" 
                             icon={<FileText size={14} />} 
-                            onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'https://api.rentify.lk'}${p.receiptImage}`, '_blank')}
+                            onClick={() => window.open(getImageUrl(p.receiptImage), '_blank')}
+                            style={{ borderRadius: '6px', fontWeight: 600 }}
                           >
-                            View
+                            View Receipt
                           </Button>
-                        ) : <Text type="secondary">N/A</Text>
+                        ) : <Tag color="default">Not Uploaded</Tag>
                       },
-                      { title: 'Date', dataIndex: 'createdAt', render: (d: string) => new Date(d).toLocaleString() },
+                      { 
+                        title: 'Date Submitted', 
+                        dataIndex: 'createdAt', 
+                        render: (d: string) => (
+                          <div style={{ color: '#475569', fontSize: '13px', fontWeight: 500 }}>
+                            {new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            <br />
+                            <span style={{ color: '#94a3b8', fontSize: '11px' }}>{new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        ) 
+                      },
                       {
-                        title: 'Actions', render: (_, p: any) => (
-                          <Space>
-                            <Button size="small" type="primary" style={{ fontSize: '12px', padding: '0 10px', height: '26px', lineHeight: '24px' }} icon={<CheckCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'approved')}>Approve</Button>
-                            <Button size="small" danger style={{ fontSize: '12px', padding: '0 10px', height: '26px', lineHeight: '24px' }} icon={<XCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'rejected')}>Reject</Button>
+                        title: 'Actions', 
+                        align: 'right',
+                        render: (_, p: any) => (
+                          <Space size="middle">
+                            <Button 
+                              type="primary" 
+                              style={{ background: '#10b981', borderColor: '#10b981', color: 'white', borderRadius: '8px', fontWeight: 600, boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)' }} 
+                              icon={<CheckCircle size={15} />} 
+                              onClick={() => handleVerifyPayment(p._id, 'approved')}
+                            >
+                              Approve
+                            </Button>
+                            <Button 
+                              danger 
+                              type="primary"
+                              style={{ borderRadius: '8px', fontWeight: 600, boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)' }} 
+                              icon={<XCircle size={15} />} 
+                              onClick={() => handleVerifyPayment(p._id, 'rejected')}
+                            >
+                              Reject
+                            </Button>
                           </Space>
                         )
                       }

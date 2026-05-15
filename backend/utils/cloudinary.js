@@ -35,4 +35,12 @@ export const vehicleStorage = new CloudinaryStorage({
   },
 });
 
+export const receiptStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'flexify/receipts',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'],
+  },
+});
+
 export default cloudinary;

@@ -8,19 +8,11 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+import { receiptStorage } from "../utils/cloudinary.js";
+
 const router = express.Router();
 
-// Ensure receipts folder exists
-const receiptsDir = path.join(process.cwd(), "uploads", "receipts");
-if (!fs.existsSync(receiptsDir)) fs.mkdirSync(receiptsDir, { recursive: true });
-
 // Multer for payment receipts
-const receiptStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, receiptsDir),
-  filename: (req, file, cb) => {
-    cb(null, `receipt-${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
-  },
-});
 const paymentUpload = multer({
   storage: receiptStorage,
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -49,7 +41,7 @@ router.post("/subscribe", protect, paymentUpload.single("receipt"), async (req, 
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const receiptPath = req.file ? `/uploads/receipts/${req.file.filename}` : null;
+    const receiptPath = req.file ? req.file.path : null;
 
     // Create a pending payment record
     const payment = await Payment.create({
