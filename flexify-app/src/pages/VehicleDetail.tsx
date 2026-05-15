@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
@@ -21,6 +21,7 @@ export default function VehicleDetail() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [barVisible, setBarVisible] = useState(true);
 
   // Intersection Observer for sticky bar
@@ -520,22 +521,54 @@ export default function VehicleDetail() {
           {/* LEFT COLUMN: Main Content */}
           <Col xs={24} lg={16}>
             <div className="detail-carousel-container">
-              <img
-                src={getImageUrl(displayImages[activeImage])}
-                alt={vehicle.title}
-                loading="lazy"
-                className="detail-main-img animate-fade-in"
-                onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'; }}
-              />
+              <div 
+                className="detail-main-gallery"
+                ref={scrollContainerRef}
+                onScroll={(e) => {
+                  const scrollLeft = e.currentTarget.scrollLeft;
+                  const width = e.currentTarget.clientWidth;
+                  const newIndex = Math.round(scrollLeft / width);
+                  if (newIndex !== activeImage && newIndex >= 0 && newIndex < displayImages.length) {
+                    setActiveImage(newIndex);
+                  }
+                }}
+              >
+                {displayImages.map((img, idx) => (
+                  <img
+                    key={idx}
+                    src={getImageUrl(img)}
+                    alt={`${vehicle.title} - Image ${idx + 1}`}
+                    loading={idx === 0 ? "eager" : "lazy"}
+                    className="detail-main-img-item"
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'; }}
+                  />
+                ))}
+              </div>
+
+              {/* Dots for Mobile */}
               {displayImages.length > 1 && (
-                <div className="detail-thumbnails">
+                <div className="detail-gallery-dots mobile-only">
+                  {displayImages.map((_, idx) => (
+                    <div key={idx} className={`gallery-dot ${activeImage === idx ? 'active' : ''}`} />
+                  ))}
+                </div>
+              )}
+
+              {/* Thumbnails for Desktop */}
+              {displayImages.length > 1 && (
+                <div className="detail-thumbnails desktop-only">
                   {displayImages.map((img, idx) => (
                     <img
                       key={idx}
                       src={getImageUrl(img)}
                       alt={`Thumbnail ${idx}`}
                       className={`detail-thumb ${activeImage === idx ? 'active' : ''}`}
-                      onClick={() => setActiveImage(idx)}
+                      onClick={() => {
+                        setActiveImage(idx);
+                        if (scrollContainerRef.current) {
+                          scrollContainerRef.current.scrollTo({ left: scrollContainerRef.current.clientWidth * idx, behavior: 'smooth' });
+                        }
+                      }}
                       onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=200&q=60'; }}
                     />
                   ))}
