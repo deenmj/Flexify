@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car } from 'lucide-react';
 import { Row, Col } from 'antd';
-import { vehicleApi, type Vehicle, type User, type PublicStats, getImageUrl } from '../api';
+import { vehicleApi, type Vehicle, type User, type PublicStats, getImageUrl, getOptimizedImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import './Home.css';
@@ -19,7 +19,7 @@ export default function Home() {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    vehicleApi.getAll().then((response) => {
+    vehicleApi.getAll({ limit: '12', sort: 'popular' }).then((response) => {
       const data = response.vehicles || [];
       const filteredVehicles = user 
         ? data.filter(v => {
@@ -304,7 +304,7 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
     <div className="vehicle-card card">
       <div className="vehicle-img-wrap">
         <img
-          src={getImageUrl(vehicle.photos?.[0])}
+          src={getOptimizedImageUrl(vehicle.photos?.[0], 400, 300)}
           alt={vehicle.title}
           className="vehicle-img"
           onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'; }}

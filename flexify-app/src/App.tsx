@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
@@ -9,30 +9,32 @@ import { Spin } from 'antd';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import GlobalFeedback from './components/GlobalFeedback';
 
-// Pages
+// Eagerly loaded (critical path — needed immediately)
 import NotFound from './pages/NotFound';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import GoogleSuccess from './pages/GoogleSuccess';
 import Explore from './pages/Explore';
-import VehicleDetail from './pages/VehicleDetail';
-import ListVehicle from './pages/ListVehicle';
-import Profile from './pages/Profile';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import SubAdminDashboard from './pages/SubAdminDashboard';
-import About from './pages/About';
-import FAQ from './pages/FAQ';
-import Contact from './pages/Contact';
-import Help from './pages/Help';
-import VerifyUser from './pages/VerifyUser';
-import SubscriptionManagement from './pages/SubscriptionManagement';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import Notifications from './pages/Notifications';
-import EditVehicle from './pages/EditVehicle';
-import ManageVehicle from './pages/ManageVehicle';
+
+// Lazy loaded (deferred — loaded only when user navigates to them)
+const VehicleDetail = lazy(() => import('./pages/VehicleDetail'));
+const ListVehicle = lazy(() => import('./pages/ListVehicle'));
+const Profile = lazy(() => import('./pages/Profile'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const SubAdminDashboard = lazy(() => import('./pages/SubAdminDashboard'));
+const About = lazy(() => import('./pages/About'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Help = lazy(() => import('./pages/Help'));
+const VerifyUser = lazy(() => import('./pages/VerifyUser'));
+const SubscriptionManagement = lazy(() => import('./pages/SubscriptionManagement'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const EditVehicle = lazy(() => import('./pages/EditVehicle'));
+const ManageVehicle = lazy(() => import('./pages/ManageVehicle'));
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
