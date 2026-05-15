@@ -22,6 +22,7 @@ export const profileStorage = new CloudinaryStorage({
   params: {
     folder: 'flexify/profiles',
     allowed_formats: ['jpg', 'png', 'jpeg'],
+    transformation: [{ width: 400, height: 400, crop: 'fill', quality: 'auto', fetch_format: 'auto' }],
   },
 });
 
@@ -30,6 +31,7 @@ export const vehicleStorage = new CloudinaryStorage({
   params: {
     folder: 'flexify/vehicles',
     allowed_formats: ['jpg', 'png', 'jpeg'],
+    transformation: [{ width: 1200, height: 800, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }],
   },
 });
 

@@ -24,6 +24,25 @@ export const getImageUrl = (path?: any) => {
   return FALLBACK_IMAGE;
 };
 
+/**
+ * Returns an optimized Cloudinary image URL with transformations for thumbnails/cards.
+ * Inserts resize + auto quality + auto format params into Cloudinary URLs.
+ * Falls back to the original URL for non-Cloudinary images.
+ */
+export const getOptimizedImageUrl = (path?: any, width = 400, height = 300) => {
+  const url = getImageUrl(path);
+  
+  // Only apply Cloudinary transformations to Cloudinary URLs
+  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    return url.replace(
+      '/upload/',
+      `/upload/c_fill,w_${width},h_${height},q_auto,f_auto/`
+    );
+  }
+  
+  return url;
+};
+
 // =================== TYPES ===================
 
 export interface User {

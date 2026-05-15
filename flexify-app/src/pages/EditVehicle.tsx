@@ -524,14 +524,16 @@ export default function EditVehicle() {
                   </div>
                   <div className="input-group">
                     <label>Engine Capacity</label>
-                    <div style={{ position: 'relative' }}>
-                      <input type="text" className="input-field" placeholder="e.g. 1500 cc" value={form.engineCapacity} onChange={(e) => setForm({ ...form, engineCapacity: e.target.value })} />
+                    <div className="km-limit-custom">
+                      <input type="number" className="input-field" placeholder="e.g. 1500" value={form.engineCapacity} onChange={(e) => setForm({ ...form, engineCapacity: e.target.value })} min="0" inputMode="numeric" />
+                      <span className="km-suffix">cc</span>
                     </div>
                   </div>
                   <div className="input-group">
                     <label>Fuel Consumption</label>
-                    <div style={{ position: 'relative' }}>
-                      <input type="text" className="input-field" placeholder="e.g. 15 km/L" value={form.fuelConsumption} onChange={(e) => setForm({ ...form, fuelConsumption: e.target.value })} />
+                    <div className="km-limit-custom">
+                      <input type="number" className="input-field" placeholder="e.g. 15" value={form.fuelConsumption} onChange={(e) => setForm({ ...form, fuelConsumption: e.target.value })} min="0" step="0.1" inputMode="decimal" />
+                      <span className="km-suffix">km/L</span>
                     </div>
                   </div>
                 </div>
