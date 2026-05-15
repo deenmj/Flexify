@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { Row, Col, DatePicker } from 'antd';
 const { RangePicker } = DatePicker;
-import { Search, SlidersHorizontal, Locate, ChevronDown, X } from 'lucide-react';
+import { Search, SlidersHorizontal, Locate, ChevronDown, X, Plus } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
