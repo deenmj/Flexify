@@ -129,6 +129,12 @@ body {
 .ant-select-dropdown {
   overscroll-behavior: contain;
   touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ant-select-dropdown .rc-virtual-list-holder {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 #root {

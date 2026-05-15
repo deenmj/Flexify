@@ -359,6 +359,7 @@ export default function ListVehicle() {
                         setSelectedModel(''); 
                       }}
                       loading={loadingMakes}
+                      getPopupContainer={(trigger) => trigger.parentElement}
                       filterOption={(input, option) =>
                         (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
                       }
@@ -383,6 +384,7 @@ export default function ListVehicle() {
                       onChange={(val: string) => setSelectedModel(val)}
                       loading={loadingModels}
                       disabled={!selectedMake || (selectedMake === 'Other' && !customMake)}
+                      getPopupContainer={(trigger) => trigger.parentElement}
                       filterOption={(input, option) =>
                         (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
                       }
@@ -518,16 +520,18 @@ export default function ListVehicle() {
                 </div>
 
                 <div className="form-grid-3">
-                  <div className="input-group">
-                    <label>Seats</label>
-                    <select className="input-field" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })} required>
-                      <option value="2">2</option>
-                      <option value="4">4</option>
-                      <option value="5">5</option>
-                      <option value="7">7</option>
-                      <option value="8">8+</option>
-                    </select>
-                  </div>
+                  {form.serviceType !== 'Bike' && (
+                    <div className="input-group">
+                      <label>Seats</label>
+                      <select className="input-field" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })} required>
+                        <option value="2">2</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="7">7</option>
+                        <option value="8">8+</option>
+                      </select>
+                    </div>
+                  )}
                   <div className="input-group">
                     <label>Engine Capacity</label>
                     <div className="km-limit-custom">
@@ -544,63 +548,65 @@ export default function ListVehicle() {
                   </div>
                 </div>
 
-                <div className="features-group" style={{ marginBottom: '1.5rem' }}>
-                  <label>Driver Options</label>
-                  <p className="km-limit-hint" style={{ marginBottom: '1rem' }}>Specify if the vehicle is available for self-drive, with a driver, or both.</p>
-                  
-                  <div className="km-limit-input-row" style={{ marginBottom: form.driverOption !== 'self-drive' ? '1rem' : '0' }}>
-                    <div className="km-limit-presets" style={{ width: '100%' }}>
-                      <button
-                        type="button"
-                        className={`km-preset-btn ${form.driverOption === 'self-drive' ? 'active' : ''}`}
-                        onClick={() => setForm({ ...form, driverOption: 'self-drive', driverPricePerDay: '' })}
-                        style={{ flex: 1 }}
-                      >
-                        🚗 Self Drive
-                      </button>
-                      <button
-                        type="button"
-                        className={`km-preset-btn ${form.driverOption === 'with-driver' ? 'active' : ''}`}
-                        onClick={() => setForm({ ...form, driverOption: 'with-driver' })}
-                        style={{ flex: 1 }}
-                      >
-                        👨‍✈️ With Driver
-                      </button>
-                      <button
-                        type="button"
-                        className={`km-preset-btn ${form.driverOption === 'both' ? 'active' : ''}`}
-                        onClick={() => setForm({ ...form, driverOption: 'both' })}
-                        style={{ flex: 1 }}
-                      >
-                        ✅ Both Available
-                      </button>
-                    </div>
-                  </div>
-
-                  {form.driverOption !== 'self-drive' && (
-                    <div className="extra-km-price-row" style={{ marginTop: '1rem' }}>
-                      <div className="extra-km-label">
-                        <span>👨‍✈️</span>
-                        <div>
-                          <label>Driver Price Per Day (LKR)</label>
-                          <p className="km-limit-hint">Extra amount charged per day for the driver</p>
+                  {form.serviceType !== 'Bike' && (
+                    <div className="features-group" style={{ marginBottom: '1.5rem' }}>
+                      <label>Driver Options</label>
+                      <p className="km-limit-hint" style={{ marginBottom: '1rem' }}>Specify if the vehicle is available for self-drive, with a driver, or both.</p>
+                      
+                      <div className="km-limit-input-row" style={{ marginBottom: form.driverOption !== 'self-drive' ? '1rem' : '0' }}>
+                        <div className="km-limit-presets" style={{ width: '100%' }}>
+                          <button
+                            type="button"
+                            className={`km-preset-btn ${form.driverOption === 'self-drive' ? 'active' : ''}`}
+                            onClick={() => setForm({ ...form, driverOption: 'self-drive', driverPricePerDay: '' })}
+                            style={{ flex: 1 }}
+                          >
+                            🚗 Self Drive
+                          </button>
+                          <button
+                            type="button"
+                            className={`km-preset-btn ${form.driverOption === 'with-driver' ? 'active' : ''}`}
+                            onClick={() => setForm({ ...form, driverOption: 'with-driver' })}
+                            style={{ flex: 1 }}
+                          >
+                            👨‍✈️ With Driver
+                          </button>
+                          <button
+                            type="button"
+                            className={`km-preset-btn ${form.driverOption === 'both' ? 'active' : ''}`}
+                            onClick={() => setForm({ ...form, driverOption: 'both' })}
+                            style={{ flex: 1 }}
+                          >
+                            ✅ Both Available
+                          </button>
                         </div>
                       </div>
-                      <div className="km-limit-custom">
-                        <input
-                          type="number"
-                          className="input-field"
-                          placeholder="e.g. 5000"
-                          value={form.driverPricePerDay}
-                          onChange={(e) => setForm({ ...form, driverPricePerDay: e.target.value })}
-                          min="0"
-                          required={form.driverOption !== 'self-drive'}
-                        />
-                        <span className="km-suffix">LKR/day</span>
-                      </div>
+
+                      {form.driverOption !== 'self-drive' && (
+                        <div className="extra-km-price-row" style={{ marginTop: '1rem' }}>
+                          <div className="extra-km-label">
+                            <span>👨‍✈️</span>
+                            <div>
+                              <label>Driver Price Per Day (LKR)</label>
+                              <p className="km-limit-hint">Extra amount charged per day for the driver</p>
+                            </div>
+                          </div>
+                          <div className="km-limit-custom">
+                            <input
+                              type="number"
+                              className="input-field"
+                              placeholder="e.g. 5000"
+                              value={form.driverPricePerDay}
+                              onChange={(e) => setForm({ ...form, driverPricePerDay: e.target.value })}
+                              min="0"
+                              required={form.driverOption !== 'self-drive'}
+                            />
+                            <span className="km-suffix">LKR/day</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
 
                 <div className="features-group">
                   <label>Features & Amenities</label>
