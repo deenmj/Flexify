@@ -315,7 +315,7 @@
 
   .mobile-booking-bar {
     position: fixed;
-    bottom: 0;
+    bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 16px));
     left: 0;
     right: 0;
     background: rgba(255, 255, 255, 0.9);

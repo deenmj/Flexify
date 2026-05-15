@@ -18,7 +18,7 @@
     align-items: center;
     padding-bottom: env(safe-area-inset-bottom, 16px);
     padding-top: 8px;
-    height: calc(64px + env(safe-area-inset-bottom, 16px));
+    height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 16px));
     border-top: 1px solid rgba(226, 232, 240, 0.8);
   }
 
@@ -70,6 +70,6 @@
 
   /* When bottom nav is present, pad the body so content isn't covered */
   body {
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 16px));
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 16px));
   }
 }

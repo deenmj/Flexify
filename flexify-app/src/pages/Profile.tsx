@@ -2,13 +2,13 @@ import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userApi } from '../api';
 import { Link } from 'react-router-dom';
-import { User, Mail, Shield, Calendar, ArrowLeft, Edit2, CheckCircle, Camera, MapPin, Phone, Save, X, FileText, Eye, Upload, RefreshCw } from 'lucide-react';
+import { User, Mail, Shield, Calendar, ArrowLeft, Edit2, CheckCircle, Camera, MapPin, Phone, Save, X, FileText, Eye, Upload, RefreshCw, LogOut } from 'lucide-react';
 import { getImageUrl } from '../api';
 import imageCompression from 'browser-image-compression';
 import './Profile.css';
 
 export default function Profile() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, logout } = useAuth();
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -349,6 +349,13 @@ export default function Profile() {
                   <span>📞</span> Contact Support
                 </a>
               )}
+              <button 
+                onClick={() => { if(window.confirm('Are you sure you want to logout?')) { logout(); } }} 
+                className="profile-action-item logout-action"
+                style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)', cursor: 'pointer', width: '100%', textAlign: 'left', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}
+              >
+                <LogOut size={16} color="#ef4444" /> Logout from Account
+              </button>
             </div>
           </div>
 

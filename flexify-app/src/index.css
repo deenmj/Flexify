@@ -92,6 +92,7 @@
   /* Container */
   --container-max: 1400px;
   --navbar-height: 72px;
+  --bottom-nav-height: 64px;
 }
 
 /* ============================================
@@ -1391,4 +1392,10 @@ select {
     font-size: 0.55rem !important;
     padding: 1px 4px !important;
   }
+
+  /* Mobile Bottom Nav Spacing */
+  .main-content {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 20px) !important;
+  }
 }
+

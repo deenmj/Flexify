@@ -498,14 +498,14 @@
     gap: 0.35rem;
   }
   .nav-action-btn {
-    width: 30px;
-    height: 30px;
-    min-width: 30px;
-    min-height: 30px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
   .nav-action-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 24px;
+    height: 24px;
   }
   .profile-trigger {
     width: 28px;
