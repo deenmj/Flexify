@@ -348,42 +348,46 @@ export default function Home() {
 function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const ownerData = typeof vehicle.owner === 'object' ? vehicle.owner : null;
   return (
-    <div className="vehicle-card card">
-      <div className="vehicle-img-wrap">
-        <img
-          src={getOptimizedImageUrl(vehicle.photos?.[0], 400, 300)}
-          alt={vehicle.title}
-          className="vehicle-img"
-          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'; }}
-        />
-        {vehicle.transmission && (
-          <span className="vehicle-badge">{vehicle.transmission}</span>
-        )}
-      </div>
-      <div className="vehicle-info">
-        <h3 className="vehicle-title">{vehicle.title}</h3>
-        <p className="vehicle-model">{vehicle.make} {vehicle.model}</p>
-        <div className="vehicle-specs">
-          {vehicle.seats && <span>Seats {vehicle.seats}</span>}
-          {vehicle.location?.address && <span><MapPin size={12} /> {vehicle.location.address}</span>}
-        </div>
-        <div className="vehicle-footer">
-          <div className="vehicle-price">
-            <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
-            <span className="price-unit">/day</span>
-          </div>
-          {ownerData && (
-            <span className="vehicle-owner-badge">
-              {ownerData.ownerType === 'VERIFIED' && <Verified size={12} />}
-              {ownerData.name?.split(' ')[0]}
-            </span>
+    <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <div className="vehicle-card card">
+        <div className="vehicle-img-wrap">
+          <img
+            src={getOptimizedImageUrl(vehicle.photos?.[0], 400, 300)}
+            alt={vehicle.title}
+            className="vehicle-img"
+            onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=60'; }}
+          />
+          {vehicle.transmission && (
+            <span className="vehicle-badge">{vehicle.transmission}</span>
           )}
         </div>
-        <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="btn btn-primary btn-sm btn-full">
-          View Now
-        </Link>
+        <div className="vehicle-info">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <h3 className="vehicle-title">{vehicle.title}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600, color: '#f59e0b' }}>
+              <Star size={14} fill="currentColor" /> {vehicle.averageRating || 'New'}
+            </div>
+          </div>
+          <p className="vehicle-model">{vehicle.make} {vehicle.model}</p>
+          <div className="vehicle-specs">
+            {vehicle.seats && <span><Users size={12} /> Seats {vehicle.seats}</span>}
+            {vehicle.location?.address && <span><MapPin size={12} /> {vehicle.location.address}</span>}
+          </div>
+          <div className="vehicle-footer">
+            <div className="vehicle-price">
+              <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
+              <span className="price-unit">/day</span>
+            </div>
+            {ownerData && (
+              <span className="vehicle-owner-badge">
+                {ownerData.ownerType === 'VERIFIED' && <Verified size={12} />}
+                {ownerData.name?.split(' ')[0]}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
