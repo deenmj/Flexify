@@ -201,17 +201,33 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-full);
+  border-radius: 10px;
   color: var(--text-secondary);
-  transition: all var(--transition-fast);
+  transition: all var(--transition-base);
   position: relative;
-  background: none;
-  border: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .nav-action-btn:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
+  background: white;
+  color: var(--color-primary);
+  border-color: var(--color-primary-200);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.logout-top-btn {
+  background: #fff1f2 !important;
+  color: #e11d48 !important;
+  border-color: #fecdd3 !important;
+}
+
+.logout-top-btn:hover {
+  background: #ffe4e6 !important;
+  color: #be123c !important;
+  border-color: #fda4af !important;
 }
 
 .notification-dot {
@@ -512,7 +528,7 @@
     height: 28px;
   }
   .navbar-actions {
-    gap: 0;
+    gap: 0.4rem;
   }
   .logout-top-btn {
     display: flex !important;
