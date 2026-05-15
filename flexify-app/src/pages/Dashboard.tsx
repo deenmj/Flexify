@@ -4,7 +4,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col, Avatar, Spin } from 'antd';
-import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review, getImageUrl } from '../api';
+import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review, getImageUrl, getVehicleSlug } from '../api';
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
   Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle,
@@ -635,7 +635,7 @@ export default function Dashboard() {
                                 <Info size={14} style={{ marginRight: '6px' }} /> Full Details
                               </button>
                               {vehicle && (
-                                <Link to={`/vehicles/${(vehicle as Vehicle)._id}`} className="btn btn-sm" style={{ flex: 1, minWidth: 'fit-content', textAlign: 'center', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Link to={`/vehicles/${getVehicleSlug(vehicle as Vehicle)}`} className="btn btn-sm" style={{ flex: 1, minWidth: 'fit-content', textAlign: 'center', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                   <Eye size={14} style={{ marginRight: '6px' }} /> View Page
                                 </Link>
                               )}

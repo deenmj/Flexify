@@ -43,6 +43,17 @@ export const getOptimizedImageUrl = (path?: any, width = 400, height = 300) => {
   return url;
 };
 
+/**
+ * Generates an SEO-friendly URL slug for a vehicle.
+ * Format: make-model-year-location--id
+ */
+export const getVehicleSlug = (vehicle: any) => {
+  const location = vehicle.city || vehicle.district || 'sri-lanka';
+  const base = `${vehicle.make}-${vehicle.model}-${vehicle.year}-${location}`.toLowerCase();
+  const slug = base.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  return `${slug}--${vehicle._id}`;
+};
+
 // =================== TYPES ===================
 
 export interface User {

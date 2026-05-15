@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button, Select } from 'antd';
-import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl } from '../api';
+import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl, getVehicleSlug } from '../api';
 import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -15,7 +15,8 @@ dayjs.extend(isBetween);
 const { RangePicker } = DatePicker;
 
 export default function VehicleDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id: slugOrId } = useParams<{ id: string }>();
+  const id = slugOrId?.includes('--') ? slugOrId.split('--').pop() : slugOrId;
   const navigate = useNavigate();
   const { user } = useAuth();
   const isMobile = useIsMobile();
@@ -468,7 +469,7 @@ export default function VehicleDetail() {
         title={`${vehicle.title} — Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district} | Rentify`}
         description={`Rent ${vehicle.make} ${vehicle.model} (${vehicle.year}) in ${vehicle.city}, ${vehicle.district} from LKR ${vehicle.pricePerDay}/day. ${vehicle.transmission}, ${vehicle.seats} seats. Book on Rentify.lk!`}
         ogImage={getImageUrl(displayImages[0])}
-        canonical={`/vehicles/${vehicle._id}`}
+        canonical={`/vehicles/${getVehicleSlug(vehicle)}`}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Product",
@@ -484,7 +485,7 @@ export default function VehicleDetail() {
             "priceCurrency": "LKR",
             "price": vehicle.pricePerDay,
             "availability": "https://schema.org/InStock",
-            "url": `https://rentify.lk/vehicles/${vehicle._id}`
+            "url": `https://rentify.lk/vehicles/${getVehicleSlug(vehicle)}`
           },
           ...(vehicle.reviewCount ? {
             "aggregateRating": {

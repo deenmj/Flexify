@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import './StaticPages.css';
 

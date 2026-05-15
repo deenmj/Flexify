@@ -5,7 +5,7 @@ import {
   Calendar as CalIcon, AlertTriangle, Trash2, ArrowLeft,
   ChevronLeft, ChevronRight, EyeOff
 } from 'lucide-react';
-import { vehicleApi, bookingApi, reviewApi, blackoutApi, getImageUrl } from '../api';
+import { vehicleApi, bookingApi, reviewApi, blackoutApi, getImageUrl, getVehicleSlug } from '../api';
 import { useAuth } from '../context/AuthContext';
 import dayjs, { Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
@@ -320,7 +320,7 @@ export default function ManageVehicle() {
 
                     {/* Quick Actions */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      <Link to={`/vehicles/${vehicle._id}`} className="btn" style={{ background: 'white', color: '#1e293b', border: '1px solid #cbd5e1', justifyContent: 'center', height: '48px', borderRadius: '16px', fontSize: '1rem', fontWeight: 600 }}>
+                      <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="btn" style={{ background: 'white', color: '#1e293b', border: '1px solid #cbd5e1', justifyContent: 'center', height: '48px', borderRadius: '16px', fontSize: '1rem', fontWeight: 600 }}>
                         <Eye size={18} style={{ marginRight: '8px' }} /> View Public Page
                       </Link>
 

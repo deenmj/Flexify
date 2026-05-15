@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import { Row, Col, DatePicker } from 'antd';
 const { RangePicker } = DatePicker;
 import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown, X, Car, Plus, ChevronRight, Users, Gauge, Zap } from 'lucide-react';
-import { vehicleApi, type Vehicle, getImageUrl, getOptimizedImageUrl } from '../api';
+import { vehicleApi, type Vehicle, getImageUrl, getOptimizedImageUrl, getVehicleSlug } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -528,7 +528,7 @@ export default function Explore() {
 function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const ownerData = typeof vehicle.owner === 'object' ? vehicle.owner : null;
   return (
-    <Link to={`/vehicles/${vehicle._id}`} className="explore-vehicle-card-link">
+    <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="explore-vehicle-card-link">
       <div className="explore-vehicle-card card" style={{ cursor: 'pointer', height: '100%', transition: 'all 0.3s ease' }}>
         <div className="explore-vehicle-img-wrap">
           <img

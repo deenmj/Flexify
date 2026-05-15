@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car } from 'lucide-react';
 import { Row, Col } from 'antd';
-import { vehicleApi, type Vehicle, type User, type PublicStats, getImageUrl, getOptimizedImageUrl } from '../api';
+import { vehicleApi, type Vehicle, type User, type PublicStats, getImageUrl, getOptimizedImageUrl, getVehicleSlug } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -54,7 +54,7 @@ export default function Home() {
       <SEO 
         title="Rentify — #1 Vehicle Rental Platform in Sri Lanka | Cars, Bikes & More"
         description="Rent cars, SUVs, bikes & vans across Sri Lanka. Trusted peer-to-peer vehicle rental with verified owners. Island-wide service from Colombo to Kandy, Galle and beyond. Book now!"
-        keywords="vehicle rent Sri Lanka, car rental Colombo, rent a car Kandy, bike rent Galle, rentify lk, island wide vehicle rental, self drive Sri Lanka"
+        keywords="vehicle rental Sri Lanka, rent a car Sri Lanka, rent a bike Sri Lanka, island-wide vehicle hire, peer to peer car rental, self drive vehicles Sri Lanka, luxury car rental Colombo, budget bike rentals Kandy, Rentify Sri Lanka, vehicle owners Sri Lanka"
         canonical="/"
         jsonLd={{
           "@context": "https://schema.org",
@@ -350,7 +350,7 @@ function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             </span>
           )}
         </div>
-        <Link to={`/vehicles/${vehicle._id}`} className="btn btn-primary btn-sm btn-full">
+        <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="btn btn-primary btn-sm btn-full">
           View Now
         </Link>
       </div>

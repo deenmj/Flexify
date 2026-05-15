@@ -47,6 +47,7 @@ import bankDetailsRoutes from "./routes/bankDetailsRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
+import sitemapRoutes from "./routes/sitemapRoutes.js";
 import { protect } from "./middleware/authMiddleware.js";
 
 connectDB();
@@ -168,6 +169,7 @@ app.use("/api/bank-details", bankDetailsRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api", sitemapRoutes);
 
 // Google OAuth Fallback: in case Google console is misconfigured without the /api prefix
 app.use("/auth/google/callback", (req, res) => {
