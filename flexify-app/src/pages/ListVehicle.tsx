@@ -348,52 +348,41 @@ export default function ListVehicle() {
                 <div className="form-grid-2">
                   <div className="input-group">
                     <label>Make</label>
-                    <AntSelect
-                      showSearch
-                      className="antd-select-full"
-                      placeholder="Select Brand"
-                      optionFilterProp="children"
-                      value={selectedMake || undefined}
-                      onChange={(val: string) => {
+                    <select
+                      className="input-field"
+                      value={selectedMake}
+                      onChange={(e) => {
+                        const val = e.target.value;
                         setSelectedMake(val);
                         setSelectedModel(''); 
                       }}
-                      loading={loadingMakes}
-                      getPopupContainer={(trigger) => trigger.parentElement}
-                      filterOption={(input, option) =>
-                        (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                      }
+                      required
                     >
+                      <option value="">Select Brand</option>
                       {makes.map((m: VehicleMake) => (
-                        <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>
+                        <option key={m._id} value={m.name}>{m.name}</option>
                       ))}
-                      <Option value="Other" label="Other / Suggest New">Other / Suggest New</Option>
-                    </AntSelect>
+                      <option value="Other">Other / Suggest New</option>
+                    </select>
                     {selectedMake === 'Other' && (
                       <input className="input-field mt-2" placeholder="Custom Make..." value={customMake} onChange={(e) => setCustomMake(e.target.value)} required />
                     )}
                   </div>
                   <div className="input-group">
                     <label>Model</label>
-                    <AntSelect
-                      showSearch
-                      className="antd-select-full"
-                      placeholder="Select Model"
-                      optionFilterProp="children"
-                      value={selectedModel || undefined}
-                      onChange={(val: string) => setSelectedModel(val)}
-                      loading={loadingModels}
+                    <select
+                      className="input-field"
+                      value={selectedModel}
+                      onChange={(e) => setSelectedModel(e.target.value)}
                       disabled={!selectedMake || (selectedMake === 'Other' && !customMake)}
-                      getPopupContainer={(trigger) => trigger.parentElement}
-                      filterOption={(input, option) =>
-                        (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                      }
+                      required
                     >
+                      <option value="">Select Model</option>
                       {models.map((m: VehicleModel) => (
-                        <Option key={m._id} value={m.name} label={m.name}>{m.name}</Option>
+                        <option key={m._id} value={m.name}>{m.name}</option>
                       ))}
-                      <Option value="Other" label="Other / Suggest New">Other / Suggest New</Option>
-                    </AntSelect>
+                      <option value="Other">Other / Suggest New</option>
+                    </select>
                     {(selectedModel === 'Other' || selectedMake === 'Other') && (
                       <input className="input-field mt-2" placeholder="Custom Model..." value={customModel} onChange={(e) => setCustomModel(e.target.value)} required />
                     )}

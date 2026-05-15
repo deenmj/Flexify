@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, DollarSign, Compass, Home, CalendarCheck } from 'lucide-react';
-import { Badge, Tooltip } from 'antd';
+import { Badge, Tooltip, Modal } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { notificationApi, bookingApi } from '../api';
 import './Navbar.css';
@@ -94,9 +94,19 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    logout();
-    setProfileOpen(false);
-    navigate('/auth');
+    Modal.confirm({
+      title: 'Confirm Logout',
+      content: 'Are you sure you want to log out of your account?',
+      okText: 'Logout',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      centered: true,
+      onOk: () => {
+        logout();
+        setProfileOpen(false);
+        navigate('/auth');
+      }
+    });
   };
 
   const badge = getRoleBadge();
@@ -218,6 +228,7 @@ export default function Navbar() {
                       <LayoutDashboard size={16} /> {isStaff ? 'Staff Dashboard' : isSuperAdmin ? 'Admin Dashboard' : 'Dashboard'}
                     </Link>
                   )}
+
                   {isAdminRole && (
                     <Link to="/dashboard" className="dropdown-item" onClick={() => setProfileOpen(false)}>
                       <Car size={16} /> My Vehicles & Bookings

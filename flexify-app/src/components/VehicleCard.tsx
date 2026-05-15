@@ -32,7 +32,9 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </div>
           <p className="shared-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
           <div className="shared-vehicle-specs">
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={12} /> {vehicle.seats} seats</span>
+            {vehicle.serviceType !== 'Bike' && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={12} /> {vehicle.seats} seats</span>
+            )}
             {vehicle.engineCapacity && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Zap size={12} /> {vehicle.engineCapacity}</span>}
             {vehicle.kmLimitPerDay && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Gauge size={12} /> {vehicle.kmLimitPerDay}km/day</span>}
             {!vehicle.kmLimitPerDay && <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Gauge size={12} /> Unlimited km</span>}

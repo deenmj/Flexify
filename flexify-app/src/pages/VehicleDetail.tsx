@@ -601,13 +601,15 @@ export default function VehicleDetail() {
                   <span className="spec-label">Fuel Type</span>
                   <span className="spec-value">{vehicle.fuelType}</span>
                 </div>
-                <div className="spec-item">
-                  <span className="spec-label">Seats</span>
-                  <span className="spec-value">
-                    <Users size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                    {vehicle.seats} Seats
-                  </span>
-                </div>
+                {vehicle.serviceType !== 'Bike' && (
+                  <div className="spec-item">
+                    <span className="spec-label">Seats</span>
+                    <span className="spec-value">
+                      <Users size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                      {vehicle.seats} Seats
+                    </span>
+                  </div>
+                )}
                 {vehicle.engineCapacity && (
                   <div className="spec-item">
                     <span className="spec-label">Engine</span>
