@@ -313,10 +313,10 @@
     font-size: 1.5rem;
   }
 
-    padding: 0.75rem 1rem;
+    padding: 0.75rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.08);
     z-index: 1000;
     border-top: 1px solid rgba(241, 245, 249, 0.8);

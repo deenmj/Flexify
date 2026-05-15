@@ -1012,11 +1012,7 @@ export default function VehicleDetail() {
       {/* MOBILE STICKY BOOKING BAR */}
       {isMobile && !showBookingModal && !createdBooking && (!user || user._id !== (owner?._id || vehicle.owner)) && (
         <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`}>
-          <div className="mobile-bar-price">
-            <span className="bar-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
-            <span className="bar-unit">/day</span>
-          </div>
-          <button className="btn btn-primary btn-md" onClick={handleBookingTrigger} style={{ height: '44px', padding: '0 24px', fontWeight: 700, borderRadius: '10px' }}>
+          <button className="btn btn-primary btn-lg btn-full" onClick={handleBookingTrigger} style={{ height: '48px', fontWeight: 800, borderRadius: '12px', fontSize: '1rem', letterSpacing: '0.02em' }}>
             {getBookingButtonText()}
           </button>
         </div>
