@@ -233,8 +233,8 @@ export default function Explore() {
     <div className="explore-page">
       <SEO 
         title={filters.vehicleType ? `Rent ${filters.vehicleType}s in Sri Lanka | Rentify` : "Explore Vehicles for Rent in Sri Lanka | Rentify"}
-        description="Browse vehicles available for rent across Sri Lanka. Filter by type, location, price & availability. Find your perfect ride today!"
-        keywords="explore vehicles Sri Lanka, car rental near me, rent bike Kandy, vehicle hire Sri Lanka, rent a car Sri Lanka"
+        description="Browse vehicles available for rent across Sri Lanka. Filter by type, location, price & availability. Island-wide vehicle hire from Colombo to Kandy. Find your perfect ride today!"
+        keywords="explore vehicles Sri Lanka, car rental near me, rent bike Colombo, vehicle hire Sri Lanka, rent a car Sri Lanka, self drive island wide"
         canonical="/explore"
       />
       {/* Search Header */}
