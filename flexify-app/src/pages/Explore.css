@@ -11,8 +11,8 @@
 }
 @media (max-width: 480px) {
   .explore-header {
-    padding-top: 0.5rem !important;
-    padding-bottom: 0.625rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 1rem !important;
   }
 }
 
