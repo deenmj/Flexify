@@ -11,7 +11,7 @@ interface SEOProps {
   ogType?: string;
   canonical?: string;
   noindex?: boolean;
-  jsonLd?: Record<string, any>;
+  jsonLd?: Record<string, any> | Record<string, any>[];
 }
 
 const SITE_NAME = 'Rentify';
@@ -35,6 +35,13 @@ export default function SEO({
   const resolvedOgImage = ogImage || DEFAULT_OG_IMAGE;
   const resolvedOgUrl = ogUrl || (canonical ? `${BASE_URL}${canonical}` : BASE_URL);
 
+  // Support both single objects and arrays of JSON-LD
+  const jsonLdScripts = jsonLd
+    ? Array.isArray(jsonLd)
+      ? jsonLd
+      : [jsonLd]
+    : [];
+
   return (
     <Helmet>
       {/* Primary Meta Tags */}
@@ -43,6 +50,13 @@ export default function SEO({
       {keywords && <meta name="keywords" content={keywords} />}
       {canonical && <link rel="canonical" href={`${BASE_URL}${canonical}`} />}
       {noindex && <meta name="robots" content="noindex, nofollow" />}
+      {!noindex && <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />}
+
+      {/* Geo Targeting — Sri Lanka */}
+      <meta name="geo.region" content="LK" />
+      <meta name="geo.placename" content="Sri Lanka" />
+      <meta name="language" content="English" />
+      <meta httpEquiv="content-language" content="en-LK" />
 
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={ogType} />
@@ -50,6 +64,8 @@ export default function SEO({
       <meta property="og:title" content={ogTitle || fullTitle} />
       <meta property="og:description" content={ogDescription || description} />
       <meta property="og:image" content={resolvedOgImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:locale" content="en_LK" />
 
@@ -61,11 +77,12 @@ export default function SEO({
       <meta name="twitter:image" content={resolvedOgImage} />
 
       {/* JSON-LD Structured Data */}
-      {jsonLd && (
-        <script type="application/ld+json">
-          {JSON.stringify(jsonLd)}
+      {jsonLdScripts.map((ld, idx) => (
+        <script key={idx} type="application/ld+json">
+          {JSON.stringify(ld)}
         </script>
-      )}
+      ))}
     </Helmet>
   );
 }
+

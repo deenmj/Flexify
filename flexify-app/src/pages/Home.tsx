@@ -52,21 +52,50 @@ export default function Home() {
   return (
     <div className="home-page">
       <SEO 
-        title="Rentify — #1 Vehicle Rental Platform in Sri Lanka | Cars, Bikes & More"
-        description="Rent cars, SUVs, bikes & vans across Sri Lanka. Trusted peer-to-peer vehicle rental with verified owners. Island-wide service from Colombo to Kandy, Galle and beyond. Book now!"
-        keywords="vehicle rental Sri Lanka, rent a car Sri Lanka, rent a bike Sri Lanka, island-wide vehicle hire, peer to peer car rental, self drive vehicles Sri Lanka, luxury car rental Colombo, budget bike rentals Kandy, Rentify Sri Lanka, vehicle owners Sri Lanka"
+        title="Rent Cars, Bikes & Vans in Sri Lanka | Rentify"
+        description="Sri Lanka's trusted vehicle rental marketplace. Rent cars, SUVs, bikes & vans from verified owners in Colombo, Kandy, Galle & 25 districts. Self-drive or with driver — book now!"
+        keywords="rent a car Sri Lanka, car rental Colombo, bike rental Sri Lanka, self drive vehicles Sri Lanka, rent van Kandy, vehicle hire Galle, SUV rental island wide, Rentify Sri Lanka, peer to peer car rental, cheap car rent Colombo"
         canonical="/"
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "Rentify Sri Lanka",
-          "url": "https://rentify.lk",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://rentify.lk/explore?q={search_term_string}",
-            "query-input": "required name=search_term_string"
+        ogTitle="Rent Cars, Bikes & Vans in Sri Lanka — Rentify.lk"
+        ogDescription="Find & book verified rental vehicles across Sri Lanka. Cars, bikes, SUVs & vans from LKR 3,000/day. Island-wide self-drive & with-driver options."
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Rentify",
+            "alternateName": "Rentify Sri Lanka",
+            "url": "https://rentify.lk",
+            "description": "Sri Lanka's #1 peer-to-peer vehicle rental marketplace",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://rentify.lk/explore?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Rentify",
+            "url": "https://rentify.lk",
+            "logo": "https://rentify.lk/logo.png",
+            "description": "Peer-to-peer vehicle rental marketplace in Sri Lanka with verified owners and island-wide coverage.",
+            "foundingDate": "2025",
+            "areaServed": {
+              "@type": "Country",
+              "name": "Sri Lanka"
+            },
+            "sameAs": [],
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "customer support",
+              "url": "https://rentify.lk/contact",
+              "availableLanguage": ["English", "Sinhala", "Tamil"]
+            }
           }
-        }}
+        ]}
       />
       {/* Hero Section */}
       <section className="hero-section">

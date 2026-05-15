@@ -466,32 +466,50 @@ export default function VehicleDetail() {
   return (
     <div className="vehicle-detail-page">
       <SEO 
-        title={`${vehicle.title} — Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district} | Rentify`}
-        description={`Rent ${vehicle.make} ${vehicle.model} (${vehicle.year}) in ${vehicle.city}, ${vehicle.district} from LKR ${vehicle.pricePerDay}/day. ${vehicle.transmission}, ${vehicle.seats} seats. Book on Rentify.lk!`}
+        title={`${vehicle.title} for Rent in ${vehicle.city || vehicle.district} | Rentify`}
+        description={`Rent ${vehicle.make} ${vehicle.model}${vehicle.year ? ` (${vehicle.year})` : ''} in ${vehicle.city || ''}, ${vehicle.district} from LKR ${vehicle.pricePerDay.toLocaleString()}/day. ${vehicle.transmission}, ${vehicle.seats} seats${vehicle.driverOption === 'both' ? ', self-drive or with driver' : ''}. Verified owner — book instantly on Rentify.lk!`}
+        keywords={`rent ${vehicle.make} ${vehicle.model} Sri Lanka, ${vehicle.make} rental ${vehicle.district}, ${vehicle.vehicleType || 'car'} hire ${vehicle.city || vehicle.district}, self drive ${vehicle.district}`}
         ogImage={getImageUrl(displayImages[0])}
+        ogType="product"
+        ogTitle={`Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district} — LKR ${vehicle.pricePerDay.toLocaleString()}/day`}
+        ogDescription={`${vehicle.transmission} · ${vehicle.seats} seats · ${vehicle.driverOption === 'both' ? 'Self-drive & with driver' : vehicle.driverOption === 'with-driver' ? 'With driver' : 'Self drive'}. Verified owner on Rentify.lk`}
         canonical={`/vehicles/${getVehicleSlug(vehicle)}`}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Product",
           "name": vehicle.title,
-          "description": vehicle.description || `Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district}.`,
+          "description": vehicle.description || `Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district}, Sri Lanka. ${vehicle.transmission}, ${vehicle.seats} seats.`,
           "image": displayImages.map(img => getImageUrl(img)),
           "brand": {
             "@type": "Brand",
             "name": vehicle.make
           },
+          "model": vehicle.model,
+          "vehicleModelDate": vehicle.year?.toString(),
+          "numberOfForwardGears": vehicle.transmission === 'Automatic' ? undefined : undefined,
+          "vehicleTransmission": vehicle.transmission === 'Automatic' ? 'https://schema.org/AutomaticTransmission' : 'https://schema.org/ManualTransmission',
+          "seatingCapacity": vehicle.seats,
+          "fuelType": vehicle.fuelType,
           "offers": {
             "@type": "Offer",
             "priceCurrency": "LKR",
             "price": vehicle.pricePerDay,
-            "availability": "https://schema.org/InStock",
-            "url": `https://rentify.lk/vehicles/${getVehicleSlug(vehicle)}`
+            "priceValidUntil": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            "itemCondition": "https://schema.org/UsedCondition",
+            "availability": vehicle.isActive ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "url": `https://rentify.lk/vehicles/${getVehicleSlug(vehicle)}`,
+            "seller": owner ? {
+              "@type": "Person",
+              "name": owner.name
+            } : undefined
           },
           ...(vehicle.reviewCount ? {
             "aggregateRating": {
               "@type": "AggregateRating",
               "ratingValue": vehicle.averageRating,
-              "reviewCount": vehicle.reviewCount
+              "reviewCount": vehicle.reviewCount,
+              "bestRating": "5",
+              "worstRating": "1"
             }
           } : {})
         }}

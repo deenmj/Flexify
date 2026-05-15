@@ -14,9 +14,25 @@ export default function About() {
   return (
     <div className="static-page">
       <SEO 
-        title="About Rentify — Vehicle Rental in Sri Lanka"
-        description="Rentify is Sri Lanka's leading peer-to-peer vehicle sharing platform. Verified owners, secure bookings, and vehicles across all 25 districts."
+        title="About Rentify — Sri Lanka's Trusted Vehicle Rental Platform"
+        description="Rentify connects vehicle owners with renters across Sri Lanka. Verified owners, secure bookings, island-wide coverage in all 25 districts. Learn about our mission to redefine mobility."
+        keywords="about Rentify, vehicle rental Sri Lanka, peer to peer car rental, trusted vehicle platform, Rentify Sri Lanka mission"
         canonical="/about"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "name": "About Rentify",
+          "description": "Learn about Rentify, Sri Lanka's leading peer-to-peer vehicle rental marketplace",
+          "url": "https://rentify.lk/about",
+          "mainEntity": {
+            "@type": "Organization",
+            "name": "Rentify",
+            "url": "https://rentify.lk",
+            "description": "Sri Lanka's premier peer-to-peer vehicle sharing marketplace with verified owners and island-wide coverage.",
+            "foundingDate": "2025",
+            "areaServed": "Sri Lanka"
+          }
+        }}
       />
       {/* Hero Section */}
       <section className="static-hero" style={{ padding: '6rem 2rem 4rem' }}>

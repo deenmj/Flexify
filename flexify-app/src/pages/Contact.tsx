@@ -66,9 +66,32 @@ export default function Contact() {
   return (
     <div className="static-page">
       <SEO 
-        title="Contact Rentify Support — Sri Lanka"
-        description="Get in touch with Rentify support. We're here to help with vehicle rentals, bookings, and account issues. Based in Akurana, Kandy, Sri Lanka."
+        title="Contact Rentify — Vehicle Rental Support Sri Lanka"
+        description="Need help with vehicle rental? Contact Rentify support — based in Kandy, Sri Lanka. Get assistance with bookings, listings & account issues. Mon-Sat 9AM-6PM."
+        keywords="contact Rentify, Rentify support Sri Lanka, vehicle rental help, car rental customer service Kandy, Rentify phone number"
         canonical="/contact"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          "name": "Contact Rentify Support",
+          "description": "Get in touch with Rentify's customer support team for vehicle rental assistance",
+          "url": "https://rentify.lk/contact",
+          "mainEntity": {
+            "@type": "LocalBusiness",
+            "name": "Rentify",
+            "url": "https://rentify.lk",
+            "email": contactDetails.email,
+            "telephone": contactDetails.phone,
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Kandy",
+              "addressCountry": "LK",
+              "streetAddress": contactDetails.address
+            },
+            "openingHours": "Mo-Sa 09:00-18:00",
+            "areaServed": "Sri Lanka"
+          }
+        }}
       />
       <section className="static-hero section-padding">
         <div className="container" style={{ textAlign: 'left' }}>

@@ -232,10 +232,42 @@ export default function Explore() {
   return (
     <div className="explore-page">
       <SEO 
-        title={filters.vehicleType ? `Rent ${filters.vehicleType}s in Sri Lanka | Rentify` : "Explore Vehicles for Rent in Sri Lanka | Rentify"}
-        description="Browse vehicles available for rent across Sri Lanka. Filter by type, location, price & availability. Island-wide vehicle hire from Colombo to Kandy. Find your perfect ride today!"
-        keywords="explore vehicles Sri Lanka, car rental near me, rent bike Colombo, vehicle hire Sri Lanka, rent a car Sri Lanka, self drive island wide"
+        title={
+          filters.vehicleType && filters.district
+            ? `Rent ${filters.vehicleType}s in ${filters.district} | Rentify`
+            : filters.vehicleType
+              ? `Rent ${filters.vehicleType}s in Sri Lanka — Self Drive & With Driver`
+              : filters.district
+                ? `Vehicle Rental in ${filters.district}, Sri Lanka | Rentify`
+                : filters.province
+                  ? `Rent Vehicles in ${filters.province} Province | Rentify`
+                  : "Rent Cars, Bikes & Vans in Sri Lanka | Best Rates"
+        }
+        description={
+          filters.vehicleType
+            ? `Browse ${filters.vehicleType}s for rent across Sri Lanka. Verified owners, self-drive & with-driver options${filters.district ? ` in ${filters.district}` : ''}. Compare prices & book instantly on Rentify.lk!`
+            : "Explore 100+ vehicles for rent across Sri Lanka — cars, SUVs, bikes & vans. Filter by location, price & type. Verified owners in Colombo, Kandy, Galle & more. Book today!"
+        }
+        keywords={`rent ${filters.vehicleType || 'vehicle'} Sri Lanka, car rental Colombo, bike rental Sri Lanka, ${filters.district ? `vehicle hire ${filters.district}, ` : ''}self drive Sri Lanka, rent van Kandy, vehicle rental near me, cheap car rental Sri Lanka`}
         canonical="/explore"
+        ogTitle={
+          filters.vehicleType
+            ? `Rent ${filters.vehicleType}s in Sri Lanka — Rentify.lk`
+            : "Explore Vehicles for Rent in Sri Lanka — Rentify.lk"
+        }
+        ogDescription="Browse & compare rental vehicles from verified owners across Sri Lanka. Cars, bikes, vans from LKR 3,000/day. Book instantly!"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": filters.vehicleType ? `${filters.vehicleType} Rentals in Sri Lanka` : "Vehicle Rentals in Sri Lanka",
+          "description": "Browse and rent vehicles from verified owners across Sri Lanka",
+          "url": "https://rentify.lk/explore",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "Rentify",
+            "url": "https://rentify.lk"
+          }
+        }}
       />
       {/* Search Header */}
       <section className="explore-header section-padding">

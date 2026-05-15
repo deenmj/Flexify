@@ -20,9 +20,22 @@ export default function FAQ() {
   return (
     <div className="static-page">
       <SEO 
-        title="FAQ — Frequently Asked Questions | Rentify Sri Lanka"
-        description="Find answers to common questions about renting vehicles, listing your car, payments, and more on Rentify.lk."
+        title="FAQ — Vehicle Rental Questions | Rentify Sri Lanka"
+        description="Got questions about renting vehicles in Sri Lanka? Find answers about booking, payments, cancellation, vehicle listings & more on Rentify. Start renting today!"
+        keywords="Rentify FAQ, vehicle rental questions, how to rent car Sri Lanka, Rentify cancellation policy, car rental payment Sri Lanka, list vehicle Rentify"
         canonical="/faq"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": faqs.map(faq => ({
+            "@type": "Question",
+            "name": faq.q,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": faq.a
+            }
+          }))
+        }}
       />
       <section className="static-hero">
         <div className="container" style={{ textAlign: 'left' }}>

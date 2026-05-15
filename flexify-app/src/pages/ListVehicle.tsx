@@ -304,10 +304,20 @@ export default function ListVehicle() {
   return (
     <div className="list-vehicle-page">
       <SEO 
-        title="List Your Vehicle for Rent in Sri Lanka | Rentify"
-        description="Start earning by listing your car, SUV, van or bike on Rentify.lk. Reach renters across Sri Lanka. Free listing, verified renters, full control."
-        keywords="list vehicle for rent, rent out my car Sri Lanka, earn from car rental Sri Lanka"
+        title="List Your Vehicle for Rent in Sri Lanka | Earn with Rentify"
+        description="Turn your car, SUV, van or bike into an earning asset on Rentify.lk. Reach thousands of renters across Sri Lanka. Free listing, verified users, full control."
+        keywords="list vehicle for rent Sri Lanka, rent out my car Colombo, earn from car rental Sri Lanka, peer to peer vehicle sharing"
         canonical="/list-vehicle"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "List Your Vehicle on Rentify",
+          "description": "Register and list your vehicle for rent to start earning money.",
+          "potentialAction": {
+            "@type": "RegisterAction",
+            "target": "https://rentify.lk/list-vehicle"
+          }
+        }}
       />
       <section className="static-hero">
         <div className="container" style={{ position: 'relative' }}>

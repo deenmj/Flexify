@@ -9,9 +9,16 @@ export default function PrivacyPolicy() {
   return (
     <div className="static-page">
       <SEO 
-        title="Privacy Policy & Terms of Service — Rentify Sri Lanka"
-        description="Read the privacy policy and terms of service for Rentify, Sri Lanka's leading vehicle rental platform."
+        title="Privacy Policy & Terms of Service | Rentify Sri Lanka"
+        description="Read the privacy policy, terms of service, and cookie policy for Rentify. Learn how we protect your data and secure vehicle rentals in Sri Lanka."
+        keywords="Rentify privacy policy, terms of service Sri Lanka, Rentify terms, data protection vehicle rental, cookie policy"
         canonical="/privacy"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Privacy Policy & Terms of Service",
+          "description": "Privacy policy and terms of service for Rentify Sri Lanka"
+        }}
       />
       <div className="container" style={{ maxWidth: '900px', padding: '4rem 1rem' }}>
         <button className="back-link" onClick={() => navigate(-1)}>
