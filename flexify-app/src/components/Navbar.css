@@ -512,7 +512,10 @@
     height: 28px;
   }
   .navbar-actions {
-    gap: 0.1rem;
+    gap: 0;
+  }
+  .logout-top-btn {
+    display: flex !important;
   }
   .mobile-menu-btn {
     display: none; /* Hidden on mobile to use BottomNav instead */

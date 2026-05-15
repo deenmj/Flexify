@@ -166,6 +166,12 @@ export default function Navbar() {
               </Badge>
             </button>
 
+            {user && (
+              <button className="nav-action-btn logout-top-btn" title="Logout" onClick={handleLogout} style={{ color: 'var(--color-error)' }}>
+                <LogOut size={20} />
+              </button>
+            )}
+
             {/* Profile */}
             <div className="profile-wrapper" ref={profileRef}>
               <button
