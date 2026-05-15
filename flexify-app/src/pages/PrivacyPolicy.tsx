@@ -1,5 +1,6 @@
 import { ArrowLeft, Shield, Lock, FileText, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 import './StaticPages.css';
 
 export default function PrivacyPolicy() {
@@ -7,6 +8,11 @@ export default function PrivacyPolicy() {
 
   return (
     <div className="static-page">
+      <SEO 
+        title="Privacy Policy & Terms of Service — Rentify Sri Lanka"
+        description="Read the privacy policy and terms of service for Rentify, Sri Lanka's leading vehicle rental platform."
+        canonical="/privacy"
+      />
       <div className="container" style={{ maxWidth: '900px', padding: '4rem 1rem' }}>
         <button className="back-link" onClick={() => navigate(-1)}>
           <ArrowLeft size={18} /> Back

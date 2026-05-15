@@ -5,8 +5,8 @@ import { vehicleApi, type VehicleMake, type VehicleModel } from '../api';
 import { Select as AntSelect, message } from 'antd';
 import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import SEO from '../components/SEO';
 import './ListVehicle.css';
 
 // Fix Leaflet's default icon path issues with React
@@ -303,9 +303,15 @@ export default function ListVehicle() {
 
   return (
     <div className="list-vehicle-page">
+      <SEO 
+        title="List Your Vehicle for Rent in Sri Lanka | Rentify"
+        description="Start earning by listing your car, SUV, van or bike on Rentify.lk. Reach renters across Sri Lanka. Free listing, verified renters, full control."
+        keywords="list vehicle for rent, rent out my car Sri Lanka, earn from car rental Sri Lanka"
+        canonical="/list-vehicle"
+      />
       <section className="static-hero">
         <div className="container" style={{ position: 'relative' }}>
-          <h1>List Your Vehicle</h1>
+          <h1>List Your Vehicle for Rent in Sri Lanka</h1>
           <p>Start earning by sharing your vehicle with renters</p>
         </div>
       </section>

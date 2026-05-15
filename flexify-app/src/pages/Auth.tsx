@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Check, X, Mail } from 'lucide-react';
 import './Auth.css';
 import RentifyLogo from '../components/RentifyLogo';
+import SEO from '../components/SEO';
 
 export default function Auth() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -198,6 +199,11 @@ export default function Auth() {
 
   return (
     <div className="auth-page">
+      <SEO 
+        title="Sign In or Create Account — Rentify Sri Lanka"
+        description="Join Rentify to rent vehicles or list your car for rent in Sri Lanka. Quick sign up with email or Google."
+        canonical="/auth"
+      />
       <div className="auth-bg">
         <div className="auth-bg-gradient" />
         <div className="auth-bg-pattern" />

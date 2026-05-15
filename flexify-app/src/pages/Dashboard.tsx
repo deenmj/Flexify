@@ -15,6 +15,7 @@ import { notification } from 'antd';
 const { RangePicker } = DatePicker;
 import { useSocket } from '../context/SocketContext';
 import { useIsMobile } from '../hooks/useIsMobile';
+import SEO from '../components/SEO';
 import './Dashboard.css';
 
 dayjs.extend(isBetween);
@@ -369,7 +370,11 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-page page-wrapper" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
-
+      <SEO 
+        title="My Dashboard — Manage Vehicles & Bookings | Rentify"
+        description="Manage your vehicle listings, bookings, and earnings on Rentify.lk."
+        noindex={true}
+      />
 
       <div className="container" style={{ paddingTop: '2rem', marginBottom: '3rem' }}>
 

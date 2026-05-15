@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 import './StaticPages.css';
 
 const faqs = [
@@ -18,6 +20,11 @@ export default function FAQ() {
 
   return (
     <div className="static-page">
+      <SEO 
+        title="FAQ — Frequently Asked Questions | Rentify Sri Lanka"
+        description="Find answers to common questions about renting vehicles, listing your car, payments, and more on Rentify.lk."
+        canonical="/faq"
+      />
       <section className="static-hero">
         <div className="container" style={{ textAlign: 'left' }}>
           <Link to="/" className="premium-back-btn" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>

@@ -7,6 +7,7 @@ import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type Book
 import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
+import SEO from '../components/SEO';
 import './VehicleDetail.css';
 import { useRef } from 'react';
 
@@ -463,6 +464,37 @@ export default function VehicleDetail() {
 
   return (
     <div className="vehicle-detail-page">
+      <SEO 
+        title={`${vehicle.title} — Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district} | Rentify`}
+        description={`Rent ${vehicle.make} ${vehicle.model} (${vehicle.year}) in ${vehicle.city}, ${vehicle.district} from LKR ${vehicle.pricePerDay}/day. ${vehicle.transmission}, ${vehicle.seats} seats. Book on Rentify.lk!`}
+        ogImage={getImageUrl(displayImages[0])}
+        canonical={`/vehicles/${vehicle._id}`}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": vehicle.title,
+          "description": vehicle.description || `Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district}.`,
+          "image": displayImages.map(img => getImageUrl(img)),
+          "brand": {
+            "@type": "Brand",
+            "name": vehicle.make
+          },
+          "offers": {
+            "@type": "Offer",
+            "priceCurrency": "LKR",
+            "price": vehicle.pricePerDay,
+            "availability": "https://schema.org/InStock",
+            "url": `https://rentify.lk/vehicles/${vehicle._id}`
+          },
+          ...(vehicle.reviewCount ? {
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": vehicle.averageRating,
+              "reviewCount": vehicle.reviewCount
+            }
+          } : {})
+        }}
+      />
       <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
         
         <Row gutter={[24, 24]}>

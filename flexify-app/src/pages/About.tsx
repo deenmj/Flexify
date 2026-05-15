@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Award, TrendingUp, Target, Zap, Clock } from 'lucide-react';
 import { vehicleApi, type PublicStats } from '../api';
+import SEO from '../components/SEO';
 import './StaticPages.css';
 
 export default function About() {
@@ -12,6 +13,11 @@ export default function About() {
 
   return (
     <div className="static-page">
+      <SEO 
+        title="About Rentify — Vehicle Rental in Sri Lanka"
+        description="Rentify is Sri Lanka's leading peer-to-peer vehicle sharing platform. Verified owners, secure bookings, and vehicles across all 25 districts."
+        canonical="/about"
+      />
       {/* Hero Section */}
       <section className="static-hero" style={{ padding: '6rem 2rem 4rem' }}>
         <div className="container" style={{ textAlign: 'center', maxWidth: '800px' }}>

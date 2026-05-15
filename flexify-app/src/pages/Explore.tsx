@@ -7,6 +7,7 @@ import { Search, MapPin, Verified, SlidersHorizontal, Star, Locate, ChevronDown,
 import { vehicleApi, type Vehicle, getImageUrl, getOptimizedImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
+import SEO from '../components/SEO';
 import './Explore.css';
 
 const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
@@ -230,11 +231,17 @@ export default function Explore() {
 
   return (
     <div className="explore-page">
+      <SEO 
+        title={filters.vehicleType ? `Rent ${filters.vehicleType}s in Sri Lanka | Rentify` : "Explore Vehicles for Rent in Sri Lanka | Rentify"}
+        description="Browse vehicles available for rent across Sri Lanka. Filter by type, location, price & availability. Find your perfect ride today!"
+        keywords="explore vehicles Sri Lanka, car rental near me, rent bike Kandy, vehicle hire Sri Lanka, rent a car Sri Lanka"
+        canonical="/explore"
+      />
       {/* Search Header */}
       <section className="explore-header section-padding">
         <div className="container" style={{ position: 'relative' }}>
           <div className="explore-title-container">
-            <h1 className="explore-title">Explore Vehicles</h1>
+            <h1 className="explore-title">Explore Vehicles for Rent in Sri Lanka</h1>
             <Link to="/list-vehicle" className="explore-list-btn">
               <Plus size={18} /> <span>List Vehicle</span>
             </Link>

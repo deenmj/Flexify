@@ -7,6 +7,7 @@ import { ownerApi, bankDetailsApi, type BankDetailsData } from '../api';
 import './SubscriptionManagement.css';
 import { notification, message, Button, Tooltip, Upload } from 'antd';
 import { CopyOutlined, UploadOutlined, FileImageOutlined } from '@ant-design/icons';
+import SEO from '../components/SEO';
 
 const PLANS = [
   {
@@ -226,6 +227,11 @@ const SubscriptionManagement: React.FC = () => {
 
   return (
     <div className="subscription-container">
+      <SEO 
+        title="Subscription Plans — Rentify Vehicle Owner"
+        description="Upgrade your Rentify vehicle owner account to list more vehicles and get priority support."
+        noindex={true}
+      />
       <div className="subscription-header">
         <div className="sub-header-icon"><Sparkles size={28} /></div>
         <h1>Pricing Plans</h1>

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Modal, message, Spin } from 'antd';
 import { useAuth } from '../context/AuthContext';
 import { settingsApi } from '../api';
+import SEO from '../components/SEO';
 import './StaticPages.css';
 
 export default function Contact() {
@@ -64,6 +65,11 @@ export default function Contact() {
 
   return (
     <div className="static-page">
+      <SEO 
+        title="Contact Rentify Support — Sri Lanka"
+        description="Get in touch with Rentify support. We're here to help with vehicle rentals, bookings, and account issues. Based in Akurana, Kandy, Sri Lanka."
+        canonical="/contact"
+      />
       <section className="static-hero section-padding">
         <div className="container" style={{ textAlign: 'left' }}>
           <Link to="/" className="premium-back-btn" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>

@@ -5,6 +5,7 @@ import { Row, Col } from 'antd';
 import { vehicleApi, type Vehicle, type User, type PublicStats, getImageUrl, getOptimizedImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
+import SEO from '../components/SEO';
 import './Home.css';
 
 export default function Home() {
@@ -50,6 +51,23 @@ export default function Home() {
 
   return (
     <div className="home-page">
+      <SEO 
+        title="Rentify — #1 Vehicle Rental Platform in Sri Lanka | Cars, Bikes & More"
+        description="Rent cars, SUVs, bikes & vans across Sri Lanka. Trusted peer-to-peer vehicle rental with verified owners. Island-wide service from Colombo to Kandy, Galle and beyond. Book now!"
+        keywords="vehicle rent Sri Lanka, car rental Colombo, rent a car Kandy, bike rent Galle, rentify lk, island wide vehicle rental, self drive Sri Lanka"
+        canonical="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Rentify Sri Lanka",
+          "url": "https://rentify.lk",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://rentify.lk/explore?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }}
+      />
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-bg">
