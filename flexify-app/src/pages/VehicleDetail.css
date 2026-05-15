@@ -398,56 +398,56 @@
   padding: 8px;
 }
 
-/* ===== Availability Calendar Refinement (Universal Text Badges) ===== */
-.avail-status-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* ===== Availability Calendar Refinement (Colored Numbers) ===== */
+.ant-picker-calendar .ant-picker-cell {
+  padding: 2px !important;
+}
+
+.calendar-custom-cell {
   width: 100%;
-  margin-top: 2px;
-}
-
-.status-indicator {
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  line-height: 1.2;
+  border-radius: 8px;
   transition: all 0.2s ease;
-  width: auto;
-  height: auto;
+  cursor: pointer;
+  margin: 0 auto;
 }
 
-.status-indicator.confirmed {
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fca5a5;
+.cell-date-num {
+  font-weight: 700;
+  font-size: 1rem;
 }
 
-.status-indicator.pending {
-  background: #fef3c7;
-  color: #d97706;
-  border: 1px solid #fcd34d;
-}
-
-.status-indicator.available {
+.cell-available {
   background: #f0fdf4;
   color: #16a34a;
   border: 1px solid #bbf7d0;
 }
 
-.status-indicator.blackout {
+.cell-confirmed {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.cell-pending {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fcd34d;
+}
+
+.cell-blackout {
   background: #f3f4f6;
   color: #4b5563;
   border: 1px solid #d1d5db;
 }
 
-/* Ensure text is always visible */
-.status-text {
-  display: inline-block !important;
+.ant-picker-cell-selected .calendar-custom-cell {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-width: 2px;
 }
 
 /* Standardized Legend */

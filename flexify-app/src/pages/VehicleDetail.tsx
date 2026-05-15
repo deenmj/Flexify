@@ -191,58 +191,32 @@ export default function VehicleDetail() {
   };
 
   // Calendar cell renderer for the availability calendar
-  const dateCellRender = useCallback((date: Dayjs) => {
+  const fullCellRender = useCallback((date: Dayjs) => {
     const confirmed = isDateBooked(date, 'CONFIRMED');
     const pending = isDateBooked(date, 'PENDING');
     const blackedOut = isDateBlackedOut(date);
-
+    
+    let status = 'available';
+    let tooltip = 'Available';
+    
     if (confirmed) {
-      return (
-        <Tooltip title="Booked (Confirmed)">
-          <div className="avail-status-container">
-            <div className="status-indicator confirmed">
-              <span className="status-text">Booked</span>
-            </div>
-          </div>
-        </Tooltip>
-      );
-    }
-    if (pending) {
-      return (
-        <Tooltip title="Booking Pending">
-          <div className="avail-status-container">
-            <div className="status-indicator pending">
-              <span className="status-text">Pending</span>
-            </div>
-          </div>
-        </Tooltip>
-      );
-    }
-    if (blackedOut) {
-      return (
-        <Tooltip title="Owner Unavailable / Blackout">
-          <div className="avail-status-container">
-            <div className="status-indicator blackout">
-              <span className="status-text">Unavailable</span>
-            </div>
-          </div>
-        </Tooltip>
-      );
+      status = 'confirmed';
+      tooltip = 'Booked (Confirmed)';
+    } else if (pending) {
+      status = 'pending';
+      tooltip = 'Booking Pending';
+    } else if (blackedOut) {
+      status = 'blackout';
+      tooltip = 'Owner Unavailable';
     }
 
-    // NEW: Show 'Available' badge if the date is in the future and not blocked
-    // only if it's not in the past (to keep it clean)
-    if (date.isSame(dayjs(), 'day') || date.isAfter(dayjs(), 'day')) {
-      return (
-        <div className="avail-status-container">
-          <div className="status-indicator available">
-            <span className="status-text">Available</span>
-          </div>
+    return (
+      <Tooltip title={tooltip}>
+        <div className={`calendar-custom-cell cell-${status}`}>
+          <span className="cell-date-num">{date.date()}</span>
         </div>
-      );
-    }
-
-    return null;
+      </Tooltip>
+    );
   }, [isDateBooked, isDateBlackedOut]);
 
   const handleBookNow = async () => {
@@ -763,7 +737,7 @@ export default function VehicleDetail() {
                 <Col xs={24} md={18}>
                   <Calendar 
                     fullscreen={false} 
-                    cellRender={(date) => dateCellRender(date as Dayjs)} 
+                    fullCellRender={(date) => fullCellRender(date as Dayjs)} 
                     headerRender={({ value, type, onChange, onTypeChange }) => {
                       return (
                         <div style={{ padding: '8px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
