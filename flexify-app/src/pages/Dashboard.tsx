@@ -376,7 +376,7 @@ export default function Dashboard() {
         noindex={true}
       />
 
-      <div className="container" style={{ paddingTop: '2rem', marginBottom: '3rem' }}>
+      <div className="container" style={{ paddingTop: isMobile ? '1rem' : '2rem', marginBottom: isMobile ? '1.5rem' : '3rem' }}>
 
 
 
@@ -475,14 +475,14 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="dash-vehicle-card-body">
-                      <div style={{ textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '4px' }}>
+                      <div style={{ textTransform: 'uppercase', fontSize: isMobile ? '0.575rem' : '0.7rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '2px', letterSpacing: '0.04em' }}>
                         {v.serviceType?.[0] || 'Vehicle'}
                       </div>
                       <h4 className="dash-vehicle-card-title">{v.title}</h4>
                       <div className="dash-vehicle-card-meta">{v.make} {v.model}</div>
                       
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                        <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
+                        <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: isMobile ? '0.6rem' : '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
                       </div>
                     </div>
                   </div>

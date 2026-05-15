@@ -1,5 +1,6 @@
 .auth-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -220,44 +221,188 @@
   animation: spin 0.6s linear infinite;
 }
 
+/* ===== MOBILE: Compact Auth to fit within viewport ===== */
 @media (max-width: 480px) {
-  .auth-page { padding: 0.75rem; }
-  .auth-card { 
-    padding: 1.75rem 1.25rem;
-    border-radius: 20px;
+  .auth-page {
+    padding: 0.5rem;
+    min-height: 100dvh;
+    align-items: flex-start;
+    padding-top: 1.5rem;
   }
-  .auth-logo { font-size: 1.75rem; }
-  .auth-tagline { font-size: 0.875rem; line-height: 1.5; }
   .auth-container { max-width: 100%; }
-  .auth-form { gap: 1rem; }
-  .auth-tab {
-    padding: 0.75rem;
-    font-size: 0.875rem;
-    min-height: 44px;
-  }
+
   .auth-back-btn {
+    margin-bottom: 0.5rem;
+    min-height: 36px;
+    font-size: 0.75rem;
+    padding: 0.25rem 0;
+  }
+
+  .auth-card {
+    padding: 1.25rem 1rem;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Compact header */
+  .auth-header {
+    margin-bottom: 0.75rem;
+  }
+  .auth-logo {
+    font-size: 1.5rem;
+    margin-bottom: 0.2rem;
+  }
+  .auth-logo img, .auth-logo svg {
+    height: 28px !important;
+  }
+  .auth-tagline {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-tertiary);
+  }
+
+  /* Compact tabs */
+  .auth-tabs {
+    margin-bottom: 0.75rem;
+    padding: 3px;
+  }
+  .auth-tab {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    min-height: 38px;
+    font-weight: 700;
+  }
+
+  /* Compact form */
+  .auth-form {
+    gap: 0.625rem;
+  }
+  .auth-form .input-group {
+    gap: 2px;
+  }
+  .auth-form .input-group label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 1px;
+  }
+  .auth-form .input-field {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    min-height: 42px;
+  }
+
+  /* Password requirements compact */
+  .password-requirements {
+    padding: 0.5rem 0.625rem !important;
+    margin-top: -0.25rem !important;
+  }
+  .password-requirements p {
+    font-size: 0.65rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  .password-requirements > div {
+    gap: 0.25rem !important;
+  }
+  .password-requirements > div > div {
+    font-size: 0.7rem !important;
+    gap: 4px !important;
+  }
+
+  .forgot-link {
+    font-size: 0.75rem;
+    margin-top: -0.25rem;
+  }
+
+  .auth-submit {
+    margin-top: 0.125rem;
+  }
+  .auth-submit.btn-lg,
+  .auth-form .btn-lg {
     min-height: 44px;
-    font-size: 0.8125rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.85rem;
   }
-  .google-btn {
-    min-height: 48px;
-    font-size: 0.875rem;
+
+  .auth-legal-notice {
+    margin-top: 0.5rem;
+    font-size: 0.65rem;
+    line-height: 1.4;
   }
-  .auth-message {
-    font-size: 0.8125rem;
-    padding: 0.875rem 1rem;
-  }
+
+  /* Compact divider */
   .auth-divider {
-    margin: 1.25rem 0;
+    margin: 0.625rem 0;
+    font-size: 0.7rem;
+    gap: 0.5rem;
   }
+
+  /* Compact Google button */
+  .google-btn {
+    min-height: 42px;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    gap: 0.5rem;
+    border-radius: 10px;
+  }
+  .google-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .auth-message {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+  }
+
   .password-toggle {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 40px;
+    min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     right: 0;
-    padding: 0.5rem;
+    padding: 0.375rem;
+  }
+}
+
+/* Smaller phones (iPhone SE, etc.) — extra compact */
+@media (max-width: 375px) {
+  .auth-page {
+    padding: 0.375rem;
+    padding-top: 0.75rem;
+  }
+  .auth-card {
+    padding: 1rem 0.875rem;
+  }
+  .auth-header {
+    margin-bottom: 0.5rem;
+  }
+  .auth-logo {
+    font-size: 1.35rem;
+  }
+  .auth-tagline {
+    font-size: 0.7rem;
+  }
+  .auth-form {
+    gap: 0.5rem;
+  }
+  .auth-form .input-field {
+    padding: 0.45rem 0.625rem;
+    min-height: 38px;
+    font-size: 0.8rem;
+  }
+  .auth-divider {
+    margin: 0.5rem 0;
+  }
+  .google-btn {
+    min-height: 38px;
+    font-size: 0.75rem;
+  }
+  .auth-back-btn {
+    margin-bottom: 0.35rem;
   }
 }
 
