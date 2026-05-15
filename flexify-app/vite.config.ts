@@ -18,6 +18,18 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 3000,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks — split large libraries into separate cached files
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-antd': ['antd'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-maps': ['leaflet', 'react-leaflet'],
+          'vendor-utils': ['dayjs', 'socket.io-client', 'lucide-react'],
+        },
+      },
+    },
   },
 })
