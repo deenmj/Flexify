@@ -8,6 +8,7 @@ import { vehicleApi, type Vehicle, getImageUrl, getOptimizedImageUrl, getVehicle
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
+import VehicleCard from '../components/VehicleCard';
 import './Explore.css';
 
 const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
@@ -526,7 +527,7 @@ export default function Explore() {
             <Row gutter={[16, 16]}>
               {vehicles.map((vehicle) => (
                 <Col xs={12} sm={12} md={8} lg={6} key={vehicle._id}>
-                  <ExploreVehicleCard vehicle={vehicle} />
+                  <VehicleCard vehicle={vehicle} />
                 </Col>
               ))}
             </Row>
@@ -554,57 +555,5 @@ export default function Explore() {
         </div>
       </section>
     </div>
-  );
-}
-
-function ExploreVehicleCard({ vehicle }: { vehicle: Vehicle }) {
-  const ownerData = typeof vehicle.owner === 'object' ? vehicle.owner : null;
-  return (
-    <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="explore-vehicle-card-link">
-      <div className="explore-vehicle-card card" style={{ cursor: 'pointer', height: '100%', transition: 'all 0.3s ease' }}>
-        <div className="explore-vehicle-img-wrap">
-          <img
-            src={getOptimizedImageUrl(vehicle.photos?.[0], 400, 300)}
-            alt={vehicle.title}
-            loading="lazy"
-            className="explore-vehicle-img"
-            onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'; }}
-          />
-          <div className="explore-vehicle-badges">
-            {vehicle.transmission && <span className="badge badge-primary">{vehicle.transmission}</span>}
-            {ownerData?.ownerType === 'VERIFIED' && <span className="badge badge-success"><Verified size={12} /> Verified</span>}
-            {ownerData?.subscription?.tier === 'PRO' && <span className="badge badge-premium" style={{ background: '#6610f2', color: 'white' }}><Star size={12} fill="white" /> Pro</span>}
-            {ownerData?.subscription?.tier === 'STANDARD' && <span className="badge" style={{ background: '#f59e0b', color: 'white' }}>Standard</span>}
-          </div>
-        </div>
-        <div className="explore-vehicle-body">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <h3 className="explore-vehicle-title">{vehicle.title}</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600, color: '#f59e0b' }}>
-              <Star size={14} fill="currentColor" /> {vehicle.averageRating || 'New'} <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>({vehicle.reviewCount || 0})</span>
-            </div>
-          </div>
-          <p className="explore-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
-          <div className="explore-vehicle-specs">
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={12} /> {vehicle.seats} seats</span>
-            {vehicle.engineCapacity && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Zap size={12} /> {vehicle.engineCapacity}</span>}
-            {vehicle.kmLimitPerDay && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Gauge size={12} /> {vehicle.kmLimitPerDay}km/day</span>}
-            {!vehicle.kmLimitPerDay && <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Gauge size={12} /> Unlimited km</span>}
-            {vehicle.driverOption === 'both' && <span style={{ color: '#8b5cf6' }}>Self / With Driver</span>}
-            {vehicle.driverOption === 'with-driver' && <span style={{ color: '#8b5cf6' }}>With Driver</span>}
-            {(!vehicle.driverOption || vehicle.driverOption === 'self-drive') && <span>Self Drive</span>}
-            {(vehicle.city || vehicle.district) && (
-              <span><MapPin size={12} /> {vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
-            )}
-          </div>
-          <div className="explore-vehicle-footer" style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
-            <div className="explore-vehicle-price">
-              <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
-              <span className="price-unit">/day</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Link>
   );
 }

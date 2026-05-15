@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { Spin } from 'antd';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import GlobalFeedback from './components/GlobalFeedback';
+import BottomNav from './components/BottomNav';
 
 // Eagerly loaded (critical path — needed immediately)
 import NotFound from './pages/NotFound';
@@ -42,6 +43,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       <Navbar />
       <main className="main-content">{children}</main>
       <Footer />
+      <BottomNav />
       <GlobalFeedback />
     </div>
   );
@@ -52,6 +54,7 @@ function NoFooterLayout({ children }: { children: React.ReactNode }) {
     <div className="page-wrapper">
       <Navbar />
       <main className="main-content">{children}</main>
+      <BottomNav />
       <GlobalFeedback />
     </div>
   );
