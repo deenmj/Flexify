@@ -164,8 +164,15 @@ input,
 textarea,
 select {
   font-family: inherit;
-  font-size: inherit;
+  font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
   outline: none;
+}
+
+/* Specific fix to ensure iOS doesn't zoom even if someone accidentally overrides the font size elsewhere */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
 }
 
 /* ============================================

@@ -143,7 +143,7 @@
   border: 1.5px solid #e2e8f0 !important;
   border-radius: 14px !important;
   font-weight: 500 !important;
-  font-size: 0.95rem !important;
+  font-size: 16px !important; /* Must be 16px to prevent iOS auto-zoom */
   background-color: #fff !important;
   color: #1e293b !important;
   display: flex;
@@ -189,7 +189,7 @@ textarea.input-field {
   background-color: #fff !important;
   align-items: center !important;
   font-weight: 500 !important;
-  font-size: 0.95rem !important;
+  font-size: 16px !important; /* Must be 16px to prevent iOS auto-zoom */
   box-shadow: none !important;
   transition: all var(--transition-base);
 }
@@ -691,7 +691,7 @@ textarea.input-field {
   .antd-select-full .ant-select-selector {
     height: 40px !important;
     padding: 0 0.75rem !important;
-    font-size: 0.85rem !important;
+    font-size: 16px !important; /* Must remain 16px on mobile to prevent iOS auto-zoom */
     border-radius: 10px !important;
   }
   
@@ -752,7 +752,7 @@ textarea.input-field {
   .input-field {
     height: 44px;
     padding: 0 0.75rem;
-    font-size: 0.9rem;
+    font-size: 16px !important;
   }
   textarea.input-field {
     padding: 0.75rem;
