@@ -47,17 +47,17 @@ export default function ResponsiveTable({ columns, dataSource, rowKey, paginatio
           });
 
           return (
-            <Card key={key} size="small" style={{ marginBottom: 16, borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.04)', width: '100%', border: '1px solid #e2e8f0', overflow: 'hidden' }} bodyStyle={{ padding: 0 }}>
+            <Card key={key} size="small" style={{ marginBottom: 14, borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.04)', width: '100%', border: '1px solid #e2e8f0', overflow: 'hidden' }} bodyStyle={{ padding: 0 }}>
               
               {firstCol && (
-                <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center' }}>
-                  <div style={{ flex: 1, wordBreak: 'break-word', display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                <div style={{ padding: '14px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center' }}>
+                  <div style={{ flex: 1, wordBreak: 'break-word', display: 'flex', alignItems: 'center', fontWeight: 'bold', fontSize: '14px' }}>
                     {firstCol.render ? firstCol.render(firstCol.dataIndex ? record[firstCol.dataIndex] : undefined, record, index) : record[firstCol.dataIndex]}
                   </div>
                 </div>
               )}
 
-              <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {middleCols.map((col: any, idx: number) => {
                   const val = col.render ? col.render(col.dataIndex ? record[col.dataIndex] : undefined, record, index) : record[col.dataIndex];
                   return (
@@ -75,7 +75,7 @@ export default function ResponsiveTable({ columns, dataSource, rowKey, paginatio
               </div>
 
               {actionCol && (
-                <div className="mobile-action-bar" style={{ padding: '12px 16px', background: 'white', borderTop: '1px dashed #e2e8f0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <div className="mobile-action-bar" style={{ padding: '14px 16px', background: 'white', borderTop: '1px dashed #e2e8f0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                    {actionCol.render ? actionCol.render(actionCol.dataIndex ? record[actionCol.dataIndex] : undefined, record, index) : record[actionCol.dataIndex]}
                 </div>
               )}

@@ -285,82 +285,137 @@
 }
 
 @media (max-width: 768px) {
+  /* Vehicle Cards */
   .dash-vehicle-card-img {
-    height: 120px;
+    height: 130px;
   }
   .dash-vehicle-card-body {
-    padding: 0.75rem !important;
+    padding: 0.875rem !important;
   }
   .dash-vehicle-card-title {
     font-size: 0.95rem !important;
   }
   .dash-vehicle-card-price {
-    font-size: 0.9rem !important;
+    font-size: 0.95rem !important;
   }
   .dash-vehicle-card-actions {
     margin-top: 0.75rem !important;
     padding-top: 0.75rem !important;
-    gap: 6px !important;
+    gap: 8px !important;
   }
   .dash-vehicle-card-actions .btn {
     font-size: 0.75rem !important;
-    padding: 0.4rem !important;
+    padding: 0.5rem !important;
+    min-height: 38px !important;
   }
   .dash-vehicle-card-meta {
-    font-size: 0.75rem !important;
+    font-size: 0.8rem !important;
     margin-bottom: 0.5rem !important;
   }
-}
 
-@media (max-width: 768px) {
+  /* Header */
   .dashboard-header {
     padding-top: 1.25rem !important;
     padding-bottom: 1.75rem !important;
   }
-  
   .dashboard-title {
     font-size: 1.25rem;
   }
-  
   .dashboard-subtitle {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
   }
-  
+
+  /* Stats */
   .dashboard-stats {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
-  
   .stat-card {
-    padding: 0.75rem;
+    padding: 0.875rem;
     gap: 0.75rem !important;
   }
-  
   .stat-icon-wrap {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
-  
   .stat-val {
-    font-size: 1.1rem;
+    font-size: 1.125rem;
   }
-  
   .stat-lbl {
-    font-size: 0.65rem;
+    font-size: 0.6875rem;
   }
 
+  /* Navigation Tabs */
   .dashboard-nav {
     width: 100%;
     overflow-x: auto;
     white-space: nowrap;
     padding: 3px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
   }
-  
+  .dashboard-nav::-webkit-scrollbar {
+    display: none;
+  }
   .nav-item {
     flex: 1;
-    padding: 6px 10px;
-    font-size: 0.75rem;
+    padding: 10px 12px;
+    font-size: 0.8125rem;
     justify-content: center;
+    min-height: 44px;
+    gap: 5px;
+  }
+
+  /* Booking Cards Mobile */
+  .booking-cards-container {
+    padding: 0.875rem !important;
+    gap: 0.875rem !important;
+  }
+  .booking-card {
+    border-radius: 16px !important;
+  }
+  .booking-card-content {
+    padding: 1rem !important;
+  }
+  .booking-card-info h4 {
+    font-size: 1rem !important;
+  }
+  .booking-card-meta {
+    gap: 8px !important;
+    padding: 0.75rem !important;
+    font-size: 0.8125rem !important;
+  }
+  .booking-card-footer {
+    padding-top: 0.75rem !important;
+    gap: 0.75rem !important;
+  }
+  .booking-card-actions {
+    flex-direction: column;
+  }
+  .booking-card-actions .btn {
+    font-size: 0.8125rem !important;
+    padding: 0.625rem 0.75rem !important;
+    min-height: 42px !important;
+    width: 100%;
+    justify-content: center;
+  }
+  .booking-card-img {
+    height: 130px !important;
+  }
+
+  /* Dashboard Containers */
+  .dashboard-box {
+    border-radius: 16px;
+    margin-top: 0.75rem;
+  }
+  .dashboard-box-header {
+    padding: 1rem 1.125rem 0;
+  }
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+    padding: 0.875rem;
   }
 }
 

@@ -221,11 +221,44 @@
 }
 
 @media (max-width: 480px) {
-  .auth-page { padding: 1rem; }
-  .auth-card { padding: 1.5rem 1.25rem; }
+  .auth-page { padding: 0.75rem; }
+  .auth-card { 
+    padding: 1.75rem 1.25rem;
+    border-radius: 20px;
+  }
   .auth-logo { font-size: 1.75rem; }
-  .auth-tagline { font-size: 0.85rem; }
+  .auth-tagline { font-size: 0.875rem; line-height: 1.5; }
   .auth-container { max-width: 100%; }
+  .auth-form { gap: 1rem; }
+  .auth-tab {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    min-height: 44px;
+  }
+  .auth-back-btn {
+    min-height: 44px;
+    font-size: 0.8125rem;
+  }
+  .google-btn {
+    min-height: 48px;
+    font-size: 0.875rem;
+  }
+  .auth-message {
+    font-size: 0.8125rem;
+    padding: 0.875rem 1rem;
+  }
+  .auth-divider {
+    margin: 1.25rem 0;
+  }
+  .password-toggle {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    right: 0;
+    padding: 0.5rem;
+  }
 }
 
 @keyframes spin {

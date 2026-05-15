@@ -558,11 +558,11 @@ export default function Dashboard() {
 
                   return (
                     <div key={b._id} className="booking-card" id={`booking-${b._id}`} style={{ padding: '0', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                      <div className="booking-card-content" style={{ padding: '24px' }}>
+                      <div className="booking-card-content" style={{ padding: isMobile ? '16px' : '24px' }}>
                         <div className="booking-card-info">
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px', marginBottom: '16px' }}>
-                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                              <div style={{ width: '60px', height: '60px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', gap: isMobile ? '12px' : '16px', alignItems: 'center' }}>
+                              <div style={{ width: isMobile ? '52px' : '60px', height: isMobile ? '52px' : '60px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, border: '1px solid #e2e8f0' }}>
                                 {vehicle && (vehicle as Vehicle).photos?.[0] ? (
                                   <img src={getImageUrl((vehicle as Vehicle).photos[0])} alt={(vehicle as Vehicle).title || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
@@ -572,7 +572,7 @@ export default function Dashboard() {
                                 )}
                               </div>
                               <div>
-                                <h4 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a' }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle Details'}</h4>
+                                <h4 style={{ margin: 0, fontSize: isMobile ? '1rem' : '1.15rem', color: '#0f172a', lineHeight: 1.3 }}>{vehicle ? (vehicle as Vehicle).title : 'Vehicle Details'}</h4>
                                 <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                   Ref: #{b._id.slice(-6).toUpperCase()}
                                 </div>
@@ -581,7 +581,7 @@ export default function Dashboard() {
                             {bookingStatusBadge(b.status, b.startDate)}
                           </div>
                           
-                          <div className="booking-card-meta" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                          <div className="booking-card-meta" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '10px' : '12px', background: '#f8fafc', padding: isMobile ? '12px' : '16px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                             <div>
                               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Trip Dates</div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: '#334155', fontWeight: 600 }}>
@@ -630,12 +630,12 @@ export default function Dashboard() {
                                 )}
                               </div>
                             )}
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: b.status === 'CONFIRMED' && isIamRenterOfThis && owner ? '1rem' : '0' }}>
-                              <button onClick={() => handleViewDetail(b)} className="btn btn-sm" style={{ flex: 1, minWidth: 'fit-content', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', gap: '8px', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', marginTop: b.status === 'CONFIRMED' && isIamRenterOfThis && owner ? '1rem' : '0' }}>
+                              <button onClick={() => handleViewDetail(b)} className="btn btn-sm" style={{ flex: 1, minWidth: 'fit-content', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: isMobile ? '42px' : undefined, fontSize: isMobile ? '0.8125rem' : undefined }}>
                                 <Info size={14} style={{ marginRight: '6px' }} /> Full Details
                               </button>
                               {vehicle && (
-                                <Link to={`/vehicles/${getVehicleSlug(vehicle as Vehicle)}`} className="btn btn-sm" style={{ flex: 1, minWidth: 'fit-content', textAlign: 'center', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Link to={`/vehicles/${getVehicleSlug(vehicle as Vehicle)}`} className="btn btn-sm" style={{ flex: 1, minWidth: 'fit-content', textAlign: 'center', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: isMobile ? '42px' : undefined, fontSize: isMobile ? '0.8125rem' : undefined }}>
                                   <Eye size={14} style={{ marginRight: '6px' }} /> View Page
                                 </Link>
                               )}
