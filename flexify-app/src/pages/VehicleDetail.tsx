@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
 import './VehicleDetail.css';
-import { useRef } from 'react';
+
 
 dayjs.extend(isBetween);
 const { RangePicker } = DatePicker;

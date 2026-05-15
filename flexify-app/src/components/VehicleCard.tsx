@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { vehicleApi, type Vehicle, getOptimizedImageUrl, getVehicleSlug } from '../api';
+import { type Vehicle, getOptimizedImageUrl, getVehicleSlug } from '../api';
 import { Users, Star, Zap, Gauge, MapPin, Verified } from 'lucide-react';
 import './VehicleCard.css';
 
