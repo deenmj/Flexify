@@ -492,8 +492,30 @@ export const getMyBookings = async (req, res) => {
       .populate("user", "-password")
       .sort({ createdAt: -1 });
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let needsUpdate = false;
+    const processedBookings = bookings.map(b => {
+      if (b.status === "PENDING" && new Date(b.startDate) < today) {
+        b.status = "REJECTED";
+        b.cancellationReason = "Booking automatically expired as the owner did not respond before the start date.";
+        needsUpdate = true;
+      }
+      return b;
+    });
+
+    if (needsUpdate) {
+      // Save updated bookings in the background
+      Promise.all(
+        processedBookings
+          .filter(b => b.isModified && b.isModified()) // Mongoose method to check modifications
+          .map(b => b.save())
+      ).catch(err => console.error("Auto-expire bookings failed:", err.message));
+    }
+
     // Data is sent in full to client. Dashboard UI handles masking based on status.
-    res.json(bookings);
+    res.json(processedBookings);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

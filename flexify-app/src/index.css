@@ -875,7 +875,7 @@ select {
   flex-wrap: wrap;
   justify-content: flex-end;
 }
-.mobile-action-bar .ant-btn {
+.mobile-action-bar .ant-btn.icon-only-btn {
   background: white !important;
   border: 1px solid #e2e8f0 !important;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
@@ -887,12 +887,11 @@ select {
   justify-content: center !important;
   transition: all 0.2s ease;
 }
-.mobile-action-bar .ant-btn:active {
+.mobile-action-bar .ant-btn.icon-only-btn:active {
   transform: scale(0.95);
   background: #f8fafc !important;
 }
-.mobile-action-bar .ant-btn.ant-btn-dangerous,
-.mobile-action-bar .ant-btn-dangerous {
+.mobile-action-bar .ant-btn-dangerous.icon-only-btn {
   background: #fff5f5 !important;
   border-color: #fecaca !important;
   color: #ef4444 !important;

@@ -136,12 +136,22 @@ const SubscriptionManagement: React.FC = () => {
 
     setLoading(true);
     try {
+      let compressedFile = receiptFile;
+      if (receiptFile.type.startsWith('image/')) {
+        const imageCompression = (await import('browser-image-compression')).default;
+        compressedFile = await imageCompression(receiptFile, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1200,
+          useWebWorker: true,
+        });
+      }
+
       const formData = new FormData();
       formData.append('tier', selectedTier.id);
       formData.append('duration', 'MONTHLY');
       formData.append('amount', selectedTier.price.toString());
       formData.append('reference', user?.email || 'Unknown');
-      formData.append('receipt', receiptFile);
+      formData.append('receipt', compressedFile);
 
       const res = await ownerApi.initiateSubscription(formData);
 
