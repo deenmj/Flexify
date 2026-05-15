@@ -186,6 +186,15 @@ select {
   padding: 0 2rem;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1.25rem;
+  }
+  .section-padding {
+    padding: 2.5rem 0;
+  }
+}
+
 .section-padding {
   padding: 4rem 0;
 }
