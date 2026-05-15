@@ -192,6 +192,7 @@ export default function VehicleDetail() {
 
   // Calendar cell renderer for the availability calendar
   const fullCellRender = useCallback((date: Dayjs) => {
+    const isPast = date.isBefore(dayjs(), 'day');
     const confirmed = isDateBooked(date, 'CONFIRMED');
     const pending = isDateBooked(date, 'PENDING');
     const blackedOut = isDateBlackedOut(date);
@@ -199,7 +200,10 @@ export default function VehicleDetail() {
     let status = 'available';
     let tooltip = 'Available';
     
-    if (confirmed) {
+    if (isPast) {
+      status = 'past';
+      tooltip = '';
+    } else if (confirmed) {
       status = 'confirmed';
       tooltip = 'Booked (Confirmed)';
     } else if (pending) {
