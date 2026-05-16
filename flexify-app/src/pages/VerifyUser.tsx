@@ -34,10 +34,10 @@ export default function VerifyUser() {
     if (!file) return;
     
     try {
-      // Compress the image down to 500kb to prevent 40MB form uploads that timeout
+      // Compress the image down to 2MB to ensure quick uploads while maintaining quality
       const options = {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 1200,
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1600,
         useWebWorker: true,
       };
       
@@ -152,11 +152,11 @@ export default function VerifyUser() {
     return null;
   };
 
-  const fileFields: { key: 'nicFront' | 'nicBack' | 'license' | 'selfie'; label: string; desc: string }[] = [
-    { key: 'nicFront', label: 'NIC Front', desc: 'Upload the front side of your National Identity Card' },
-    { key: 'nicBack', label: 'NIC Back', desc: 'Upload the back side of your National Identity Card' },
-    { key: 'license', label: 'Driving License', desc: 'Upload a clear photo of your valid driving license' },
-    { key: 'selfie', label: 'Selfie / Photo', desc: 'Take a clear selfie or upload a recent photo of yourself' },
+  const fileFields: { key: 'nicFront' | 'nicBack' | 'license' | 'selfie'; label: string; desc: string; capture?: 'environment' | 'user' }[] = [
+    { key: 'nicFront', label: 'NIC Front', desc: 'Upload the front side of your National Identity Card', capture: 'environment' },
+    { key: 'nicBack', label: 'NIC Back', desc: 'Upload the back side of your National Identity Card', capture: 'environment' },
+    { key: 'license', label: 'Driving License', desc: 'Upload a clear photo of your valid driving license', capture: 'environment' },
+    { key: 'selfie', label: 'Selfie / Photo', desc: 'Take a clear selfie or upload a recent photo of yourself', capture: 'user' },
   ];
 
   // Only allow form submission if not pending or approved
@@ -225,7 +225,7 @@ export default function VerifyUser() {
                     transition: 'all 0.2s',
                   }}>
                     <label style={{ cursor: 'pointer', display: 'block' }}>
-                      <input type="file" accept="image/*" onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} style={{ display: 'none' }} />
+                      <input type="file" accept="image/*" capture={f.capture} onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} style={{ display: 'none' }} />
                       {previews[f.key] ? (
                         <div style={{ position: 'relative' }}>
                           <img src={previews[f.key]} alt={f.label} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />

@@ -7,6 +7,7 @@ import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, 
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import SEO from '../components/SEO';
+import imageCompression from 'browser-image-compression';
 import './ListVehicle.css';
 
 // Fix Leaflet's default icon path issues with React
@@ -246,9 +247,26 @@ export default function ListVehicle() {
 
 
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setPhotos(Array.from(e.target.files));
+      const files = Array.from(e.target.files);
+      const options = {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+      
+      const compressedFiles = await Promise.all(
+        files.map(async (file) => {
+          try {
+            return await imageCompression(file, options);
+          } catch (err) {
+            console.error('Compression error:', err);
+            return file;
+          }
+        })
+      );
+      setPhotos(prev => [...prev, ...compressedFiles]);
     }
   };
 
