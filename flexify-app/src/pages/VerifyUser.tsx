@@ -28,6 +28,7 @@ export default function VerifyUser() {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('environment');
   const [cameraLoading, setCameraLoading] = useState(false);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -100,7 +101,7 @@ export default function VerifyUser() {
       console.error('Camera access failed:', err);
       
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setError('Camera access denied. Please click the lock icon (🔒) in your browser address bar and set Camera to "Allow", then refresh the page.');
+        setShowPermissionModal(true);
       } else if (err.message === 'BROWSER_UNSUPPORTED' || !window.isSecureContext) {
         setError('In-app camera is not supported on this browser or connection. Please use the "Upload" button instead — it will still let you take a photo using your phone\'s native camera.');
       } else {
@@ -409,45 +410,24 @@ export default function VerifyUser() {
                             >
                               <Upload size={14} /> Upload
                             </label>
-                            {isMobile ? (
-                              <label
-                                htmlFor={`camera-input-${f.key}`}
-                                className="action-btn" 
-                                style={{ 
-                                  cursor: 'pointer',
-                                  background: '#f1f5f9', 
-                                  color: '#475569', 
-                                  padding: '8px 12px', 
-                                  borderRadius: '10px', 
-                                  fontSize: '13px', 
-                                  fontWeight: 600,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '6px'
-                                }}
-                              >
-                                <Camera size={14} /> Camera
-                              </label>
-                            ) : (
-                              <div 
-                                className="action-btn" 
-                                onClick={() => openCamera(f.key)}
-                                style={{ 
-                                  cursor: 'pointer',
-                                  background: '#f1f5f9', 
-                                  color: '#475569', 
-                                  padding: '8px 12px', 
-                                  borderRadius: '10px', 
-                                  fontSize: '13px', 
-                                  fontWeight: 600,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '6px'
-                                }}
-                              >
-                                <Camera size={14} /> Camera
-                              </div>
-                            )}
+                            <div 
+                              className="action-btn" 
+                              onClick={() => openCamera(f.key)}
+                              style={{ 
+                                cursor: 'pointer',
+                                background: '#f1f5f9', 
+                                color: '#475569', 
+                                padding: '8px 12px', 
+                                borderRadius: '10px', 
+                                fontSize: '13px', 
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                            >
+                              <Camera size={14} /> Camera
+                            </div>
                           </div>
                         </div>
                       )}
@@ -636,6 +616,35 @@ export default function VerifyUser() {
             By checking the box and clicking "Submit Verification", you give your <strong>explicit consent</strong> to the collection, processing, and storage of the submitted personal data for the purposes described above.
           </AntText>
         </div>
+      </Modal>
+
+      <Modal
+        title={null}
+        open={showPermissionModal}
+        onCancel={() => setShowPermissionModal(false)}
+        footer={null}
+        centered
+        width={400}
+        bodyStyle={{ padding: '2rem', textAlign: 'center' }}
+      >
+        <div style={{ background: '#fef2f2', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#ef4444' }}>
+          <CameraOff size={32} />
+        </div>
+        <AntTitle level={4}>Camera Access Denied</AntTitle>
+        <Paragraph style={{ color: '#64748b', fontSize: '15px' }}>
+          We need camera access to take photos of your documents. Please enable camera permissions in your device or browser settings.
+        </Paragraph>
+        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', textAlign: 'left', marginBottom: '1.5rem' }}>
+          <div style={{ fontWeight: 600, fontSize: '13px', color: '#334155', marginBottom: '8px' }}>How to enable:</div>
+          <ul style={{ fontSize: '13px', color: '#64748b', margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <li><strong>iOS (Safari):</strong> Settings {'>'} Safari {'>'} Camera {'>'} Allow</li>
+            <li><strong>Android (Chrome):</strong> Site Settings {'>'} Camera {'>'} Allow</li>
+            <li><strong>Desktop:</strong> Click the lock icon (🔒) in the address bar and select "Allow".</li>
+          </ul>
+        </div>
+        <Button type="primary" size="large" block onClick={() => setShowPermissionModal(false)} style={{ borderRadius: '10px', height: '48px', fontWeight: 600 }}>
+          I Understand
+        </Button>
       </Modal>
     </div>
   );
