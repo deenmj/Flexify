@@ -334,27 +334,29 @@ export default function VerifyUser() {
                     background: previews[f.key] ? '#f0f9ff' : '#ffffff',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     position: 'relative',
-                    cursor: 'pointer',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
                   }}>
-                    <label htmlFor={`file-input-${f.key}`} style={{ cursor: 'pointer', display: 'block', height: '100%' }}>
-                      <input 
-                        id={`file-input-${f.key}`}
-                        type="file" 
-                        accept="image/*" 
-                        onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} 
-                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} 
-                      />
-                      <input 
-                        id={`camera-input-${f.key}`}
-                        type="file" 
-                        accept="image/*" 
-                        capture={f.key === 'selfie' ? 'user' : 'environment'}
-                        onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} 
-                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} 
-                      />
+                    {/* Hidden Inputs */}
+                    <input 
+                      id={`file-input-${f.key}`}
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} 
+                      style={{ display: 'none' }} 
+                    />
+                    <input 
+                      id={`camera-input-${f.key}`}
+                      type="file" 
+                      accept="image/*" 
+                      capture={f.key === 'selfie' ? 'user' : 'environment'}
+                      onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} 
+                      style={{ display: 'none' }} 
+                    />
+
+                    {/* Interactive Area */}
+                    <div style={{ width: '100%', height: '100%' }}>
                       {previews[f.key] ? (
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => document.getElementById(`file-input-${f.key}`)?.click()}>
                           <img src={previews[f.key]} alt={f.label} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
                           <div style={{ position: 'absolute', inset: 0, background: 'rgba(24, 144, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }} className="hover-overlay">
                             <div style={{ background: 'white', padding: '8px 16px', borderRadius: '20px', fontWeight: 600, fontSize: '13px', color: '#1890ff' }}>Change Image</div>
@@ -382,24 +384,27 @@ export default function VerifyUser() {
                           <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4', marginBottom: '1.25rem' }}>{f.desc}</div>
                           
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                            <div className="action-btn" style={{ 
-                              background: '#1890ff', 
-                              color: 'white', 
-                              padding: '8px 12px', 
-                              borderRadius: '10px', 
-                              fontSize: '13px', 
-                              fontWeight: 600,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px'
-                            }}>
+                            <div 
+                              className="action-btn" 
+                              onClick={() => document.getElementById(`file-input-${f.key}`)?.click()}
+                              style={{ 
+                                cursor: 'pointer',
+                                background: '#1890ff', 
+                                color: 'white', 
+                                padding: '8px 12px', 
+                                borderRadius: '10px', 
+                                fontSize: '13px', 
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                            >
                               <Upload size={14} /> Upload
                             </div>
                             <div 
                               className="action-btn" 
-                              onClick={(e) => { 
-                                e.preventDefault(); 
-                                e.stopPropagation(); 
+                              onClick={() => { 
                                 if (isMobile) {
                                   document.getElementById(`camera-input-${f.key}`)?.click();
                                 } else {
@@ -407,6 +412,7 @@ export default function VerifyUser() {
                                 }
                               }}
                               style={{ 
+                                cursor: 'pointer',
                                 background: '#f1f5f9', 
                                 color: '#475569', 
                                 padding: '8px 12px', 
@@ -423,7 +429,7 @@ export default function VerifyUser() {
                           </div>
                         </div>
                       )}
-                    </label>
+                    </div>
                   </div>
                 ))}
               </div>
