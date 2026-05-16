@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { userApi } from '../api';
-import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck, FileText } from 'lucide-react';
+import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck, FileText, Camera, RefreshCcw, CameraOff } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Checkbox, Modal, Button, Typography } from 'antd';
 
@@ -21,6 +21,13 @@ export default function VerifyUser() {
   const [error, setError] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+
+  // Camera State
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [cameraActiveField, setCameraActiveField] = useState<'nicFront' | 'nicBack' | 'license' | 'selfie' | null>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('environment');
+  const [cameraLoading, setCameraLoading] = useState(false);
 
   const [form, setForm] = useState({
     fullName: user?.name || '',
@@ -51,6 +58,76 @@ export default function VerifyUser() {
       setFiles((prev) => ({ ...prev, [field]: file }));
       setPreviews((prev) => ({ ...prev, [field]: URL.createObjectURL(file) }));
     }
+  };
+
+  // Camera Logic
+  const openCamera = (field: 'nicFront' | 'nicBack' | 'license' | 'selfie') => {
+    setCameraActiveField(field);
+    setCameraFacing(field === 'selfie' ? 'user' : 'environment');
+    setIsCameraOpen(true);
+    startStream(field === 'selfie' ? 'user' : 'environment');
+  };
+
+  const startStream = async (facing: 'user' | 'environment') => {
+    setCameraLoading(true);
+    try {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: facing,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      });
+      setCameraStream(stream);
+    } catch (err) {
+      console.error('Camera access denied:', err);
+      setError('Camera access denied. Please enable camera permissions in your browser.');
+      setIsCameraOpen(false);
+    } finally {
+      setCameraLoading(false);
+    }
+  };
+
+  const flipCamera = () => {
+    const newFacing = cameraFacing === 'user' ? 'environment' : 'user';
+    setCameraFacing(newFacing);
+    startStream(newFacing);
+  };
+
+  const closeCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+    }
+    setCameraStream(null);
+    setIsCameraOpen(false);
+    setCameraActiveField(null);
+  };
+
+  const capturePhoto = () => {
+    if (!cameraActiveField || !cameraStream) return;
+    
+    const video = document.getElementById('camera-preview') as HTMLVideoElement;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Draw the current frame
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], `${cameraActiveField}.jpg`, { type: 'image/jpeg' });
+        handleFileChange(cameraActiveField, file);
+        closeCamera();
+      }
+    }, 'image/jpeg', 0.95);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -227,8 +304,12 @@ export default function VerifyUser() {
                         color: #1890ff;
                         transform: scale(1.1);
                       }
-                      .upload-box-wrapper:hover .hover-overlay {
-                        opacity: 1;
+                      .action-btn:hover {
+                        transform: scale(1.05);
+                        filter: brightness(1.1);
+                      }
+                      .action-btn:active {
+                        transform: scale(0.95);
                       }
                     `}</style>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1rem' : '1.5rem' }}>
@@ -262,25 +343,54 @@ export default function VerifyUser() {
                           </div>
                         </div>
                       ) : (
-                        <div style={{ padding: '2.5rem 1.5rem', textAlign: 'center', transition: 'all 0.2s' }} className="upload-content">
+                        <div style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
                           <div style={{ 
                             background: '#f1f5f9', 
-                            width: '56px', 
-                            height: '56px', 
+                            width: '52px', 
+                            height: '52px', 
                             borderRadius: '16px', 
                             display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'center', 
                             margin: '0 auto 1rem',
                             color: '#94a3b8',
-                            transition: 'all 0.2s'
                           }} className="icon-container">
-                            <Upload size={28} />
+                            <Upload size={24} />
                           </div>
-                          <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b', marginBottom: '6px' }}>{f.label}</div>
-                          <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5', maxWidth: '200px', margin: '0 auto' }}>{f.desc}</div>
-                          <div style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#1890ff', fontSize: '13px', fontWeight: 600 }}>
-                            Click to Upload
+                          <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b', marginBottom: '4px' }}>{f.label}</div>
+                          <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4', marginBottom: '1.25rem' }}>{f.desc}</div>
+                          
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <div className="action-btn" style={{ 
+                              background: '#1890ff', 
+                              color: 'white', 
+                              padding: '8px 12px', 
+                              borderRadius: '10px', 
+                              fontSize: '13px', 
+                              fontWeight: 600,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}>
+                              <Upload size={14} /> Upload
+                            </div>
+                            <div 
+                              className="action-btn" 
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); openCamera(f.key); }}
+                              style={{ 
+                                background: '#f1f5f9', 
+                                color: '#475569', 
+                                padding: '8px 12px', 
+                                borderRadius: '10px', 
+                                fontSize: '13px', 
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                            >
+                              <Camera size={14} /> Camera
+                            </div>
                           </div>
                         </div>
                       )}
@@ -320,6 +430,63 @@ export default function VerifyUser() {
           </form>
         )}
       </div>
+
+      <Modal
+        title={null}
+        open={isCameraOpen}
+        onCancel={closeCamera}
+        footer={null}
+        width={600}
+        centered
+        bodyStyle={{ padding: 0, overflow: 'hidden', borderRadius: '16px' }}
+      >
+        <div style={{ background: '#000', position: 'relative', aspectRatio: '4/3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {cameraLoading && (
+            <div style={{ position: 'absolute', color: 'white', textAlign: 'center' }}>
+              <RefreshCcw size={32} className="animate-spin" style={{ marginBottom: '12px' }} />
+              <div>Starting Camera...</div>
+            </div>
+          )}
+          
+          <video 
+            id="camera-preview"
+            ref={(el) => { if (el) el.srcObject = cameraStream; }}
+            autoPlay 
+            playsInline 
+            muted
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: cameraFacing === 'user' ? 'scaleX(-1)' : 'none' }}
+          />
+
+          {!cameraLoading && cameraStream && (
+            <div style={{ position: 'absolute', bottom: '24px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'center' }}>
+              <button 
+                onClick={closeCamera}
+                style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', color: 'white', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <ArrowLeft size={20} />
+              </button>
+              
+              <button 
+                onClick={capturePhoto}
+                style={{ background: 'white', width: '72px', height: '72px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '6px solid rgba(255,255,255,0.3)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
+              >
+                <div style={{ background: '#1890ff', width: '56px', height: '56px', borderRadius: '50%' }} />
+              </button>
+              
+              <button 
+                onClick={flipCamera}
+                style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', color: 'white', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <RefreshCcw size={20} />
+              </button>
+            </div>
+          )}
+        </div>
+        <div style={{ padding: '1rem', background: 'white', textAlign: 'center' }}>
+          <AntText strong style={{ fontSize: '16px' }}>Take {fileFields.find(f => f.key === cameraActiveField)?.label}</AntText>
+          <div style={{ color: '#64748b', fontSize: '13px' }}>Ensure the document is clear and well-lit</div>
+        </div>
+      </Modal>
 
       <Modal
         title={null}
