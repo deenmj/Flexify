@@ -70,7 +70,13 @@ export default function VerifyUser() {
 
   const startStream = async (facing: 'user' | 'environment') => {
     setCameraLoading(true);
+    setError(''); // Clear previous errors
+    
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('BROWSER_UNSUPPORTED');
+      }
+
       if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
       }
@@ -83,9 +89,16 @@ export default function VerifyUser() {
         }
       });
       setCameraStream(stream);
-    } catch (err) {
-      console.error('Camera access denied:', err);
-      setError('Camera access denied. Please enable camera permissions in your browser.');
+    } catch (err: any) {
+      console.error('Camera access failed:', err);
+      
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setError('Camera access denied. Please click the lock icon (🔒) in your browser address bar and set Camera to "Allow", then refresh the page.');
+      } else if (err.message === 'BROWSER_UNSUPPORTED' || !window.isSecureContext) {
+        setError('In-app camera is not supported on this browser or connection. Please use the "Upload" button instead — it will still let you take a photo using your phone\'s native camera.');
+      } else {
+        setError('Could not start camera. Please ensure no other app is using it and try again, or use the "Upload" button.');
+      }
       setIsCameraOpen(false);
     } finally {
       setCameraLoading(false);
@@ -409,8 +422,19 @@ export default function VerifyUser() {
             </div>
 
             {error && (
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '12px 16px', borderRadius: '12px', marginBottom: '1rem', fontWeight: 600, fontSize: '14px' }}>
-                {error}
+              <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '16px', borderRadius: '16px', marginBottom: '1.5rem', boxShadow: '0 4px 6px rgba(185, 28, 28, 0.05)' }}>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <XCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <div style={{ fontWeight: 700, marginBottom: '4px' }}>Camera Permission Required</div>
+                    <div style={{ fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>{error}</div>
+                    {error.includes('denied') && (
+                      <div style={{ marginTop: '12px', padding: '10px', background: 'rgba(185, 28, 28, 0.05)', borderRadius: '8px', fontSize: '13px' }}>
+                        <strong>Tip:</strong> If you're on a mobile phone, look for a camera icon in your browser's menu or settings to "Reset Permissions" or check your phone's system settings for the browser.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
             {message && (
