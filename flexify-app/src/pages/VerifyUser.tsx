@@ -68,6 +68,30 @@ export default function VerifyUser() {
     }
   };
 
+  const removeImage = (field: 'nicFront' | 'nicBack' | 'license' | 'selfie', e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setFiles((prev) => {
+      const newFiles = { ...prev };
+      delete newFiles[field];
+      return newFiles;
+    });
+    
+    setPreviews((prev) => {
+      if (prev[field]) URL.revokeObjectURL(prev[field]!);
+      const newPreviews = { ...prev };
+      delete newPreviews[field];
+      return newPreviews;
+    });
+    
+    const fileInput = document.getElementById(`file-input-${field}`) as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+    
+    const cameraInput = document.getElementById(`camera-input-${field}`) as HTMLInputElement;
+    if (cameraInput) cameraInput.value = '';
+  };
+
   // Camera Logic
   const openCamera = (field: 'nicFront' | 'nicBack' | 'license' | 'selfie') => {
     setCameraActiveField(field);
@@ -332,6 +356,10 @@ export default function VerifyUser() {
                       .action-btn:active {
                         transform: scale(0.95);
                       }
+                      .remove-btn:hover {
+                        transform: scale(1.1);
+                        background: rgba(220, 38, 38, 0.95) !important;
+                      }
                     `}</style>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1rem' : '1.5rem' }}>
                 {fileFields.map((f) => (
@@ -364,15 +392,38 @@ export default function VerifyUser() {
                     {/* Interactive Area */}
                     <div style={{ width: '100%', height: '100%' }}>
                       {previews[f.key] ? (
-                        <label htmlFor={`file-input-${f.key}`} style={{ position: 'relative', cursor: 'pointer', display: 'block' }}>
+                        <div style={{ position: 'relative', display: 'block' }}>
                           <img src={previews[f.key]} alt={f.label} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
-                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(24, 144, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }} className="hover-overlay">
-                            <div style={{ background: 'white', padding: '8px 16px', borderRadius: '20px', fontWeight: 600, fontSize: '13px', color: '#1890ff' }}>Change Image</div>
+                          
+                          <div 
+                            onClick={(e) => removeImage(f.key, e)}
+                            style={{ 
+                              position: 'absolute', 
+                              top: '12px', 
+                              right: '12px', 
+                              background: 'rgba(239, 68, 68, 0.9)', 
+                              backdropFilter: 'blur(4px)', 
+                              color: 'white', 
+                              width: '32px', 
+                              height: '32px', 
+                              borderRadius: '50%', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              cursor: 'pointer',
+                              boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+                              transition: 'all 0.2s'
+                            }}
+                            title="Remove image"
+                            className="remove-btn"
+                          >
+                            <XCircle size={18} />
                           </div>
+
                           <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(24, 144, 255, 0.9)', backdropFilter: 'blur(4px)', color: 'white', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                             <CheckCircle size={14} /> {f.label}
                           </div>
-                        </label>
+                        </div>
                       ) : (
                         <div style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
                           <div style={{ 
