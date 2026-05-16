@@ -152,11 +152,11 @@ export default function VerifyUser() {
     return null;
   };
 
-  const fileFields: { key: 'nicFront' | 'nicBack' | 'license' | 'selfie'; label: string; desc: string; capture?: 'environment' | 'user' }[] = [
-    { key: 'nicFront', label: 'NIC Front', desc: 'Upload the front side of your National Identity Card', capture: 'environment' },
-    { key: 'nicBack', label: 'NIC Back', desc: 'Upload the back side of your National Identity Card', capture: 'environment' },
-    { key: 'license', label: 'Driving License', desc: 'Upload a clear photo of your valid driving license', capture: 'environment' },
-    { key: 'selfie', label: 'Selfie / Photo', desc: 'Take a clear selfie or upload a recent photo of yourself', capture: 'user' },
+  const fileFields: { key: 'nicFront' | 'nicBack' | 'license' | 'selfie'; label: string; desc: string }[] = [
+    { key: 'nicFront', label: 'NIC Front', desc: 'Upload the front side of your National Identity Card' },
+    { key: 'nicBack', label: 'NIC Back', desc: 'Upload the back side of your National Identity Card' },
+    { key: 'license', label: 'Driving License', desc: 'Upload a clear photo of your valid driving license' },
+    { key: 'selfie', label: 'Selfie / Photo', desc: 'Take a clear selfie or upload a recent photo of yourself' },
   ];
 
   // Only allow form submission if not pending or approved
@@ -215,29 +215,73 @@ export default function VerifyUser() {
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem', color: '#334155' }}>
                 <Upload size={20} color="#1890ff" /> Upload Documents
               </h3>
+                    <style>{`
+                      .upload-box-wrapper:hover {
+                        border-color: #1890ff;
+                        background: #f8fbff;
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 16px rgba(24, 144, 255, 0.08);
+                      }
+                      .upload-box-wrapper:hover .icon-container {
+                        background: #e6f7ff;
+                        color: #1890ff;
+                        transform: scale(1.1);
+                      }
+                      .upload-box-wrapper:hover .hover-overlay {
+                        opacity: 1;
+                      }
+                    `}</style>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1rem' : '1.5rem' }}>
                 {fileFields.map((f) => (
-                  <div key={f.key} style={{
-                    border: previews[f.key] ? '2px solid #1890ff' : '2px dashed #e2e8f0',
-                    borderRadius: '16px',
+                  <div key={f.key} className="upload-box-wrapper" style={{
+                    border: previews[f.key] ? '2px solid #1890ff' : '2px dashed #cbd5e1',
+                    borderRadius: '20px',
                     overflow: 'hidden',
-                    background: previews[f.key] ? '#f0f9ff' : '#fafafa',
-                    transition: 'all 0.2s',
+                    background: previews[f.key] ? '#f0f9ff' : '#ffffff',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
                   }}>
-                    <label style={{ cursor: 'pointer', display: 'block' }}>
-                      <input type="file" accept="image/*" capture={f.capture} onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} style={{ display: 'none' }} />
+                    <label htmlFor={`file-input-${f.key}`} style={{ cursor: 'pointer', display: 'block', height: '100%' }}>
+                      <input 
+                        id={`file-input-${f.key}`}
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} 
+                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} 
+                      />
                       {previews[f.key] ? (
                         <div style={{ position: 'relative' }}>
                           <img src={previews[f.key]} alt={f.label} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
-                          <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: '#1890ff', color: 'white', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
-                            <CheckCircle size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />{f.label}
+                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(24, 144, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }} className="hover-overlay">
+                            <div style={{ background: 'white', padding: '8px 16px', borderRadius: '20px', fontWeight: 600, fontSize: '13px', color: '#1890ff' }}>Change Image</div>
+                          </div>
+                          <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(24, 144, 255, 0.9)', backdropFilter: 'blur(4px)', color: 'white', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                            <CheckCircle size={14} /> {f.label}
                           </div>
                         </div>
                       ) : (
-                        <div style={{ padding: '2rem', textAlign: 'center' }}>
-                          <Upload size={28} color="#94a3b8" style={{ marginBottom: '8px' }} />
-                          <div style={{ fontWeight: 700, fontSize: '14px', color: '#334155', marginBottom: '4px' }}>{f.label}</div>
-                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>{f.desc}</div>
+                        <div style={{ padding: '2.5rem 1.5rem', textAlign: 'center', transition: 'all 0.2s' }} className="upload-content">
+                          <div style={{ 
+                            background: '#f1f5f9', 
+                            width: '56px', 
+                            height: '56px', 
+                            borderRadius: '16px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            margin: '0 auto 1rem',
+                            color: '#94a3b8',
+                            transition: 'all 0.2s'
+                          }} className="icon-container">
+                            <Upload size={28} />
+                          </div>
+                          <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b', marginBottom: '6px' }}>{f.label}</div>
+                          <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.5', maxWidth: '200px', margin: '0 auto' }}>{f.desc}</div>
+                          <div style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#1890ff', fontSize: '13px', fontWeight: 600 }}>
+                            Click to Upload
+                          </div>
                         </div>
                       )}
                     </label>
