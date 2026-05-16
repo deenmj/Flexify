@@ -124,7 +124,7 @@ export default function Navbar() {
               <Menu size={24} strokeWidth={2.5} />
             </button>
             
-            <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '10px', gap: '10px' }}>
+            <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', height: '100%', gap: '8px' }}>
               <RentifyLogo className="logo-img" />
               <span className="logo-text">Rentify</span>
             </Link>
