@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { userApi } from '../api';
@@ -28,6 +28,13 @@ export default function VerifyUser() {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('environment');
   const [cameraLoading, setCameraLoading] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
+    }
+  }, [cameraStream, isCameraOpen]);
 
   const [form, setForm] = useState({
     fullName: user?.name || '',
@@ -356,7 +363,7 @@ export default function VerifyUser() {
                     {/* Interactive Area */}
                     <div style={{ width: '100%', height: '100%' }}>
                       {previews[f.key] ? (
-                        <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => document.getElementById(`file-input-${f.key}`)?.click()}>
+                        <label htmlFor={`file-input-${f.key}`} style={{ position: 'relative', cursor: 'pointer', display: 'block' }}>
                           <img src={previews[f.key]} alt={f.label} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
                           <div style={{ position: 'absolute', inset: 0, background: 'rgba(24, 144, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }} className="hover-overlay">
                             <div style={{ background: 'white', padding: '8px 16px', borderRadius: '20px', fontWeight: 600, fontSize: '13px', color: '#1890ff' }}>Change Image</div>
@@ -364,7 +371,7 @@ export default function VerifyUser() {
                           <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(24, 144, 255, 0.9)', backdropFilter: 'blur(4px)', color: 'white', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                             <CheckCircle size={14} /> {f.label}
                           </div>
-                        </div>
+                        </label>
                       ) : (
                         <div style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
                           <div style={{ 
@@ -384,9 +391,9 @@ export default function VerifyUser() {
                           <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4', marginBottom: '1.25rem' }}>{f.desc}</div>
                           
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                            <div 
+                            <label 
+                              htmlFor={`file-input-${f.key}`}
                               className="action-btn" 
-                              onClick={() => document.getElementById(`file-input-${f.key}`)?.click()}
                               style={{ 
                                 cursor: 'pointer',
                                 background: '#1890ff', 
@@ -401,31 +408,46 @@ export default function VerifyUser() {
                               }}
                             >
                               <Upload size={14} /> Upload
-                            </div>
-                            <div 
-                              className="action-btn" 
-                              onClick={() => { 
-                                if (isMobile) {
-                                  document.getElementById(`camera-input-${f.key}`)?.click();
-                                } else {
-                                  openCamera(f.key);
-                                }
-                              }}
-                              style={{ 
-                                cursor: 'pointer',
-                                background: '#f1f5f9', 
-                                color: '#475569', 
-                                padding: '8px 12px', 
-                                borderRadius: '10px', 
-                                fontSize: '13px', 
-                                fontWeight: 600,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                              }}
-                            >
-                              <Camera size={14} /> Camera
-                            </div>
+                            </label>
+                            {isMobile ? (
+                              <label
+                                htmlFor={`camera-input-${f.key}`}
+                                className="action-btn" 
+                                style={{ 
+                                  cursor: 'pointer',
+                                  background: '#f1f5f9', 
+                                  color: '#475569', 
+                                  padding: '8px 12px', 
+                                  borderRadius: '10px', 
+                                  fontSize: '13px', 
+                                  fontWeight: 600,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px'
+                                }}
+                              >
+                                <Camera size={14} /> Camera
+                              </label>
+                            ) : (
+                              <div 
+                                className="action-btn" 
+                                onClick={() => openCamera(f.key)}
+                                style={{ 
+                                  cursor: 'pointer',
+                                  background: '#f1f5f9', 
+                                  color: '#475569', 
+                                  padding: '8px 12px', 
+                                  borderRadius: '10px', 
+                                  fontSize: '13px', 
+                                  fontWeight: 600,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px'
+                                }}
+                              >
+                                <Camera size={14} /> Camera
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
@@ -496,7 +518,7 @@ export default function VerifyUser() {
           
           <video 
             id="camera-preview"
-            ref={(el) => { if (el) el.srcObject = cameraStream; }}
+            ref={videoRef}
             autoPlay 
             playsInline 
             muted
