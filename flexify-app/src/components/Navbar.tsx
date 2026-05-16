@@ -124,8 +124,9 @@ export default function Navbar() {
               <Menu size={24} strokeWidth={2.5} />
             </button>
             
-            <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '10px' }}>
+            <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '10px', gap: '10px' }}>
               <RentifyLogo className="logo-img" />
+              <span className="logo-text">Rentify</span>
             </Link>
           </div>
 
@@ -176,11 +177,6 @@ export default function Navbar() {
               </Badge>
             </button>
 
-            {user && (
-              <button className="nav-action-btn logout-top-btn" title="Logout" onClick={handleLogout} style={{ color: 'var(--color-error)' }}>
-                <LogOut size={20} />
-              </button>
-            )}
 
             {/* Profile */}
             <div className="profile-wrapper" ref={profileRef}>
