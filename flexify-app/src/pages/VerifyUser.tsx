@@ -345,6 +345,14 @@ export default function VerifyUser() {
                         onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} 
                         style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} 
                       />
+                      <input 
+                        id={`camera-input-${f.key}`}
+                        type="file" 
+                        accept="image/*" 
+                        capture={f.key === 'selfie' ? 'user' : 'environment'}
+                        onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} 
+                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} 
+                      />
                       {previews[f.key] ? (
                         <div style={{ position: 'relative' }}>
                           <img src={previews[f.key]} alt={f.label} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
@@ -389,7 +397,15 @@ export default function VerifyUser() {
                             </div>
                             <div 
                               className="action-btn" 
-                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); openCamera(f.key); }}
+                              onClick={(e) => { 
+                                e.preventDefault(); 
+                                e.stopPropagation(); 
+                                if (isMobile) {
+                                  document.getElementById(`camera-input-${f.key}`)?.click();
+                                } else {
+                                  openCamera(f.key);
+                                }
+                              }}
                               style={{ 
                                 background: '#f1f5f9', 
                                 color: '#475569', 
