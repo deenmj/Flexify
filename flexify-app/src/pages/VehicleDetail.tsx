@@ -51,6 +51,7 @@ export default function VehicleDetail() {
   const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
   const [blackoutRanges, setBlackoutRanges] = useState<BlackoutRange[]>([]);
   const [availLoading, setAvailLoading] = useState(false);
+  const [calendarDate, setCalendarDate] = useState<Dayjs>(() => dayjs());
 
   // Booking modal
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -197,12 +198,21 @@ export default function VehicleDetail() {
     const pending = isDateBooked(date, 'PENDING');
     const blackedOut = isDateBlackedOut(date);
     
+    const isCurrentMonth = date.month() === calendarDate.month() && date.year() === calendarDate.year();
+
+    if (!isCurrentMonth) {
+      return (
+        <div className="calendar-custom-cell cell-past" style={{ opacity: 0.3 }}>
+          <span className="cell-date-num">{date.date()}</span>
+        </div>
+      );
+    }
+
     let status = 'available';
-    let tooltip = 'Available';
+    let tooltip = '';
     
     if (isPast) {
       status = 'past';
-      tooltip = '';
     } else if (confirmed) {
       status = 'confirmed';
       tooltip = 'Booked (Confirmed)';
@@ -214,14 +224,14 @@ export default function VehicleDetail() {
       tooltip = 'Owner Unavailable';
     }
 
-    return (
-      <Tooltip title={tooltip}>
-        <div className={`calendar-custom-cell cell-${status}`}>
-          <span className="cell-date-num">{date.date()}</span>
-        </div>
-      </Tooltip>
+    const content = (
+      <div className={`calendar-custom-cell cell-${status}`}>
+        <span className="cell-date-num">{date.date()}</span>
+      </div>
     );
-  }, [isDateBooked, isDateBlackedOut]);
+
+    return tooltip ? <Tooltip title={tooltip}>{content}</Tooltip> : content;
+  }, [isDateBooked, isDateBlackedOut, calendarDate]);
 
   const handleBookNow = async () => {
     if (!user) {
@@ -743,6 +753,8 @@ export default function VehicleDetail() {
                 <Col xs={24} md={18}>
                   <Calendar 
                     fullscreen={false} 
+                    value={calendarDate}
+                    onChange={setCalendarDate}
                     fullCellRender={(date) => fullCellRender(date as Dayjs)} 
                     headerRender={({ value, type, onChange, onTypeChange }) => {
                       return (
@@ -795,10 +807,6 @@ export default function VehicleDetail() {
                     <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
                       <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
                       Pending
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
-                      <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#f0fdf4', border: '1px solid #86efac' }}></span>
-                      Available
                     </span>
                   </div>
                 </Col>
