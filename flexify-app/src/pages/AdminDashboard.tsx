@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, bankDetailsApi, feedbackApi, getImageUrl, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle } from 'lucide-react';
+import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -57,6 +57,15 @@ export default function AdminDashboard() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState(false);
+
+  // Founders state
+  const [founders, setFounders] = useState<Founder[]>([]);
+  const [foundersLoading, setFoundersLoading] = useState(false);
+  const [founderModalOpen, setFounderModalOpen] = useState(false);
+  const [editingFounderIndex, setEditingFounderIndex] = useState<number | null>(null);
+  const [founderForm] = Form.useForm();
+  const [founderImageFile, setFounderImageFile] = useState<File | null>(null);
+  const [founderImagePreview, setFounderImagePreview] = useState<string>('');
 
   // Modals
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -322,6 +331,86 @@ export default function AdminDashboard() {
         .finally(() => setSiteSettingsLoading(false));
     }
   }, [tab, siteSettings]);
+
+  // Load Founders when site-settings tab opens
+  useEffect(() => {
+    if (tab === 'site-settings') {
+      setFoundersLoading(true);
+      settingsApi.getFounders()
+        .then(setFounders)
+        .catch(() => message.error('Failed to load founders'))
+        .finally(() => setFoundersLoading(false));
+    }
+  }, [tab]);
+
+  const handleOpenFounderModal = (index?: number) => {
+    if (index !== undefined && founders[index]) {
+      const f = founders[index];
+      founderForm.setFieldsValue({ name: f.name, role: f.role, description: f.description });
+      setFounderImagePreview(getImageUrl(f.image));
+      setEditingFounderIndex(index);
+    } else {
+      founderForm.resetFields();
+      setFounderImagePreview('');
+      setEditingFounderIndex(null);
+    }
+    setFounderImageFile(null);
+    setFounderModalOpen(true);
+  };
+
+  const handleSaveFounder = async (values: any) => {
+    try {
+      setFoundersLoading(true);
+      const updatedFounders = [...founders];
+      const newEntry = { name: values.name, role: values.role, description: values.description, image: '' };
+
+      if (editingFounderIndex !== null) {
+        newEntry.image = updatedFounders[editingFounderIndex].image;
+        updatedFounders[editingFounderIndex] = newEntry;
+      } else {
+        updatedFounders.push(newEntry);
+      }
+
+      const formData = new FormData();
+      formData.append('founders', JSON.stringify(updatedFounders));
+
+      // Attach the new image file if one was selected
+      if (founderImageFile) {
+        const targetIndex = editingFounderIndex !== null ? editingFounderIndex : updatedFounders.length - 1;
+        formData.append(`image_${targetIndex}`, founderImageFile);
+      }
+
+      const result = await settingsApi.updateFounders(formData);
+      setFounders(result);
+      setFounderModalOpen(false);
+      message.success(editingFounderIndex !== null ? 'Founder updated!' : 'Founder added!');
+    } catch (err: any) {
+      message.error(err.message || 'Failed to save founder');
+    } finally {
+      setFoundersLoading(false);
+    }
+  };
+
+  const handleDeleteFounder = async (index: number) => {
+    Modal.confirm({
+      title: 'Delete Founder',
+      content: `Are you sure you want to remove "${founders[index]?.name}"?`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          setFoundersLoading(true);
+          const result = await settingsApi.deleteFounder(index);
+          setFounders(result);
+          message.success('Founder removed');
+        } catch (err: any) {
+          message.error(err.message || 'Failed to delete founder');
+        } finally {
+          setFoundersLoading(false);
+        }
+      },
+    });
+  };
   const filteredUsers = allUsers.filter(u =>
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -931,8 +1020,8 @@ export default function AdminDashboard() {
               )}
 
               {tab === 'site-settings' && (
-                <div className="animate-fade-in" style={{ maxWidth: '600px' }}>
-                  <Card title="Platform Contact Settings" bordered={false} style={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div className="animate-fade-in" style={{ maxWidth: '800px' }}>
+                  <Card title="Platform Contact Settings" bordered={false} style={{ borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '2rem' }}>
                     <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '14px' }}>
                       Update the official platform contact details. These are displayed publicly on the Contact Us page and footer.
                     </p>
@@ -960,6 +1049,67 @@ export default function AdminDashboard() {
                           Save Site Settings
                         </Button>
                       </Form>
+                    )}
+                  </Card>
+
+                  {/* ========== FOUNDERS MANAGEMENT ========== */}
+                  <Card 
+                    title={<Space><Users size={18} /> Founders Management</Space>}
+                    bordered={false} 
+                    style={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}
+                    extra={
+                      <Button type="primary" icon={<Plus size={14} />} onClick={() => handleOpenFounderModal()} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        Add Founder
+                      </Button>
+                    }
+                  >
+                    <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '14px' }}>
+                      Manage the founders displayed on the About Us page. Add photos, names, roles, and descriptions.
+                    </p>
+
+                    {foundersLoading && founders.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '2rem' }}><Spin size="large" /></div>
+                    ) : founders.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '3rem', background: '#f8fafc', borderRadius: '12px', border: '2px dashed #e2e8f0' }}>
+                        <Users size={40} style={{ color: '#cbd5e1', marginBottom: '12px' }} />
+                        <p style={{ color: '#94a3b8', margin: 0 }}>No founders added yet. Click "Add Founder" to get started.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {founders.map((founder, idx) => (
+                          <div key={idx} style={{ 
+                            display: 'flex', 
+                            gap: '16px', 
+                            alignItems: 'center', 
+                            padding: '16px', 
+                            background: 'linear-gradient(135deg, #f8fafc, #f1f5f9)', 
+                            borderRadius: '12px', 
+                            border: '1px solid #e2e8f0',
+                            transition: 'box-shadow 0.2s',
+                          }}>
+                            <Avatar 
+                              src={getImageUrl(founder.image)} 
+                              size={72} 
+                              style={{ 
+                                flexShrink: 0, 
+                                border: '3px solid #e2e8f0',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                              }} 
+                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontWeight: 700, fontSize: '16px', color: '#0f172a' }}>{founder.name || 'Untitled'}</div>
+                              <div style={{ color: '#6366f1', fontWeight: 600, fontSize: '13px', marginBottom: '4px' }}>{founder.role || 'No role set'}</div>
+                              <div style={{ color: '#64748b', fontSize: '13px', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>
+                                {founder.description || 'No description'}
+                              </div>
+                            </div>
+                            <Space direction="vertical" size={4} style={{ flexShrink: 0 }}>
+                              <Button size="small" type="default" icon={<Edit2 size={13} />} onClick={() => handleOpenFounderModal(idx)}>Edit</Button>
+                              <Button size="small" danger icon={<Trash2 size={13} />} onClick={() => handleDeleteFounder(idx)}>Delete</Button>
+                            </Space>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </Card>
                 </div>
@@ -1296,6 +1446,57 @@ export default function AdminDashboard() {
             </div>
           );
         })()}
+      </Modal>
+
+      {/* ADD / EDIT FOUNDER MODAL */}
+      <Modal
+        title={editingFounderIndex !== null ? 'Edit Founder' : 'Add New Founder'}
+        open={founderModalOpen}
+        onCancel={() => setFounderModalOpen(false)}
+        onOk={() => founderForm.submit()}
+        confirmLoading={foundersLoading}
+        okText={editingFounderIndex !== null ? 'Save Changes' : 'Add Founder'}
+        destroyOnClose
+      >
+        <Form form={founderForm} layout="vertical" onFinish={handleSaveFounder}>
+          <Form.Item name="name" label="Founder Name" rules={[{ required: true, message: 'Please enter founder name' }]}>
+            <Input size="large" placeholder="e.g. John Doe" />
+          </Form.Item>
+          <Form.Item name="role" label="Role / Title" rules={[{ required: true, message: 'Please enter role' }]}>
+            <Input size="large" placeholder="e.g. CEO & Co-Founder" />
+          </Form.Item>
+          <Form.Item name="description" label="Description / Bio" rules={[{ required: true, message: 'Please enter description' }]}>
+            <Input.TextArea rows={4} placeholder="Brief description about this founder..." />
+          </Form.Item>
+          <Form.Item label="Profile Photo">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              {(founderImagePreview || founderImageFile) && (
+                <Avatar 
+                  src={founderImageFile ? URL.createObjectURL(founderImageFile) : founderImagePreview} 
+                  size={80} 
+                  style={{ border: '3px solid #e2e8f0' }} 
+                />
+              )}
+              <div>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setFounderImageFile(file);
+                      setFounderImagePreview('');
+                    }
+                  }}
+                  style={{ fontSize: '13px' }}
+                />
+                <p style={{ color: '#94a3b8', fontSize: '12px', margin: '4px 0 0' }}>
+                  JPEG, PNG, or WebP. Max 5MB.
+                </p>
+              </div>
+            </div>
+          </Form.Item>
+        </Form>
       </Modal>
 
     </Layout>
