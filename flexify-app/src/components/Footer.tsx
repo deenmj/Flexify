@@ -47,7 +47,7 @@ export default function Footer() {
       <div className="footer-main container section-padding">
         <div className="footer-grid">
           <div className="footer-brand">
-            <h2 className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><RentifyLogo style={{ height: "38px" }} /> Rentify</h2>
+            <h2 className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><RentifyLogo style={{ height: "48px" }} /> Rentify</h2>
             <p className="footer-desc">
               Your trusted platform for renting, selling, and discovering vehicles worldwide. Premium car rental experience.
             </p>

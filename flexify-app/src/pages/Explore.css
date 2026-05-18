@@ -72,7 +72,7 @@
 }
 
 .explore-controls-container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -105,8 +105,8 @@
   align-items: center;
   gap: 0.35rem;
   flex-shrink: 0;
-  padding: 2px;
   position: relative;
+  height: 100%;
 }
 
 .explore-search-inner {
@@ -192,8 +192,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 10px;
-  height: 100%;
-  min-height: 44px;
+  height: 44px;
   transition: all 0.2s ease;
 }
 
@@ -205,8 +204,7 @@
   background-color: #f1f5f9;
   color: #1e293b;
   border: 1.5px solid #e2e8f0;
-  height: 100%;
-  min-height: 44px;
+  height: 44px;
   padding: 0 0.75rem;
   border-radius: 10px;
   font-size: 0.75rem;
@@ -215,6 +213,12 @@
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
+  transition: all 0.2s ease;
+}
+
+.quick-radius-select:hover {
+  background-color: #e2e8f0;
+  border-color: #cbd5e1;
 }
 
 .quick-radius-select option {
@@ -334,7 +338,7 @@
 }
 
 .search-row-btn {
-  min-height: 38px;
+  height: 44px;
 }
 
 .filter-toggle-btn:hover {
