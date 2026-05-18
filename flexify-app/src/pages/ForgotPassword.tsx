@@ -31,7 +31,7 @@ export default function ForgotPassword() {
       <div className="auth-container">
         <div className="auth-card animate-scale-in">
           <div className="auth-header">
-            <h1 className="auth-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}><RentifyLogo style={{ height: "38px" }} /> Rentify</h1>
+            <h1 className="auth-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}><RentifyLogo style={{ height: "48px" }} /> Rentify</h1>
             <p className="auth-tagline">Enter your email to receive a password reset link</p>
           </div>
           {error && <div className="auth-message error">{error}</div>}

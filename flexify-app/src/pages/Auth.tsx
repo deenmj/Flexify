@@ -217,7 +217,7 @@ export default function Auth() {
         <div className="auth-card animate-scale-in">
           {/* Header */}
           <div className="auth-header">
-            <h1 className="auth-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}><RentifyLogo style={{ height: "38px" }} /> Rentify</h1>
+            <h1 className="auth-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}><RentifyLogo style={{ height: "48px" }} /> Rentify</h1>
             <p className="auth-tagline">
               {mode === 'login' ? 'Welcome back! Sign in to continue.' : 'Create your account to get started.'}
             </p>
