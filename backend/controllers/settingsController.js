@@ -1,4 +1,6 @@
 import Settings from '../models/Settings.js';
+import fs from 'fs';
+import path from 'path';
 
 // @desc    Get website contact details
 // @route   GET /api/settings/contact
@@ -54,6 +56,111 @@ export const updateContactDetails = async (req, res) => {
         value: newValues
       });
     }
+
+    res.json(settings.value);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// =================== FOUNDERS ===================
+
+// @desc    Get founders list
+// @route   GET /api/settings/founders
+// @access  Public
+export const getFounders = async (req, res) => {
+  try {
+    const settings = await Settings.findOne({ key: 'founders' });
+    res.json(settings ? settings.value : []);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Update founders (add/edit all founders at once)
+// @route   PUT /api/settings/founders
+// @access  Private/SuperAdmin
+export const updateFounders = async (req, res) => {
+  try {
+    if (req.user.role !== 'superadmin') {
+      return res.status(403).json({ message: 'Only superadmin can update founders' });
+    }
+
+    // Parse founders data from request body
+    let foundersData;
+    try {
+      foundersData = JSON.parse(req.body.founders || '[]');
+    } catch {
+      return res.status(400).json({ message: 'Invalid founders data' });
+    }
+
+    // Map uploaded files to their respective founder entries
+    const files = req.files || [];
+    const founders = foundersData.map((founder, index) => {
+      // Check if a new file was uploaded for this founder
+      const file = files.find(f => f.fieldname === `image_${index}`);
+      return {
+        name: founder.name || '',
+        role: founder.role || '',
+        description: founder.description || '',
+        image: file
+          ? `/uploads/avatars/${file.filename}`
+          : (founder.image || ''),
+      };
+    });
+
+    let settings = await Settings.findOne({ key: 'founders' });
+
+    if (settings) {
+      settings.value = founders;
+      settings.markModified('value');
+      await settings.save();
+    } else {
+      settings = await Settings.create({
+        key: 'founders',
+        value: founders,
+      });
+    }
+
+    res.json(settings.value);
+  } catch (error) {
+    console.error('Update founders error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Delete a specific founder by index
+// @route   DELETE /api/settings/founders/:index
+// @access  Private/SuperAdmin
+export const deleteFounder = async (req, res) => {
+  try {
+    if (req.user.role !== 'superadmin') {
+      return res.status(403).json({ message: 'Only superadmin can delete founders' });
+    }
+
+    const founderIndex = parseInt(req.params.index, 10);
+    const settings = await Settings.findOne({ key: 'founders' });
+
+    if (!settings || !Array.isArray(settings.value)) {
+      return res.status(404).json({ message: 'No founders found' });
+    }
+
+    if (founderIndex < 0 || founderIndex >= settings.value.length) {
+      return res.status(400).json({ message: 'Invalid founder index' });
+    }
+
+    // Try to delete the local image file if it exists
+    const removed = settings.value[founderIndex];
+    if (removed?.image && removed.image.startsWith('/uploads/')) {
+      const filePath = path.join(process.cwd(), removed.image);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    settings.value.splice(founderIndex, 1);
+    settings.markModified('value');
+    await settings.save();
 
     res.json(settings.value);
   } catch (error) {

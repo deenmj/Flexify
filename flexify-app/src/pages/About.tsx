@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Shield, Award, TrendingUp, Target, Zap, Clock } from 'lucide-react';
-import { vehicleApi, type PublicStats } from '../api';
+import { vehicleApi, settingsApi, getImageUrl, type PublicStats, type Founder } from '../api';
 import SEO from '../components/SEO';
 import './StaticPages.css';
 
 export default function About() {
   const [stats, setStats] = useState<PublicStats | null>(null);
+  const [founders, setFounders] = useState<Founder[]>([]);
 
   useEffect(() => {
     vehicleApi.getPublicStats().then(setStats).catch(console.error);
+    settingsApi.getFounders().then(setFounders).catch(console.error);
   }, []);
 
   return (
@@ -41,7 +43,7 @@ export default function About() {
             Redefining Mobility
           </h1>
           <p style={{ fontSize: '1.25rem', lineHeight: 1.8, opacity: 0.9, marginBottom: '2rem' }}>
-            Rentify is the world’s premier peer-to-peer vehicle sharing marketplace. 
+            Rentify is the world's premier peer-to-peer vehicle sharing marketplace. 
             We empower individuals to monetize their vehicles while providing renters 
             with unprecedented access to a diverse fleet of cars, trucks, and specialty vehicles.
           </p>
@@ -101,6 +103,121 @@ export default function About() {
             </div>
           </div>
         </div>
+
+        {/* ========== FOUNDERS SECTION ========== */}
+        {founders.length > 0 && (
+          <div style={{ marginBottom: '5rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <h2 style={{ fontSize: '2rem', color: '#0f172a', marginBottom: '0.75rem' }}>Meet Our Founders</h2>
+              <p style={{ color: '#64748b', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>
+                The visionary leaders behind Rentify, driving innovation in vehicle sharing across Sri Lanka.
+              </p>
+            </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '2.5rem',
+              maxWidth: '900px',
+              margin: '0 auto',
+            }}>
+              {founders.map((founder, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: '#fff',
+                    borderRadius: '20px',
+                    padding: '2.5rem 2rem',
+                    textAlign: 'center',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-6px)';
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 40px rgba(99,102,241,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 24px rgba(0,0,0,0.06)';
+                  }}
+                >
+                  {/* Gradient accent bar */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '4px',
+                    background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)',
+                    borderRadius: '20px 20px 0 0',
+                  }} />
+                  
+                  {/* Profile photo */}
+                  <div style={{
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    margin: '0 auto 1.5rem',
+                    overflow: 'hidden',
+                    border: '4px solid #e2e8f0',
+                    boxShadow: '0 4px 16px rgba(99,102,241,0.15)',
+                    background: '#f1f5f9',
+                  }}>
+                    <img
+                      src={getImageUrl(founder.image)}
+                      alt={founder.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(founder.name) + '&size=200&background=6366f1&color=fff';
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Name */}
+                  <h3 style={{
+                    fontSize: '1.4rem',
+                    fontWeight: 800,
+                    color: '#0f172a',
+                    marginBottom: '0.25rem',
+                  }}>
+                    {founder.name}
+                  </h3>
+                  
+                  {/* Role badge */}
+                  <div style={{
+                    display: 'inline-block',
+                    background: 'linear-gradient(135deg, #ede9fe, #e0e7ff)',
+                    color: '#4f46e5',
+                    padding: '4px 16px',
+                    borderRadius: '20px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    marginBottom: '1rem',
+                    letterSpacing: '0.02em',
+                  }}>
+                    {founder.role}
+                  </div>
+                  
+                  {/* Description */}
+                  <p style={{
+                    color: '#475569',
+                    fontSize: '0.95rem',
+                    lineHeight: 1.7,
+                    margin: 0,
+                  }}>
+                    {founder.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Global Standards */}
         <h2 style={{ fontSize: '2rem', color: '#0f172a', textAlign: 'center', marginBottom: '3rem' }}>Enterprise Standards</h2>
