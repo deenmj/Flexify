@@ -3,52 +3,131 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import User from "../models/User.js";
 import Vehicle from "../models/Vehicle.js";
+import cloudinary from "../utils/cloudinary.js"; // Import configured Cloudinary SDK
 
-// Load environment variables
 dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/flexify";
 
+// SAFETY CHECK: Prevent accidental runs
+if (process.argv[2] !== '--confirm') {
+  console.log("\n==========================================================================");
+  console.log("⚠️  SAFETY LOCK ACTIVE");
+  console.log("This script will physically overwrite images on Cloudinary to permanently");
+  console.log("reduce storage space. This action cannot be undone.");
+  console.log("To execute this script, you must explicitly pass the --confirm flag:");
+  console.log("\n    node scripts/compressExistingImages.js --confirm");
+  console.log("==========================================================================\n");
+  process.exit(0);
+}
+
 console.log("=================================================");
-console.log("  Flexify Image Optimization Migration Script    ");
+console.log("  Flexify Storage Space Optimization Script      ");
 console.log("=================================================");
 
-function optimizeCloudinaryUrl(url, targetWidth = 1280) {
-  if (!url || typeof url !== 'string' || !url.includes('res.cloudinary.com')) {
-    return url;
-  }
+// Helper to generate the optimized delivery URL (which we'll ask Cloudinary to fetch and save)
+function generateOptimizedUrl(url, targetWidth = 1280) {
+  if (!url || typeof url !== 'string' || !url.includes('res.cloudinary.com')) return url;
+  if (url.includes('q_auto,f_auto')) return url;
   
-  // If it already has our dynamic transformation, return it
-  if (url.includes('q_auto,f_auto') || url.includes('q_auto:good')) {
-    return url;
-  }
-  
-  // Regex to match the /upload/ section and optionally any existing transformation parameters before the version number (starts with /v)
-  // Examples: 
-  // /upload/v1570598735 -> matches, group 1 is 'v1570598735'
-  // /upload/w_1200,h_800,c_limit/v1570598735 -> matches, group 1 is 'v1570598735'
   const uploadRegex = /\/upload\/(?:[^\/]+\/)?(v\d+)/;
   const replacement = `/upload/q_auto,f_auto,w_${targetWidth},c_limit/$1`;
   
-  if (uploadRegex.test(url)) {
-    return url.replace(uploadRegex, replacement);
-  }
-  
-  // Fallback if no version number is present (just append right after /upload/)
+  if (uploadRegex.test(url)) return url.replace(uploadRegex, replacement);
   return url.replace('/upload/', `/upload/q_auto,f_auto,w_${targetWidth},c_limit/`);
+}
+
+// Helper to extract Cloudinary public_id from a raw URL (needed for KYC docs)
+function extractPublicId(url) {
+  // Matches everything after /upload/ (and optional /v12345/) up to the final file extension
+  const match = url.match(/\/upload\/(?:(?:q_[^/]+|f_[^/]+|w_[^/]+|c_[^/]+)[/,])*?(?:v\d+\/)?(.+?)\.[a-zA-Z0-9]+$/);
+  return match ? match[1] : null;
+}
+
+// Helper to format bytes to KB
+function formatKB(bytes) {
+  return (bytes / 1024).toFixed(1) + " KB";
+}
+
+async function physicallyCompressCloudinaryImage(url, publicId, targetWidth) {
+  try {
+    // 1. Get original size
+    const originalResource = await cloudinary.api.resource(publicId);
+    const originalBytes = originalResource.bytes;
+
+    // 2. Generate the dynamic, compressed URL
+    const optimizedUrl = generateOptimizedUrl(url, targetWidth);
+    if (url === optimizedUrl) return { updatedUrl: url, skipped: true }; // Already compressed
+
+    // 3. Ask Cloudinary to physically overwrite the old file with the newly compressed version
+    const uploadResult = await cloudinary.uploader.upload(optimizedUrl, {
+      public_id: publicId,
+      overwrite: true,
+      invalidate: true
+    });
+
+    const newBytes = uploadResult.bytes;
+    const savingsPercent = Math.round(((originalBytes - newBytes) / originalBytes) * 100);
+
+    return {
+      updatedUrl: uploadResult.secure_url,
+      originalBytes,
+      newBytes,
+      savingsPercent,
+      skipped: false
+    };
+  } catch (error) {
+    console.error(`Failed to compress image ${publicId}:`, error.message);
+    return { updatedUrl: url, skipped: true, error: true };
+  }
 }
 
 async function run() {
   try {
-    console.log(`Connecting to MongoDB at: ${MONGO_URI.replace(/:([^:@]+)@/, ":****@")}...`);
+    console.log(`Connecting to MongoDB...`);
     await mongoose.connect(MONGO_URI);
-    console.log("✅ Successfully connected to MongoDB database.");
+    console.log("✅ Database Connected.\n");
 
-    let usersUpdated = 0;
-    let kycUrlsOptimized = 0;
+    let totalStorageSaved = 0;
+    let kycOptimizedCount = 0;
+    let vehiclePhotosOptimizedCount = 0;
 
-    // 1. Optimize User KYC Documents
-    console.log("\n--- Optimizing Renter & Owner KYC Documents ---");
+    // --- 1. Optimize Vehicle Photos ---
+    console.log("--- 🚗 Optimizing Vehicle Photos ---");
+    const vehicles = await Vehicle.find({ "photos.url": { $regex: "res.cloudinary.com" } });
+    
+    for (const vehicle of vehicles) {
+      let vehicleModified = false;
+      const updatedPhotos = [];
+
+      for (const photo of vehicle.photos) {
+        if (!photo.url.includes('q_auto')) { // Basic check to skip already optimized
+          process.stdout.write(`Compressing Vehicle Photo (${photo.public_id})... `);
+          const result = await physicallyCompressCloudinaryImage(photo.url, photo.public_id, 1280);
+          
+          if (!result.skipped) {
+            console.log(`✅ [${formatKB(result.originalBytes)} ➡️  ${formatKB(result.newBytes)}] Saved ${result.savingsPercent}%`);
+            totalStorageSaved += (result.originalBytes - result.newBytes);
+            vehiclePhotosOptimizedCount++;
+            vehicleModified = true;
+            updatedPhotos.push({ ...photo.toObject(), url: result.updatedUrl });
+          } else {
+            console.log(`⏭️  Skipped`);
+            updatedPhotos.push(photo);
+          }
+        } else {
+          updatedPhotos.push(photo);
+        }
+      }
+
+      if (vehicleModified) {
+        vehicle.photos = updatedPhotos;
+        await vehicle.save();
+      }
+    }
+
+    // --- 2. Optimize User KYC Documents ---
+    console.log("\n--- 👤 Optimizing User KYC Documents ---");
     const users = await User.find({
       $or: [
         { "documents.nicFront": { $regex: "res.cloudinary.com" } },
@@ -58,79 +137,43 @@ async function run() {
       ]
     });
 
-    console.log(`Found ${users.length} users with Cloudinary KYC documents.`);
-
     for (const user of users) {
-      let isModified = false;
+      let userModified = false;
       const docs = ['nicFront', 'nicBack', 'license', 'selfie'];
       
       for (const field of docs) {
-        if (user.documents && user.documents[field]) {
+        if (user.documents && user.documents[field] && !user.documents[field].includes('q_auto')) {
           const originalUrl = user.documents[field];
-          const optimizedUrl = optimizeCloudinaryUrl(originalUrl, 1600); // 1600px max for KYC documents
+          const publicId = extractPublicId(originalUrl);
           
-          if (originalUrl !== optimizedUrl) {
-            user.documents[field] = optimizedUrl;
-            kycUrlsOptimized++;
-            isModified = true;
+          if (publicId) {
+            process.stdout.write(`Compressing KYC ${field} (${publicId})... `);
+            const result = await physicallyCompressCloudinaryImage(originalUrl, publicId, 1600);
+            
+            if (!result.skipped) {
+              console.log(`✅ [${formatKB(result.originalBytes)} ➡️  ${formatKB(result.newBytes)}] Saved ${result.savingsPercent}%`);
+              totalStorageSaved += (result.originalBytes - result.newBytes);
+              user.documents[field] = result.updatedUrl;
+              userModified = true;
+              kycOptimizedCount++;
+            } else {
+              console.log(`⏭️  Skipped`);
+            }
           }
         }
       }
 
-      if (isModified) {
-        // Use markModified since documents is a subdocument / mixed schema
+      if (userModified) {
         user.markModified('documents');
         await user.save();
-        usersUpdated++;
       }
     }
 
-    console.log(`✅ KYC Migration Complete! Updated ${usersUpdated} users and optimized ${kycUrlsOptimized} KYC image URLs.`);
-
-    // 2. Optimize Vehicle Photos
-    console.log("\n--- Optimizing Vehicle Listing Photos ---");
-    const vehicles = await Vehicle.find({
-      "photos.url": { $regex: "res.cloudinary.com" }
-    });
-
-    console.log(`Found ${vehicles.length} vehicles with Cloudinary photos.`);
-
-    let vehiclesUpdated = 0;
-    let vehiclePhotosOptimized = 0;
-
-    for (const vehicle of vehicles) {
-      let isModified = false;
-      
-      const updatedPhotos = vehicle.photos.map(photo => {
-        const originalUrl = photo.url;
-        const optimizedUrl = optimizeCloudinaryUrl(originalUrl, 1280); // 1280px max for vehicle photos
-        
-        if (originalUrl !== optimizedUrl) {
-          vehiclePhotosOptimized++;
-          isModified = true;
-          return {
-            ...photo.toObject(),
-            url: optimizedUrl
-          };
-        }
-        return photo;
-      });
-
-      if (isModified) {
-        vehicle.photos = updatedPhotos;
-        await vehicle.save();
-        vehiclesUpdated++;
-      }
-    }
-
-    console.log(`✅ Vehicle Photos Migration Complete! Updated ${vehiclesUpdated} vehicles and optimized ${vehiclePhotosOptimized} photo URLs.`);
-    
     console.log("\n=================================================");
-    console.log("🎉 SUCCESS: All database image URLs optimized!");
-    console.log(`   - Users migrated: ${usersUpdated}`);
-    console.log(`   - KYC URLs updated: ${kycUrlsOptimized}`);
-    console.log(`   - Vehicles migrated: ${vehiclesUpdated}`);
-    console.log(`   - Vehicle photos updated: ${vehiclePhotosOptimized}`);
+    console.log("🎉 SUCCESS: Physical Cloudinary Storage Optimized");
+    console.log(`   - Vehicle photos permanently shrunk: ${vehiclePhotosOptimizedCount}`);
+    console.log(`   - KYC images permanently shrunk: ${kycOptimizedCount}`);
+    console.log(`   - Total Storage Space Freed: ${formatKB(totalStorageSaved)}`);
     console.log("=================================================");
 
   } catch (error) {
