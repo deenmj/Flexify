@@ -33,15 +33,19 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </div>
           <p className="shared-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
           <div className="shared-vehicle-specs">
-            {vehicle.serviceType !== 'Bike' && (
+            {vehicle.serviceType?.[0] !== 'Bike' && (
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={12} /> {vehicle.seats} seats</span>
             )}
             {vehicle.engineCapacity && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Zap size={12} /> {vehicle.engineCapacity}</span>}
             {vehicle.kmLimitPerDay && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Gauge size={12} /> {vehicle.kmLimitPerDay}km/day</span>}
             {!vehicle.kmLimitPerDay && <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Gauge size={12} /> Unlimited km</span>}
-            {vehicle.driverOption === 'both' && <span style={{ color: '#8b5cf6' }}>Self / With Driver</span>}
-            {vehicle.driverOption === 'with-driver' && <span style={{ color: '#8b5cf6' }}>With Driver</span>}
-            {(!vehicle.driverOption || vehicle.driverOption === 'self-drive') && <span>Self Drive</span>}
+            {vehicle.serviceType?.[0] !== 'Bike' && (
+              <>
+                {vehicle.driverOption === 'both' && <span style={{ color: '#8b5cf6' }}>Self / With Driver</span>}
+                {vehicle.driverOption === 'with-driver' && <span style={{ color: '#8b5cf6' }}>With Driver</span>}
+                {(!vehicle.driverOption || vehicle.driverOption === 'self-drive') && <span>Self Drive</span>}
+              </>
+            )}
             {(vehicle.city || vehicle.district) && (
               <span><MapPin size={12} /> {vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
             )}

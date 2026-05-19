@@ -630,7 +630,7 @@ export default function VehicleDetail() {
                   <span className="spec-label">Fuel Type</span>
                   <span className="spec-value">{vehicle.fuelType}</span>
                 </div>
-                {vehicle.serviceType !== 'Bike' && (
+                {vehicle.serviceType?.[0] !== 'Bike' && (
                   <div className="spec-item">
                     <span className="spec-label">Seats</span>
                     <span className="spec-value">
@@ -675,20 +675,24 @@ export default function VehicleDetail() {
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
                 </div>
-                <div className="spec-item">
-                  <span className="spec-label">Driver Option</span>
-                  <span className="spec-value" style={{ fontWeight: 600, color: '#6b21a8' }}>
-                    {vehicle.driverOption === 'both' ? 'Self / With Driver' : vehicle.driverOption === 'with-driver' ? 'With Driver' : 'Self Drive'}
-                  </span>
-                </div>
-                {vehicle.driverOption !== 'self-drive' && vehicle.driverPricePerDay ? (
-                  <div className="spec-item">
-                    <span className="spec-label">Driver Price</span>
-                    <span className="spec-value" style={{ fontWeight: 600, color: '#c2410c' }}>
-                      LKR {vehicle.driverPricePerDay} /day
-                    </span>
-                  </div>
-                ) : null}
+                {vehicle.serviceType?.[0] !== 'Bike' && (
+                  <>
+                    <div className="spec-item">
+                      <span className="spec-label">Driver Option</span>
+                      <span className="spec-value" style={{ fontWeight: 600, color: '#6b21a8' }}>
+                        {vehicle.driverOption === 'both' ? 'Self / With Driver' : vehicle.driverOption === 'with-driver' ? 'With Driver' : 'Self Drive'}
+                      </span>
+                    </div>
+                    {vehicle.driverOption !== 'self-drive' && vehicle.driverPricePerDay ? (
+                      <div className="spec-item">
+                        <span className="spec-label">Driver Price</span>
+                        <span className="spec-value" style={{ fontWeight: 600, color: '#c2410c' }}>
+                          LKR {vehicle.driverPricePerDay} /day
+                        </span>
+                      </div>
+                    ) : null}
+                  </>
+                )}
               </div>
 
               {(() => {
@@ -914,7 +918,7 @@ export default function VehicleDetail() {
                   )}
                 </div>
 
-                {vehicle.driverOption !== 'self-drive' && (
+                {vehicle.serviceType?.[0] !== 'Bike' && vehicle.driverOption !== 'self-drive' && (
                   <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: '#faf5ff', border: '1px solid #e9d5ff' }}>
                     <Users size={20} color="#6b21a8" />
                     <div style={{ flex: 1 }}>
