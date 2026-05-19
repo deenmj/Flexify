@@ -260,22 +260,34 @@ export default function ListVehicle() {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       const options = {
-        maxSizeMB: 2,
-        maxWidthOrHeight: 1920,
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 1280,
         useWebWorker: true,
+        fileType: 'image/webp'
       };
       
-      const compressedFiles = await Promise.all(
-        files.map(async (file) => {
-          try {
-            return await imageCompression(file, options);
-          } catch (err) {
-            console.error('Compression error:', err);
-            return file;
-          }
-        })
-      );
-      setPhotos(prev => [...prev, ...compressedFiles]);
+      message.loading({ content: 'Compressing images to WebP for fast uploads...', key: 'compressing', duration: 10 });
+      try {
+        const compressedFiles = await Promise.all(
+          files.map(async (file) => {
+            try {
+              const compressed = await imageCompression(file, options);
+              // Attach metadata for size feedback
+              Object.defineProperty(compressed, 'originalSize', { value: file.size, writable: true, enumerable: true });
+              Object.defineProperty(compressed, 'compressedSize', { value: compressed.size, writable: true, enumerable: true });
+              Object.defineProperty(compressed, 'savings', { value: Math.round(((file.size - compressed.size) / file.size) * 100), writable: true, enumerable: true });
+              return compressed;
+            } catch (err) {
+              console.error('Compression error:', err);
+              return file;
+            }
+          })
+        );
+        setPhotos(prev => [...prev, ...compressedFiles]);
+        message.success({ content: 'Images compressed successfully!', key: 'compressing', duration: 3 });
+      } catch (err) {
+        message.error({ content: 'Error compressing some images', key: 'compressing', duration: 3 });
+      }
     }
   };
 
@@ -740,14 +752,35 @@ export default function ListVehicle() {
                 </div>
                 
                 {photos.length > 0 && (
-                  <div className="photo-preview-list">
+                  <div className="photo-preview-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px', marginTop: '1rem' }}>
                     {photos.map((p, i) => (
-                      <div key={i} className="photo-tag">
-                        <span>{p.name}</span>
-                        <button type="button" onClick={(e) => {
-                          e.stopPropagation();
-                          setPhotos(prev => prev.filter((_, index) => index !== i));
-                        }}>×</button>
+                      <div key={i} className="photo-tag" style={{ display: 'flex', flexDirection: 'column', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '12px', background: '#f8fafc', position: 'relative' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '4px' }}>
+                          <span style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px', color: '#334155' }}>
+                            {p.name}
+                          </span>
+                          <button type="button" onClick={(e) => {
+                            e.stopPropagation();
+                            setPhotos(prev => prev.filter((_, index) => index !== i));
+                          }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.25rem', padding: '0 4px', lineHight: 1 }}>×</button>
+                        </div>
+                        {((p as any).originalSize && (p as any).compressedSize) ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>
+                                {Math.round((p as any).compressedSize / 1024)} KB
+                              </span>
+                              <span style={{ fontSize: '0.65rem', background: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '6px', fontWeight: 700 }}>
+                                -{(p as any).savings}%
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '0.65rem', color: '#64748b' }}>
+                              Original: {Math.round((p as any).originalSize / 1024)} KB (WebP converted)
+                            </span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Size: {Math.round(p.size / 1024)} KB</span>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -14,6 +14,7 @@ export const kycStorage = new CloudinaryStorage({
   params: {
     folder: 'flexify/kyc',
     allowed_formats: ['jpg', 'png', 'jpeg'],
+    transformation: [{ width: 1600, height: 1600, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
   },
 });
 
@@ -31,7 +32,7 @@ export const vehicleStorage = new CloudinaryStorage({
   params: {
     folder: 'flexify/vehicles',
     allowed_formats: ['jpg', 'png', 'jpeg'],
-    transformation: [{ width: 1200, height: 800, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }],
+    transformation: [{ width: 1280, height: 1280, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
   },
 });
 

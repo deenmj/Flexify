@@ -49,14 +49,21 @@ export default function VerifyUser() {
     if (!file) return;
     
     try {
-      // Compress the image down to 2MB to ensure quick uploads while maintaining quality
+      // Compress the image down to 700KB to ensure quick uploads while maintaining quality
       const options = {
-        maxSizeMB: 2,
+        maxSizeMB: 0.7,
         maxWidthOrHeight: 1600,
         useWebWorker: true,
+        fileType: 'image/webp'
       };
       
       const compressedFile = await imageCompression(file, options);
+      
+      // Attach metadata for size feedback
+      Object.defineProperty(compressedFile, 'originalSize', { value: file.size, writable: true, enumerable: true });
+      Object.defineProperty(compressedFile, 'compressedSize', { value: compressedFile.size, writable: true, enumerable: true });
+      Object.defineProperty(compressedFile, 'savings', { value: Math.round(((file.size - compressedFile.size) / file.size) * 100), writable: true, enumerable: true });
+      
       setFiles((prev) => ({ ...prev, [field]: compressedFile }));
       
       if (previews[field]) URL.revokeObjectURL(previews[field]!);
@@ -423,6 +430,14 @@ export default function VerifyUser() {
                           <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(24, 144, 255, 0.9)', backdropFilter: 'blur(4px)', color: 'white', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                             <CheckCircle size={14} /> {f.label}
                           </div>
+                          {files[f.key] && (
+                            <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(22, 163, 74, 0.95)', backdropFilter: 'blur(4px)', color: 'white', padding: '6px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', textAlign: 'right' }}>
+                              <span>{Math.round(files[f.key]!.size / 1024)} KB</span>
+                              {(files[f.key] as any).originalSize && (
+                                <span style={{ fontSize: '8px', opacity: 0.9, fontWeight: 500 }}>Saved {(files[f.key] as any).savings}% (WebP)</span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
