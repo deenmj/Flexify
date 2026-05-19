@@ -874,12 +874,10 @@ export default function VehicleDetail() {
           <Col xs={24} lg={8}>
             <div className="detail-sidebar">
               <div className="booking-panel card">
-                {!isMobile && (
-                  <div className="booking-price-header">
-                    <h2>LKR {vehicle.pricePerDay.toLocaleString()}</h2>
-                    <span>/ day</span>
-                  </div>
-                )}
+                <div className="booking-price-header">
+                  <h2>LKR {vehicle.pricePerDay.toLocaleString()}</h2>
+                  <span>/ day</span>
+                </div>
 
                 {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
                   <div className="bulk-pricing-options" style={{ marginTop: isMobile ? '0' : '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -1052,7 +1050,11 @@ export default function VehicleDetail() {
       {/* MOBILE STICKY BOOKING BAR */}
       {isMobile && !showBookingModal && !createdBooking && (!user || user._id !== (owner?._id || vehicle.owner)) && (
         <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`}>
-          <button className="btn btn-primary btn-lg btn-full" onClick={handleBookingTrigger} style={{ height: '48px', fontWeight: 800, borderRadius: '12px', fontSize: '1rem', letterSpacing: '0.02em' }}>
+          <div className="mobile-bar-price">
+            <span className="bar-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
+            <span className="bar-unit">/ Day</span>
+          </div>
+          <button className="btn btn-primary btn-lg" onClick={handleBookingTrigger} style={{ height: '48px', fontWeight: 800, borderRadius: '12px', fontSize: '1rem', padding: '0 24px', letterSpacing: '0.02em', flexShrink: 0 }}>
             {getBookingButtonText()}
           </button>
         </div>
