@@ -986,50 +986,52 @@ export default function VehicleDetail() {
               <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.25rem' }} style={{ marginTop: '1rem', borderRadius: '12px', border: '1px solid var(--border-color-light)' }}>
                 <h3 style={{ marginBottom: '1.25rem', fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Hosted By</h3>
                 {owner ? (
-                  <div className="owner-profile-preview">
-                    <Badge
-                      count={owner.ownerType === 'VERIFIED' ? <CheckCircle size={14} style={{ color: '#10b981', background: '#fff', borderRadius: '50%' }} /> : 0}
-                      offset={[-4, 44]}
-                    >
-                      <Avatar
-                        src={getImageUrl(owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
-                        alt={owner.name}
-                        size={54}
-                        style={{ border: '2px solid var(--primary-color)' }}
-                      />
-                    </Badge>
-                    <div className="owner-info-text">
-                      <strong style={{ fontSize: '1rem' }}>{owner.name}</strong>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Member since 2026</span>
-                    </div>
-                  </div>
-                  {vehicle.mobileNumber && (
-                    <div style={{ marginTop: '1rem', display: 'flex', gap: '6px', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Direct Vehicle Contact</span>
-                      <a 
-                        href={`tel:${vehicle.mobileNumber}`} 
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center',
-                          gap: '8px', 
-                          padding: '10px 14px', 
-                          borderRadius: '10px', 
-                          background: '#f0f9ff', 
-                          border: '1px solid #bae6fd', 
-                          color: '#0369a1', 
-                          fontWeight: 700,
-                          fontSize: '0.9rem',
-                          transition: 'all 0.2s',
-                          boxShadow: 'var(--shadow-sm)'
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = '#e0f2fe'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = '#f0f9ff'; }}
+                  <>
+                    <div className="owner-profile-preview">
+                      <Badge
+                        count={owner.ownerType === 'VERIFIED' ? <CheckCircle size={14} style={{ color: '#10b981', background: '#fff', borderRadius: '50%' }} /> : 0}
+                        offset={[-4, 44]}
                       >
-                        <Phone size={14} /> Call: {vehicle.mobileNumber}
-                      </a>
+                        <Avatar
+                          src={getImageUrl(owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
+                          alt={owner.name}
+                          size={54}
+                          style={{ border: '2px solid var(--primary-color)' }}
+                        />
+                      </Badge>
+                      <div className="owner-info-text">
+                        <strong style={{ fontSize: '1rem' }}>{owner.name}</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Member since 2026</span>
+                      </div>
                     </div>
-                  )}
+                    {vehicle.mobileNumber && (
+                      <div style={{ marginTop: '1rem', display: 'flex', gap: '6px', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Direct Vehicle Contact</span>
+                        <a 
+                          href={`tel:${vehicle.mobileNumber}`} 
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            gap: '8px', 
+                            padding: '10px 14px', 
+                            borderRadius: '10px', 
+                            background: '#f0f9ff', 
+                            border: '1px solid #bae6fd', 
+                            color: '#0369a1', 
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
+                            transition: 'all 0.2s',
+                            boxShadow: 'var(--shadow-sm)'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#e0f2fe'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = '#f0f9ff'; }}
+                        >
+                          <Phone size={14} /> Call: {vehicle.mobileNumber}
+                        </a>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Verified Rentify Host</div>
                 )}
