@@ -165,6 +165,13 @@ export default function ListVehicle() {
     setForm(prev => ({ ...prev, lat: position.lat.toString(), lng: position.lng.toString() }));
   }, [position]);
 
+  // Pre-populate mobile number from user phone if available
+  useEffect(() => {
+    if (user && user.phone && !form.mobileNumber) {
+      setForm(prev => ({ ...prev, mobileNumber: user.phone }));
+    }
+  }, [user]);
+
   const handleGetLocation = () => {
     if (navigator.geolocation) {
       message.loading({ content: 'Getting your location...', key: 'locate', duration: 10 });
