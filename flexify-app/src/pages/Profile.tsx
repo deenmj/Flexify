@@ -344,6 +344,12 @@ export default function Profile() {
                   <span style={{ color: 'white' }}>One-Time Verification</span>
                 </Link>
               )}
+              <a href="/subscription" className="profile-action-item">
+                <span>💎</span> Pricing & Tiers
+              </a>
+              <a href="/about" className="profile-action-item">
+                <span>ℹ️</span> About Rentify
+              </a>
               {user.role !== 'superadmin' && (
                 <a href="/contact" className="profile-action-item">
                   <span>📞</span> Contact Support

@@ -551,7 +551,7 @@
     display: flex !important;
   }
   .mobile-menu-btn {
-    display: none; /* Hidden on mobile to use BottomNav instead */
+    display: flex; /* Restored on mobile to allow access to Pricing, About Us, FAQ, etc. */
   }
   .mobile-menu {
     width: 80vw;
