@@ -5,12 +5,8 @@ import './BottomNav.css';
 export default function BottomNav() {
   const location = useLocation();
 
-  // Hide Bottom Navigation on forms, checkout, detail, or auth screens
+  // Hide Bottom Navigation only on auth screens
   const hideOnPaths = [
-    '/subscription',
-    '/verify',
-    '/list-vehicle',
-    '/vehicles/',
     '/auth'
   ];
 
