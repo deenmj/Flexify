@@ -9,6 +9,7 @@ import { Spin } from 'antd';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 import BottomNav from './components/BottomNav';
+import ScrollRestoration from './components/ScrollRestoration';
 
 // Eagerly loaded (critical path — needed immediately)
 import NotFound from './pages/NotFound';
@@ -92,6 +93,7 @@ function RootRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollRestoration />
       <AuthProvider>
         <SocketProvider>
           <ErrorBoundary>
