@@ -5,6 +5,18 @@ import './BottomNav.css';
 export default function BottomNav() {
   const location = useLocation();
 
+  // Hide Bottom Navigation on forms, checkout, detail, or auth screens
+  const hideOnPaths = [
+    '/subscription',
+    '/verify',
+    '/list-vehicle',
+    '/vehicles/',
+    '/auth'
+  ];
+
+  const shouldHide = hideOnPaths.some(path => location.pathname.startsWith(path));
+  if (shouldHide) return null;
+
   // Highlight active routes
   const isActive = (path: string) => {
     if (path === '/explore' && (location.pathname === '/explore' || location.pathname === '/')) return true;
