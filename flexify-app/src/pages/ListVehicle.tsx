@@ -435,7 +435,19 @@ export default function ListVehicle() {
                   </div>
                   <div className="input-group">
                     <label>Category</label>
-                    <select className="input-field" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })} required>
+                    <select
+                      className="input-field"
+                      value={form.serviceType}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setForm(prev => ({
+                          ...prev,
+                          serviceType: val,
+                          weddingHiresSpecial: val === 'Bike' ? false : prev.weddingHiresSpecial
+                        }));
+                      }}
+                      required
+                    >
                       <option value="">Select Category</option>
                       <option value="Car">Car</option>
                       <option value="SUV">SUV</option>
@@ -466,20 +478,22 @@ export default function ListVehicle() {
                   <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} />
                 </div>
 
-                <div className="input-group">
-                  <label>Wedding Special</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      className={`km-preset-btn ${form.weddingHiresSpecial ? 'active' : ''}`}
-                      onClick={() => setForm({ ...form, weddingHiresSpecial: !form.weddingHiresSpecial })}
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1.2rem' }}
-                    >
-                      💍 {form.weddingHiresSpecial ? 'Yes, Available for Weddings' : 'Not for Weddings'}
-                    </button>
-                    <span className="km-limit-hint" style={{ margin: 0 }}>Select if this vehicle is available for premium wedding hires.</span>
+                {form.serviceType !== 'Bike' && (
+                  <div className="input-group">
+                    <label>Wedding Special</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className={`km-preset-btn ${form.weddingHiresSpecial ? 'active' : ''}`}
+                        onClick={() => setForm({ ...form, weddingHiresSpecial: !form.weddingHiresSpecial })}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1.2rem' }}
+                      >
+                        💍 {form.weddingHiresSpecial ? 'Yes, Available for Weddings' : 'Not for Weddings'}
+                      </button>
+                      <span className="km-limit-hint" style={{ margin: 0 }}>Select if this vehicle is available for premium wedding hires.</span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="km-limit-section">
                   <div className="km-limit-header">
