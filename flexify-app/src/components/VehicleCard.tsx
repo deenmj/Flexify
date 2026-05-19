@@ -21,6 +21,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             {ownerData?.ownerType === 'VERIFIED' && <span className="badge badge-success"><Verified size={12} /> Verified</span>}
             {ownerData?.subscription?.tier === 'PRO' && <span className="badge badge-premium" style={{ background: '#6610f2', color: 'white' }}><Star size={12} fill="white" /> Pro</span>}
             {ownerData?.subscription?.tier === 'STANDARD' && <span className="badge" style={{ background: '#f59e0b', color: 'white' }}>Standard</span>}
+            {vehicle.weddingHiresSpecial && <span className="badge" style={{ background: 'linear-gradient(135deg, #f5d0fe 0%, #f472b6 100%)', color: '#701a75', fontWeight: 800 }}>💍 Wedding Hire</span>}
           </div>
         </div>
         <div className="shared-vehicle-body">

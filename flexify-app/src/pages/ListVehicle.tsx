@@ -88,7 +88,9 @@ export default function ListVehicle() {
     kmLimitPerDay: '',
     extraKmPrice: '',
     driverOption: 'self-drive',
-    driverPricePerDay: ''
+    driverPricePerDay: '',
+    mobileNumber: '',
+    weddingHiresSpecial: false
   });
 
   // Derived state for make/model selection
@@ -437,6 +439,26 @@ export default function ListVehicle() {
                   <div className="input-group">
                     <label>Price / Month (Optional)</label>
                     <input type="number" className="input-field" placeholder="LKR / month" value={form.pricePerMonth} onChange={(e) => setForm({ ...form, pricePerMonth: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label>Mobile Number (Optional)</label>
+                  <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} />
+                </div>
+
+                <div className="input-group">
+                  <label>Wedding Special</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className={`km-preset-btn ${form.weddingHiresSpecial ? 'active' : ''}`}
+                      onClick={() => setForm({ ...form, weddingHiresSpecial: !form.weddingHiresSpecial })}
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1.2rem' }}
+                    >
+                      💍 {form.weddingHiresSpecial ? 'Yes, Available for Weddings' : 'Not for Weddings'}
+                    </button>
+                    <span className="km-limit-hint" style={{ margin: 0 }}>Select if this vehicle is available for premium wedding hires.</span>
                   </div>
                 </div>
 

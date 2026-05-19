@@ -22,7 +22,7 @@ export const createVehicle = async (req, res) => {
       seats, description, lat, lng, address, serviceType,
       engineCapacity, fuelConsumption, features, province, district, city,
       pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
-      driverOption, driverPricePerDay
+      driverOption, driverPricePerDay, mobileNumber, weddingHiresSpecial
     } = req.body;
 
     // Subscription Check & Initialization — only for owners (staff/admins get free unlimited access)
@@ -173,6 +173,8 @@ export const createVehicle = async (req, res) => {
       city,
       driverOption: driverOption || "self-drive",
       driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
+      mobileNumber: mobileNumber || null,
+      weddingHiresSpecial: weddingHiresSpecial === "true" || weddingHiresSpecial === true,
     });
 
     res.status(201).json(vehicle);
@@ -200,7 +202,7 @@ export const updateVehicle = async (req, res) => {
       title, make, model, year, pricePerDay, transmission, fuelType, seats, description, 
       lat, lng, address, engineCapacity, fuelConsumption, features, province, district, city,
       pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
-      driverOption, driverPricePerDay
+      driverOption, driverPricePerDay, mobileNumber, weddingHiresSpecial
     } = req.body;
     
     const updates = { 
@@ -210,7 +212,9 @@ export const updateVehicle = async (req, res) => {
       kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null,
       extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null,
       driverOption,
-      driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0
+      driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
+      mobileNumber: mobileNumber !== undefined ? (mobileNumber || null) : undefined,
+      weddingHiresSpecial: weddingHiresSpecial !== undefined ? (weddingHiresSpecial === "true" || weddingHiresSpecial === true) : undefined
     };
 
     if (features) {
@@ -313,7 +317,7 @@ export const listVehicles = async (req, res) => {
     const { 
       q, transmission, minPrice, maxPrice, seats, vehicleType, 
       lat, lng, radius, sort, province, district, 
-      startDate, endDate, driverOption,
+      startDate, endDate, driverOption, weddingHiresSpecial,
       page = 1, limit = 12 
     } = req.query;
 
@@ -324,6 +328,10 @@ export const listVehicles = async (req, res) => {
       status: "active",
       isActive: true,
     };
+
+    if (weddingHiresSpecial === "true" || weddingHiresSpecial === true) {
+      filter.weddingHiresSpecial = true;
+    }
 
     if (q) {
       filter.$text = { $search: q };
@@ -490,6 +498,8 @@ export const listVehicles = async (req, res) => {
           extraKmPrice: 1,
           driverOption: 1,
           driverPricePerDay: 1,
+          mobileNumber: 1,
+          weddingHiresSpecial: 1,
           createdAt: 1
         }
       }

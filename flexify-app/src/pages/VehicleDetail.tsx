@@ -570,8 +570,27 @@ export default function VehicleDetail() {
                   <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
                     {vehicle.title}
                   </h1>
-                  <p className="detail-subtitle" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
-                    {vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}
+                  <p className="detail-subtitle" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                    <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
+                    {vehicle.weddingHiresSpecial && (
+                      <Tag 
+                        style={{ 
+                          padding: '2px 10px', 
+                          fontSize: '0.8rem', 
+                          fontWeight: 800, 
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: 'linear-gradient(135deg, #f5d0fe 0%, #f472b6 100%)',
+                          color: '#701a75',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          boxShadow: '0 4px 12px rgba(244, 114, 182, 0.2)'
+                        }}
+                      >
+                        💍 Wedding Hire Special
+                      </Tag>
+                    )}
                   </p>
                 </div>
                 <div 
@@ -980,6 +999,33 @@ export default function VehicleDetail() {
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Member since 2026</span>
                     </div>
                   </div>
+                  {vehicle.mobileNumber && (
+                    <div style={{ marginTop: '1rem', display: 'flex', gap: '6px', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Direct Vehicle Contact</span>
+                      <a 
+                        href={`tel:${vehicle.mobileNumber}`} 
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          gap: '8px', 
+                          padding: '10px 14px', 
+                          borderRadius: '10px', 
+                          background: '#f0f9ff', 
+                          border: '1px solid #bae6fd', 
+                          color: '#0369a1', 
+                          fontWeight: 700,
+                          fontSize: '0.9rem',
+                          transition: 'all 0.2s',
+                          boxShadow: 'var(--shadow-sm)'
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#e0f2fe'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = '#f0f9ff'; }}
+                      >
+                        <Phone size={14} /> Call: {vehicle.mobileNumber}
+                      </a>
+                    </div>
+                  )}
                 ) : (
                   <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Verified Rentify Host</div>
                 )}

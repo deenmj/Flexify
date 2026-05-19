@@ -38,6 +38,7 @@ interface Filters {
   startDate: string;
   endDate: string;
   driverOption: string;
+  weddingHiresSpecial?: string;
   page?: string;
 }
 
@@ -119,6 +120,7 @@ export default function Explore() {
     startDate: searchParams.get('startDate') || '',
     endDate: searchParams.get('endDate') || '',
     driverOption: searchParams.get('driverOption') || '',
+    weddingHiresSpecial: searchParams.get('weddingHiresSpecial') || '',
   });
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 12, totalPages: 1 });
   const [isAppending, setIsAppending] = useState(false);
@@ -148,6 +150,7 @@ export default function Explore() {
       if (activeFilters.startDate) params.startDate = activeFilters.startDate;
       if (activeFilters.endDate) params.endDate = activeFilters.endDate;
       if (activeFilters.driverOption) params.driverOption = activeFilters.driverOption;
+      if (activeFilters.weddingHiresSpecial) params.weddingHiresSpecial = activeFilters.weddingHiresSpecial;
 
       const response = await vehicleApi.getAll(params);
       const vehiclesList = response.vehicles || [];
@@ -201,7 +204,7 @@ export default function Explore() {
     setFilters({ 
       transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', 
       lat: '', lng: '', radius: '10', sort: 'newest', province: '', district: '',
-      startDate: '', endDate: '', driverOption: ''
+      startDate: '', endDate: '', driverOption: '', weddingHiresSpecial: ''
     });
     setQuery('');
   };
@@ -405,6 +408,17 @@ export default function Explore() {
                   <option value="">Any</option>
                   <option value="self-drive">Self Drive</option>
                   <option value="with-driver">With Driver</option>
+                </select>
+              </div>
+              <div className="input-group">
+                <label>Wedding Special</label>
+                <select
+                  className="input-field"
+                  value={filters.weddingHiresSpecial}
+                  onChange={(e) => setFilters({ ...filters, weddingHiresSpecial: e.target.value })}
+                >
+                  <option value="">Any</option>
+                  <option value="true">💍 Wedding Special Only</option>
                 </select>
               </div>
               <div className="input-group">

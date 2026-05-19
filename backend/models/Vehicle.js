@@ -67,6 +67,10 @@ const vehicleSchema = new mongoose.Schema(
     province: { type: String, default: null, index: true },
     district: { type: String, default: null, index: true },
     city: { type: String, default: null, index: true },
+
+    // Contact and Special options
+    mobileNumber: { type: String, default: null },
+    weddingHiresSpecial: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
