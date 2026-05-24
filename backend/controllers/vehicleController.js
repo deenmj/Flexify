@@ -25,6 +25,28 @@ export const createVehicle = async (req, res) => {
       driverOption, driverPricePerDay, mobileNumber, weddingHiresSpecial
     } = req.body;
 
+    // Auto-promote regular users to owner role when they create their first listing
+    if (owner.role === "user") {
+      await User.findByIdAndUpdate(owner._id, {
+        role: "owner",
+        ownerType: "UNVERIFIED",
+        subscription: {
+          tier: 'FREE',
+          status: 'free',
+          startDate: new Date(),
+          endDate: null
+        }
+      });
+      owner.role = "owner";
+      owner.ownerType = "UNVERIFIED";
+      owner.subscription = {
+        tier: 'FREE',
+        status: 'free',
+        startDate: new Date(),
+        endDate: null
+      };
+    }
+
     // Subscription Check & Initialization — only for owners (staff/admins get free unlimited access)
     if (owner.role === "owner") {
       // If no subscription found, initialize with FREE tier (permanent, no expiry)

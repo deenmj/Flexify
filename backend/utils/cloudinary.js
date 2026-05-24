@@ -31,7 +31,7 @@ export const vehicleStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'flexify/vehicles',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
     transformation: [{ width: 1280, height: 1280, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
   },
 });
