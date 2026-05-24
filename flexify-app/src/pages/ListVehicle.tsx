@@ -260,7 +260,7 @@ export default function ListVehicle() {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       const options = {
-        maxSizeMB: 0.5,
+        maxSizeMB: 0.2,
         maxWidthOrHeight: 1280,
         useWebWorker: true,
         fileType: 'image/webp'
