@@ -412,9 +412,9 @@ const SubscriptionManagement: React.FC = () => {
                   <p className="upload-label">Upload Payment Receipt <span className="required">*</span></p>
                   <Upload
                     beforeUpload={(file) => {
-                      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'application/pdf';
+                      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp' || file.type === 'application/pdf';
                       if (!isJpgOrPng) {
-                        message.error('You can only upload JPG/PNG images or PDF files!');
+                        message.error('You can only upload JPG/PNG/WebP images or PDF files!');
                       }
                       const isLt5M = file.size / 1024 / 1024 < 5;
                       if (!isLt5M) {
@@ -438,7 +438,7 @@ const SubscriptionManagement: React.FC = () => {
                       <FileImageOutlined /> <span>{receiptFile.name}</span>
                     </div>
                   )}
-                  <p className="upload-hint">Format: JPG, PNG, PDF (Max 5MB)</p>
+                  <p className="upload-hint">Format: JPG, PNG, WebP, PDF (Max 5MB)</p>
                 </div>
 
                 <button

@@ -516,9 +516,13 @@ export default function VerifyUser() {
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <XCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
-                    <div style={{ fontWeight: 700, marginBottom: '4px' }}>Camera Permission Required</div>
+                    <div style={{ fontWeight: 700, marginBottom: '4px' }}>
+                      {error.toLowerCase().includes('camera') || error.toLowerCase().includes('permission') || error.toLowerCase().includes('denied')
+                        ? 'Camera Permission Required'
+                        : 'Upload Error'}
+                    </div>
                     <div style={{ fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>{error}</div>
-                    {error.includes('denied') && (
+                    {(error.includes('denied') || error.includes('permission')) && (
                       <div style={{ marginTop: '12px', padding: '10px', background: 'rgba(185, 28, 28, 0.05)', borderRadius: '8px', fontSize: '13px' }}>
                         <strong>Tip:</strong> If you're on a mobile phone, look for a camera icon in your browser's menu or settings to "Reset Permissions" or check your phone's system settings for the browser.
                       </div>

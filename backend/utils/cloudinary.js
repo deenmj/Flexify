@@ -13,7 +13,7 @@ export const kycStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'flexify/kyc',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
     transformation: [{ width: 1600, height: 1600, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
   },
 });
@@ -22,7 +22,7 @@ export const profileStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'flexify/profiles',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
     transformation: [{ width: 400, height: 400, crop: 'fill', quality: 'auto', fetch_format: 'auto' }],
   },
 });
@@ -39,7 +39,7 @@ export const receiptStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'flexify/receipts',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'pdf'],
   },
 });
 
