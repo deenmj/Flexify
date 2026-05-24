@@ -86,7 +86,7 @@
     border-radius: 12px;
   }
   .detail-main-img-item {
-    height: 250px;
+    height: 200px;
   }
 }
 
@@ -403,11 +403,14 @@
     border-radius: 16px !important;
   }
   .booking-panel {
-    padding: 1.5rem;
+    padding: 1rem;
     border-radius: 16px !important;
   }
   .pricing-value {
-    font-size: 1.6rem;
+    font-size: 1.25rem;
+  }
+  .pricing-currency {
+    font-size: 0.8rem;
   }
   .mobile-booking-bar {
     position: fixed;
