@@ -653,7 +653,7 @@ export default function VehicleDetail() {
                     <span className="spec-label">Consumption</span>
                     <span className="spec-value">
                       <Gauge size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                      {vehicle.fuelConsumption}
+                      {vehicle.fuelConsumption} km/L
                     </span>
                   </div>
                 )}

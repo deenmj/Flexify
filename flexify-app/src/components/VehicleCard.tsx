@@ -41,7 +41,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
               <span><Users size={12} /> {vehicle.seats} Seats</span>
             )}
             <span>
-              <Gauge size={12} /> {vehicle.kmLimitPerDay ? `${vehicle.kmLimitPerDay} km/d` : 'Unlimited km'}
+              <Gauge size={12} /> {vehicle.kmLimitPerDay ? `${vehicle.kmLimitPerDay} km/day` : 'Unlimited km'}
             </span>
             {vehicle.serviceType?.[0] !== 'Bike' && (
               <span>
