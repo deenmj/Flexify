@@ -16,9 +16,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             className="shared-vehicle-img"
             onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'; }}
           />
-        </div>
-        <div className="shared-vehicle-body">
-          {/* Tags row below image */}
+          {/* Tags row overlaid on bottom of image */}
           <div className="shared-vehicle-tags-row">
             {vehicle.transmission && <span className="v-card-tag">{vehicle.transmission}</span>}
             {ownerData?.ownerType === 'VERIFIED' && <span className="v-card-tag v-verified"><Verified size={10} style={{ marginRight: '2px' }} /> Verified</span>}
@@ -26,7 +24,8 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             {ownerData?.subscription?.tier === 'STANDARD' && <span className="v-card-tag v-standard">Standard</span>}
             {vehicle.weddingHiresSpecial && <span className="v-card-tag v-wedding">💍 Wedding Hire</span>}
           </div>
-
+        </div>
+        <div className="shared-vehicle-body">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
             <h3 className="shared-vehicle-title" title={vehicle.title}>{vehicle.title}</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: 700, color: '#f59e0b', flexShrink: 0 }}>

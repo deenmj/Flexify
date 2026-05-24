@@ -397,6 +397,12 @@
   .spec-item {
     padding: 0.65rem;
   }
+  .booking-perks {
+    margin-top: 0.75rem;
+  }
+  .owner-panel {
+    margin-top: 0.5rem !important;
+  }
   .detail-availability,
   .detail-reviews {
     padding: 1.25rem !important;

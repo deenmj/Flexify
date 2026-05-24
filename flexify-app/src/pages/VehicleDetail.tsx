@@ -1009,7 +1009,7 @@ export default function VehicleDetail() {
               </div>
 
               <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.25rem' }} style={{ marginTop: '1rem', borderRadius: '12px', border: '1px solid var(--border-color-light)' }}>
-                <h3 style={{ marginBottom: '1.25rem', fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Hosted By</h3>
+                <h3 style={{ marginBottom: '0.75rem', fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Hosted By</h3>
                 {owner ? (
                   <>
                     <div className="owner-profile-preview">
