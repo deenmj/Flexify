@@ -1,6 +1,6 @@
 // backend/routes/vehicleRoutes.js
 import express from "express";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, protectOptional } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/upload.js";
 import {
   listVehicles,
@@ -25,7 +25,7 @@ router.get("/makes", getMakes);
 router.get("/models/:makeId", getModels);
 router.get("/my", protect, getMyVehicles);
 router.get("/:id/availability", getVehicleAvailability);
-router.get("/:id", getVehicleById);
+router.get("/:id", protectOptional, getVehicleById);
 
 // Owner CRUD
 router.post("/", protect, upload.array("photos", 10), createVehicle);

@@ -1029,7 +1029,7 @@ export default function VehicleDetail() {
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Member since 2026</span>
                       </div>
                     </div>
-                    {vehicle.mobileNumber && (
+                    {vehicle.mobileNumber ? (
                       <div style={{ marginTop: '1rem', display: 'flex', gap: '6px', flexDirection: 'column' }}>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Direct Vehicle Contact</span>
                         <a 
@@ -1054,6 +1054,36 @@ export default function VehicleDetail() {
                         >
                           <Phone size={14} /> Call: {vehicle.mobileNumber}
                         </a>
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: '1rem', display: 'flex', gap: '6px', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Direct Vehicle Contact</span>
+                        <button 
+                          onClick={handleBookingTrigger}
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            gap: '8px', 
+                            padding: '10px 14px', 
+                            borderRadius: '10px', 
+                            background: '#f8fafc', 
+                            border: '1px solid #e2e8f0', 
+                            color: '#475569', 
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: 'var(--shadow-sm)'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = '#f8fafc'; }}
+                        >
+                          <Phone size={14} /> Request Booking to Get Contact
+                        </button>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontStyle: 'italic', textAlign: 'center', marginTop: '4px' }}>
+                          Contact details will be shared after booking confirmation.
+                        </span>
                       </div>
                     )}
                   </>

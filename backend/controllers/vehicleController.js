@@ -548,9 +548,35 @@ export const listVehicles = async (req, res) => {
 export const getVehicleById = async (req, res) => {
   try {
     const vehicle = await Vehicle.findById(req.params.id)
-      .populate("owner", "name email profilePic ownerType");
+      .populate("owner", "name email profilePic ownerType phone");
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
-    res.json(vehicle);
+
+    let canViewPhone = false;
+    if (req.user) {
+      if (req.user._id.toString() === vehicle.owner._id.toString()) {
+        canViewPhone = true;
+      } else if (req.user.role === 'subadmin' || req.user.role === 'superadmin') {
+        canViewPhone = true;
+      } else {
+        // Check for confirmed booking
+        const booking = await Booking.findOne({
+          vehicle: vehicle._id,
+          user: req.user._id,
+          status: 'CONFIRMED'
+        });
+        if (booking) canViewPhone = true;
+      }
+    }
+
+    const vehicleObj = vehicle.toObject();
+    if (!canViewPhone) {
+      delete vehicleObj.mobileNumber;
+      if (vehicleObj.owner) {
+        delete vehicleObj.owner.phone;
+      }
+    }
+
+    res.json(vehicleObj);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
