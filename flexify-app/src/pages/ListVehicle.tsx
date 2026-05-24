@@ -333,6 +333,8 @@ export default function ListVehicle() {
 
     } catch (err: any) {
       setError(err.message || 'Error uploading vehicle');
+      message.error(err.message || 'Error uploading vehicle');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }

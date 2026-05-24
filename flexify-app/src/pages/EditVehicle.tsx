@@ -357,6 +357,8 @@ export default function EditVehicle() {
       navigate(-1);
     } catch (err: any) {
       setError(err.message || 'Error updating vehicle');
+      message.error(err.message || 'Error updating vehicle');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSaveLoading(false);
     }
