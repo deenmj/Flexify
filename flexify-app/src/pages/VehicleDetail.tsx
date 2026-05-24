@@ -1081,7 +1081,7 @@ export default function VehicleDetail() {
             <span className="bar-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
             <span className="bar-unit">/ Day</span>
           </div>
-          <button className="btn btn-primary btn-lg" onClick={handleBookingTrigger} style={{ height: '48px', fontWeight: 800, borderRadius: '12px', fontSize: '1rem', padding: '0 24px', letterSpacing: '0.02em', flexShrink: 0 }}>
+          <button className="btn btn-primary" onClick={handleBookingTrigger} style={{ height: '44px', fontWeight: 700, borderRadius: '10px', fontSize: '0.85rem', padding: '0 16px', letterSpacing: '0.01em', flexShrink: 0 }}>
             {getBookingButtonText()}
           </button>
         </div>
