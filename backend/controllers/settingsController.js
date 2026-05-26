@@ -93,20 +93,48 @@ export const updateFounders = async (req, res) => {
       return res.status(400).json({ message: 'Invalid founders data' });
     }
 
-    // Map uploaded files to their respective founder entries
+    // Helper: upload a buffer to Cloudinary and return the secure URL
+    const uploadToCloudinary = (buffer, mimeType) =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'flexify/founders',
+            resource_type: 'image',
+            transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face', quality: 'auto', fetch_format: 'auto' }],
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        stream.end(buffer);
+      });
+
+    // Map uploaded files (memory buffers) to their respective founder entries
     const files = req.files || [];
-    const founders = foundersData.map((founder, index) => {
-      // Check if a new file was uploaded for this founder
-      // Cloudinary multer sets file.path = the full Cloudinary URL
-      const file = files.find(f => f.fieldname === `image_${index}`);
-      return {
-        name: founder.name || '',
-        role: founder.role || '',
-        description: founder.description || '',
-        // Store the full Cloudinary URL directly; fall back to existing value
-        image: file ? file.path : (founder.image || ''),
-      };
-    });
+    const founders = await Promise.all(
+      foundersData.map(async (founder, index) => {
+        const file = files.find(f => f.fieldname === `image_${index}`);
+        let imageUrl = founder.image || '';
+
+        if (file && file.buffer) {
+          try {
+            imageUrl = await uploadToCloudinary(file.buffer, file.mimetype);
+          } catch (uploadErr) {
+            console.error(`[Founders] Cloudinary upload failed for index ${index}:`, uploadErr.message);
+            // Keep existing image on upload failure — do NOT wipe it
+            imageUrl = founder.image || '';
+          }
+        }
+
+        return {
+          name: founder.name || '',
+          role: founder.role || '',
+          description: founder.description || '',
+          image: imageUrl,
+        };
+      })
+    );
 
     let settings = await Settings.findOne({ key: 'founders' });
 
@@ -127,6 +155,7 @@ export const updateFounders = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 
 // @desc    Delete a specific founder by index
 // @route   DELETE /api/settings/founders/:index

@@ -105,6 +105,25 @@
   gap: 2px;
 }
 
+.share-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  margin-right: -0.5rem; /* pull slightly to the right edge */
+}
+
+.share-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--color-primary);
+}
+
 /* Fix grid in Explore/Home */
 @media (max-width: 768px) {
   .shared-vehicle-img-wrap {
