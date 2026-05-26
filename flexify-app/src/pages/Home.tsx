@@ -298,8 +298,8 @@ export default function Home() {
             <h2 className="section-title">Your Journey, Your Way</h2>
             <p className="section-subtitle">We make vehicle renting seamless and personalized</p>
           </div>
-          <Row gutter={[32, 32]} className="features-row stagger-children">
-            <Col xs={24} md={8} lg={8}>
+          <Row gutter={isMobile ? [12, 16] : [32, 32]} className="features-row stagger-children">
+            <Col xs={8} md={8} lg={8}>
               <div className="feature-card animate-fade-in-up">
                 <div className="feature-icon-wrap">
                   <Shield size={40} strokeWidth={1.5} />
@@ -308,7 +308,7 @@ export default function Home() {
                 <p>Rent from verified hosts with a proven track record and quality vehicles.</p>
               </div>
             </Col>
-            <Col xs={24} md={8} lg={8}>
+            <Col xs={8} md={8} lg={8}>
               <div className="feature-card animate-fade-in-up">
                 <div className="feature-icon-wrap">
                   <Clock size={40} strokeWidth={1.5} />
@@ -317,7 +317,7 @@ export default function Home() {
                 <p>Daily, weekly, or monthly — choose the rental period that fits your schedule.</p>
               </div>
             </Col>
-            <Col xs={24} md={8} lg={8}>
+            <Col xs={8} md={8} lg={8}>
               <div className="feature-card animate-fade-in-up">
                 <div className="feature-icon-wrap">
                   <Users size={40} strokeWidth={1.5} />
