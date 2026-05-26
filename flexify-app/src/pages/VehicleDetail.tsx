@@ -994,7 +994,7 @@ export default function VehicleDetail() {
         </Row>
 
         {/* Sentinel for hiding floating bar */}
-        <div ref={sentinelRef} style={{ height: '1px', marginTop: '2rem' }}></div>
+        <div ref={sentinelRef} style={{ height: '1px', marginTop: '0.25rem' }}></div>
       </div>
 
       {/* MOBILE STICKY BOOKING BAR */}

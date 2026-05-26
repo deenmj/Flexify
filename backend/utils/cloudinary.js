@@ -43,4 +43,13 @@ export const receiptStorage = new CloudinaryStorage({
   },
 });
 
+export const founderStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'flexify/founders',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face', quality: 'auto', fetch_format: 'auto' }],
+  },
+});
+
 export default cloudinary;
