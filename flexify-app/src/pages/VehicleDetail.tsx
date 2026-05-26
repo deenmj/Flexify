@@ -530,39 +530,39 @@ export default function VehicleDetail() {
                     <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: 0 }}>
                       {vehicle.title}
                     </h1>
-                    <button 
-                      className="detail-share-btn" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (navigator.share) {
-                          navigator.share({
-                            title: vehicle.title,
-                            text: `Check out this ${vehicle.make} ${vehicle.model} on Rentify!`,
-                            url: window.location.href,
-                          }).catch(console.error);
-                        } else {
-                          navigator.clipboard.writeText(window.location.href);
-                          message.success('Link copied to clipboard!');
-                        }
-                      }}
-                      title="Share this vehicle"
+                    <div 
+                      className="detail-rating" 
+                      onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
+                      style={{ cursor: 'pointer', margin: 0 }}
                     >
-                      <Share2 size={isMobile ? 18 : 22} />
-                    </button>
+                      <Star size={16} fill="#f59e0b" color="#f59e0b" />
+                      <span className="rating-score">{vehicle.averageRating || 'New'}</span>
+                      <span className="rating-count">({vehicle.reviewCount || 0})</span>
+                    </div>
                   </div>
                   <p className="detail-subtitle" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
                     {vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}
                   </p>
                 </div>
-                <div 
-                  className="detail-rating" 
-                  onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
-                  style={{ cursor: 'pointer' }}
+                <button 
+                  className="detail-share-btn" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (navigator.share) {
+                      navigator.share({
+                        title: vehicle.title,
+                        text: `Check out this ${vehicle.make} ${vehicle.model} on Rentify!`,
+                        url: window.location.href,
+                      }).catch(console.error);
+                    } else {
+                      navigator.clipboard.writeText(window.location.href);
+                      message.success('Link copied to clipboard!');
+                    }
+                  }}
+                  title="Share this vehicle"
                 >
-                  <Star size={16} fill="#f59e0b" color="#f59e0b" />
-                  <span className="rating-score">{vehicle.averageRating || 'New'}</span>
-                  <span className="rating-count">({vehicle.reviewCount || 0})</span>
-                </div>
+                  <Share2 size={isMobile ? 18 : 22} />
+                </button>
               </div>
 
               <div className="location-context">
@@ -1224,12 +1224,39 @@ export default function VehicleDetail() {
           <button className="detail-lightbox-close" onClick={() => setShowLightbox(false)} aria-label="Close">
             <X size={32} />
           </button>
+          
+          {displayImages.length > 1 && (
+            <button 
+              className="detail-lightbox-nav prev"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => prev === 0 ? displayImages.length - 1 : prev - 1);
+              }}
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={36} />
+            </button>
+          )}
+
           <img 
             src={getImageUrl(displayImages[activeImage])} 
             alt={vehicle.title} 
             className="detail-lightbox-img" 
             onClick={(e) => e.stopPropagation()} 
           />
+
+          {displayImages.length > 1 && (
+            <button 
+              className="detail-lightbox-nav next"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => prev === displayImages.length - 1 ? 0 : prev + 1);
+              }}
+              aria-label="Next image"
+            >
+              <ChevronRight size={36} />
+            </button>
+          )}
         </div>
       )}
     </div>
