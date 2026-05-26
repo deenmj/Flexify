@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { userApi } from '../api';
-import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck, FileText } from 'lucide-react';
+import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck, FileText, Camera, RefreshCcw, CameraOff } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Checkbox, Modal, Button, Typography } from 'antd';
 
@@ -22,6 +22,21 @@ export default function VerifyUser() {
   const [agreed, setAgreed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
+  // Camera State
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [cameraActiveField, setCameraActiveField] = useState<'nicFront' | 'nicBack' | 'license' | 'selfie' | null>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('environment');
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
+    }
+  }, [cameraStream, isCameraOpen]);
+
   const [form, setForm] = useState({
     fullName: user?.name || '',
     phone: user?.phone || '',
@@ -34,10 +49,10 @@ export default function VerifyUser() {
     if (!file) return;
     
     try {
-      // Compress the image down to 500kb to prevent 40MB form uploads that timeout
+      // Compress the image down to 2MB to ensure quick uploads while maintaining quality
       const options = {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 1200,
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1600,
         useWebWorker: true,
       };
       
@@ -51,6 +66,113 @@ export default function VerifyUser() {
       setFiles((prev) => ({ ...prev, [field]: file }));
       setPreviews((prev) => ({ ...prev, [field]: URL.createObjectURL(file) }));
     }
+  };
+
+  const removeImage = (field: 'nicFront' | 'nicBack' | 'license' | 'selfie', e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setFiles((prev) => {
+      const newFiles = { ...prev };
+      delete newFiles[field];
+      return newFiles;
+    });
+    
+    setPreviews((prev) => {
+      if (prev[field]) URL.revokeObjectURL(prev[field]!);
+      const newPreviews = { ...prev };
+      delete newPreviews[field];
+      return newPreviews;
+    });
+    
+    const fileInput = document.getElementById(`file-input-${field}`) as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+    
+    const cameraInput = document.getElementById(`camera-input-${field}`) as HTMLInputElement;
+    if (cameraInput) cameraInput.value = '';
+  };
+
+  // Camera Logic
+  const openCamera = (field: 'nicFront' | 'nicBack' | 'license' | 'selfie') => {
+    setCameraActiveField(field);
+    setCameraFacing(field === 'selfie' ? 'user' : 'environment');
+    setIsCameraOpen(true);
+    startStream(field === 'selfie' ? 'user' : 'environment');
+  };
+
+  const startStream = async (facing: 'user' | 'environment') => {
+    setCameraLoading(true);
+    setError(''); // Clear previous errors
+    
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('BROWSER_UNSUPPORTED');
+      }
+
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: facing,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      });
+      setCameraStream(stream);
+    } catch (err: any) {
+      console.error('Camera access failed:', err);
+      
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setShowPermissionModal(true);
+      } else if (err.message === 'BROWSER_UNSUPPORTED' || !window.isSecureContext) {
+        setError('In-app camera is not supported on this browser or connection. Please use the "Upload" button instead — it will still let you take a photo using your phone\'s native camera.');
+      } else {
+        setError('Could not start camera. Please ensure no other app is using it and try again, or use the "Upload" button.');
+      }
+      setIsCameraOpen(false);
+    } finally {
+      setCameraLoading(false);
+    }
+  };
+
+  const flipCamera = () => {
+    const newFacing = cameraFacing === 'user' ? 'environment' : 'user';
+    setCameraFacing(newFacing);
+    startStream(newFacing);
+  };
+
+  const closeCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+    }
+    setCameraStream(null);
+    setIsCameraOpen(false);
+    setCameraActiveField(null);
+  };
+
+  const capturePhoto = () => {
+    if (!cameraActiveField || !cameraStream) return;
+    
+    const video = document.getElementById('camera-preview') as HTMLVideoElement;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Draw the current frame
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], `${cameraActiveField}.jpg`, { type: 'image/jpeg' });
+        handleFileChange(cameraActiveField, file);
+        closeCamera();
+      }
+    }, 'image/jpeg', 0.95);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -215,32 +337,152 @@ export default function VerifyUser() {
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem', color: '#334155' }}>
                 <Upload size={20} color="#1890ff" /> Upload Documents
               </h3>
+                    <style>{`
+                      .upload-box-wrapper:hover {
+                        border-color: #1890ff;
+                        background: #f8fbff;
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 16px rgba(24, 144, 255, 0.08);
+                      }
+                      .upload-box-wrapper:hover .icon-container {
+                        background: #e6f7ff;
+                        color: #1890ff;
+                        transform: scale(1.1);
+                      }
+                      .action-btn:hover {
+                        transform: scale(1.05);
+                        filter: brightness(1.1);
+                      }
+                      .action-btn:active {
+                        transform: scale(0.95);
+                      }
+                      .remove-btn:hover {
+                        transform: scale(1.1);
+                        background: rgba(220, 38, 38, 0.95) !important;
+                      }
+                    `}</style>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1rem' : '1.5rem' }}>
                 {fileFields.map((f) => (
-                  <div key={f.key} style={{
-                    border: previews[f.key] ? '2px solid #1890ff' : '2px dashed #e2e8f0',
-                    borderRadius: '16px',
+                  <div key={f.key} className="upload-box-wrapper" style={{
+                    border: previews[f.key] ? '2px solid #1890ff' : '2px dashed #cbd5e1',
+                    borderRadius: '20px',
                     overflow: 'hidden',
-                    background: previews[f.key] ? '#f0f9ff' : '#fafafa',
-                    transition: 'all 0.2s',
+                    background: previews[f.key] ? '#f0f9ff' : '#ffffff',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
                   }}>
-                    <label style={{ cursor: 'pointer', display: 'block' }}>
-                      <input type="file" accept="image/*" onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} style={{ display: 'none' }} />
+                    {/* Hidden Inputs */}
+                    <input 
+                      id={`file-input-${f.key}`}
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} 
+                      style={{ display: 'none' }} 
+                    />
+                    <input 
+                      id={`camera-input-${f.key}`}
+                      type="file" 
+                      accept="image/*" 
+                      capture={f.key === 'selfie' ? 'user' : 'environment'}
+                      onChange={(e) => handleFileChange(f.key, e.target.files?.[0] || null)} 
+                      style={{ display: 'none' }} 
+                    />
+
+                    {/* Interactive Area */}
+                    <div style={{ width: '100%', height: '100%' }}>
                       {previews[f.key] ? (
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative', display: 'block' }}>
                           <img src={previews[f.key]} alt={f.label} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
-                          <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: '#1890ff', color: 'white', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
-                            <CheckCircle size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />{f.label}
+                          
+                          <div 
+                            onClick={(e) => removeImage(f.key, e)}
+                            style={{ 
+                              position: 'absolute', 
+                              top: '12px', 
+                              right: '12px', 
+                              background: 'rgba(239, 68, 68, 0.9)', 
+                              backdropFilter: 'blur(4px)', 
+                              color: 'white', 
+                              width: '32px', 
+                              height: '32px', 
+                              borderRadius: '50%', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              cursor: 'pointer',
+                              boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+                              transition: 'all 0.2s'
+                            }}
+                            title="Remove image"
+                            className="remove-btn"
+                          >
+                            <XCircle size={18} />
+                          </div>
+
+                          <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(24, 144, 255, 0.9)', backdropFilter: 'blur(4px)', color: 'white', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                            <CheckCircle size={14} /> {f.label}
                           </div>
                         </div>
                       ) : (
-                        <div style={{ padding: '2rem', textAlign: 'center' }}>
-                          <Upload size={28} color="#94a3b8" style={{ marginBottom: '8px' }} />
-                          <div style={{ fontWeight: 700, fontSize: '14px', color: '#334155', marginBottom: '4px' }}>{f.label}</div>
-                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>{f.desc}</div>
+                        <div style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
+                          <div style={{ 
+                            background: '#f1f5f9', 
+                            width: '52px', 
+                            height: '52px', 
+                            borderRadius: '16px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            margin: '0 auto 1rem',
+                            color: '#94a3b8',
+                          }} className="icon-container">
+                            <Upload size={24} />
+                          </div>
+                          <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b', marginBottom: '4px' }}>{f.label}</div>
+                          <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4', marginBottom: '1.25rem' }}>{f.desc}</div>
+                          
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <label 
+                              htmlFor={`file-input-${f.key}`}
+                              className="action-btn" 
+                              style={{ 
+                                cursor: 'pointer',
+                                background: '#1890ff', 
+                                color: 'white', 
+                                padding: '8px 12px', 
+                                borderRadius: '10px', 
+                                fontSize: '13px', 
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                            >
+                              <Upload size={14} /> Upload
+                            </label>
+                            <div 
+                              className="action-btn" 
+                              onClick={() => openCamera(f.key)}
+                              style={{ 
+                                cursor: 'pointer',
+                                background: '#f1f5f9', 
+                                color: '#475569', 
+                                padding: '8px 12px', 
+                                borderRadius: '10px', 
+                                fontSize: '13px', 
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                            >
+                              <Camera size={14} /> Camera
+                            </div>
+                          </div>
                         </div>
                       )}
-                    </label>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -255,8 +497,19 @@ export default function VerifyUser() {
             </div>
 
             {error && (
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '12px 16px', borderRadius: '12px', marginBottom: '1rem', fontWeight: 600, fontSize: '14px' }}>
-                {error}
+              <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '16px', borderRadius: '16px', marginBottom: '1.5rem', boxShadow: '0 4px 6px rgba(185, 28, 28, 0.05)' }}>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <XCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <div style={{ fontWeight: 700, marginBottom: '4px' }}>Camera Permission Required</div>
+                    <div style={{ fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>{error}</div>
+                    {error.includes('denied') && (
+                      <div style={{ marginTop: '12px', padding: '10px', background: 'rgba(185, 28, 28, 0.05)', borderRadius: '8px', fontSize: '13px' }}>
+                        <strong>Tip:</strong> If you're on a mobile phone, look for a camera icon in your browser's menu or settings to "Reset Permissions" or check your phone's system settings for the browser.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
             {message && (
@@ -276,6 +529,63 @@ export default function VerifyUser() {
           </form>
         )}
       </div>
+
+      <Modal
+        title={null}
+        open={isCameraOpen}
+        onCancel={closeCamera}
+        footer={null}
+        width={600}
+        centered
+        bodyStyle={{ padding: 0, overflow: 'hidden', borderRadius: '16px' }}
+      >
+        <div style={{ background: '#000', position: 'relative', aspectRatio: '4/3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {cameraLoading && (
+            <div style={{ position: 'absolute', color: 'white', textAlign: 'center' }}>
+              <RefreshCcw size={32} className="animate-spin" style={{ marginBottom: '12px' }} />
+              <div>Starting Camera...</div>
+            </div>
+          )}
+          
+          <video 
+            id="camera-preview"
+            ref={videoRef}
+            autoPlay 
+            playsInline 
+            muted
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: cameraFacing === 'user' ? 'scaleX(-1)' : 'none' }}
+          />
+
+          {!cameraLoading && cameraStream && (
+            <div style={{ position: 'absolute', bottom: '24px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'center' }}>
+              <button 
+                onClick={closeCamera}
+                style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', color: 'white', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <ArrowLeft size={20} />
+              </button>
+              
+              <button 
+                onClick={capturePhoto}
+                style={{ background: 'white', width: '72px', height: '72px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '6px solid rgba(255,255,255,0.3)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
+              >
+                <div style={{ background: '#1890ff', width: '56px', height: '56px', borderRadius: '50%' }} />
+              </button>
+              
+              <button 
+                onClick={flipCamera}
+                style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', color: 'white', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <RefreshCcw size={20} />
+              </button>
+            </div>
+          )}
+        </div>
+        <div style={{ padding: '1rem', background: 'white', textAlign: 'center' }}>
+          <AntText strong style={{ fontSize: '16px' }}>Take {fileFields.find(f => f.key === cameraActiveField)?.label}</AntText>
+          <div style={{ color: '#64748b', fontSize: '13px' }}>Ensure the document is clear and well-lit</div>
+        </div>
+      </Modal>
 
       <Modal
         title={null}
@@ -357,6 +667,35 @@ export default function VerifyUser() {
             By checking the box and clicking "Submit Verification", you give your <strong>explicit consent</strong> to the collection, processing, and storage of the submitted personal data for the purposes described above.
           </AntText>
         </div>
+      </Modal>
+
+      <Modal
+        title={null}
+        open={showPermissionModal}
+        onCancel={() => setShowPermissionModal(false)}
+        footer={null}
+        centered
+        width={400}
+        bodyStyle={{ padding: '2rem', textAlign: 'center' }}
+      >
+        <div style={{ background: '#fef2f2', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#ef4444' }}>
+          <CameraOff size={32} />
+        </div>
+        <AntTitle level={4}>Camera Access Denied</AntTitle>
+        <Paragraph style={{ color: '#64748b', fontSize: '15px' }}>
+          We need camera access to take photos of your documents. Please enable camera permissions in your device or browser settings.
+        </Paragraph>
+        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', textAlign: 'left', marginBottom: '1.5rem' }}>
+          <div style={{ fontWeight: 600, fontSize: '13px', color: '#334155', marginBottom: '8px' }}>How to enable:</div>
+          <ul style={{ fontSize: '13px', color: '#64748b', margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <li><strong>iOS (Safari):</strong> Settings {'>'} Safari {'>'} Camera {'>'} Allow</li>
+            <li><strong>Android (Chrome):</strong> Site Settings {'>'} Camera {'>'} Allow</li>
+            <li><strong>Desktop:</strong> Click the lock icon (🔒) in the address bar and select "Allow".</li>
+          </ul>
+        </div>
+        <Button type="primary" size="large" block onClick={() => setShowPermissionModal(false)} style={{ borderRadius: '10px', height: '48px', fontWeight: 600 }}>
+          I Understand
+        </Button>
       </Modal>
     </div>
   );

@@ -1,4 +1,8 @@
-const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'https://api.rentify.lk'}/api`;
+// Determine default backend URL based on environment
+const isDev = import.meta.env.MODE === 'development';
+const defaultApiUrl = isDev ? 'http://localhost:5000' : 'https://api.rentify.lk';
+
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || defaultApiUrl}/api`;
 
 export const getImageUrl = (path?: any) => {
   const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80';
@@ -13,7 +17,7 @@ export const getImageUrl = (path?: any) => {
     if (path.startsWith('http') || path.startsWith('data:')) return path;
     
     // Ensure no trailing slash on baseUrl and ensure leading slash on path
-    const baseUrl = (import.meta.env.VITE_API_URL || 'https://api.rentify.lk').replace(/\/$/, '');
+    const baseUrl = (import.meta.env.VITE_API_URL || defaultApiUrl).replace(/\/$/, '');
     // Normalize backslashes to forward slashes (fix for Windows local paths)
     const normalizedPath = path.replace(/\\/g, '/');
     const cleanPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
@@ -699,6 +703,13 @@ export const notificationApi = {
   markAllAsRead: () => apiFetch<{ message: string }>('/notifications/mark-all-read', { method: 'POST' }),
 };
 
+export interface Founder {
+  name: string;
+  role: string;
+  description: string;
+  image: string;
+}
+
 export const settingsApi = {
   getContactDetails: () => apiFetch<{ email: string; phone: string; address: string; workingHours: string; }>('/settings/contact'),
   updateContactDetails: (data: { email: string; phone: string; address: string; workingHours: string; }) => 
@@ -706,6 +717,22 @@ export const settingsApi = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+
+  getFounders: () => apiFetch<Founder[]>('/settings/founders'),
+
+  updateFounders: (formData: FormData) =>
+    fetch(`${API_BASE_URL}/settings/founders`, {
+      method: 'PUT',
+      headers: authHeadersOnly(),
+      body: formData,
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update founders');
+      return data as Founder[];
+    }),
+
+  deleteFounder: (index: number) =>
+    apiFetch<Founder[]>(`/settings/founders/${index}`, { method: 'DELETE' }),
 };
 
 export const feedbackApi = {

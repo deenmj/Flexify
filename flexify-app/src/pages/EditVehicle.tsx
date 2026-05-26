@@ -7,6 +7,7 @@ import { Select as AntSelect, message, Row, Col, Modal, Tag } from 'antd';
 import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff, ChevronLeft, ChevronRight, Menu as MenuIcon } from 'lucide-react';
 import { Spin } from 'antd';
 import './ListVehicle.css';
+import imageCompression from 'browser-image-compression';
 
 const { Option } = AntSelect;
 
@@ -219,9 +220,26 @@ export default function EditVehicle() {
     }));
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setPhotos(prev => [...prev, ...Array.from(e.target.files!)]);
+      const files = Array.from(e.target.files);
+      const options = {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+      
+      const compressedFiles = await Promise.all(
+        files.map(async (file) => {
+          try {
+            return await imageCompression(file, options);
+          } catch (err) {
+            console.error('Compression error:', err);
+            return file;
+          }
+        })
+      );
+      setPhotos(prev => [...prev, ...compressedFiles]);
     }
   };
 

@@ -423,7 +423,7 @@
 
 .cell-available {
   background: transparent;
-  border: 1.5px solid #22c55e;
+  border: 1.5px solid transparent;
 }
 
 .cell-confirmed {
