@@ -493,7 +493,7 @@ export default function VehicleDetail() {
           } : {})
         }}
       />
-      <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
+      <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: isMobile ? '0.5rem' : '3rem' }}>
         
         <Row gutter={[24, 24]}>
           {/* LEFT COLUMN: Main Content */}
@@ -986,7 +986,7 @@ export default function VehicleDetail() {
         </Row>
 
         {/* Sentinel for hiding floating bar */}
-        <div ref={sentinelRef} style={{ height: '1px', marginTop: '2rem' }}></div>
+        <div ref={sentinelRef} style={{ height: '1px', marginTop: isMobile ? '0.5rem' : '2rem' }}></div>
       </div>
 
       {/* MOBILE STICKY BOOKING BAR */}
