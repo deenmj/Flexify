@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button, Select } from 'antd';
+import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl, getVehicleSlug } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight, Share2, X } from 'lucide-react';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -50,7 +50,6 @@ export default function VehicleDetail() {
   // Availability & Blackouts
   const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
   const [blackoutRanges, setBlackoutRanges] = useState<BlackoutRange[]>([]);
-  const [availLoading, setAvailLoading] = useState(false);
   const [calendarDate, setCalendarDate] = useState<Dayjs>(() => dayjs());
 
   // Booking modal
@@ -91,7 +90,6 @@ export default function VehicleDetail() {
   // Fetch availability & reviews
   useEffect(() => {
     if (!id) return;
-    setAvailLoading(true);
     setReviewsLoading(true);
 
     Promise.all([
@@ -105,7 +103,6 @@ export default function VehicleDetail() {
       })
       .catch(() => { /* silently fail */ })
       .finally(() => {
-        setAvailLoading(false);
         setReviewsLoading(false);
       });
   }, [id]);
@@ -181,16 +178,6 @@ export default function VehicleDetail() {
 
     return <div className="ant-picker-cell-inner">{date.date()}</div>;
   }, [isDateBooked, isDateBlackedOut]);
-
-  // Verify if the entire range is available
-  const isRangeBlocked = (start: Dayjs, end: Dayjs) => {
-    let curr = start;
-    while (curr.isBefore(end) || curr.isSame(end, 'day')) {
-      if (disabledDate(curr)) return true;
-      curr = curr.add(1, 'day');
-    }
-    return false;
-  };
 
   // Calendar cell renderer for the availability calendar
   const fullCellRender = useCallback((date: Dayjs) => {
@@ -295,37 +282,6 @@ export default function VehicleDetail() {
     setShowBookingModal(true);
   };
 
-  const handleToggleStatus = async () => {
-    if (!id || !vehicle) return;
-    try {
-      await vehicleApi.toggleStatus(id);
-      setVehicle({ ...vehicle, isActive: !vehicle.isActive });
-      message.success(vehicle.isActive ? 'Vehicle is now hidden' : 'Vehicle is now visible');
-    } catch (err: any) {
-      message.error(err.message || 'Failed to update status');
-    }
-  };
-
-  const handleDeleteVehicle = () => {
-    if (!id) return;
-    Modal.confirm({
-      title: 'Delete Vehicle',
-      content: 'Are you sure you want to delete this vehicle? This action cannot be undone.',
-      okText: 'Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
-        try {
-          await vehicleApi.delete(id);
-          message.success('Vehicle deleted successfully');
-          navigate('/dashboard');
-        } catch (err: any) {
-          message.error(err.message || 'Failed to delete vehicle');
-        }
-      }
-    });
-  };
-
   const handleReportSubmit = async () => {
     if (!reportReason.trim()) {
       return message.error('Please provide a reason for reporting');
@@ -418,7 +374,7 @@ export default function VehicleDetail() {
     );
   }
 
-  const validPhotos = vehicle.photos?.filter(p => {
+  const validPhotos = vehicle.photos?.filter((p: any) => {
     if (!p) return false;
     if (typeof p === 'object') return !!p.url;
     return typeof p === 'string' && p.trim() !== '';
@@ -458,7 +414,7 @@ export default function VehicleDetail() {
       <SEO 
         title={`${vehicle.title} for Rent in ${vehicle.city || vehicle.district} | Rentify`}
         description={`Rent ${vehicle.make} ${vehicle.model}${vehicle.year ? ` (${vehicle.year})` : ''} in ${vehicle.city || ''}, ${vehicle.district} from LKR ${vehicle.pricePerDay.toLocaleString()}/day. ${vehicle.transmission}, ${vehicle.seats} seats${vehicle.driverOption === 'both' ? ', self-drive or with driver' : ''}. Verified owner — book instantly on Rentify.lk!`}
-        keywords={`rent ${vehicle.make} ${vehicle.model} Sri Lanka, ${vehicle.make} rental ${vehicle.district}, ${vehicle.vehicleType || 'car'} hire ${vehicle.city || vehicle.district}, self drive ${vehicle.district}`}
+        keywords={`rent ${vehicle.make} ${vehicle.model} Sri Lanka, ${vehicle.make} rental ${vehicle.district}, ${(vehicle as any).vehicleType || 'car'} hire ${vehicle.city || vehicle.district}, self drive ${vehicle.district}`}
         ogImage={getImageUrl(displayImages[0])}
         ogType="product"
         ogTitle={`Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district} — LKR ${vehicle.pricePerDay.toLocaleString()}/day`}
@@ -635,7 +591,7 @@ export default function VehicleDetail() {
                   <span className="spec-label">Fuel Type</span>
                   <span className="spec-value">{vehicle.fuelType}</span>
                 </div>
-                {vehicle.serviceType !== 'Bike' && (
+                {!vehicle.serviceType?.includes('Bike') && (
                   <div className="spec-item">
                     <span className="spec-label">Seats</span>
                     <span className="spec-value">
@@ -712,7 +668,7 @@ export default function VehicleDetail() {
                         try {
                           const parsed = JSON.parse(trimmed);
                           return flatten(parsed);
-                        } catch (e) {
+                        } catch (_) {
                           // Fallback: split by comma if JSON parse fails
                           return trimmed.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
                         }
@@ -780,7 +736,7 @@ export default function VehicleDetail() {
                     value={calendarDate}
                     onChange={setCalendarDate}
                     fullCellRender={(date) => fullCellRender(date as Dayjs)} 
-                    headerRender={({ value, type, onChange, onTypeChange }) => {
+                    headerRender={({ value, onChange }) => {
                       return (
                         <div style={{ padding: '8px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
