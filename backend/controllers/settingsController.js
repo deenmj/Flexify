@@ -1,6 +1,5 @@
 import Settings from '../models/Settings.js';
-import fs from 'fs';
-import path from 'path';
+import cloudinary from '../utils/cloudinary.js';
 
 // @desc    Get website contact details
 // @route   GET /api/settings/contact
@@ -98,14 +97,14 @@ export const updateFounders = async (req, res) => {
     const files = req.files || [];
     const founders = foundersData.map((founder, index) => {
       // Check if a new file was uploaded for this founder
+      // Cloudinary multer sets file.path = the full Cloudinary URL
       const file = files.find(f => f.fieldname === `image_${index}`);
       return {
         name: founder.name || '',
         role: founder.role || '',
         description: founder.description || '',
-        image: file
-          ? `/uploads/avatars/${file.filename}`
-          : (founder.image || ''),
+        // Store the full Cloudinary URL directly; fall back to existing value
+        image: file ? file.path : (founder.image || ''),
       };
     });
 
@@ -149,12 +148,18 @@ export const deleteFounder = async (req, res) => {
       return res.status(400).json({ message: 'Invalid founder index' });
     }
 
-    // Try to delete the local image file if it exists
+    // Delete image from Cloudinary if it's a Cloudinary URL
     const removed = settings.value[founderIndex];
-    if (removed?.image && removed.image.startsWith('/uploads/')) {
-      const filePath = path.join(process.cwd(), removed.image);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+    if (removed?.image && removed.image.includes('cloudinary.com')) {
+      try {
+        // Extract the public_id from the Cloudinary URL
+        // URL format: https://res.cloudinary.com/<cloud>/image/upload/<transforms>/flexify/founders/<id>
+        const urlParts = removed.image.split('/');
+        const publicIdWithExt = urlParts.slice(urlParts.indexOf('upload') + 1).join('/');
+        const publicId = publicIdWithExt.replace(/\.[^/.]+$/, ''); // strip file extension
+        await cloudinary.uploader.destroy(publicId);
+      } catch (cleanupErr) {
+        console.warn('Cloudinary cleanup warning:', cleanupErr.message);
       }
     }
 

@@ -32,10 +32,12 @@
 
 .shared-vehicle-badges {
   position: absolute;
-  top: 0.75rem;
+  bottom: 0.75rem;
   left: 0.75rem;
   display: flex;
   gap: 0.375rem;
+  flex-wrap: wrap;
+  max-width: calc(100% - 1.5rem);
 }
 
 .shared-vehicle-body {
@@ -125,4 +127,14 @@
   .price-amount {
     font-size: 0.95rem;
   }
+}
+
+/* === Fixed-width cards in horizontal scroll container (Home featured vehicles) ===
+   Prevents elastic resizing based on image or content dimensions.
+   Ensures identical appearance to Explore page grid cards. */
+.scroll-container .shared-vehicle-card-link {
+  flex: 0 0 280px;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
 }
