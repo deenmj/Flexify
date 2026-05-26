@@ -4,7 +4,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button, Select } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl, getVehicleSlug } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight, Share2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -62,6 +62,7 @@ export default function VehicleDetail() {
 
   // active carousel image
   const [activeImage, setActiveImage] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   // Reviews
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -528,6 +529,8 @@ export default function VehicleDetail() {
                     alt={`${vehicle.title} - Image ${idx + 1}`}
                     loading={idx === 0 ? "eager" : "lazy"}
                     className="detail-main-img-item"
+                    onClick={() => { setActiveImage(idx); setShowLightbox(true); }}
+                    style={{ cursor: 'pointer' }}
                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'; }}
                   />
                 ))}
@@ -567,9 +570,30 @@ export default function VehicleDetail() {
             <div className="detail-overview card" style={{ marginTop: '1.5rem', padding: isMobile ? '1.25rem' : '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ flex: 1, minWidth: '200px' }}>
-                  <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-                    {vehicle.title}
-                  </h1>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: 0 }}>
+                      {vehicle.title}
+                    </h1>
+                    <button 
+                      className="detail-share-btn" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (navigator.share) {
+                          navigator.share({
+                            title: vehicle.title,
+                            text: `Check out this ${vehicle.make} ${vehicle.model} on Rentify!`,
+                            url: window.location.href,
+                          }).catch(console.error);
+                        } else {
+                          navigator.clipboard.writeText(window.location.href);
+                          message.success('Link copied to clipboard!');
+                        }
+                      }}
+                      title="Share this vehicle"
+                    >
+                      <Share2 size={isMobile ? 18 : 22} />
+                    </button>
+                  </div>
                   <p className="detail-subtitle" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
                     {vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}
                   </p>
@@ -1237,6 +1261,21 @@ export default function VehicleDetail() {
           onChange={e => setReportReason(e.target.value)}
         />
       </Modal>
+
+      {/* LIGHTBOX OVERLAY */}
+      {showLightbox && (
+        <div className="detail-lightbox-overlay" onClick={() => setShowLightbox(false)}>
+          <button className="detail-lightbox-close" onClick={() => setShowLightbox(false)} aria-label="Close">
+            <X size={32} />
+          </button>
+          <img 
+            src={getImageUrl(displayImages[activeImage])} 
+            alt={vehicle.title} 
+            className="detail-lightbox-img" 
+            onClick={(e) => e.stopPropagation()} 
+          />
+        </div>
+      )}
     </div>
   );
 }
