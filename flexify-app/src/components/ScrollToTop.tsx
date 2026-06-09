@@ -10,7 +10,14 @@ export default function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Override smooth scrolling to ensure instant jump to top
+    document.documentElement.style.scrollBehavior = 'auto';
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    
+    // Restore css smooth scroll behavior after a micro-task delay
+    setTimeout(() => {
+      document.documentElement.style.scrollBehavior = '';
+    }, 0);
   }, [pathname]);
 
   return null;

@@ -282,8 +282,10 @@ export default function VehicleDetail() {
     const startStr = dateRange[0].toISOString();
     const endStr = dateRange[1].toISOString();
 
-    // If user hasn't submitted KYC, save pending booking and redirect to KYC
-    if (user.verificationStatus === 'not_submitted') {
+    const hasKycFields = Boolean(user.documents?.idNumber?.trim() && user.documents?.address?.trim());
+
+    // If user hasn't submitted KYC or missing mandatory fields, save pending booking and redirect to KYC
+    if (!hasKycFields) {
       localStorage.setItem('pendingBooking', JSON.stringify({
         vehicleId: id,
         startDate: startStr,
@@ -295,7 +297,7 @@ export default function VehicleDetail() {
       return;
     }
 
-    // User is verified (pending/approved/rejected) — proceed with booking
+    // User is verified (has fields filled) — proceed with booking
     setBookingLoading(true);
     try {
       const resp = await bookingApi.create(id!, startStr, endStr, withDriver);
@@ -321,7 +323,8 @@ export default function VehicleDetail() {
   // Determine button text based on verification status
   const getBookingButtonText = () => {
     if (!user) return 'Sign In to Book';
-    return 'Book Now';
+    const hasKycFields = Boolean(user.documents?.idNumber?.trim() && user.documents?.address?.trim());
+    return hasKycFields ? 'Book Now' : 'Verify and Book';
   };
 
   const handleBookingTrigger = () => {

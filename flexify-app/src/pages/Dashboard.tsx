@@ -765,6 +765,9 @@ export default function Dashboard() {
               <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                 <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>Contact Info</h4>
                 <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '4px' }}>{selectedRenter.phone || 'Phone not provided'}</div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                  <strong style={{ color: 'var(--text-primary)' }}>ID/License:</strong> {(selectedRenter as any)?.documents?.idNumber || 'Not Provided'}
+                </div>
                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedRenter.documents?.address || selectedRenter.address || 'Address not listed'}</div>
               </div>
             </div>
@@ -776,19 +779,6 @@ export default function Dashboard() {
               </h4>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
-                {/* ID Number Display */}
-                <div style={{ 
-                  background: '#fff', 
-                  padding: '12px', 
-                  borderRadius: '16px', 
-                  border: '1px solid #f1f5f9',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-                }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>ID / License Number</div>
-                  <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', padding: '12px', wordBreak: 'break-all' }}>
-                    {(selectedRenter as any)?.documents?.idNumber || 'Not Provided'}
-                  </div>
-                </div>
                 {[
                   { label: 'Driver License', field: 'license' },
                   { label: 'Profile Photo', field: 'selfie' },
@@ -1000,26 +990,17 @@ export default function Dashboard() {
                           <div>
                             <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0f172a' }}>{renterObj.name}</div>
                             <div style={{ color: '#475569', fontSize: '0.9rem', marginBottom: '4px' }}>{renterObj.email}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: 700 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: 700, marginBottom: '4px' }}>
                               <Phone size={14} /> {renterObj.phone || 'Phone not provided'}
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
+                              <strong style={{ color: '#0f172a' }}>ID/License:</strong> {renterObj.documents?.idNumber || 'Not Provided'}
                             </div>
                           </div>
                         </div>
 
                         {/* Document display area directly integrated */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
-                          {/* ID Number Display */}
-                          <div style={{ 
-                            background: '#f8fafc', 
-                            padding: '8px', 
-                            borderRadius: '8px', 
-                            border: '1px solid #e2e8f0'
-                          }}>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', marginBottom: '6px', textTransform: 'uppercase' }}>ID / License Number</div>
-                            <div style={{ height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', padding: '8px', wordBreak: 'break-all' }}>
-                              {renterObj.documents?.idNumber || 'Not Provided'}
-                            </div>
-                          </div>
                           {[
                             { label: 'Driver License', field: 'license' },
                             { label: 'Profile Photo', field: 'selfie' },
