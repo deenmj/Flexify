@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { userApi } from '../api';
+import { userApi, bookingApi } from '../api';
 import { Shield, Upload, CheckCircle, Clock, XCircle, ArrowLeft, MapPin, Phone, UserCheck, FileText, Camera, RefreshCcw, CameraOff } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Checkbox, Modal, Button, Typography } from 'antd';
@@ -24,7 +24,7 @@ export default function VerifyUser() {
 
   // Camera State
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [cameraActiveField, setCameraActiveField] = useState<'nicFront' | 'nicBack' | 'license' | 'selfie' | null>(null);
+  const [cameraActiveField, setCameraActiveField] = useState<'license' | 'selfie' | null>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('environment');
   const [cameraLoading, setCameraLoading] = useState(false);
@@ -40,12 +40,13 @@ export default function VerifyUser() {
   const [form, setForm] = useState({
     fullName: user?.name || '',
     phone: user?.phone || '',
+    idNumber: '',
     address: '',
   });
-  const [files, setFiles] = useState<{ nicFront?: File; nicBack?: File; license?: File; selfie?: File }>({});
-  const [previews, setPreviews] = useState<{ nicFront?: string; nicBack?: string; license?: string; selfie?: string }>({});
+  const [files, setFiles] = useState<{ license?: File; selfie?: File }>({});
+  const [previews, setPreviews] = useState<{ license?: string; selfie?: string }>({});
 
-  const handleFileChange = async (field: 'nicFront' | 'nicBack' | 'license' | 'selfie', file: File | null) => {
+  const handleFileChange = async (field: 'license' | 'selfie', file: File | null) => {
     if (!file) return;
     
     try {
@@ -68,7 +69,7 @@ export default function VerifyUser() {
     }
   };
 
-  const removeImage = (field: 'nicFront' | 'nicBack' | 'license' | 'selfie', e: React.MouseEvent) => {
+  const removeImage = (field: 'license' | 'selfie', e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -93,7 +94,7 @@ export default function VerifyUser() {
   };
 
   // Camera Logic
-  const openCamera = (field: 'nicFront' | 'nicBack' | 'license' | 'selfie') => {
+  const openCamera = (field: 'license' | 'selfie') => {
     setCameraActiveField(field);
     setCameraFacing(field === 'selfie' ? 'user' : 'environment');
     setIsCameraOpen(true);
@@ -185,8 +186,13 @@ export default function VerifyUser() {
       return;
     }
 
-    if (!files.nicFront || !files.nicBack || !files.license || !files.selfie) {
-      setError('Please upload all 4 required documents');
+    // Mandatory field validation
+    if (!form.idNumber.trim()) {
+      setError('Please enter your ID / License Number');
+      return;
+    }
+    if (!form.phone.trim()) {
+      setError('Please enter your phone number');
       return;
     }
     if (!form.address.trim()) {
@@ -197,10 +203,9 @@ export default function VerifyUser() {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append('nicFront', files.nicFront);
-      formData.append('nicBack', files.nicBack);
-      formData.append('license', files.license);
-      formData.append('selfie', files.selfie);
+      if (files.license) formData.append('license', files.license);
+      if (files.selfie) formData.append('selfie', files.selfie);
+      formData.append('idNumber', form.idNumber.trim());
       formData.append('address', form.address);
       formData.append('fullName', form.fullName);
       formData.append('phone', form.phone);
@@ -209,7 +214,45 @@ export default function VerifyUser() {
       await userApi.submitKyc(formData);
       await refreshUser();
 
-      // If there's a returnTo URL, redirect back to that page
+      // Check for pending booking and auto-submit it
+      const pendingBooking = localStorage.getItem('pendingBooking');
+      if (pendingBooking) {
+        try {
+          const pending = JSON.parse(pendingBooking);
+          localStorage.removeItem('pendingBooking');
+          
+          const resp = await bookingApi.create(
+            pending.vehicleId,
+            pending.startDate,
+            pending.endDate,
+            pending.withDriver
+          );
+          
+          setMessage('Verified & booking submitted successfully! Redirecting...');
+          
+          // Redirect to the vehicle page after a short delay
+          setTimeout(() => {
+            if (returnTo) {
+              navigate(returnTo, { replace: true });
+            } else {
+              navigate('/dashboard', { replace: true });
+            }
+          }, 1500);
+          return;
+        } catch (bookingErr: any) {
+          console.error('Auto-booking after KYC failed:', bookingErr);
+          setMessage('Documents submitted! However, booking failed: ' + (bookingErr.message || 'Please try again.'));
+          // Still redirect back so user can retry
+          setTimeout(() => {
+            if (returnTo) {
+              navigate(returnTo, { replace: true });
+            }
+          }, 2500);
+          return;
+        }
+      }
+
+      // No pending booking — standard flow
       if (returnTo) {
         navigate(returnTo, { replace: true });
         return;
@@ -274,11 +317,9 @@ export default function VerifyUser() {
     return null;
   };
 
-  const fileFields: { key: 'nicFront' | 'nicBack' | 'license' | 'selfie'; label: string; desc: string }[] = [
-    { key: 'nicFront', label: 'NIC Front', desc: 'Upload the front side of your National Identity Card' },
-    { key: 'nicBack', label: 'NIC Back', desc: 'Upload the back side of your National Identity Card' },
-    { key: 'license', label: 'Driving License', desc: 'Upload a clear photo of your valid driving license' },
-    { key: 'selfie', label: 'Selfie / Photo', desc: 'Take a clear selfie or upload a recent photo of yourself' },
+  const fileFields: { key: 'license' | 'selfie'; label: string; desc: string; optional: boolean }[] = [
+    { key: 'license', label: 'Driving License', desc: 'Upload a photo of your driving license (optional)', optional: true },
+    { key: 'selfie', label: 'Profile Photo', desc: 'Upload a recent photo of yourself (optional)', optional: true },
   ];
 
   // Only allow form submission if not pending or approved
@@ -301,7 +342,7 @@ export default function VerifyUser() {
           </div>
           <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: '0.5rem', color: '#1e293b' }}>One-Time Verification</h1>
           <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto', fontSize: isMobile ? '0.9rem' : '1rem' }}>
-            Upload your identity documents once to start booking vehicles. This is a one-time process — it only takes a minute!
+            Provide your ID details and address to start booking vehicles. This is a one-time process — it only takes a minute!
           </p>
         </div>
 
@@ -320,23 +361,32 @@ export default function VerifyUser() {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#475569' }}>
-                    <Phone size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Phone Number
+                    <Phone size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Phone Number <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input className="input-field" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+94 7X XXX XXXX" required />
                 </div>
               </div>
-              <div>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#475569' }}>
-                  <MapPin size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Current Address
-                </label>
-                <textarea className="input-field" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Enter your full address" rows={3} required style={{ resize: 'vertical' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#475569' }}>
+                    <FileText size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> ID / License Number <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input className="input-field" value={form.idNumber} onChange={(e) => setForm({ ...form, idNumber: e.target.value })} placeholder="Enter your NIC or Driving License number" required />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, fontSize: '13px', marginBottom: '6px', color: '#475569' }}>
+                    <MapPin size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Full Address <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input className="input-field" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Enter your full address" required />
+                </div>
               </div>
             </div>
 
             <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem', borderRadius: '16px', marginBottom: '1.5rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem', color: '#334155' }}>
-                <Upload size={20} color="#1890ff" /> Upload Documents
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem', color: '#334155' }}>
+                <Upload size={20} color="#1890ff" /> Upload Documents <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#94a3b8', marginLeft: '4px' }}>(Optional)</span>
               </h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '1.25rem' }}>These are optional but help speed up the verification process.</p>
                     <style>{`
                       .upload-box-wrapper:hover {
                         border-color: #1890ff;

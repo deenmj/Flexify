@@ -107,6 +107,53 @@ export default function VehicleDetail() {
       });
   }, [id]);
 
+  // Auto-complete pending booking after KYC verification
+  useEffect(() => {
+    if (!user || !id) return;
+    // Only proceed if user has completed KYC (status is no longer 'not_submitted')
+    if (user.verificationStatus === 'not_submitted') return;
+
+    try {
+      const stored = localStorage.getItem('pendingBooking');
+      if (!stored) return;
+
+      const pending = JSON.parse(stored);
+      // Only auto-book if the pending booking matches this vehicle
+      if (pending.vehicleId !== id) return;
+
+      // Clear immediately to prevent double-submission
+      localStorage.removeItem('pendingBooking');
+
+      // Auto-submit the booking
+      setShowBookingModal(true);
+      setBookingLoading(true);
+
+      bookingApi.create(pending.vehicleId, pending.startDate, pending.endDate, pending.withDriver)
+        .then((resp) => {
+          setCreatedBooking(resp);
+          message.success('KYC verified & booking submitted successfully!');
+          // Refresh availability in background
+          vehicleApi.getAvailability(id)
+            .then((data) => {
+              setBookedRanges(data.bookedRanges);
+              setBlackoutRanges(data.blackoutRanges);
+            })
+            .catch(err => console.error('Silent refresh failed:', err));
+        })
+        .catch((err: any) => {
+          console.error('Auto-booking failed:', err);
+          message.error(err.message || 'Failed to create booking after verification');
+          setShowBookingModal(false);
+        })
+        .finally(() => {
+          setBookingLoading(false);
+        });
+    } catch (e) {
+      localStorage.removeItem('pendingBooking');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.verificationStatus, id]);
+
   // Helper: is a date within a booked range?
   const isDateBooked = useCallback((date: Dayjs, statusFilter?: string) => {
     return bookedRanges.some((r) => {
@@ -227,21 +274,29 @@ export default function VehicleDetail() {
       return;
     }
 
-    // Only block booking if documents haven't been uploaded at all
-    if (user.verificationStatus === 'not_submitted') {
-      navigate(`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`);
-      return;
-    }
-
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       message.error('Please select both pickup and return dates');
       return;
     }
 
-    setBookingLoading(true);
     const startStr = dateRange[0].toISOString();
     const endStr = dateRange[1].toISOString();
 
+    // If user hasn't submitted KYC, save pending booking and redirect to KYC
+    if (user.verificationStatus === 'not_submitted') {
+      localStorage.setItem('pendingBooking', JSON.stringify({
+        vehicleId: id,
+        startDate: startStr,
+        endDate: endStr,
+        withDriver,
+      }));
+      message.info('Quick verification needed before booking — it only takes a minute!');
+      navigate(`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}&pendingBooking=true`);
+      return;
+    }
+
+    // User is verified (pending/approved/rejected) — proceed with booking
+    setBookingLoading(true);
     try {
       const resp = await bookingApi.create(id!, startStr, endStr, withDriver);
       setCreatedBooking(resp);
@@ -266,7 +321,6 @@ export default function VehicleDetail() {
   // Determine button text based on verification status
   const getBookingButtonText = () => {
     if (!user) return 'Sign In to Book';
-    if (user.verificationStatus === 'not_submitted') return 'Verify & Continue Booking';
     return 'Book Now';
   };
 
@@ -275,10 +329,7 @@ export default function VehicleDetail() {
       navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
       return;
     }
-    if (user.verificationStatus === 'not_submitted') {
-      navigate(`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`);
-      return;
-    }
+    // Allow all logged-in users to open the booking modal regardless of KYC status
     setShowBookingModal(true);
   };
 
@@ -897,17 +948,6 @@ export default function VehicleDetail() {
                   >
                     High Demand Listing
                   </Tag>
-                )}
-
-                {user && user.verificationStatus === 'not_submitted' && (
-                  <div className="verification-alert box-highlight" style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.875rem 1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
-                    <Shield size={18} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
-                    <div style={{ fontSize: '0.85rem' }}>
-                      <p style={{ fontWeight: 600, color: '#92400e', marginBottom: '4px' }}>Verification needed to book</p>
-                      <p style={{ color: '#a16207', margin: 0 }}>Complete a quick one-time verification to rent this vehicle.</p>
-                      <Link to={`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`} style={{ color: '#d97706', fontWeight: 600, marginTop: '6px', display: 'inline-block', fontSize: '0.85rem' }}>Verify Now &rarr;</Link>
-                    </div>
-                  </div>
                 )}
 
                 {user && user._id === (owner?._id || vehicle.owner) ? (

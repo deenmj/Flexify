@@ -16,16 +16,6 @@ export const createBooking = async (req, res) => {
     const userId = req.user._id;
     const { vehicleId, startDate, endDate, withDriver } = req.body;
 
-    // Check KYC documents uploaded (no staff approval needed — just must have submitted)
-    const isStaffOrAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
-    if (!isStaffOrAdmin && req.user.verificationStatus === "not_submitted") {
-      return res.status(403).json({
-        message: "Please upload your KYC documents before booking a vehicle.",
-        verificationNeeded: true,
-        verificationStatus: req.user.verificationStatus,
-      });
-    }
-
     if (!vehicleId || !startDate || !endDate) {
       return res.status(400).json({ message: "Missing required fields" });
     }

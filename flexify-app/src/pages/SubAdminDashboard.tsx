@@ -1021,11 +1021,15 @@ export default function SubAdminDashboard() {
               </Title>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* ID Number Display */}
+                <Card size="small" title="ID / License Number" style={{ borderRadius: '12px' }}>
+                  <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', letterSpacing: '0.05em' }}>
+                    {(selectedUser.documents as any)?.idNumber || <Text disabled>Not Provided</Text>}
+                  </div>
+                </Card>
                 {[
-                  { label: 'NIC Front View', field: 'nicFront' },
-                  { label: 'NIC Back View', field: 'nicBack' },
                   { label: 'Driver License', field: 'license' },
-                  { label: 'Live Selfie', field: 'selfie' },
+                  { label: 'Profile Photo', field: 'selfie' },
                 ].map((doc, idx) => {
                   const url = selectedUser.documents?.[doc.field as keyof typeof selectedUser.documents];
                   const fullUrl = getImageUrl(url);
