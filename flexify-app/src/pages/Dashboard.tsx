@@ -776,18 +776,26 @@ export default function Dashboard() {
               </h4>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
+                {/* ID Number Display */}
+                <div style={{ 
+                  background: '#fff', 
+                  padding: '12px', 
+                  borderRadius: '16px', 
+                  border: '1px solid #f1f5f9',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>ID / License Number</div>
+                  <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', padding: '12px', wordBreak: 'break-all' }}>
+                    {(selectedRenter as any)?.documents?.idNumber || 'Not Provided'}
+                  </div>
+                </div>
                 {[
-                  { label: 'NIC Front View', field: 'nicFront' },
-                  { label: 'NIC Back View', field: 'nicBack' },
                   { label: 'Driver License', field: 'license' },
-                  { label: 'Live Selfie', field: 'selfie' },
+                  { label: 'Profile Photo', field: 'selfie' },
                 ].map((doc, idx) => {
                   const renterData = selectedRenter as any;
-                  // Extremely resilient path extraction to match all potential schema versions
                   const url = renterData.documents?.[doc.field] || 
                               renterData[doc.field] || 
-                              (renterData.documents && renterData.documents[`${doc.field}Path`]) || 
-                              (renterData.documents && renterData.documents[doc.field.toLowerCase()]) ||
                               null;
                                 
                   const fullUrl = getImageUrl(url);
@@ -1000,15 +1008,24 @@ export default function Dashboard() {
 
                         {/* Document display area directly integrated */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                          {/* ID Number Display */}
+                          <div style={{ 
+                            background: '#f8fafc', 
+                            padding: '8px', 
+                            borderRadius: '8px', 
+                            border: '1px solid #e2e8f0'
+                          }}>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', marginBottom: '6px', textTransform: 'uppercase' }}>ID / License Number</div>
+                            <div style={{ height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', padding: '8px', wordBreak: 'break-all' }}>
+                              {renterObj.documents?.idNumber || 'Not Provided'}
+                            </div>
+                          </div>
                           {[
-                            { label: 'NIC Front View', field: 'nicFront' },
-                            { label: 'NIC Back View', field: 'nicBack' },
                             { label: 'Driver License', field: 'license' },
-                            { label: 'Selfie', field: 'selfie' },
+                            { label: 'Profile Photo', field: 'selfie' },
                           ].map((doc, idx) => {
                             const url = renterObj.documents?.[doc.field] || 
                                         renterObj[doc.field] || 
-                                        (renterObj.documents && renterObj.documents[`${doc.field}Path`]) || 
                                         null;
                             const fullUrl = getImageUrl(url);
                             

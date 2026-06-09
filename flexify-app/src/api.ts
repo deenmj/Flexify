@@ -73,8 +73,7 @@ export interface User {
   isKycVerified: boolean;
   verificationStatus: 'not_submitted' | 'pending' | 'approved' | 'rejected';
   documents?: {
-    nicFront?: string;
-    nicBack?: string;
+    idNumber?: string;
     license?: string;
     selfie?: string;
     address?: string;

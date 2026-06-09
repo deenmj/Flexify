@@ -1253,13 +1253,10 @@ export default function AdminDashboard() {
           <div style={{ padding: '1rem' }}>
             <Row gutter={[16, 24]}>
               <Col span={12}>
-                <Card size="small" title="NIC Front">
-                  {kycUser.documents?.nicFront ? <Image src={getImageUrl(kycUser.documents.nicFront)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card size="small" title="NIC Back">
-                  {kycUser.documents?.nicBack ? <Image src={getImageUrl(kycUser.documents.nicBack)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                <Card size="small" title="ID / License Number">
+                  <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', letterSpacing: '0.05em' }}>
+                    {(kycUser.documents as any)?.idNumber || 'Not Provided'}
+                  </div>
                 </Card>
               </Col>
               <Col span={12}>
@@ -1268,7 +1265,7 @@ export default function AdminDashboard() {
                 </Card>
               </Col>
               <Col span={12}>
-                <Card size="small" title="Live Selfie">
+                <Card size="small" title="Profile Photo">
                   {kycUser.documents?.selfie ? <Image src={getImageUrl(kycUser.documents.selfie)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
                 </Card>
               </Col>

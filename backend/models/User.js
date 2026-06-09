@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 const documentsSchema = new mongoose.Schema({
-  nicFront: { type: String, default: "" },
-  nicBack: { type: String, default: "" },
+  idNumber: { type: String, default: "" },
   license: { type: String, default: "" },
   selfie: { type: String, default: "" },
   address: { type: String, default: "" },
