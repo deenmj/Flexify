@@ -71,7 +71,7 @@ const vehicleSchema = new mongoose.Schema(
     city: { type: String, default: null, index: true },
 
     // Contact and Special options
-    mobileNumber: { type: String, default: null },
+    mobileNumber: { type: String, required: true },
     weddingHiresSpecial: { type: Boolean, default: false },
   },
   { timestamps: true }

@@ -332,6 +332,13 @@ export default function EditVehicle() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
+    
+    if (!form.mobileNumber || form.mobileNumber.trim() === '') {
+      setError("Mobile Number is required.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setSaveLoading(true);
     setError('');
     
@@ -474,8 +481,8 @@ export default function EditVehicle() {
                 </div>
 
                 <div className="input-group">
-                  <label>Mobile Number (Optional)</label>
-                  <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} />
+                  <label>Mobile Number</label>
+                  <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} required />
                 </div>
 
                 {form.serviceType !== 'Bike' && (

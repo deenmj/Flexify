@@ -304,6 +304,12 @@ export default function ListVehicle() {
       return;
     }
 
+    if (!form.mobileNumber || form.mobileNumber.trim() === '') {
+      setError("Mobile Number is required.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
@@ -476,8 +482,8 @@ export default function ListVehicle() {
                 </div>
 
                 <div className="input-group">
-                  <label>Mobile Number (Optional)</label>
-                  <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} />
+                  <label>Mobile Number</label>
+                  <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} required />
                 </div>
 
                 {form.serviceType !== 'Bike' && (
