@@ -19,14 +19,13 @@ const profileUpload = multer({
 
 /**
  * KYC verification submission
- * Upload: nicFront, nicBack, license, selfie + text: address
+ * Required: idNumber, phone, address
+ * Optional: license image, selfie/profile image
  */
 router.post(
   "/verify",
   protect,
   kycUpload.fields([
-    { name: "nicFront", maxCount: 1 },
-    { name: "nicBack", maxCount: 1 },
     { name: "license", maxCount: 1 },
     { name: "selfie", maxCount: 1 },
   ]),
@@ -35,14 +34,24 @@ router.post(
       const user = await User.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
+      // Validate mandatory fields
+      if (!req.body.idNumber || !req.body.idNumber.trim()) {
+        return res.status(400).json({ message: "ID / License Number is required" });
+      }
+      if (!req.body.address || !req.body.address.trim()) {
+        return res.status(400).json({ message: "Full address is required" });
+      }
+      if (!req.body.phone || !req.body.phone.trim()) {
+        return res.status(400).json({ message: "Phone number is required" });
+      }
+
       const files = req.files || {};
 
       user.documents = {
-        nicFront: files.nicFront ? files.nicFront[0].path : user.documents?.nicFront || "",
-        nicBack: files.nicBack ? files.nicBack[0].path : user.documents?.nicBack || "",
+        idNumber: req.body.idNumber.trim(),
         license: files.license ? files.license[0].path : user.documents?.license || "",
         selfie: files.selfie ? files.selfie[0].path : user.documents?.selfie || "",
-        address: req.body.address || user.documents?.address || "",
+        address: req.body.address.trim(),
         kycConsentGiven: req.body.kycConsentGiven === "true" || req.body.kycConsentGiven === true,
       };
 
@@ -115,8 +124,6 @@ router.put(
   "/update-documents",
   protect,
   kycUpload.fields([
-    { name: "nicFront", maxCount: 1 },
-    { name: "nicBack", maxCount: 1 },
     { name: "license", maxCount: 1 },
     { name: "selfie", maxCount: 1 },
   ]),
@@ -135,8 +142,7 @@ router.put(
       // Update only the fields that were provided
       if (!user.documents) user.documents = {};
 
-      if (files.nicFront) user.documents.nicFront = files.nicFront[0].path;
-      if (files.nicBack) user.documents.nicBack = files.nicBack[0].path;
+      if (req.body.idNumber) user.documents.idNumber = req.body.idNumber.trim();
       if (files.license) user.documents.license = files.license[0].path;
       if (files.selfie) user.documents.selfie = files.selfie[0].path;
       if (req.body.address) user.documents.address = req.body.address;

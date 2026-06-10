@@ -10,6 +10,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 
 import BottomNav from './components/BottomNav';
 import ScrollRestoration from './components/ScrollRestoration';
+import ScrollToTop from './components/ScrollToTop';
 
 // Eagerly loaded (critical path — needed immediately)
 import NotFound from './pages/NotFound';
@@ -88,6 +89,7 @@ export default function App() {
       <AuthProvider>
         <SocketProvider>
           <ErrorBoundary>
+            <ScrollToTop />
             <Suspense fallback={<div className="page-loading-placeholder" />}>
               <Routes>
               {/* Landing / Redirection */}

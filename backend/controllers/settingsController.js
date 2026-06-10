@@ -1,6 +1,5 @@
 import Settings from '../models/Settings.js';
-import fs from 'fs';
-import path from 'path';
+import cloudinary from '../utils/cloudinary.js';
 
 // @desc    Get website contact details
 // @route   GET /api/settings/contact
@@ -94,20 +93,48 @@ export const updateFounders = async (req, res) => {
       return res.status(400).json({ message: 'Invalid founders data' });
     }
 
-    // Map uploaded files to their respective founder entries
+    // Helper: upload a buffer to Cloudinary and return the secure URL
+    const uploadToCloudinary = (buffer, mimeType) =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'flexify/founders',
+            resource_type: 'image',
+            transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face', quality: 'auto', fetch_format: 'auto' }],
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        stream.end(buffer);
+      });
+
+    // Map uploaded files (memory buffers) to their respective founder entries
     const files = req.files || [];
-    const founders = foundersData.map((founder, index) => {
-      // Check if a new file was uploaded for this founder
-      const file = files.find(f => f.fieldname === `image_${index}`);
-      return {
-        name: founder.name || '',
-        role: founder.role || '',
-        description: founder.description || '',
-        image: file
-          ? `/uploads/avatars/${file.filename}`
-          : (founder.image || ''),
-      };
-    });
+    const founders = await Promise.all(
+      foundersData.map(async (founder, index) => {
+        const file = files.find(f => f.fieldname === `image_${index}`);
+        let imageUrl = founder.image || '';
+
+        if (file && file.buffer) {
+          try {
+            imageUrl = await uploadToCloudinary(file.buffer, file.mimetype);
+          } catch (uploadErr) {
+            console.error(`[Founders] Cloudinary upload failed for index ${index}:`, uploadErr.message);
+            // Keep existing image on upload failure — do NOT wipe it
+            imageUrl = founder.image || '';
+          }
+        }
+
+        return {
+          name: founder.name || '',
+          role: founder.role || '',
+          description: founder.description || '',
+          image: imageUrl,
+        };
+      })
+    );
 
     let settings = await Settings.findOne({ key: 'founders' });
 
@@ -129,6 +156,7 @@ export const updateFounders = async (req, res) => {
   }
 };
 
+
 // @desc    Delete a specific founder by index
 // @route   DELETE /api/settings/founders/:index
 // @access  Private/SuperAdmin
@@ -149,12 +177,18 @@ export const deleteFounder = async (req, res) => {
       return res.status(400).json({ message: 'Invalid founder index' });
     }
 
-    // Try to delete the local image file if it exists
+    // Delete image from Cloudinary if it's a Cloudinary URL
     const removed = settings.value[founderIndex];
-    if (removed?.image && removed.image.startsWith('/uploads/')) {
-      const filePath = path.join(process.cwd(), removed.image);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+    if (removed?.image && removed.image.includes('cloudinary.com')) {
+      try {
+        // Extract the public_id from the Cloudinary URL
+        // URL format: https://res.cloudinary.com/<cloud>/image/upload/<transforms>/flexify/founders/<id>
+        const urlParts = removed.image.split('/');
+        const publicIdWithExt = urlParts.slice(urlParts.indexOf('upload') + 1).join('/');
+        const publicId = publicIdWithExt.replace(/\.[^/.]+$/, ''); // strip file extension
+        await cloudinary.uploader.destroy(publicId);
+      } catch (cleanupErr) {
+        console.warn('Cloudinary cleanup warning:', cleanupErr.message);
       }
     }
 

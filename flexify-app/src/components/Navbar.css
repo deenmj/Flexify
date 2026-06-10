@@ -551,7 +551,7 @@
     display: flex !important;
   }
   .mobile-menu-btn {
-    display: flex; /* Restored on mobile to allow access to Pricing, About Us, FAQ, etc. */
+    display: flex; /* Restored visibility for mobile users to allow access to Pricing, About Us, FAQ, etc. */
   }
   .mobile-menu {
     width: 80vw;

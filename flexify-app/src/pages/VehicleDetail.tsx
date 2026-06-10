@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button, Select } from 'antd';
+import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button } from 'antd';
 import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl, getVehicleSlug } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Eye, EyeOff, Trash2, Edit, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -50,7 +50,6 @@ export default function VehicleDetail() {
   // Availability & Blackouts
   const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
   const [blackoutRanges, setBlackoutRanges] = useState<BlackoutRange[]>([]);
-  const [availLoading, setAvailLoading] = useState(false);
   const [calendarDate, setCalendarDate] = useState<Dayjs>(() => dayjs());
 
   // Booking modal
@@ -62,6 +61,7 @@ export default function VehicleDetail() {
 
   // active carousel image
   const [activeImage, setActiveImage] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   // Reviews
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -90,7 +90,6 @@ export default function VehicleDetail() {
   // Fetch availability & reviews
   useEffect(() => {
     if (!id) return;
-    setAvailLoading(true);
     setReviewsLoading(true);
 
     Promise.all([
@@ -104,10 +103,56 @@ export default function VehicleDetail() {
       })
       .catch(() => { /* silently fail */ })
       .finally(() => {
-        setAvailLoading(false);
         setReviewsLoading(false);
       });
   }, [id]);
+
+  // Auto-complete pending booking after KYC verification
+  useEffect(() => {
+    if (!user || !id) return;
+    // Only proceed if user has completed KYC (status is no longer 'not_submitted')
+    if (user.verificationStatus === 'not_submitted') return;
+
+    try {
+      const stored = localStorage.getItem('pendingBooking');
+      if (!stored) return;
+
+      const pending = JSON.parse(stored);
+      // Only auto-book if the pending booking matches this vehicle
+      if (pending.vehicleId !== id) return;
+
+      // Clear immediately to prevent double-submission
+      localStorage.removeItem('pendingBooking');
+
+      // Auto-submit the booking
+      setShowBookingModal(true);
+      setBookingLoading(true);
+
+      bookingApi.create(pending.vehicleId, pending.startDate, pending.endDate, pending.withDriver)
+        .then((resp) => {
+          setCreatedBooking(resp);
+          message.success('KYC verified & booking submitted successfully!');
+          // Refresh availability in background
+          vehicleApi.getAvailability(id)
+            .then((data) => {
+              setBookedRanges(data.bookedRanges);
+              setBlackoutRanges(data.blackoutRanges);
+            })
+            .catch(err => console.error('Silent refresh failed:', err));
+        })
+        .catch((err: any) => {
+          console.error('Auto-booking failed:', err);
+          message.error(err.message || 'Failed to create booking after verification');
+          setShowBookingModal(false);
+        })
+        .finally(() => {
+          setBookingLoading(false);
+        });
+    } catch (e) {
+      localStorage.removeItem('pendingBooking');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.verificationStatus, id]);
 
   // Helper: is a date within a booked range?
   const isDateBooked = useCallback((date: Dayjs, statusFilter?: string) => {
@@ -181,16 +226,6 @@ export default function VehicleDetail() {
     return <div className="ant-picker-cell-inner">{date.date()}</div>;
   }, [isDateBooked, isDateBlackedOut]);
 
-  // Verify if the entire range is available
-  const isRangeBlocked = (start: Dayjs, end: Dayjs) => {
-    let curr = start;
-    while (curr.isBefore(end) || curr.isSame(end, 'day')) {
-      if (disabledDate(curr)) return true;
-      curr = curr.add(1, 'day');
-    }
-    return false;
-  };
-
   // Calendar cell renderer for the availability calendar
   const fullCellRender = useCallback((date: Dayjs) => {
     const isPast = date.isBefore(dayjs(), 'day');
@@ -239,21 +274,31 @@ export default function VehicleDetail() {
       return;
     }
 
-    // Only block booking if documents haven't been uploaded at all
-    if (user.verificationStatus === 'not_submitted') {
-      navigate(`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`);
-      return;
-    }
-
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       message.error('Please select both pickup and return dates');
       return;
     }
 
-    setBookingLoading(true);
     const startStr = dateRange[0].toISOString();
     const endStr = dateRange[1].toISOString();
 
+    const hasKycFields = Boolean(user.documents?.idNumber?.trim() && user.documents?.address?.trim());
+
+    // If user hasn't submitted KYC or missing mandatory fields, save pending booking and redirect to KYC
+    if (!hasKycFields) {
+      localStorage.setItem('pendingBooking', JSON.stringify({
+        vehicleId: id,
+        startDate: startStr,
+        endDate: endStr,
+        withDriver,
+      }));
+      message.info('Quick verification needed before booking — it only takes a minute!');
+      navigate(`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}&pendingBooking=true`);
+      return;
+    }
+
+    // User is verified (has fields filled) — proceed with booking
+    setBookingLoading(true);
     try {
       const resp = await bookingApi.create(id!, startStr, endStr, withDriver);
       setCreatedBooking(resp);
@@ -278,8 +323,8 @@ export default function VehicleDetail() {
   // Determine button text based on verification status
   const getBookingButtonText = () => {
     if (!user) return 'Sign In to Book';
-    if (user.verificationStatus === 'not_submitted') return 'Verify & Continue Booking';
-    return 'Book Now';
+    const hasKycFields = Boolean(user.documents?.idNumber?.trim() && user.documents?.address?.trim());
+    return hasKycFields ? 'Book Now' : 'Verify and Book';
   };
 
   const handleBookingTrigger = () => {
@@ -287,42 +332,8 @@ export default function VehicleDetail() {
       navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
       return;
     }
-    if (user.verificationStatus === 'not_submitted') {
-      navigate(`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`);
-      return;
-    }
+    // Allow all logged-in users to open the booking modal regardless of KYC status
     setShowBookingModal(true);
-  };
-
-  const handleToggleStatus = async () => {
-    if (!id || !vehicle) return;
-    try {
-      await vehicleApi.toggleStatus(id);
-      setVehicle({ ...vehicle, isActive: !vehicle.isActive });
-      message.success(vehicle.isActive ? 'Vehicle is now hidden' : 'Vehicle is now visible');
-    } catch (err: any) {
-      message.error(err.message || 'Failed to update status');
-    }
-  };
-
-  const handleDeleteVehicle = () => {
-    if (!id) return;
-    Modal.confirm({
-      title: 'Delete Vehicle',
-      content: 'Are you sure you want to delete this vehicle? This action cannot be undone.',
-      okText: 'Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
-        try {
-          await vehicleApi.delete(id);
-          message.success('Vehicle deleted successfully');
-          navigate('/dashboard');
-        } catch (err: any) {
-          message.error(err.message || 'Failed to delete vehicle');
-        }
-      }
-    });
   };
 
   const handleReportSubmit = async () => {
@@ -417,7 +428,7 @@ export default function VehicleDetail() {
     );
   }
 
-  const validPhotos = vehicle.photos?.filter(p => {
+  const validPhotos = vehicle.photos?.filter((p: any) => {
     if (!p) return false;
     if (typeof p === 'object') return !!p.url;
     return typeof p === 'string' && p.trim() !== '';
@@ -458,7 +469,7 @@ export default function VehicleDetail() {
       <SEO 
         title={`${vehicle.title} for Rent in ${vehicle.city || vehicle.district} | Rentify`}
         description={`Rent ${vehicle.make} ${vehicle.model}${vehicle.year ? ` (${vehicle.year})` : ''} in ${vehicle.city || ''}, ${vehicle.district} from LKR ${vehicle.pricePerDay.toLocaleString()}/day. ${vehicle.transmission}, ${vehicle.seats} seats${vehicle.driverOption === 'both' ? ', self-drive or with driver' : ''}. Verified owner — book instantly on Rentify.lk!`}
-        keywords={`rent ${vehicle.make} ${vehicle.model} Sri Lanka, ${vehicle.make} rental ${vehicle.district}, ${vehicle.vehicleType || 'car'} hire ${vehicle.city || vehicle.district}, self drive ${vehicle.district}`}
+        keywords={`rent ${vehicle.make} ${vehicle.model} Sri Lanka, ${vehicle.make} rental ${vehicle.district}, ${(vehicle as any).vehicleType || 'car'} hire ${vehicle.city || vehicle.district}, self drive ${vehicle.district}`}
         ogImage={getImageUrl(displayImages[0])}
         ogType="product"
         ogTitle={`Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district} — LKR ${vehicle.pricePerDay.toLocaleString()}/day`}
@@ -504,7 +515,7 @@ export default function VehicleDetail() {
           } : {})
         }}
       />
-      <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.25rem' : '1.5rem', paddingBottom: '3rem' }}>
+      <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
         
         <Row gutter={[24, 24]}>
           {/* LEFT COLUMN: Main Content */}
@@ -529,6 +540,8 @@ export default function VehicleDetail() {
                     alt={`${vehicle.title} - Image ${idx + 1}`}
                     loading={idx === 0 ? "eager" : "lazy"}
                     className="detail-main-img-item"
+                    onClick={() => { setActiveImage(idx); setShowLightbox(true); }}
+                    style={{ cursor: 'pointer' }}
                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'; }}
                   />
                 ))}
@@ -568,30 +581,11 @@ export default function VehicleDetail() {
             <div className="detail-overview card" style={{ marginTop: '1.5rem', padding: isMobile ? '1.25rem' : '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ flex: 1, minWidth: '200px' }}>
-                  <h1 className="detail-title" style={{ fontSize: isMobile ? '1.15rem' : '2rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                  <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
                     {vehicle.title}
                   </h1>
-                  <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
-                    <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
-                    {vehicle.weddingHiresSpecial && (
-                      <Tag 
-                        style={{ 
-                          padding: '2px 10px', 
-                          fontSize: '0.8rem', 
-                          fontWeight: 800, 
-                          borderRadius: '6px',
-                          border: 'none',
-                          background: 'linear-gradient(135deg, #f5d0fe 0%, #f472b6 100%)',
-                          color: '#701a75',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          boxShadow: '0 4px 12px rgba(244, 114, 182, 0.2)'
-                        }}
-                      >
-                        💍 Wedding Hire Special
-                      </Tag>
-                    )}
+                  <p className="detail-subtitle" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
+                    {vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}
                   </p>
                 </div>
                 <div 
@@ -651,7 +645,7 @@ export default function VehicleDetail() {
                   <span className="spec-label">Fuel Type</span>
                   <span className="spec-value">{vehicle.fuelType}</span>
                 </div>
-                {!isBike && (
+                {vehicle.serviceType !== 'Bike' && (
                   <div className="spec-item">
                     <span className="spec-label">Seats</span>
                     <span className="spec-value">
@@ -732,7 +726,7 @@ export default function VehicleDetail() {
                         try {
                           const parsed = JSON.parse(trimmed);
                           return flatten(parsed);
-                        } catch (e) {
+                        } catch (_) {
                           // Fallback: split by comma if JSON parse fails
                           return trimmed.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
                         }
@@ -800,7 +794,7 @@ export default function VehicleDetail() {
                     value={calendarDate}
                     onChange={setCalendarDate}
                     fullCellRender={(date) => fullCellRender(date as Dayjs)} 
-                    headerRender={({ value, type, onChange, onTypeChange }) => {
+                    headerRender={({ value, onChange }) => {
                       return (
                         <div style={{ padding: '8px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -988,17 +982,6 @@ export default function VehicleDetail() {
                   </Tag>
                 )}
 
-                {user && user.verificationStatus === 'not_submitted' && (
-                  <div className="verification-alert box-highlight" style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.875rem 1rem', borderRadius: '12px', marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
-                    <Shield size={18} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
-                    <div style={{ fontSize: '0.85rem' }}>
-                      <p style={{ fontWeight: 600, color: '#92400e', marginBottom: '4px' }}>Verification needed to book</p>
-                      <p style={{ color: '#a16207', margin: 0 }}>Complete a quick one-time verification to rent this vehicle.</p>
-                      <Link to={`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}`} style={{ color: '#d97706', fontWeight: 600, marginTop: '6px', display: 'inline-block', fontSize: '0.85rem' }}>Verify Now &rarr;</Link>
-                    </div>
-                  </div>
-                )}
-
                 {user && user._id === (owner?._id || vehicle.owner) ? (
                   <div className="box-highlight" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
                     <p style={{ fontWeight: 600, color: '#0f172a', margin: 0, fontSize: '1rem' }}>You own this vehicle</p>
@@ -1122,7 +1105,7 @@ export default function VehicleDetail() {
         </Row>
 
         {/* Sentinel for hiding floating bar */}
-        <div ref={sentinelRef} style={{ height: '1px', marginTop: '2rem' }}></div>
+        <div ref={sentinelRef} style={{ height: '1px', marginTop: isMobile ? '0.5rem' : '2rem' }}></div>
       </div>
 
       {/* MOBILE STICKY BOOKING BAR */}
@@ -1369,6 +1352,48 @@ export default function VehicleDetail() {
           onChange={e => setReportReason(e.target.value)}
         />
       </Modal>
+
+      {/* LIGHTBOX OVERLAY */}
+      {showLightbox && (
+        <div className="detail-lightbox-overlay" onClick={() => setShowLightbox(false)}>
+          <button className="detail-lightbox-close" onClick={() => setShowLightbox(false)} aria-label="Close">
+            <X size={32} />
+          </button>
+          
+          {displayImages.length > 1 && (
+            <button 
+              className="detail-lightbox-nav prev"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => prev === 0 ? displayImages.length - 1 : prev - 1);
+              }}
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={36} />
+            </button>
+          )}
+
+          <img 
+            src={getImageUrl(displayImages[activeImage])} 
+            alt={vehicle.title} 
+            className="detail-lightbox-img" 
+            onClick={(e) => e.stopPropagation()} 
+          />
+
+          {displayImages.length > 1 && (
+            <button 
+              className="detail-lightbox-nav next"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => prev === displayImages.length - 1 ? 0 : prev + 1);
+              }}
+              aria-label="Next image"
+            >
+              <ChevronRight size={36} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -44,3 +44,4 @@ export const receiptStorage = new CloudinaryStorage({
 });
 
 export default cloudinary;
+

@@ -29,8 +29,8 @@ export default function Profile() {
   const [docLoading, setDocLoading] = useState(false);
   const [docError, setDocError] = useState('');
   const [docMessage, setDocMessage] = useState('');
-  const [docFiles, setDocFiles] = useState<{ nicFront?: File; nicBack?: File; license?: File; selfie?: File }>({});
-  const [docPreviews, setDocPreviews] = useState<{ nicFront?: string; nicBack?: string; license?: string; selfie?: string }>({});
+  const [docFiles, setDocFiles] = useState<{ license?: File; selfie?: File }>({});
+  const [docPreviews, setDocPreviews] = useState<{ license?: string; selfie?: string }>({});
   const [docAddress, setDocAddress] = useState(user?.documents?.address || '');
 
   if (!user) {
@@ -109,7 +109,7 @@ export default function Profile() {
     setDocError('');
   };
 
-  const handleDocFileChange = async (field: 'nicFront' | 'nicBack' | 'license' | 'selfie', file: File | null) => {
+  const handleDocFileChange = async (field: 'license' | 'selfie', file: File | null) => {
     if (!file) return;
     try {
       const options = { maxSizeMB: 0.5, maxWidthOrHeight: 1200, useWebWorker: true };
@@ -138,8 +138,6 @@ export default function Profile() {
     setDocMessage('');
 
     const formData = new FormData();
-    if (docFiles.nicFront) formData.append('nicFront', docFiles.nicFront);
-    if (docFiles.nicBack) formData.append('nicBack', docFiles.nicBack);
     if (docFiles.license) formData.append('license', docFiles.license);
     if (docFiles.selfie) formData.append('selfie', docFiles.selfie);
     if (hasAddressChange) formData.append('address', docAddress.trim());
@@ -158,11 +156,9 @@ export default function Profile() {
     }
   };
 
-  const docFields: { key: 'nicFront' | 'nicBack' | 'license' | 'selfie'; label: string; icon: string }[] = [
-    { key: 'nicFront', label: 'NIC Front', icon: '🪪' },
-    { key: 'nicBack', label: 'NIC Back', icon: '🪪' },
+  const docFields: { key: 'license' | 'selfie'; label: string; icon: string }[] = [
     { key: 'license', label: 'Driving License', icon: '🚗' },
-    { key: 'selfie', label: 'Selfie / Photo', icon: '📸' },
+    { key: 'selfie', label: 'Profile Photo', icon: '📸' },
   ];
 
   return (

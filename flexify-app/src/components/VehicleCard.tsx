@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
 import { type Vehicle, getOptimizedImageUrl, getVehicleSlug } from '../api';
-import { Users, Star, Gauge, MapPin, Verified } from 'lucide-react';
+import { Users, Star, Zap, Gauge, MapPin, Verified } from 'lucide-react';
 import './VehicleCard.css';
 
 export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const ownerData = typeof vehicle.owner === 'object' ? vehicle.owner : null;
-  const isBike = vehicle.serviceType?.[0]?.toLowerCase() === 'bike' || vehicle.serviceType?.[0]?.toLowerCase() === 'scooter';
   return (
     <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="shared-vehicle-card-link">
       <div className="shared-vehicle-card card">
@@ -61,6 +60,9 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
               <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
               <span className="price-unit">/day</span>
             </div>
+            <button className="share-btn" onClick={handleShare} aria-label="Share">
+              <Share2 size={16} />
+            </button>
           </div>
         </div>
       </div>

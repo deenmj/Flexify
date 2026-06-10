@@ -765,6 +765,9 @@ export default function Dashboard() {
               <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                 <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>Contact Info</h4>
                 <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '4px' }}>{selectedRenter.phone || 'Phone not provided'}</div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                  <strong style={{ color: 'var(--text-primary)' }}>ID/License:</strong> {(selectedRenter as any)?.documents?.idNumber || 'Not Provided'}
+                </div>
                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedRenter.documents?.address || selectedRenter.address || 'Address not listed'}</div>
               </div>
             </div>
@@ -777,17 +780,12 @@ export default function Dashboard() {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
                 {[
-                  { label: 'NIC Front View', field: 'nicFront' },
-                  { label: 'NIC Back View', field: 'nicBack' },
                   { label: 'Driver License', field: 'license' },
-                  { label: 'Live Selfie', field: 'selfie' },
+                  { label: 'Profile Photo', field: 'selfie' },
                 ].map((doc, idx) => {
                   const renterData = selectedRenter as any;
-                  // Extremely resilient path extraction to match all potential schema versions
                   const url = renterData.documents?.[doc.field] || 
                               renterData[doc.field] || 
-                              (renterData.documents && renterData.documents[`${doc.field}Path`]) || 
-                              (renterData.documents && renterData.documents[doc.field.toLowerCase()]) ||
                               null;
                                 
                   const fullUrl = getImageUrl(url);
@@ -992,8 +990,11 @@ export default function Dashboard() {
                           <div>
                             <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0f172a' }}>{renterObj.name}</div>
                             <div style={{ color: '#475569', fontSize: '0.9rem', marginBottom: '4px' }}>{renterObj.email}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: 700 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: 700, marginBottom: '4px' }}>
                               <Phone size={14} /> {renterObj.phone || 'Phone not provided'}
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
+                              <strong style={{ color: '#0f172a' }}>ID/License:</strong> {renterObj.documents?.idNumber || 'Not Provided'}
                             </div>
                           </div>
                         </div>
@@ -1001,14 +1002,11 @@ export default function Dashboard() {
                         {/* Document display area directly integrated */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
                           {[
-                            { label: 'NIC Front View', field: 'nicFront' },
-                            { label: 'NIC Back View', field: 'nicBack' },
                             { label: 'Driver License', field: 'license' },
-                            { label: 'Selfie', field: 'selfie' },
+                            { label: 'Profile Photo', field: 'selfie' },
                           ].map((doc, idx) => {
                             const url = renterObj.documents?.[doc.field] || 
                                         renterObj[doc.field] || 
-                                        (renterObj.documents && renterObj.documents[`${doc.field}Path`]) || 
                                         null;
                             const fullUrl = getImageUrl(url);
                             

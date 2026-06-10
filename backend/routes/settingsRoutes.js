@@ -1,6 +1,5 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
 import { protect } from '../middleware/authMiddleware.js';
 import { getContactDetails, updateContactDetails, getFounders, updateFounders, deleteFounder } from '../controllers/settingsController.js';
 
@@ -11,23 +10,14 @@ router.route('/contact')
   .get(getContactDetails)
   .put(protect, updateContactDetails);
 
-// Founders — multer for image uploads to uploads/avatars
-const founderStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/avatars'),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `founder-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
-    cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
-  },
-});
+// Founders — use memory storage so Cloudinary upload happens in the controller
+// This prevents route-module-load failures if Cloudinary env vars are missing
 const founderUpload = multer({
-  storage: founderStorage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    const mime = allowed.test(file.mimetype);
-    if (ext && mime) return cb(null, true);
-    cb(new Error('Only JPEG, PNG, and WebP images are allowed'));
+    if (file.mimetype.startsWith('image/')) return cb(null, true);
+    cb(new Error('Only image files are allowed'));
   },
 });
 
@@ -36,3 +26,4 @@ router.put('/founders', protect, founderUpload.any(), updateFounders);
 router.delete('/founders/:index', protect, deleteFounder);
 
 export default router;
+
