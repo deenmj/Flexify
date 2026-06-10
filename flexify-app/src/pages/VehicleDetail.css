@@ -868,6 +868,7 @@
   .detail-loading-feature-tag {
     height: 30px;
     width: 70px;
+  }
 }
 
 /* ===== Vehicle Detail Share Button ===== */
@@ -991,5 +992,4 @@
   .detail-lightbox-nav.next {
     right: 1rem;
   }
-}
 }
