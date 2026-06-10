@@ -5,6 +5,7 @@ import './VehicleCard.css';
 
 export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const ownerData = typeof vehicle.owner === 'object' ? vehicle.owner : null;
+  const isBike = vehicle.serviceType?.[0]?.toLowerCase() === 'bike' || vehicle.serviceType?.[0]?.toLowerCase() === 'scooter';
   return (
     <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="shared-vehicle-card-link">
       <div className="shared-vehicle-card card">
@@ -37,13 +38,13 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           <p className="shared-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
 
           <div className="shared-vehicle-specs">
-            {vehicle.serviceType?.[0] !== 'Bike' && (
+            {!isBike && (
               <span><Users size={12} /> {vehicle.seats} Seats</span>
             )}
             <span>
               <Gauge size={12} /> {vehicle.kmLimitPerDay ? `${vehicle.kmLimitPerDay} km/day` : 'Unlimited km'}
             </span>
-            {vehicle.serviceType?.[0] !== 'Bike' && (
+            {!isBike && (
               <span>
                 {vehicle.driverOption === 'with-driver' ? 'With Driver' : vehicle.driverOption === 'both' ? 'Self/Driver' : 'Self Drive'}
               </span>

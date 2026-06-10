@@ -424,6 +424,7 @@ export default function VehicleDetail() {
   });
   const displayImages = (validPhotos && validPhotos.length > 0) ? validPhotos : [null];
   const owner = typeof vehicle.owner === 'object' ? vehicle.owner : null;
+  const isBike = vehicle.serviceType?.[0]?.toLowerCase() === 'bike' || vehicle.serviceType?.[0]?.toLowerCase() === 'scooter';
 
   // Calculate days & total from RangePicker
   const days = dateRange && dateRange[0] && dateRange[1]
@@ -604,6 +605,26 @@ export default function VehicleDetail() {
                 </div>
               </div>
 
+              {isMobile && (
+                <div className="mobile-inline-price">
+                  <div className="mobile-inline-price-main">
+                    <span className="mobile-inline-currency">LKR</span>
+                    <span className="mobile-inline-amount">{vehicle.pricePerDay.toLocaleString()}</span>
+                    <span className="mobile-inline-period">/day</span>
+                  </div>
+                  {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
+                    <div className="mobile-inline-price-tiers">
+                      {vehicle.pricePerWeek && (
+                        <span className="mobile-inline-tier">LKR {vehicle.pricePerWeek.toLocaleString()}/week</span>
+                      )}
+                      {vehicle.pricePerMonth && (
+                        <span className="mobile-inline-tier">LKR {vehicle.pricePerMonth.toLocaleString()}/month</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="location-context">
                 <MapPin size={16} /> 
                 <span>{vehicle.city}, {vehicle.district}, {vehicle.province}</span>
@@ -630,7 +651,7 @@ export default function VehicleDetail() {
                   <span className="spec-label">Fuel Type</span>
                   <span className="spec-value">{vehicle.fuelType}</span>
                 </div>
-                {vehicle.serviceType?.[0] !== 'Bike' && (
+                {!isBike && (
                   <div className="spec-item">
                     <span className="spec-label">Seats</span>
                     <span className="spec-value">
@@ -675,7 +696,7 @@ export default function VehicleDetail() {
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
                 </div>
-                {vehicle.serviceType?.[0] !== 'Bike' && (
+                {!isBike && (
                   <>
                     <div className="spec-item">
                       <span className="spec-label">Driver Option</span>
@@ -943,7 +964,7 @@ export default function VehicleDetail() {
                   )}
                 </div>
 
-                {vehicle.serviceType?.[0] !== 'Bike' && vehicle.driverOption !== 'self-drive' && (
+                {!isBike && vehicle.driverOption !== 'self-drive' && (
                   <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: '#faf5ff', border: '1px solid #e9d5ff' }}>
                     <Users size={20} color="#6b21a8" />
                     <div style={{ flex: 1 }}>
