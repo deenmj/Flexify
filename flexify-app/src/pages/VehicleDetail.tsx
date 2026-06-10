@@ -359,7 +359,7 @@ export default function VehicleDetail() {
   if (loading) {
     return (
       <div className="vehicle-detail-page">
-        <div className="container" style={{ paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
+        <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: isMobile ? '0.5rem' : '3rem' }}>
           <Row gutter={[24, 24]}>
             <Col xs={24} lg={16}>
               {/* Image skeleton */}
@@ -581,21 +581,42 @@ export default function VehicleDetail() {
             <div className="detail-overview card" style={{ marginTop: '1.5rem', padding: isMobile ? '1.25rem' : '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ flex: 1, minWidth: '200px' }}>
-                  <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-                    {vehicle.title}
-                  </h1>
-                  <p className="detail-subtitle" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
-                    {vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: 0 }}>
+                      {vehicle.title}
+                    </h1>
+                    <div 
+                      className="detail-rating" 
+                      onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
+                      style={{ cursor: 'pointer', margin: 0 }}
+                    >
+                      <Star size={16} fill="#f59e0b" color="#f59e0b" />
+                      <span className="rating-score">{vehicle.averageRating || 'New'}</span>
+                      <span className="rating-count">({vehicle.reviewCount || 0})</span>
+                    </div>
+                  </div>
+                  <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                    <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
+                    {vehicle.weddingHiresSpecial && (
+                      <Tag 
+                        style={{ 
+                          padding: '2px 10px', 
+                          fontSize: '0.8rem', 
+                          fontWeight: 800, 
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: 'linear-gradient(135deg, #f5d0fe 0%, #f472b6 100%)',
+                          color: '#701a75',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          boxShadow: '0 4px 12px rgba(244, 114, 182, 0.2)'
+                        }}
+                      >
+                        💍 Wedding Hire Special
+                      </Tag>
+                    )}
                   </p>
-                </div>
-                <div 
-                  className="detail-rating" 
-                  onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <Star size={16} fill="#f59e0b" color="#f59e0b" />
-                  <span className="rating-score">{vehicle.averageRating || 'New'}</span>
-                  <span className="rating-count">({vehicle.reviewCount || 0})</span>
                 </div>
               </div>
 
@@ -645,7 +666,7 @@ export default function VehicleDetail() {
                   <span className="spec-label">Fuel Type</span>
                   <span className="spec-value">{vehicle.fuelType}</span>
                 </div>
-                {vehicle.serviceType !== 'Bike' && (
+                {!isBike && (
                   <div className="spec-item">
                     <span className="spec-label">Seats</span>
                     <span className="spec-value">

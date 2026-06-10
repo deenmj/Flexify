@@ -1,10 +1,29 @@
 import { Link } from 'react-router-dom';
 import { type Vehicle, getOptimizedImageUrl, getVehicleSlug } from '../api';
-import { Users, Star, Zap, Gauge, MapPin, Verified } from 'lucide-react';
+import { Users, Star, Zap, Gauge, MapPin, Verified, Share2 } from 'lucide-react';
 import './VehicleCard.css';
 
 export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const ownerData = typeof vehicle.owner === 'object' ? vehicle.owner : null;
+  const isBike = vehicle.serviceType?.[0]?.toLowerCase() === 'bike' || vehicle.serviceType?.[0]?.toLowerCase() === 'scooter';
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigating to the vehicle link
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: vehicle.title,
+          text: `Check out this ${vehicle.make} ${vehicle.model} on Rentify!`,
+          url: `${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      navigator.clipboard.writeText(`${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`);
+    }
+  };
+
   return (
     <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="shared-vehicle-card-link">
       <div className="shared-vehicle-card card">
