@@ -88,7 +88,9 @@ export default function ListVehicle() {
     kmLimitPerDay: '',
     extraKmPrice: '',
     driverOption: 'self-drive',
-    driverPricePerDay: ''
+    driverPricePerDay: '',
+    mobileNumber: '',
+    weddingHiresSpecial: false
   });
 
   // Derived state for make/model selection
@@ -162,6 +164,13 @@ export default function ListVehicle() {
   useEffect(() => {
     setForm(prev => ({ ...prev, lat: position.lat.toString(), lng: position.lng.toString() }));
   }, [position]);
+
+  // Pre-populate mobile number from user phone if available
+  useEffect(() => {
+    if (user && user.phone && !form.mobileNumber) {
+      setForm(prev => ({ ...prev, mobileNumber: user.phone }));
+    }
+  }, [user]);
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
@@ -251,22 +260,34 @@ export default function ListVehicle() {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       const options = {
-        maxSizeMB: 2,
-        maxWidthOrHeight: 1920,
+        maxSizeMB: 0.2,
+        maxWidthOrHeight: 1280,
         useWebWorker: true,
+        fileType: 'image/webp'
       };
       
-      const compressedFiles = await Promise.all(
-        files.map(async (file) => {
-          try {
-            return await imageCompression(file, options);
-          } catch (err) {
-            console.error('Compression error:', err);
-            return file;
-          }
-        })
-      );
-      setPhotos(prev => [...prev, ...compressedFiles]);
+      message.loading({ content: 'Compressing images to WebP for fast uploads...', key: 'compressing', duration: 10 });
+      try {
+        const compressedFiles = await Promise.all(
+          files.map(async (file) => {
+            try {
+              const compressed = await imageCompression(file, options);
+              // Attach metadata for size feedback
+              Object.defineProperty(compressed, 'originalSize', { value: file.size, writable: true, enumerable: true });
+              Object.defineProperty(compressed, 'compressedSize', { value: compressed.size, writable: true, enumerable: true });
+              Object.defineProperty(compressed, 'savings', { value: Math.round(((file.size - compressed.size) / file.size) * 100), writable: true, enumerable: true });
+              return compressed;
+            } catch (err) {
+              console.error('Compression error:', err);
+              return file;
+            }
+          })
+        );
+        setPhotos(prev => [...prev, ...compressedFiles]);
+        message.success({ content: 'Images compressed successfully!', key: 'compressing', duration: 3 });
+      } catch (err) {
+        message.error({ content: 'Error compressing some images', key: 'compressing', duration: 3 });
+      }
     }
   };
 
@@ -279,6 +300,12 @@ export default function ListVehicle() {
     // Quick validation
     if (!form.make || !form.model) {
       setError("Make and Model are required.");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.mobileNumber || form.mobileNumber.trim() === '') {
+      setError("Mobile Number is required.");
       setLoading(false);
       return;
     }
@@ -312,6 +339,8 @@ export default function ListVehicle() {
 
     } catch (err: any) {
       setError(err.message || 'Error uploading vehicle');
+      message.error(err.message || 'Error uploading vehicle');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -414,7 +443,19 @@ export default function ListVehicle() {
                   </div>
                   <div className="input-group">
                     <label>Category</label>
-                    <select className="input-field" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })} required>
+                    <select
+                      className="input-field"
+                      value={form.serviceType}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setForm(prev => ({
+                          ...prev,
+                          serviceType: val,
+                          weddingHiresSpecial: val === 'Bike' ? false : prev.weddingHiresSpecial
+                        }));
+                      }}
+                      required
+                    >
                       <option value="">Select Category</option>
                       <option value="Car">Car</option>
                       <option value="SUV">SUV</option>
@@ -439,6 +480,28 @@ export default function ListVehicle() {
                     <input type="number" className="input-field" placeholder="LKR / month" value={form.pricePerMonth} onChange={(e) => setForm({ ...form, pricePerMonth: e.target.value })} />
                   </div>
                 </div>
+
+                <div className="input-group">
+                  <label>Mobile Number</label>
+                  <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} required />
+                </div>
+
+                {form.serviceType !== 'Bike' && (
+                  <div className="input-group">
+                    <label>Wedding Special</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className={`km-preset-btn ${form.weddingHiresSpecial ? 'active' : ''}`}
+                        onClick={() => setForm({ ...form, weddingHiresSpecial: !form.weddingHiresSpecial })}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1.2rem' }}
+                      >
+                        💍 {form.weddingHiresSpecial ? 'Yes, Available for Weddings' : 'Not for Weddings'}
+                      </button>
+                      <span className="km-limit-hint" style={{ margin: 0 }}>Select if this vehicle is available for premium wedding hires.</span>
+                    </div>
+                  </div>
+                )}
 
                 <div className="km-limit-section">
                   <div className="km-limit-header">
@@ -711,14 +774,35 @@ export default function ListVehicle() {
                 </div>
                 
                 {photos.length > 0 && (
-                  <div className="photo-preview-list">
+                  <div className="photo-preview-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px', marginTop: '1rem' }}>
                     {photos.map((p, i) => (
-                      <div key={i} className="photo-tag">
-                        <span>{p.name}</span>
-                        <button type="button" onClick={(e) => {
-                          e.stopPropagation();
-                          setPhotos(prev => prev.filter((_, index) => index !== i));
-                        }}>×</button>
+                      <div key={i} className="photo-tag" style={{ display: 'flex', flexDirection: 'column', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '12px', background: '#f8fafc', position: 'relative' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '4px' }}>
+                          <span style={{ fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px', color: '#334155' }}>
+                            {p.name}
+                          </span>
+                          <button type="button" onClick={(e) => {
+                            e.stopPropagation();
+                            setPhotos(prev => prev.filter((_, index) => index !== i));
+                          }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.25rem', padding: '0 4px', lineHight: 1 }}>×</button>
+                        </div>
+                        {((p as any).originalSize && (p as any).compressedSize) ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>
+                                {Math.round((p as any).compressedSize / 1024)} KB
+                              </span>
+                              <span style={{ fontSize: '0.65rem', background: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '6px', fontWeight: 700 }}>
+                                -{(p as any).savings}%
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '0.65rem', color: '#64748b' }}>
+                              Original: {Math.round((p as any).originalSize / 1024)} KB (WebP converted)
+                            </span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Size: {Math.round(p.size / 1024)} KB</span>
+                        )}
                       </div>
                     ))}
                   </div>

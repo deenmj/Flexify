@@ -13,7 +13,8 @@ export const kycStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'flexify/kyc',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    transformation: [{ width: 1600, height: 1600, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
   },
 });
 
@@ -21,7 +22,7 @@ export const profileStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'flexify/profiles',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
     transformation: [{ width: 400, height: 400, crop: 'fill', quality: 'auto', fetch_format: 'auto' }],
   },
 });
@@ -30,8 +31,7 @@ export const vehicleStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'flexify/vehicles',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
-    transformation: [{ width: 1200, height: 800, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
   },
 });
 
@@ -39,7 +39,7 @@ export const receiptStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'flexify/receipts',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'pdf'],
   },
 });
 

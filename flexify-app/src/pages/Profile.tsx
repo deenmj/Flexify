@@ -227,17 +227,17 @@ export default function Profile() {
         {message && <div className="auth-message success" style={{ marginBottom: '2rem' }}>{message}</div>}
 
         {user.verificationStatus === 'not_submitted' && (
-          <div className="card verify-alert-card animate-pulse" style={{ marginBottom: '2rem', border: '1px solid #7c3aed', background: 'rgba(124, 58, 237, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-              <div className="alert-icon" style={{ background: '#7c3aed', color: 'white', padding: '12px', borderRadius: '12px' }}>
-                <Shield size={32} />
+          <div className="verify-alert-card animate-pulse">
+            <div className="verify-alert-left">
+              <div className="verify-alert-icon">
+                <Shield size={24} />
               </div>
-              <div>
-                <h3 style={{ margin: 0, color: '#111827' }}>One-Time Verification</h3>
-                <p style={{ margin: '4px 0 0', color: '#4b5563', fontSize: '14px' }}>Verify your identity once to start booking vehicles.</p>
+              <div className="verify-alert-info">
+                <h3>One-Time Verification</h3>
+                <p>Verify your identity once to start booking vehicles.</p>
               </div>
             </div>
-            <Link to="/verify" className="btn btn-primary btn-lg" style={{ background: 'var(--color-primary)', color: 'white' }}>
+            <Link to="/verify" className="btn btn-primary btn-sm verify-alert-btn">
               Verify Now
             </Link>
           </div>
@@ -340,6 +340,12 @@ export default function Profile() {
                   <span style={{ color: 'white' }}>One-Time Verification</span>
                 </Link>
               )}
+              <a href="/subscription" className="profile-action-item">
+                <span>💎</span> Pricing & Tiers
+              </a>
+              <a href="/about" className="profile-action-item">
+                <span>ℹ️</span> About Rentify
+              </a>
               {user.role !== 'superadmin' && (
                 <a href="/contact" className="profile-action-item">
                   <span>📞</span> Contact Support

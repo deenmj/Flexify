@@ -359,7 +359,7 @@ export default function VehicleDetail() {
   if (loading) {
     return (
       <div className="vehicle-detail-page">
-        <div className="container" style={{ paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
+        <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: isMobile ? '0.5rem' : '3rem' }}>
           <Row gutter={[24, 24]}>
             <Col xs={24} lg={16}>
               {/* Image skeleton */}
@@ -435,6 +435,7 @@ export default function VehicleDetail() {
   });
   const displayImages = (validPhotos && validPhotos.length > 0) ? validPhotos : [null];
   const owner = typeof vehicle.owner === 'object' ? vehicle.owner : null;
+  const isBike = vehicle.serviceType?.[0]?.toLowerCase() === 'bike' || vehicle.serviceType?.[0]?.toLowerCase() === 'scooter';
 
   // Calculate days & total from RangePicker
   const days = dateRange && dateRange[0] && dateRange[1]
@@ -514,7 +515,7 @@ export default function VehicleDetail() {
           } : {})
         }}
       />
-      <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: isMobile ? '0.5rem' : '3rem' }}>
+      <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
         
         <Row gutter={[24, 24]}>
           {/* LEFT COLUMN: Main Content */}
@@ -594,30 +595,50 @@ export default function VehicleDetail() {
                       <span className="rating-count">({vehicle.reviewCount || 0})</span>
                     </div>
                   </div>
-                  <p className="detail-subtitle" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
-                    {vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}
+                  <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                    <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
+                    {vehicle.weddingHiresSpecial && (
+                      <Tag 
+                        style={{ 
+                          padding: '2px 10px', 
+                          fontSize: '0.8rem', 
+                          fontWeight: 800, 
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: 'linear-gradient(135deg, #f5d0fe 0%, #f472b6 100%)',
+                          color: '#701a75',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          boxShadow: '0 4px 12px rgba(244, 114, 182, 0.2)'
+                        }}
+                      >
+                        💍 Wedding Hire Special
+                      </Tag>
+                    )}
                   </p>
                 </div>
-                <button 
-                  className="detail-share-btn" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (navigator.share) {
-                      navigator.share({
-                        title: vehicle.title,
-                        text: `Check out this ${vehicle.make} ${vehicle.model} on Rentify!`,
-                        url: window.location.href,
-                      }).catch(console.error);
-                    } else {
-                      navigator.clipboard.writeText(window.location.href);
-                      message.success('Link copied to clipboard!');
-                    }
-                  }}
-                  title="Share this vehicle"
-                >
-                  <Share2 size={isMobile ? 18 : 22} />
-                </button>
               </div>
+
+              {isMobile && (
+                <div className="mobile-inline-price">
+                  <div className="mobile-inline-price-main">
+                    <span className="mobile-inline-currency">LKR</span>
+                    <span className="mobile-inline-amount">{vehicle.pricePerDay.toLocaleString()}</span>
+                    <span className="mobile-inline-period">/day</span>
+                  </div>
+                  {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
+                    <div className="mobile-inline-price-tiers">
+                      {vehicle.pricePerWeek && (
+                        <span className="mobile-inline-tier">LKR {vehicle.pricePerWeek.toLocaleString()}/week</span>
+                      )}
+                      {vehicle.pricePerMonth && (
+                        <span className="mobile-inline-tier">LKR {vehicle.pricePerMonth.toLocaleString()}/month</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="location-context">
                 <MapPin size={16} /> 
@@ -645,7 +666,7 @@ export default function VehicleDetail() {
                   <span className="spec-label">Fuel Type</span>
                   <span className="spec-value">{vehicle.fuelType}</span>
                 </div>
-                {!vehicle.serviceType?.includes('Bike') && (
+                {!isBike && (
                   <div className="spec-item">
                     <span className="spec-label">Seats</span>
                     <span className="spec-value">
@@ -668,7 +689,7 @@ export default function VehicleDetail() {
                     <span className="spec-label">Consumption</span>
                     <span className="spec-value">
                       <Gauge size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                      {vehicle.fuelConsumption}
+                      {vehicle.fuelConsumption} km/L
                     </span>
                   </div>
                 )}
@@ -690,20 +711,24 @@ export default function VehicleDetail() {
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
                 </div>
-                <div className="spec-item">
-                  <span className="spec-label">Driver Option</span>
-                  <span className="spec-value" style={{ fontWeight: 600, color: '#6b21a8' }}>
-                    {vehicle.driverOption === 'both' ? 'Self / With Driver' : vehicle.driverOption === 'with-driver' ? 'With Driver' : 'Self Drive'}
-                  </span>
-                </div>
-                {vehicle.driverOption !== 'self-drive' && vehicle.driverPricePerDay ? (
-                  <div className="spec-item">
-                    <span className="spec-label">Driver Price</span>
-                    <span className="spec-value" style={{ fontWeight: 600, color: '#c2410c' }}>
-                      LKR {vehicle.driverPricePerDay} /day
-                    </span>
-                  </div>
-                ) : null}
+                {!isBike && (
+                  <>
+                    <div className="spec-item">
+                      <span className="spec-label">Driver Option</span>
+                      <span className="spec-value" style={{ fontWeight: 600, color: '#6b21a8' }}>
+                        {vehicle.driverOption === 'both' ? 'Self / With Driver' : vehicle.driverOption === 'with-driver' ? 'With Driver' : 'Self Drive'}
+                      </span>
+                    </div>
+                    {vehicle.driverOption !== 'self-drive' && vehicle.driverPricePerDay ? (
+                      <div className="spec-item">
+                        <span className="spec-label">Driver Price</span>
+                        <span className="spec-value" style={{ fontWeight: 600, color: '#c2410c' }}>
+                          LKR {vehicle.driverPricePerDay} /day
+                        </span>
+                      </div>
+                    ) : null}
+                  </>
+                )}
               </div>
 
               {(() => {
@@ -885,27 +910,52 @@ export default function VehicleDetail() {
           <Col xs={24} lg={8}>
             <div className="detail-sidebar">
               <div className="booking-panel card">
-                {!isMobile && (
-                  <div className="booking-price-header">
-                    <h2>LKR {vehicle.pricePerDay.toLocaleString()}</h2>
-                    <span>/ day</span>
+                <div className="pricing-card">
+                  <div className="pricing-card-main">
+                    <div className="pricing-main-amount">
+                      <span className="pricing-currency">LKR</span>
+                      <span className="pricing-value">{vehicle.pricePerDay.toLocaleString()}</span>
+                    </div>
+                    <span className="pricing-period">per day</span>
                   </div>
-                )}
 
-                {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
-                  <div className="bulk-pricing-options" style={{ marginTop: isMobile ? '0' : '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {vehicle.pricePerWeek && (
-                      <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Zap size={14} /> LKR {vehicle.pricePerWeek.toLocaleString()} / week
-                      </div>
-                    )}
-                    {vehicle.pricePerMonth && (
-                      <div className="bulk-price-tag" style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Zap size={14} /> LKR {vehicle.pricePerMonth.toLocaleString()} / month
-                      </div>
-                    )}
-                  </div>
-                )}
+                  {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
+                    <div className="pricing-tiers">
+                      {vehicle.pricePerWeek && (
+                        <div className="pricing-tier-item">
+                          <div className="pricing-tier-icon">
+                            <CalIcon size={14} />
+                          </div>
+                          <div className="pricing-tier-info">
+                            <span className="pricing-tier-label">Weekly</span>
+                            <span className="pricing-tier-amount">LKR {vehicle.pricePerWeek.toLocaleString()}</span>
+                          </div>
+                          {vehicle.pricePerDay > 0 && (
+                            <span className="pricing-tier-save">
+                              Save {Math.round(((vehicle.pricePerDay * 7 - vehicle.pricePerWeek) / (vehicle.pricePerDay * 7)) * 100)}%
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {vehicle.pricePerMonth && (
+                        <div className="pricing-tier-item">
+                          <div className="pricing-tier-icon pricing-tier-icon-monthly">
+                            <CalIcon size={14} />
+                          </div>
+                          <div className="pricing-tier-info">
+                            <span className="pricing-tier-label">Monthly</span>
+                            <span className="pricing-tier-amount">LKR {vehicle.pricePerMonth.toLocaleString()}</span>
+                          </div>
+                          {vehicle.pricePerDay > 0 && (
+                            <span className="pricing-tier-save pricing-tier-save-best">
+                              Save {Math.round(((vehicle.pricePerDay * 30 - vehicle.pricePerMonth) / (vehicle.pricePerDay * 30)) * 100)}%
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: vehicle.kmLimitPerDay ? '#fff7ed' : '#f0fdf4', border: `1px solid ${vehicle.kmLimitPerDay ? '#fed7aa' : '#bbf7d0'}` }}>
                   <Gauge size={20} color={vehicle.kmLimitPerDay ? '#c2410c' : '#15803d'} />
@@ -929,7 +979,7 @@ export default function VehicleDetail() {
                   )}
                 </div>
 
-                {vehicle.driverOption !== 'self-drive' && (
+                {!isBike && vehicle.driverOption !== 'self-drive' && (
                   <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: '#faf5ff', border: '1px solid #e9d5ff' }}>
                     <Users size={20} color="#6b21a8" />
                     <div style={{ flex: 1 }}>
@@ -986,23 +1036,26 @@ export default function VehicleDetail() {
               <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.25rem' }} style={{ marginTop: '1rem', borderRadius: '12px', border: '1px solid var(--border-color-light)' }}>
                 <h3 style={{ marginBottom: '1.25rem', fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Hosted By</h3>
                 {owner ? (
-                  <div className="owner-profile-preview">
-                    <Badge
-                      count={owner.ownerType === 'VERIFIED' ? <CheckCircle size={14} style={{ color: '#10b981', background: '#fff', borderRadius: '50%' }} /> : 0}
-                      offset={[-4, 44]}
-                    >
-                      <Avatar
-                        src={getImageUrl(owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
-                        alt={owner.name}
-                        size={54}
-                        style={{ border: '2px solid var(--primary-color)' }}
-                      />
-                    </Badge>
-                    <div className="owner-info-text">
-                      <strong style={{ fontSize: '1rem' }}>{owner.name}</strong>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Member since 2026</span>
+                  <>
+                    <div className="owner-profile-preview">
+                      <Badge
+                        count={owner.ownerType === 'VERIFIED' ? <CheckCircle size={14} style={{ color: '#10b981', background: '#fff', borderRadius: '50%' }} /> : 0}
+                        offset={[-4, 44]}
+                      >
+                        <Avatar
+                          src={getImageUrl(owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=e2e8f0'}
+                          alt={owner.name}
+                          size={54}
+                          style={{ border: '2px solid var(--primary-color)' }}
+                        />
+                      </Badge>
+                      <div className="owner-info-text">
+                        <strong style={{ fontSize: '1rem' }}>{owner.name}</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Member since 2026</span>
+                      </div>
                     </div>
-                  </div>
+
+                  </>
                 ) : (
                   <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Verified Rentify Host</div>
                 )}
@@ -1023,7 +1076,11 @@ export default function VehicleDetail() {
       {/* MOBILE STICKY BOOKING BAR */}
       {isMobile && !showBookingModal && !createdBooking && (!user || user._id !== (owner?._id || vehicle.owner)) && (
         <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`}>
-          <button className="btn btn-primary btn-lg btn-full" onClick={handleBookingTrigger} style={{ height: '48px', fontWeight: 800, borderRadius: '12px', fontSize: '1rem', letterSpacing: '0.02em' }}>
+          <div className="mobile-bar-price">
+            <span className="bar-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
+            <span className="bar-unit">/ Day</span>
+          </div>
+          <button className="btn btn-primary" onClick={handleBookingTrigger} style={{ height: '44px', fontWeight: 700, borderRadius: '10px', fontSize: '0.85rem', padding: '0 16px', letterSpacing: '0.01em', flexShrink: 0 }}>
             {getBookingButtonText()}
           </button>
         </div>

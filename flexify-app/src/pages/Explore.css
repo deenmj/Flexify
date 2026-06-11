@@ -463,6 +463,15 @@
   padding: 0;
 }
 
+.explore-results .ant-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+.explore-results .ant-col {
+  display: flex;
+  flex-direction: column;
+}
+
 .results-count {
   font-size: 0.8rem;
   color: var(--text-tertiary);
@@ -899,4 +908,15 @@
 @keyframes radiusSlideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+
+/* Explore Grid Card Height Consistency Overrides */
+.explore-results .ant-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.explore-results .ant-col {
+  display: flex;
+  flex-direction: column;
 }

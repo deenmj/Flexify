@@ -8,7 +8,7 @@ import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
   LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon,
-  Eye, EyeOff
+  Eye, EyeOff, Trash2
 } from 'lucide-react';
 import { subadminApi, adminApi, userApi, feedbackApi, saleListingApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel, type VehicleSaleListing } from '../api';
 import { DollarSign } from 'lucide-react';

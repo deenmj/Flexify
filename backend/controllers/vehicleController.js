@@ -22,8 +22,28 @@ export const createVehicle = async (req, res) => {
       seats, description, lat, lng, address, serviceType,
       engineCapacity, fuelConsumption, features, province, district, city,
       pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
-      driverOption, driverPricePerDay
+      driverOption, driverPricePerDay, mobileNumber, weddingHiresSpecial
     } = req.body;
+
+    // Auto-promote regular users to owner role when they create their first listing
+    if (owner.role === "user") {
+      const hasSubscription = owner.subscription && owner.subscription.status;
+      const initialSub = hasSubscription ? owner.subscription : {
+        tier: 'FREE',
+        status: 'free',
+        startDate: new Date(),
+        endDate: null
+      };
+
+      await User.findByIdAndUpdate(owner._id, {
+        role: "owner",
+        ownerType: "UNVERIFIED",
+        subscription: initialSub
+      });
+      owner.role = "owner";
+      owner.ownerType = "UNVERIFIED";
+      owner.subscription = initialSub;
+    }
 
     // Subscription Check & Initialization — only for owners (staff/admins get free unlimited access)
     if (owner.role === "owner") {
@@ -173,6 +193,8 @@ export const createVehicle = async (req, res) => {
       city,
       driverOption: driverOption || "self-drive",
       driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
+      mobileNumber: mobileNumber || null,
+      weddingHiresSpecial: weddingHiresSpecial === "true" || weddingHiresSpecial === true,
     });
 
     res.status(201).json(vehicle);
@@ -200,7 +222,7 @@ export const updateVehicle = async (req, res) => {
       title, make, model, year, pricePerDay, transmission, fuelType, seats, description, 
       lat, lng, address, engineCapacity, fuelConsumption, features, province, district, city,
       pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
-      driverOption, driverPricePerDay
+      driverOption, driverPricePerDay, mobileNumber, weddingHiresSpecial
     } = req.body;
     
     const updates = { 
@@ -210,7 +232,9 @@ export const updateVehicle = async (req, res) => {
       kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null,
       extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null,
       driverOption,
-      driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0
+      driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
+      mobileNumber: mobileNumber !== undefined ? (mobileNumber || null) : undefined,
+      weddingHiresSpecial: weddingHiresSpecial !== undefined ? (weddingHiresSpecial === "true" || weddingHiresSpecial === true) : undefined
     };
 
     if (features) {
@@ -313,7 +337,7 @@ export const listVehicles = async (req, res) => {
     const { 
       q, transmission, minPrice, maxPrice, seats, vehicleType, 
       lat, lng, radius, sort, province, district, 
-      startDate, endDate, driverOption,
+      startDate, endDate, driverOption, weddingHiresSpecial,
       page = 1, limit = 12 
     } = req.query;
 
@@ -324,6 +348,10 @@ export const listVehicles = async (req, res) => {
       status: "active",
       isActive: true,
     };
+
+    if (weddingHiresSpecial === "true" || weddingHiresSpecial === true) {
+      filter.weddingHiresSpecial = true;
+    }
 
     if (q) {
       filter.$text = { $search: q };
@@ -490,6 +518,8 @@ export const listVehicles = async (req, res) => {
           extraKmPrice: 1,
           driverOption: 1,
           driverPricePerDay: 1,
+          mobileNumber: 1,
+          weddingHiresSpecial: 1,
           createdAt: 1
         }
       }
@@ -518,9 +548,35 @@ export const listVehicles = async (req, res) => {
 export const getVehicleById = async (req, res) => {
   try {
     const vehicle = await Vehicle.findById(req.params.id)
-      .populate("owner", "name email profilePic ownerType");
+      .populate("owner", "name email profilePic ownerType phone");
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
-    res.json(vehicle);
+
+    let canViewPhone = false;
+    if (req.user) {
+      if (req.user._id.toString() === vehicle.owner._id.toString()) {
+        canViewPhone = true;
+      } else if (req.user.role === 'subadmin' || req.user.role === 'superadmin') {
+        canViewPhone = true;
+      } else {
+        // Check for confirmed booking
+        const booking = await Booking.findOne({
+          vehicle: vehicle._id,
+          user: req.user._id,
+          status: 'CONFIRMED'
+        });
+        if (booking) canViewPhone = true;
+      }
+    }
+
+    const vehicleObj = vehicle.toObject();
+    if (!canViewPhone) {
+      delete vehicleObj.mobileNumber;
+      if (vehicleObj.owner) {
+        delete vehicleObj.owner.phone;
+      }
+    }
+
+    res.json(vehicleObj);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

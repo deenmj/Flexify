@@ -125,6 +125,8 @@ export interface Vehicle {
   extraKmPrice?: number;
   driverOption?: string;
   driverPricePerDay?: number;
+  mobileNumber?: string;
+  weddingHiresSpecial?: boolean;
   province?: string;
   city?: string;
   district?: string;

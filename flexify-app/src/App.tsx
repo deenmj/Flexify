@@ -9,6 +9,7 @@ import { Spin } from 'antd';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 import BottomNav from './components/BottomNav';
+import ScrollRestoration from './components/ScrollRestoration';
 import ScrollToTop from './components/ScrollToTop';
 
 // Eagerly loaded (critical path — needed immediately)
@@ -55,16 +56,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function NoFooterLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="page-wrapper">
-      <Navbar />
-      <main className="main-content">{children}</main>
-      <BottomNav />
 
-    </div>
-  );
-}
 
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
@@ -98,6 +90,7 @@ function RootRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollRestoration />
       <AuthProvider>
         <SocketProvider>
           <ErrorBoundary>
@@ -115,8 +108,8 @@ export default function App() {
 
               {/* Public pages */}
               <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
-              <Route path="/explore" element={<NoFooterLayout><Explore /></NoFooterLayout>} />
-              <Route path="/vehicles/:id" element={<NoFooterLayout><VehicleDetail /></NoFooterLayout>} />
+              <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
+              <Route path="/vehicles/:id" element={<AppLayout><VehicleDetail /></AppLayout>} />
               <Route path="/about" element={<AppLayout><About /></AppLayout>} />
               <Route path="/faq" element={<AppLayout><FAQ /></AppLayout>} />
               <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />

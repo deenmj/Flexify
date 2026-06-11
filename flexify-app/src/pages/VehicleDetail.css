@@ -86,7 +86,7 @@
     border-radius: 12px;
   }
   .detail-main-img-item {
-    height: 250px;
+    height: 200px;
   }
 }
 
@@ -213,25 +213,122 @@
   padding: 2rem;
 }
 
-.booking-price-header {
+.pricing-card {
+  background: var(--bg-card, #ffffff);
+  border-radius: 16px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.1));
+}
+
+.pricing-card-main {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
-.booking-price-header h2 {
-  font-size: 1.75rem;
-  margin: 0;
-  line-height: 1;
-  font-weight: 800;
+.pricing-main-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
 }
 
-.booking-price-header span {
+.pricing-currency {
   font-size: 1rem;
-  color: var(--text-secondary);
+  font-weight: 700;
+  color: var(--text-secondary, #475569);
+  text-transform: uppercase;
 }
+
+.pricing-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary-color, #2563eb);
+  line-height: 1;
+}
+
+.pricing-period {
+  font-size: 0.9rem;
+  color: var(--text-tertiary, #94a3b8);
+  font-weight: 500;
+}
+
+.pricing-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pricing-tier-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.pricing-tier-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.pricing-tier-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.pricing-tier-icon-monthly {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.pricing-tier-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.pricing-tier-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary, #94a3b8);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pricing-tier-amount {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.pricing-tier-save {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0369a1;
+  background: #e0f2fe;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.pricing-tier-save-best {
+  color: #15803d;
+  background: #dcfce7;
+}
+
 
 .booking-perks {
   display: flex;
@@ -306,22 +403,16 @@
     border-radius: 16px !important;
   }
   .booking-panel {
-    padding: 1.5rem;
+    padding: 1rem;
     border-radius: 16px !important;
   }
-  .booking-price-header h2 {
-    font-size: 1.5rem;
+  .pricing-currency {
+    font-size: 0.8rem;
   }
-
+  .pricing-value {
+    font-size: 1.25rem;
+  }
   .mobile-booking-bar {
-    padding: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.08);
-    z-index: 1000;
-    border-top: 1px solid rgba(241, 245, 249, 0.8);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
     position: fixed;
     bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 16px) + 8px);
     left: 10px;
@@ -332,6 +423,12 @@
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
   }
   .mobile-booking-bar-hidden {
     transform: translateY(100%);
@@ -344,12 +441,12 @@
   }
   .bar-amount {
     font-weight: 800;
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     color: var(--primary-color);
     line-height: 1.1;
   }
   .bar-unit {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-tertiary);
     text-transform: uppercase;
     font-weight: 600;
@@ -357,6 +454,64 @@
   }
   .vehicle-detail-page {
     padding-bottom: 20px;
+  }
+}
+
+/* Mobile Inline Price (shown inside overview card on mobile) */
+.mobile-inline-price {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-inline-price {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+  }
+
+  .mobile-inline-price-main {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .mobile-inline-currency {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #475569;
+  }
+
+  .mobile-inline-amount {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary-color, #2563eb);
+    line-height: 1;
+  }
+
+  .mobile-inline-period {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  .mobile-inline-price-tiers {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .mobile-inline-tier {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 2px 8px;
+    border-radius: 6px;
   }
 }
 
@@ -713,6 +868,7 @@
   .detail-loading-feature-tag {
     height: 30px;
     width: 70px;
+  }
 }
 
 /* ===== Vehicle Detail Share Button ===== */
@@ -836,5 +992,4 @@
   .detail-lightbox-nav.next {
     right: 1rem;
   }
-}
 }
