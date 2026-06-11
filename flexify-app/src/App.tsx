@@ -39,11 +39,6 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const EditVehicle = lazy(() => import('./pages/EditVehicle'));
 const ManageVehicle = lazy(() => import('./pages/ManageVehicle'));
 
-// Sale Marketplace (isolated from rental flow)
-const BuyVehicles = lazy(() => import('./pages/BuyVehicles'));
-const SaleVehicleDetail = lazy(() => import('./pages/SaleVehicleDetail'));
-const ListSaleVehicle = lazy(() => import('./pages/ListSaleVehicle'));
-
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="page-wrapper">
@@ -115,19 +110,16 @@ export default function App() {
               <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
               <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
               <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
-              <Route path="/subscription" element={<NoFooterLayout><SubscriptionManagement /></NoFooterLayout>} />
-              <Route path="/buy" element={<AppLayout><BuyVehicles /></AppLayout>} />
-              <Route path="/buy/:id" element={<NoFooterLayout><SaleVehicleDetail /></NoFooterLayout>} />
+              <Route path="/subscription" element={<AppLayout><SubscriptionManagement /></AppLayout>} />
 
               {/* Protected pages */}
-              <Route path="/profile" element={<NoFooterLayout><ProtectedRoute><Profile /></ProtectedRoute></NoFooterLayout>} />
-              <Route path="/verify" element={<NoFooterLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></NoFooterLayout>} />
-              <Route path="/list-vehicle" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ListVehicle /></ProtectedRoute></NoFooterLayout>} />
-              <Route path="/dashboard" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><Dashboard /></ProtectedRoute></NoFooterLayout>} />
-              <Route path="/notifications" element={<NoFooterLayout><ProtectedRoute><Notifications /></ProtectedRoute></NoFooterLayout>} />
-              <Route path="/dashboard/vehicle/:id" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ManageVehicle /></ProtectedRoute></NoFooterLayout>} />
-              <Route path="/vehicles/edit/:id" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></NoFooterLayout>} />
-              <Route path="/list-sale" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ListSaleVehicle /></ProtectedRoute></NoFooterLayout>} />
+              <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
+              <Route path="/verify" element={<AppLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></AppLayout>} />
+              <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ListVehicle /></ProtectedRoute></AppLayout>} />
+              <Route path="/dashboard" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><Dashboard /></ProtectedRoute></AppLayout>} />
+              <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
+              <Route path="/dashboard/vehicle/:id" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ManageVehicle /></ProtectedRoute></AppLayout>} />
+              <Route path="/vehicles/edit/:id" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></AppLayout>} />
 
               {/* Admin dashboards */}
               <Route path="/admin" element={<NoNavbarLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
