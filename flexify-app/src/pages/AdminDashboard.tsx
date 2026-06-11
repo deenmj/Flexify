@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon } from 'lucide-react';
+import { adminApi, bankDetailsApi, feedbackApi, settingsApi, saleListingApi, getImageUrl, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder, type VehicleSaleListing } from '../api';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon, Tag as TagIcon } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'overview';
-  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings' | 'site-settings' | 'feedback'>(initialTab);
+  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings' | 'site-settings' | 'feedback' | 'sale-listings'>(initialTab);
 
   useEffect(() => {
     setSearchParams({ tab });
@@ -57,6 +57,7 @@ export default function AdminDashboard() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState(false);
+  const [allSaleListings, setAllSaleListings] = useState<VehicleSaleListing[]>([]);
 
   // Founders state
   const [founders, setFounders] = useState<Founder[]>([]);
@@ -109,6 +110,9 @@ export default function AdminDashboard() {
       if (logs?.logs) setAuditLogs(logs.logs);
       setPendingPayments(p);
     }).finally(() => setLoading(false));
+
+    // Fetch sale listings separately (non-blocking)
+    saleListingApi.getAdminAll().then(setAllSaleListings).catch(() => []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -492,6 +496,7 @@ export default function AdminDashboard() {
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${allVehicles.length})` },
               { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
               { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
+              { key: 'sale-listings', icon: <TagIcon size={18} />, label: `Sale Listings (${allSaleListings.length})` },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: `Bank Settings` },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: `Site Settings` },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
@@ -525,6 +530,7 @@ export default function AdminDashboard() {
               { key: 'vehicles', icon: <Car size={18} />, label: 'Vehicles' },
               { key: 'bookings', icon: <Calendar size={18} />, label: 'Bookings' },
               { key: 'payments', icon: <DollarSign size={18} />, label: 'Payments' },
+              { key: 'sale-listings', icon: <TagIcon size={18} />, label: 'Sale Listings' },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: 'Bank Settings' },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: 'Site Settings' },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: 'Feedback' },
@@ -558,6 +564,7 @@ export default function AdminDashboard() {
               {tab === 'users' && 'User Management'}
               {tab === 'vehicles' && 'Vehicle Directory'}
               {tab === 'payments' && 'Subscription Payments'}
+              {tab === 'sale-listings' && 'Vehicle Sale Listings'}
               {tab === 'bank-settings' && 'Bank Settings Configuration'}
               {tab === 'site-settings' && 'Platform Site Settings'}
               {tab === 'feedback' && 'User Feedback & Bug Reports'}
@@ -983,6 +990,77 @@ export default function AdminDashboard() {
                 </div>
               )}
 
+              {tab === 'sale-listings' && (
+                <div className="animate-fade-in">
+                  <Title level={5} style={{ marginBottom: '1.5rem' }}>All Vehicle Sale Listings</Title>
+                  <Table
+                    scroll={{ x: true }}
+                    dataSource={allSaleListings}
+                    rowKey="_id"
+                    pagination={{ pageSize: 15 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      {
+                        title: 'Vehicle',
+                        render: (_: any, v: VehicleSaleListing) => (
+                          <div>
+                            <Text strong>{v.title}</Text><br />
+                            <Text type="secondary" style={{ fontSize: '13px' }}>LKR {v.price.toLocaleString()}</Text>
+                          </div>
+                        )
+                      },
+                      {
+                        title: 'Seller',
+                        render: (_: any, v: VehicleSaleListing) => {
+                          const s = typeof v.seller === 'object' ? v.seller : null;
+                          return s ? <div><Text strong>{(s as any).name}</Text><br /><Text type="secondary" style={{ fontSize: '12px' }}>{(s as any).email}</Text></div> : 'Unknown';
+                        }
+                      },
+                      { title: 'Condition', dataIndex: 'condition', render: (c: string) => <Tag color={c === 'Brand New' ? 'green' : c === 'Excellent' ? 'blue' : c === 'Good' ? 'gold' : 'default'}>{c}</Tag> },
+                      { title: 'City', dataIndex: 'city' },
+                      {
+                        title: 'Status',
+                        dataIndex: 'status',
+                        render: (s: string) => (
+                          <Tag color={s === 'Approved' ? 'success' : s === 'Pending' ? 'processing' : s === 'Sold' ? 'purple' : 'error'}>
+                            {s.toUpperCase()}
+                          </Tag>
+                        )
+                      },
+                      { title: 'Date', dataIndex: 'createdAt', render: (d: string) => d ? new Date(d).toLocaleDateString() : '-' },
+                      {
+                        title: 'Action',
+                        render: (_: any, v: VehicleSaleListing) => (
+                          <Button
+                            danger
+                            size="small"
+                            icon={<Trash2 size={14} />}
+                            onClick={() => {
+                              Modal.confirm({
+                                title: 'Delete Sale Listing',
+                                content: `Are you sure you want to delete "${v.title}"?`,
+                                okText: 'Delete',
+                                okType: 'danger',
+                                onOk: async () => {
+                                  try {
+                                    await saleListingApi.delete(v._id);
+                                    setAllSaleListings(prev => prev.filter(s => s._id !== v._id));
+                                    message.success('Sale listing deleted');
+                                  } catch (err: any) {
+                                    message.error(err.message || 'Failed to delete');
+                                  }
+                                }
+                              });
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        )
+                      }
+                    ]}
+                  />
+                </div>
+              )}
 
               {tab === 'bank-settings' && (
                 <div className="animate-fade-in" style={{ maxWidth: '600px' }}>
