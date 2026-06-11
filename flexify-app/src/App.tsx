@@ -38,6 +38,11 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const EditVehicle = lazy(() => import('./pages/EditVehicle'));
 const ManageVehicle = lazy(() => import('./pages/ManageVehicle'));
 
+// Sale Marketplace (isolated from rental flow)
+const BuyVehicles = lazy(() => import('./pages/BuyVehicles'));
+const SaleVehicleDetail = lazy(() => import('./pages/SaleVehicleDetail'));
+const ListSaleVehicle = lazy(() => import('./pages/ListSaleVehicle'));
+
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="page-wrapper">
@@ -118,6 +123,8 @@ export default function App() {
               <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
               <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
               <Route path="/subscription" element={<NoFooterLayout><SubscriptionManagement /></NoFooterLayout>} />
+              <Route path="/buy" element={<AppLayout><BuyVehicles /></AppLayout>} />
+              <Route path="/buy/:id" element={<NoFooterLayout><SaleVehicleDetail /></NoFooterLayout>} />
 
               {/* Protected pages */}
               <Route path="/profile" element={<NoFooterLayout><ProtectedRoute><Profile /></ProtectedRoute></NoFooterLayout>} />
@@ -127,6 +134,7 @@ export default function App() {
               <Route path="/notifications" element={<NoFooterLayout><ProtectedRoute><Notifications /></ProtectedRoute></NoFooterLayout>} />
               <Route path="/dashboard/vehicle/:id" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ManageVehicle /></ProtectedRoute></NoFooterLayout>} />
               <Route path="/vehicles/edit/:id" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><EditVehicle /></ProtectedRoute></NoFooterLayout>} />
+              <Route path="/list-sale" element={<NoFooterLayout><ProtectedRoute roles={['owner', 'user', 'subadmin', 'superadmin']}><ListSaleVehicle /></ProtectedRoute></NoFooterLayout>} />
 
               {/* Admin dashboards */}
               <Route path="/admin" element={<NoNavbarLayout><ProtectedRoute roles={['superadmin']}><AdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
