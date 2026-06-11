@@ -4,11 +4,11 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col, Avatar, Spin } from 'antd';
-import { vehicleApi, bookingApi, blackoutApi, reviewApi, saleListingApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review, type VehicleSaleListing, getImageUrl, getVehicleSlug } from '../api';
+import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review, getImageUrl, getVehicleSlug } from '../api';
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
   Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle,
-  CalendarOff, Star, MessageSquare, Zap, Edit, Info, User, Users, FileText, Compass, Tag as TagIcon
+  CalendarOff, Star, MessageSquare, Zap, Edit, Info, User, Users, FileText, Compass
 } from 'lucide-react';
 import { notification } from 'antd';
 
@@ -29,17 +29,14 @@ export default function Dashboard() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'subscription' | 'my-sales'>(() => {
+  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'subscription'>(() => {
     const urlTab = searchParams.get('tab');
     if (urlTab === 'bookings') return 'bookings';
-    if (urlTab === 'my-sales') return 'my-sales';
     return user?.role === 'user' ? 'bookings' : 'vehicles';
   });
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'confirmed' | 'past'>('all');
   const [bookingType, setBookingType] = useState<'received' | 'trips'>('received');
-  const [mySaleListings, setMySaleListings] = useState<VehicleSaleListing[]>([]);
-  const [saleLoading, setSaleLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -125,9 +122,7 @@ export default function Dashboard() {
         const r = await reviewApi.getMyReviews().catch(() => []);
         setReviews(r as Review[]);
       }
-
-      // Fetch sale listings non-blocking
-      saleListingApi.getMy().then(sl => setMySaleListings(sl)).catch(() => []);
+      
 
     } catch (err) {
       console.error("Failed to refresh dashboard data", err);
@@ -428,12 +423,6 @@ export default function Dashboard() {
               >
                 <Compass size={16} /> My Trips
               </button>
-              <button 
-                className={`nav-item ${tab === 'my-sales' ? 'active' : ''}`} 
-                onClick={() => setTab('my-sales')}
-              >
-                <TagIcon size={16} /> My Sales
-              </button>
             </>
           )}
         </div>
@@ -695,88 +684,6 @@ export default function Dashboard() {
                     </div>
                   );
                 })}
-              </div>
-            )}
-          </div>
-        ) : tab === 'my-sales' ? (
-          <div className="dashboard-box">
-            <div className="dashboard-box-header" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <h3 className="dashboard-box-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>My Sale Listings</h3>
-              <Link to="/list-sale" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
-                <TagIcon size={18} style={{ marginRight: '8px' }} /> List for Sale
-              </Link>
-            </div>
-
-            {saleLoading ? (
-              <div style={{ textAlign: 'center', padding: '3rem' }}><Spin /></div>
-            ) : mySaleListings.length === 0 ? (
-              <div className="dashboard-empty" style={{ padding: '5rem 2rem', textAlign: 'center', background: '#fafafa', borderRadius: '0 0 20px 20px' }}>
-                <TagIcon size={48} style={{ color: '#cbd5e1', marginBottom: '1rem' }} />
-                <h3 style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No vehicles listed for sale</h3>
-                <p style={{ color: 'var(--text-tertiary)', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
-                  Turn your vehicle into cash completely free! List it on the Rentify marketplace.
-                </p>
-                <Link to="/list-sale" style={{ padding: '0.7rem 2rem', background: '#10b981', color: 'white', borderRadius: '12px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                  <TagIcon size={18} /> List for Sale
-                </Link>
-              </div>
-            ) : (
-              <div style={{ padding: '1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-                {mySaleListings.map(listing => (
-                  <div key={listing._id} style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-color-light)', position: 'relative' }}>
-                    {listing.status === 'Sold' && (
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px' }}>
-                        <span style={{ background: '#7c3aed', color: 'white', padding: '8px 24px', borderRadius: '10px', fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.05em' }}>SOLD</span>
-                      </div>
-                    )}
-                    <div style={{ aspectRatio: '16/10', background: '#f1f5f9', overflow: 'hidden' }}>
-                      {listing.photos?.[0] ? (
-                        <img src={getImageUrl(listing.photos[0])} alt={listing.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}><Car size={36} /></div>
-                      )}
-                    </div>
-                    <div style={{ padding: '1rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: 900, fontSize: '1.1rem', color: '#0f172a' }}>LKR {listing.price.toLocaleString()}</span>
-                        <Tag color={listing.status === 'Approved' ? 'success' : listing.status === 'Pending' ? 'processing' : listing.status === 'Sold' ? 'purple' : 'error'}>
-                          {listing.status.toUpperCase()}
-                        </Tag>
-                      </div>
-                      <h4 style={{ margin: '0 0 4px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{listing.title}</h4>
-                      <p style={{ margin: '0 0 12px', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{listing.city} · {listing.condition} · {listing.mileage?.toLocaleString()} km</p>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        {listing.status === 'Approved' && (
-                          <button
-                            onClick={async () => {
-                              try {
-                                await saleListingApi.markAsSold(listing._id);
-                                setMySaleListings(prev => prev.map(l => l._id === listing._id ? { ...l, status: 'Sold', soldAt: new Date().toISOString() } : l));
-                                message.success('Marked as sold!');
-                              } catch (err: any) { message.error(err.message); }
-                            }}
-                            style={{ flex: 1, padding: '8px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
-                          >
-                            Mark as Sold
-                          </button>
-                        )}
-                        <button
-                          onClick={async () => {
-                            if (!window.confirm('Delete this listing?')) return;
-                            try {
-                              await saleListingApi.delete(listing._id);
-                              setMySaleListings(prev => prev.filter(l => l._id !== listing._id));
-                              message.success('Listing deleted');
-                            } catch (err: any) { message.error(err.message); }
-                          }}
-                          style={{ padding: '8px 12px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
             )}
           </div>
