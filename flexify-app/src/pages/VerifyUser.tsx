@@ -329,7 +329,7 @@ export default function VerifyUser() {
     { key: 'selfie', label: 'Profile Photo', desc: 'Upload a recent photo of yourself (optional)', optional: true },
   ];
 
-  // Only allow form submission if not pending or approved
+  // Only allow form submission if not pending or approved (applies to ALL users, no admin bypass)
   const canSubmit = user?.verificationStatus !== 'pending' && user?.verificationStatus !== 'approved';
 
   // Determine the back link destination

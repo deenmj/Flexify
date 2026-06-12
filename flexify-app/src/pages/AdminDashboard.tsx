@@ -1253,31 +1253,34 @@ export default function AdminDashboard() {
           <div style={{ padding: '1rem' }}>
             <Row gutter={[16, 24]}>
               <Col span={12}>
-                <Card size="small" title="ID / License Number">
-                  <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', letterSpacing: '0.05em' }}>
-                    {(kycUser.documents as any)?.idNumber || 'Not Provided'}
-                  </div>
-                </Card>
-              </Col>
-              <Col span={12}>
                 <Card size="small" title="Driving License">
-                  {kycUser.documents?.license ? <Image src={getImageUrl(kycUser.documents.license)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.license ? <Image src={getImageUrl(kycUser.documents.license)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#94a3b8', fontSize: '0.9rem' }}>No document provided</div>}
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="Profile Photo">
-                  {kycUser.documents?.selfie ? <Image src={getImageUrl(kycUser.documents.selfie)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <Spin tip="No document" />}
+                  {kycUser.documents?.selfie ? <Image src={getImageUrl(kycUser.documents.selfie)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#94a3b8', fontSize: '0.9rem' }}>No document provided</div>}
                 </Card>
               </Col>
             </Row>
             <Divider />
-            <div>
-              <Text strong>Verification Status: </Text>
-              <Tag color={kycUser.isKycVerified ? 'success' : 'warning'}>{kycUser.verificationStatus?.toUpperCase()}</Tag>
-            </div>
-            <div style={{ marginTop: '0.5rem' }}>
-              <Text strong>Residential Address: </Text>
-              <Text>{kycUser.documents?.address || 'Not provided'}</Text>
+            <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>ID / License Number</Text>
+                <Text style={{ color: '#64748b' }}>{(kycUser.documents as any)?.idNumber || 'Not provided'}</Text>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Phone Number</Text>
+                <Text style={{ color: '#64748b' }}>{(kycUser.documents as any)?.phone || 'Not provided'}</Text>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Residential Address</Text>
+                <Text style={{ color: '#64748b' }}>{kycUser.documents?.address || 'Not provided'}</Text>
+              </div>
+              <div>
+                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Verification Status</Text>
+                <Tag color={kycUser.isKycVerified ? 'success' : 'warning'}>{kycUser.verificationStatus?.toUpperCase()}</Tag>
+              </div>
             </div>
           </div>
         ) : <Spin />}

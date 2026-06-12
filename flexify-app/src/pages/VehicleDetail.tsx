@@ -282,7 +282,11 @@ export default function VehicleDetail() {
     const startStr = dateRange[0].toISOString();
     const endStr = dateRange[1].toISOString();
 
-    const hasKycFields = Boolean(user.documents?.idNumber?.trim() && user.documents?.address?.trim());
+    const hasKycFields = Boolean(
+      user.documents?.idNumber?.trim() && 
+      user.documents?.address?.trim() && 
+      user.documents?.phone?.trim()
+    );
 
     // If user hasn't submitted KYC or missing mandatory fields, save pending booking and redirect to KYC
     if (!hasKycFields) {
@@ -323,7 +327,11 @@ export default function VehicleDetail() {
   // Determine button text based on verification status
   const getBookingButtonText = () => {
     if (!user) return 'Sign In to Book';
-    const hasKycFields = Boolean(user.documents?.idNumber?.trim() && user.documents?.address?.trim());
+    const hasKycFields = Boolean(
+      user.documents?.idNumber?.trim() && 
+      user.documents?.address?.trim() && 
+      user.documents?.phone?.trim()
+    );
     return hasKycFields ? 'Book Now' : 'Verify and Book';
   };
 

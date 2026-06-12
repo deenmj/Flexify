@@ -4,9 +4,10 @@ import bcrypt from "bcryptjs";
 
 const documentsSchema = new mongoose.Schema({
   idNumber: { type: String, default: "" },
+  phone: { type: String, default: "" },
+  address: { type: String, default: "" },
   license: { type: String, default: "" },
   selfie: { type: String, default: "" },
-  address: { type: String, default: "" },
   kycConsentGiven: { type: Boolean, default: false },
 }, { _id: false });
 
