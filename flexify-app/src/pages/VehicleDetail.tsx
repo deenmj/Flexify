@@ -927,42 +927,7 @@ export default function VehicleDetail() {
                     <span className="pricing-period">per day</span>
                   </div>
 
-                  {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
-                    <div className="pricing-tiers">
-                      {vehicle.pricePerWeek && (
-                        <div className="pricing-tier-item">
-                          <div className="pricing-tier-icon">
-                            <CalIcon size={14} />
-                          </div>
-                          <div className="pricing-tier-info">
-                            <span className="pricing-tier-label">Weekly</span>
-                            <span className="pricing-tier-amount">LKR {vehicle.pricePerWeek.toLocaleString()}</span>
-                          </div>
-                          {vehicle.pricePerDay > 0 && (
-                            <span className="pricing-tier-save">
-                              Save {Math.round(((vehicle.pricePerDay * 7 - vehicle.pricePerWeek) / (vehicle.pricePerDay * 7)) * 100)}%
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {vehicle.pricePerMonth && (
-                        <div className="pricing-tier-item">
-                          <div className="pricing-tier-icon pricing-tier-icon-monthly">
-                            <CalIcon size={14} />
-                          </div>
-                          <div className="pricing-tier-info">
-                            <span className="pricing-tier-label">Monthly</span>
-                            <span className="pricing-tier-amount">LKR {vehicle.pricePerMonth.toLocaleString()}</span>
-                          </div>
-                          {vehicle.pricePerDay > 0 && (
-                            <span className="pricing-tier-save pricing-tier-save-best">
-                              Save {Math.round(((vehicle.pricePerDay * 30 - vehicle.pricePerMonth) / (vehicle.pricePerDay * 30)) * 100)}%
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
+
                 </div>
 
                 <div className="km-limit-badge-detail" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1rem', borderRadius: '10px', background: vehicle.kmLimitPerDay ? '#fff7ed' : '#f0fdf4', border: `1px solid ${vehicle.kmLimitPerDay ? '#fed7aa' : '#bbf7d0'}` }}>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, DollarSign, Compass, Home, CalendarCheck } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Compass, Home, CalendarCheck } from 'lucide-react';
 import { Badge, Tooltip, Modal } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { notificationApi, bookingApi } from '../api';
@@ -139,9 +139,7 @@ export default function Navbar() {
               <Link to="/explore" className="nav-link">
                 <Compass size={18} /> Explore
               </Link>
-              <Link to="/subscription" className="nav-link">
-                <DollarSign size={18} /> Pricing
-              </Link>
+
               <Link to="/list-vehicle" className="nav-link">
                 <Car size={18} /> List Vehicle
               </Link>
@@ -235,11 +233,7 @@ export default function Navbar() {
                       <Car size={16} /> List Vehicle
                     </Link>
                   )}
-                  {user && !isAdminRole && (
-                    <Link to="/subscription" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                      <DollarSign size={16} /> Pricing & Tiers
-                    </Link>
-                  )}
+
                   {user && user.verificationStatus === 'not_submitted' && !isAdminRole && (
                     <Link to="/verify" className="dropdown-item" onClick={() => setProfileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
                       <Shield size={16} /> One-Time Verification
@@ -294,7 +288,7 @@ export default function Navbar() {
               <div className="mobile-section-title">Main Menu</div>
               <Link to="/home" className="mobile-link" onClick={() => setMobileOpen(false)}><Home size={18} /> Home</Link>
               <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}><Compass size={18} /> Explore</Link>
-              <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}><DollarSign size={18} /> Pricing</Link>
+
               <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List Vehicle</Link>
 
               {user && (
@@ -306,9 +300,7 @@ export default function Navbar() {
                   {isAdminRole && (
                     <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> My Vehicles & Bookings</Link>
                   )}
-                  {user && !isAdminRole && (
-                    <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}><DollarSign size={18} /> Pricing & Tiers</Link>
-                  )}
+
                   {user.verificationStatus === 'not_submitted' && !isAdminRole && (
                     <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
                       <Shield size={18} /> One-Time Verification

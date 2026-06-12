@@ -398,7 +398,6 @@ export default function SubAdminDashboard() {
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
-              { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
               { key: 'settings', icon: <Settings size={18} />, label: 'My Settings' },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `User Feedback` },
             ]}
@@ -430,7 +429,6 @@ export default function SubAdminDashboard() {
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${pendingVehicles.length})` },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions` },
-              { key: 'payments', icon: <DollarSign size={18} />, label: `Payments` },
               { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
             ]}
@@ -463,7 +461,6 @@ export default function SubAdminDashboard() {
               {tab === 'vehicles' && 'Vehicle Approvals'}
               {tab === 'reviews' && 'Review Moderation'}
               {tab === 'moderation' && 'Platform Content Suggestions'}
-              {tab === 'payments' && 'Subscription Payments'}
               {tab === 'settings' && 'Account Settings'}
               {tab === 'feedback' && 'Member Feedback'}
             </Title>
@@ -767,61 +764,7 @@ export default function SubAdminDashboard() {
                 </div>
               )}
 
-              {tab === 'payments' && (
-                <div className="animate-fade-in">
-                  <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center' }}>
-                    <Title level={5} style={{ margin: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>Pending Subscription Payments</Title>
-                    <Button type="primary" onClick={fetchData}>Refresh</Button>
-                  </div>
-                  <Table
-                    scroll={{ x: true }}
-                    dataSource={pendingPayments}
-                    rowKey="_id"
-                    pagination={{ pageSize: 12 }}
-                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
-                    columns={[
-                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
-                      { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
-                      { title: 'Method', dataIndex: 'method', render: (m: string) => <Tag color={m === 'PAYHERE' ? 'green' : 'orange'}>{m || 'MANUAL'}</Tag> },
-                      { title: 'Amount', dataIndex: 'amount', render: (a: number) => <Text strong>LKR {a?.toLocaleString()}</Text> },
-                      {
-                        title: 'Transaction/Ref', render: (_, p: any) => (
-                          <div>
-                            <Text copyable style={{ fontSize: '12px' }}>{p.transactionId || p.reference}</Text>
-                            {p.paidAt && <div style={{ fontSize: '11px', color: '#94a3b8' }}>Paid: {new Date(p.paidAt).toLocaleString()}</div>}
-                          </div>
-                        )
-                      },
-                      { 
-                        title: 'Receipt', 
-                        render: (_, p: any) => p.receiptImage ? (
-                          <Button 
-                            size="small" 
-                            icon={<FileText size={14} />} 
-                            onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'https://api.rentify.lk'}${p.receiptImage}`, '_blank')}
-                          >
-                            View
-                          </Button>
-                        ) : <Text type="secondary">N/A</Text>
-                      },
-                      {
-                        title: 'Action', render: (_, p: any) => (
-                          <Space>
-                            {p.status === 'approved' ? (
-                              <Tag color="success">Verified</Tag>
-                            ) : (
-                              <>
-                                <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'approved')} loading={actionLoading === p._id}>Approve</Button>
-                                <Button size="small" danger icon={<XCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'rejected')} loading={actionLoading === p._id}>Reject</Button>
-                              </>
-                            )}
-                          </Space>
-                        )
-                      }
-                    ]}
-                  />
-                </div>
-              )}
+
 
               {tab === 'settings' && (
                 <div className="animate-fade-in" style={{ maxWidth: 600 }}>

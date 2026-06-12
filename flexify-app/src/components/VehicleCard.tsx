@@ -41,8 +41,6 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           <div className="shared-vehicle-tags-row">
             {vehicle.transmission && <span className="v-card-tag">{vehicle.transmission}</span>}
             {ownerData?.ownerType === 'VERIFIED' && <span className="v-card-tag v-verified"><Verified size={10} style={{ marginRight: '2px' }} /> Verified</span>}
-            {ownerData?.subscription?.tier === 'PRO' && <span className="v-card-tag v-pro"><Star size={10} fill="currentColor" style={{ marginRight: '2px' }} /> Pro</span>}
-            {ownerData?.subscription?.tier === 'STANDARD' && <span className="v-card-tag v-standard">Standard</span>}
             {vehicle.weddingHiresSpecial && <span className="v-card-tag v-wedding">💍 Wedding Hire</span>}
           </div>
 

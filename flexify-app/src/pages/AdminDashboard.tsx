@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'overview';
-  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'payments' | 'bank-settings' | 'site-settings' | 'feedback'>(initialTab);
+  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'bank-settings' | 'site-settings' | 'feedback'>(initialTab);
 
   useEffect(() => {
     setSearchParams({ tab });
@@ -491,7 +491,6 @@ export default function AdminDashboard() {
               { key: 'users', icon: <Users size={18} />, label: `Users (${allUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${allVehicles.length})` },
               { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
-              { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: `Bank Settings` },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: `Site Settings` },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
@@ -524,7 +523,6 @@ export default function AdminDashboard() {
               { key: 'users', icon: <Users size={18} />, label: 'Users' },
               { key: 'vehicles', icon: <Car size={18} />, label: 'Vehicles' },
               { key: 'bookings', icon: <Calendar size={18} />, label: 'Bookings' },
-              { key: 'payments', icon: <DollarSign size={18} />, label: 'Payments' },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: 'Bank Settings' },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: 'Site Settings' },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: 'Feedback' },
@@ -557,7 +555,7 @@ export default function AdminDashboard() {
               {tab === 'overview' && 'Dashboard Overview'}
               {tab === 'users' && 'User Management'}
               {tab === 'vehicles' && 'Vehicle Directory'}
-              {tab === 'payments' && 'Subscription Payments'}
+              {tab === 'bookings' && 'Booking Management'}
               {tab === 'bank-settings' && 'Bank Settings Configuration'}
               {tab === 'site-settings' && 'Platform Site Settings'}
               {tab === 'feedback' && 'User Feedback & Bug Reports'}
@@ -885,103 +883,7 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {tab === 'payments' && (
-                <div className="animate-fade-in">
-                  <Table
-                    scroll={{ x: true }}
-                    dataSource={pendingPayments}
-                    rowKey="_id"
-                    pagination={{ pageSize: 15 }}
-                    style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}
-                    columns={[
-                      { 
-                        title: 'Owner Details', 
-                        render: (_, p: any) => (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <Avatar src={getImageUrl(p.user?.profilePic)} style={{ backgroundColor: '#2563eb' }}>
-                              {p.user?.name?.charAt(0) || 'U'}
-                            </Avatar>
-                            <div>
-                              <div style={{ fontWeight: 700, color: '#1e293b' }}>{p.user?.name}</div>
-                              <div style={{ color: '#64748b', fontSize: '12px' }}>{p.user?.email}</div>
-                            </div>
-                          </div>
-                        )
-                      },
-                      { 
-                        title: 'Plan & Duration', 
-                        render: (_, p: any) => (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <Tag color={p.tier === 'PRO' ? 'purple' : 'blue'} style={{ width: 'fit-content', fontWeight: 600, letterSpacing: '0.05em' }}>{p.tier}</Tag>
-                            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>{p.duration === 'MONTHLY' ? 'Monthly Plan' : 'Bi-Annual Plan'}</span>
-                          </div>
-                        )
-                      },
-                      { 
-                        title: 'Payment Info', 
-                        render: (_, p: any) => (
-                          <div>
-                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>LKR {p.amount?.toLocaleString()}</div>
-                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>Ref: {p.reference}</div>
-                          </div>
-                        )
-                      },
-                      { 
-                        title: 'Receipt', 
-                        align: 'center',
-                        render: (_, p: any) => p.receiptImage ? (
-                          <Button 
-                            type="primary"
-                            ghost
-                            size="small" 
-                            icon={<FileText size={14} />} 
-                            onClick={() => window.open(getImageUrl(p.receiptImage), '_blank')}
-                            style={{ borderRadius: '6px', fontWeight: 600 }}
-                          >
-                            View Receipt
-                          </Button>
-                        ) : <Tag color="default">Not Uploaded</Tag>
-                      },
-                      { 
-                        title: 'Date Submitted', 
-                        dataIndex: 'createdAt', 
-                        render: (d: string) => (
-                          <div style={{ color: '#475569', fontSize: '13px', fontWeight: 500 }}>
-                            {new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                            <br />
-                            <span style={{ color: '#94a3b8', fontSize: '11px' }}>{new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                          </div>
-                        ) 
-                      },
-                      {
-                        title: 'Actions', 
-                        align: 'right',
-                        render: (_, p: any) => (
-                          <Space size="middle">
-                            <Button 
-                              type="primary" 
-                              style={{ background: '#10b981', borderColor: '#10b981', color: 'white', borderRadius: '8px', fontWeight: 600, boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)' }} 
-                              icon={<CheckCircle size={15} />} 
-                              onClick={() => handleVerifyPayment(p._id, 'approved')}
-                            >
-                              Approve
-                            </Button>
-                            <Button 
-                              danger 
-                              type="primary"
-                              style={{ borderRadius: '8px', fontWeight: 600, boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)' }} 
-                              icon={<XCircle size={15} />} 
-                              onClick={() => handleVerifyPayment(p._id, 'rejected')}
-                            >
-                              Reject
-                            </Button>
-                          </Space>
-                        )
-                      }
-                    ]}
-                  />
-                </div>
-              )}
+
 
 
               {tab === 'bank-settings' && (
@@ -1335,7 +1237,6 @@ export default function AdminDashboard() {
                     <Text strong>{(owner as any).name}</Text> <br/>
                     <Text type="secondary" style={{ fontSize: '13px' }}>{(owner as any).email} | {(owner as any).phone}</Text>
                     <div style={{ marginTop: '8px' }}>
-                      <Tag color={(owner as any).subscription?.status === 'active' ? 'gold' : 'default'}>Sub: {(owner as any).subscription?.tier || 'FREE'}</Tag>
                       <Tag color={(owner as any).isKycVerified ? 'success' : 'warning'}>KYC: {(owner as any).isKycVerified ? 'Verified' : 'Unverified'}</Tag>
                     </div>
                   </div>
