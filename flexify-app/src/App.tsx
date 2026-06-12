@@ -33,7 +33,6 @@ const FAQ = lazy(() => import('./pages/FAQ'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Help = lazy(() => import('./pages/Help'));
 const VerifyUser = lazy(() => import('./pages/VerifyUser'));
-const SubscriptionManagement = lazy(() => import('./pages/SubscriptionManagement'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const EditVehicle = lazy(() => import('./pages/EditVehicle'));
@@ -110,7 +109,6 @@ export default function App() {
               <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
               <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
               <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
-              <Route path="/subscription" element={<AppLayout><SubscriptionManagement /></AppLayout>} />
 
               {/* Protected pages */}
               <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
