@@ -96,15 +96,6 @@ export default function EditVehicle() {
         ]);
 
         setMakes(allMakes);
-        
-        // Check if make is in approved list
-        const makeExists = allMakes.find((m: any) => m.name === vehicle.make);
-        if (makeExists) {
-          setSelectedMake(vehicle.make);
-        } else if (vehicle.make) {
-          setSelectedMake('Other');
-          setCustomMake(vehicle.make);
-        }
 
         // Robust Feature Parsing for existing data
         const parseExistingFeatures = (feat: any): string[] => {
@@ -126,11 +117,11 @@ export default function EditVehicle() {
             .filter(s => s && s.length > 1 && !s.includes('[') && !s.includes('"'));
         };
 
-        // Fill form
+        // Fill form with empty make/model first
         setForm({
           title: vehicle.title,
-          make: vehicle.make,
-          model: vehicle.model,
+          make: '',
+          model: '',
           year: vehicle.year.toString(),
           pricePerDay: vehicle.pricePerDay.toString(),
           transmission: vehicle.transmission || 'Automatic',
@@ -158,7 +149,16 @@ export default function EditVehicle() {
           isActive: vehicle.isActive
         });
 
-        // We'll set model after makes logic to avoid race condition with fetchModels useEffect
+        // Set make and model AFTER form is populated with other data
+        // Check if make is in approved list
+        const makeExists = allMakes.find((m: any) => m.name === vehicle.make);
+        if (makeExists) {
+          setSelectedMake(vehicle.make);
+        } else if (vehicle.make) {
+          setSelectedMake('Other');
+          setCustomMake(vehicle.make);
+        }
+
         setExistingPhotos(vehicle.photos || []);
         if (vehicle.location?.coordinates) {
           setPosition({ lat: vehicle.location.coordinates[1], lng: vehicle.location.coordinates[0] });
@@ -187,23 +187,26 @@ export default function EditVehicle() {
       try {
         const data = await vehicleApi.getModels(makeObj._id);
         setModels(data);
-
-        // Check if current form model is in the newly fetched list
-        // This is mainly for initial load
-        const modelExists = data.find((md: any) => md.name === form.model);
-        if (modelExists) {
-          setSelectedModel(form.model);
-        } else if (form.model && selectedMake !== 'Other') {
-          // If we have a model but it's not in the data, it's a custom model
-          setSelectedModel('Other');
-          setCustomModel(form.model);
-        }
       } catch (err) {
         console.error("Failed to load models", err);
       }
     };
-    if (makes.length > 0) fetchModels();
+    if (makes.length > 0 && selectedMake && selectedMake !== 'Other') fetchModels();
   }, [selectedMake, makes]);
+
+  // Set model AFTER models are fetched (separate effect to avoid race condition)
+  useEffect(() => {
+    if (models.length === 0 || !form.model) return;
+    
+    const modelExists = models.find((md: any) => md.name === form.model);
+    if (modelExists) {
+      setSelectedModel(form.model);
+    } else if (form.model && selectedMake !== 'Other') {
+      // If we have a model but it's not in the data, it's a custom model
+      setSelectedModel('Other');
+      setCustomModel(form.model);
+    }
+  }, [models, form.model]);
 
   useEffect(() => {
     const finalMake = selectedMake === 'Other' ? customMake : selectedMake;

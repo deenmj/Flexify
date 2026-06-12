@@ -29,7 +29,7 @@ export default function Dashboard() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'subscription'>(() => {
+  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews'>(() => {
     const urlTab = searchParams.get('tab');
     if (urlTab === 'bookings') return 'bookings';
     return user?.role === 'user' ? 'bookings' : 'vehicles';
