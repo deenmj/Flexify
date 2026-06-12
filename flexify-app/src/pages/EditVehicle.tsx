@@ -502,7 +502,7 @@ export default function EditVehicle() {
                 </div>
 
                 <div className="input-group">
-                  <label>Mobile Number</label>
+                  <label>Mobile Number <span style={{color: '#ef4444'}}>*</span></label>
                   <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} required />
                 </div>
 
