@@ -148,7 +148,7 @@ export default function EditVehicle() {
           extraKmPrice: vehicle.extraKmPrice?.toString() || '',
           driverOption: vehicle.driverOption || 'self-drive',
           driverPricePerDay: vehicle.driverPricePerDay?.toString() || '',
-          mobileNumber: vehicle.mobileNumber || '',
+          mobileNumber: vehicle.mobileNumber || user?.phone || '',
           weddingHiresSpecial: !!vehicle.weddingHiresSpecial,
           isActive: vehicle.isActive
         });
