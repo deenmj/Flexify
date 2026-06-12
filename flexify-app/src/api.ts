@@ -578,12 +578,11 @@ export const subadminApi = {
     apiFetch<Review[]>('/subadmin/reviews'),
 
   getPendingMakes: () => apiFetch<VehicleMake[]>('/subadmin/pending-makes'),
-
   getPendingModels: () => apiFetch<VehicleModel[]>('/subadmin/pending-models'),
 
-  approveMake: (id: string) => apiFetch<{ message: string; make: VehicleMake }>(`/subadmin/approve-make/${id}`, { method: 'PATCH' }),
+  approveMake: (id: string, newName?: string) => apiFetch<{ message: string; make: VehicleMake }>(`/subadmin/approve-make/${id}`, { method: 'PATCH', body: newName ? JSON.stringify({ newName }) : undefined }),
 
-  approveModel: (id: string) => apiFetch<{ message: string; model: VehicleModel }>(`/subadmin/approve-model/${id}`, { method: 'PATCH' }),
+  approveModel: (id: string, newName?: string) => apiFetch<{ message: string; model: VehicleModel }>(`/subadmin/approve-model/${id}`, { method: 'PATCH', body: newName ? JSON.stringify({ newName }) : undefined }),
 
   deleteMake: (id: string) => apiFetch<{ message: string }>(`/subadmin/make/${id}`, { method: 'DELETE' }),
 

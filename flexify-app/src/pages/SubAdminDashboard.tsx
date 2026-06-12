@@ -7,7 +7,7 @@ import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
   LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon,
-  Eye, EyeOff, Trash2
+  Eye, EyeOff, Trash2, Edit2
 } from 'lucide-react';
 import { subadminApi, adminApi, userApi, feedbackApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { DollarSign } from 'lucide-react';
@@ -48,6 +48,7 @@ export default function SubAdminDashboard() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState(false);
+  const [editModal, setEditModal] = useState<{visible: boolean, id: string, type: 'Make' | 'Model', name: string}>({visible: false, id: '', type: 'Make', name: ''});
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [rejectionModal, setRejectionModal] = useState<{
@@ -238,12 +239,15 @@ export default function SubAdminDashboard() {
     }
   };
 
-  const handleApproveMake = async (id: string) => {
+  const handleApproveMake = async (id: string, newName?: string) => {
     setActionLoading(id);
     try {
-      await subadminApi.approveMake(id);
+      await subadminApi.approveMake(id, newName);
       setPendingMakes(prev => prev.filter(m => m._id !== id));
       message.success('Vehicle make approved');
+      if (editModal.visible && editModal.id === id) {
+        setEditModal(prev => ({ ...prev, visible: false }));
+      }
     } catch (err: any) {
       message.error(err.message);
     } finally {
@@ -251,16 +255,31 @@ export default function SubAdminDashboard() {
     }
   };
 
-  const handleApproveModel = async (id: string) => {
+  const handleApproveModel = async (id: string, newName?: string) => {
     setActionLoading(id);
     try {
-      await subadminApi.approveModel(id);
-      setPendingModels(prev => prev.filter(mod => mod._id !== id));
+      await subadminApi.approveModel(id, newName);
+      setPendingModels(prev => prev.filter(m => m._id !== id));
       message.success('Vehicle model approved');
+      if (editModal.visible && editModal.id === id) {
+        setEditModal(prev => ({ ...prev, visible: false }));
+      }
     } catch (err: any) {
       message.error(err.message);
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleEditSuggestionSave = () => {
+    if (!editModal.name.trim()) {
+      message.error('Name cannot be empty');
+      return;
+    }
+    if (editModal.type === 'Make') {
+      handleApproveMake(editModal.id, editModal.name);
+    } else {
+      handleApproveModel(editModal.id, editModal.name);
     }
   };
 
@@ -728,6 +747,7 @@ export default function SubAdminDashboard() {
                             title: 'Action',
                             render: (_, m) => (
                             <Space>
+                                <Button size="small" icon={<Edit2 size={14} />} onClick={() => setEditModal({ visible: true, id: m._id, type: 'Make', name: m.name })}>Edit & Approve</Button>
                                 <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleApproveMake(m._id)}>Approve</Button>
                                 <Button size="small" danger icon={<Trash2 size={14} />} onClick={() => handleDeleteMake(m._id)}>Delete</Button>
                               </Space>
@@ -752,6 +772,7 @@ export default function SubAdminDashboard() {
                             title: 'Action',
                             render: (_, mo) => (
                               <Space>
+                                <Button size="small" icon={<Edit2 size={14} />} onClick={() => setEditModal({ visible: true, id: mo._id, type: 'Model', name: mo.name })}>Edit & Approve</Button>
                                 <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleApproveModel(mo._id)}>Approve</Button>
                                 <Button size="small" danger icon={<Trash2 size={14} />} onClick={() => handleDeleteModel(mo._id)}>Delete</Button>
                               </Space>
@@ -1008,6 +1029,24 @@ export default function SubAdminDashboard() {
         bodyStyle={{ padding: 4 }}
       >
         <img src={fullScreenImage || ''} style={{ maxWidth: '100vw', maxHeight: '90vh', objectFit: 'contain' }} alt="Fullscreen Preview" />
+      </Modal>
+
+      {/* Edit Suggestion Modal */}
+      <Modal
+        title={`Edit ${editModal.type} Suggestion`}
+        open={editModal.visible}
+        onCancel={() => setEditModal(prev => ({ ...prev, visible: false }))}
+        onOk={handleEditSuggestionSave}
+        confirmLoading={!!actionLoading}
+        okText="Save & Approve"
+      >
+        <div style={{ marginBottom: 16 }}>Correct any spelling mistakes before approving this suggestion.</div>
+        <Input 
+          value={editModal.name} 
+          onChange={e => setEditModal(prev => ({ ...prev, name: e.target.value }))} 
+          placeholder={`Enter correct ${editModal.type} name`}
+          onPressEnter={handleEditSuggestionSave}
+        />
       </Modal>
 
       {/* Rejection Reasons Modal (Universal) */}
