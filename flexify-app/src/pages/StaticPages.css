@@ -459,7 +459,7 @@
 
 .founder-title {
   font-size: 0.9rem;
-  color: #3b82f6; 
+  color: #60a5fa; /* Brighter accent blue for better visibility */
   margin: 0;
   font-weight: 600;
   text-transform: uppercase;
@@ -482,7 +482,7 @@
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.5;
-  color: #e5e7eb;
+  color: #ffffff; /* Bright white for maximum readability */
   padding-top: 0;
   transition: padding-top 0.4s ease-out;
 }
@@ -495,9 +495,9 @@
 
 /* Infinite Looping Text Fade Animation */
 @keyframes textPulse {
-  0% { opacity: 0.3; }
+  0% { opacity: 0.6; }
   50% { opacity: 1; }
-  100% { opacity: 0.3; }
+  100% { opacity: 0.6; }
 }
 
 /* Mobile Responsiveness & Scroll Snap */
