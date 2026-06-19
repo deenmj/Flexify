@@ -108,7 +108,7 @@ export default function About() {
         {founders.length > 0 && (
           <div style={{ marginBottom: '5rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              <h2 style={{ fontSize: '2rem', color: '#0f172a', marginBottom: '0.75rem' }}>Meet Our Founders</h2>
+              <h2 style={{ fontSize: '2rem', color: '#0f172a', marginBottom: '0.75rem', justifyContent: 'center' }}>Meet Our Founders</h2>
               <p style={{ color: '#64748b', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>
                 The visionary leaders behind Rentify, driving innovation in vehicle sharing across Sri Lanka.
               </p>
@@ -139,7 +139,7 @@ export default function About() {
         )}
 
         {/* Global Standards */}
-        <h2 style={{ fontSize: '2rem', color: '#0f172a', textAlign: 'center', marginBottom: '3rem' }}>Enterprise Standards</h2>
+        <h2 style={{ fontSize: '2rem', color: '#0f172a', textAlign: 'center', marginBottom: '3rem', justifyContent: 'center' }}>Enterprise Standards</h2>
         <div className="about-values" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
           <div className="about-value-card">
             <Shield size={32} className="about-value-icon" style={{ color: '#6366f1' }} />
