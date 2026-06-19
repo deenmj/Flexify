@@ -113,106 +113,25 @@ export default function About() {
                 The visionary leaders behind Rentify, driving innovation in vehicle sharing across Sri Lanka.
               </p>
             </div>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '2.5rem',
-              maxWidth: '900px',
-              margin: '0 auto',
-            }}>
+            <div className="founders-container">
               {founders.map((founder, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    background: '#fff',
-                    borderRadius: '20px',
-                    padding: '2.5rem 2rem',
-                    textAlign: 'center',
-                    border: '1px solid #e2e8f0',
-                    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-6px)';
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 40px rgba(99,102,241,0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 24px rgba(0,0,0,0.06)';
-                  }}
-                >
-                  {/* Gradient accent bar */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)',
-                    borderRadius: '20px 20px 0 0',
-                  }} />
-                  
-                  {/* Profile photo */}
-                  <div style={{
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    margin: '0 auto 1.5rem',
-                    overflow: 'hidden',
-                    border: '4px solid #e2e8f0',
-                    boxShadow: '0 4px 16px rgba(99,102,241,0.15)',
-                    background: '#f1f5f9',
-                  }}>
+                <div key={idx} className="founder-card">
+                  <div className="card-bg">
                     <img
                       src={getImageUrl(founder.image)}
                       alt={founder.name}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(founder.name) + '&size=200&background=6366f1&color=fff';
                       }}
                     />
                   </div>
-                  
-                  {/* Name */}
-                  <h3 style={{
-                    fontSize: '1.4rem',
-                    fontWeight: 800,
-                    color: '#0f172a',
-                    marginBottom: '0.25rem',
-                  }}>
-                    {founder.name}
-                  </h3>
-                  
-                  {/* Role badge */}
-                  <div style={{
-                    display: 'inline-block',
-                    background: 'linear-gradient(135deg, #ede9fe, #e0e7ff)',
-                    color: '#4f46e5',
-                    padding: '4px 16px',
-                    borderRadius: '20px',
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    marginBottom: '1rem',
-                    letterSpacing: '0.02em',
-                  }}>
-                    {founder.role}
+                  <div className="card-overlay">
+                    <h3 className="founder-name">{founder.name}</h3>
+                    <p className="founder-title">{founder.role}</p>
+                    <div className="founder-description-wrapper">
+                      <p className="founder-description">{founder.description}</p>
+                    </div>
                   </div>
-                  
-                  {/* Description */}
-                  <p style={{
-                    color: '#475569',
-                    fontSize: '0.95rem',
-                    lineHeight: 1.7,
-                    margin: 0,
-                  }}>
-                    {founder.description}
-                  </p>
                 </div>
               ))}
             </div>
