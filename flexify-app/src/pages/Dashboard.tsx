@@ -36,7 +36,11 @@ export default function Dashboard() {
   });
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'confirmed' | 'past'>('all');
-  const [bookingType, setBookingType] = useState<'received' | 'trips'>('received');
+  const [bookingType, setBookingType] = useState<'received' | 'trips'>(() => {
+    const urlType = searchParams.get('type');
+    if (urlType === 'trips') return 'trips';
+    return 'received';
+  });
 
   const navigate = useNavigate();
 
