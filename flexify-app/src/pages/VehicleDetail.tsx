@@ -285,7 +285,7 @@ export default function VehicleDetail() {
     const hasKycFields = Boolean(
       user.documents?.idNumber?.trim() && 
       user.documents?.address?.trim() && 
-      user.documents?.phone?.trim()
+      (user.documents?.phone?.trim() || user.phone?.trim())
     );
 
     // If user hasn't submitted KYC or missing mandatory fields, save pending booking and redirect to KYC
@@ -330,7 +330,7 @@ export default function VehicleDetail() {
     const hasKycFields = Boolean(
       user.documents?.idNumber?.trim() && 
       user.documents?.address?.trim() && 
-      user.documents?.phone?.trim()
+      (user.documents?.phone?.trim() || user.phone?.trim())
     );
     return hasKycFields ? 'Book Now' : 'Verify and Book';
   };

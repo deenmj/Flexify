@@ -1173,7 +1173,7 @@ export default function AdminDashboard() {
               </div>
               <div style={{ marginBottom: '1rem' }}>
                 <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Phone Number</Text>
-                <Text style={{ color: '#64748b' }}>{(kycUser.documents as any)?.phone || 'Not provided'}</Text>
+                <Text style={{ color: '#64748b' }}>{(kycUser.documents as any)?.phone || kycUser.phone || 'Not provided'}</Text>
               </div>
               <div style={{ marginBottom: '1rem' }}>
                 <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Residential Address</Text>

@@ -599,7 +599,7 @@ export default function SubAdminDashboard() {
                           </Space>
                         )
                       },
-                      { title: 'Phone Number', dataIndex: 'phone', render: p => p || <Text type="danger">Not provided</Text> },
+                      { title: 'Phone Number', render: (_, u) => u.documents?.phone || u.phone || <Text type="danger">Not provided</Text> },
                       { title: 'Submission Date', dataIndex: 'updatedAt', render: d => d ? new Date(d).toLocaleDateString() : 'Recent' },
                       { title: 'Status', render: (_, u) => u.isKycVerified ? <Tag color="success">VERIFIED</Tag> : <Tag color="warning">NEEDS REVIEW</Tag> },
                       {
@@ -915,7 +915,7 @@ export default function SubAdminDashboard() {
 
                 <div>
                   <Title level={5} style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b' }}>Contact Info</Title>
-                  <Text strong>{selectedUser.phone || 'Phone not provided'}</Text><br />
+                  <Text strong>{selectedUser.documents?.phone || selectedUser.phone || 'Phone not provided'}</Text><br />
                   <Text type="secondary" style={{ fontSize: '13px' }}>{selectedUser.documents?.address || 'Address not listed'}</Text>
                 </div>
 

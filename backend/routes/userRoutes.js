@@ -49,6 +49,7 @@ router.post(
 
       user.documents = {
         idNumber: req.body.idNumber.trim(),
+        phone: req.body.phone.trim(),
         license: files.license ? files.license[0].path : user.documents?.license || "",
         selfie: files.selfie ? files.selfie[0].path : user.documents?.selfie || "",
         address: req.body.address.trim(),
@@ -143,6 +144,7 @@ router.put(
       if (!user.documents) user.documents = {};
 
       if (req.body.idNumber) user.documents.idNumber = req.body.idNumber.trim();
+      if (req.body.phone) user.documents.phone = req.body.phone.trim();
       if (files.license) user.documents.license = files.license[0].path;
       if (files.selfie) user.documents.selfie = files.selfie[0].path;
       if (req.body.address) user.documents.address = req.body.address;
