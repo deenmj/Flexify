@@ -158,6 +158,23 @@ export default function ListVehicle() {
   useEffect(() => {
     const finalAddress = [form.city, form.district, form.province, 'Sri Lanka'].filter(Boolean).join(', ');
     setForm(prev => ({ ...prev, address: finalAddress }));
+
+    // Forward geocode when address changes (debounced)
+    if (form.city || form.district) {
+      const timer = setTimeout(async () => {
+        try {
+          const searchQuery = encodeURIComponent(finalAddress);
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}&limit=1`);
+          const data = await res.json();
+          if (data && data.length > 0) {
+            setPosition({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+          }
+        } catch (err) {
+          console.error('Forward geocoding error:', err);
+        }
+      }, 1000); // 1-second debounce
+      return () => clearTimeout(timer);
+    }
   }, [form.province, form.district, form.city]);
 
   // Sync position to lat/lng logically

@@ -353,8 +353,20 @@ export const listVehicles = async (req, res) => {
       filter.weddingHiresSpecial = true;
     }
 
+    const useGeo = lat && lng && radius;
+
     if (q) {
-      filter.$text = { $search: q };
+      if (useGeo) {
+        // Fallback to regex because $text cannot be used inside $geoNear query
+        filter.$or = [
+          { title: { $regex: q, $options: "i" } },
+          { make: { $regex: q, $options: "i" } },
+          { model: { $regex: q, $options: "i" } },
+          { description: { $regex: q, $options: "i" } }
+        ];
+      } else {
+        filter.$text = { $search: q };
+      }
     }
 
     if (transmission) filter.transmission = transmission;
@@ -412,7 +424,6 @@ export const listVehicles = async (req, res) => {
     // NOTE: $near is NOT supported in aggregation $match stages.
     // Must use $geoNear as the FIRST pipeline stage for geospatial queries.
     const pipeline = [];
-    const useGeo = lat && lng && radius;
 
     if (useGeo) {
       const radiusInMeters = parseFloat(radius) * 1000;
