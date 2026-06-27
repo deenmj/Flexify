@@ -4,9 +4,10 @@ import bcrypt from "bcryptjs";
 
 const documentsSchema = new mongoose.Schema({
   idNumber: { type: String, default: "" },
+  phone: { type: String, default: "" },
+  address: { type: String, default: "" },
   license: { type: String, default: "" },
   selfie: { type: String, default: "" },
-  address: { type: String, default: "" },
   kycConsentGiven: { type: Boolean, default: false },
 }, { _id: false });
 
@@ -100,10 +101,6 @@ const userSchema = new mongoose.Schema(
     profilePic: { type: String, default: "" },
     notificationEmail: { type: String, default: "" },
     isNotificationEmailActive: { type: Boolean, default: false },
-
-    // Wishlist arrays (isolated by listing type to prevent data collisions)
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Vehicle" }],
-    saleWishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "VehicleSaleListing" }],
   },
   { timestamps: true }
 );

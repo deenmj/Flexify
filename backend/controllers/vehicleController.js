@@ -94,8 +94,8 @@ export const createVehicle = async (req, res) => {
     }
     // Subadmins and superadmins skip all subscription checks — free unlimited access
 
-    if (!title || !make || !model || !pricePerDay) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!title || !make || !model || !pricePerDay || !mobileNumber) {
+      return res.status(400).json({ message: "Missing required fields: Title, Make, Model, Price Per Day, and Mobile Number are compulsory." });
     }
 
     const photos = [];
@@ -229,6 +229,10 @@ export const updateVehicle = async (req, res) => {
       pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
       driverOption, driverPricePerDay, mobileNumber, weddingHiresSpecial
     } = req.body;
+
+    if (!mobileNumber && isOwner) {
+       return res.status(400).json({ message: "Mobile number is compulsory for vehicle updates." });
+    }
     
     const updates = { 
       title, make, model, year, pricePerDay, transmission, fuelType, seats, description,

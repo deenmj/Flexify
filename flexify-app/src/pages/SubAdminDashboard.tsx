@@ -2,15 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image } from 'antd';
 import Table from '../components/ResponsiveTable';
-import { Tag as TagIcon } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
   LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon,
-  Eye, EyeOff, Trash2
+  Eye, EyeOff, Trash2, Edit2
 } from 'lucide-react';
-import { subadminApi, adminApi, userApi, feedbackApi, saleListingApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel, type VehicleSaleListing } from '../api';
+import { subadminApi, adminApi, userApi, feedbackApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { DollarSign } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
@@ -34,11 +33,10 @@ export default function SubAdminDashboard() {
   const [pendingMakes, setPendingMakes] = useState<VehicleMake[]>([]);
   const [pendingModels, setPendingModels] = useState<VehicleModel[]>([]);
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
-  const [pendingSaleListings, setPendingSaleListings] = useState<VehicleSaleListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'users';
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'sale-approvals'>(initialTab);
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback'>(initialTab);
 
   useEffect(() => {
     setSearchParams({ tab });
@@ -50,6 +48,7 @@ export default function SubAdminDashboard() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState(false);
+  const [editModal, setEditModal] = useState<{visible: boolean, id: string, type: 'Make' | 'Model', name: string}>({visible: false, id: '', type: 'Make', name: ''});
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [rejectionModal, setRejectionModal] = useState<{
@@ -111,7 +110,7 @@ export default function SubAdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [s, u, v, r, m, mo, p, sl] = await Promise.all([
+      const [s, u, v, r, m, mo, p] = await Promise.all([
         subadminApi.getStats().catch(() => null),
         subadminApi.getPendingUsers().catch(() => []),
         subadminApi.getPendingVehicles().catch(() => []),
@@ -119,7 +118,6 @@ export default function SubAdminDashboard() {
         subadminApi.getPendingMakes().catch(() => []),
         subadminApi.getPendingModels().catch(() => []),
         adminApi.getPendingPayments().catch(() => []),
-        saleListingApi.getPending().catch(() => []),
       ]);
       if (s) setStats(s);
       setPendingUsers(u);
@@ -128,7 +126,6 @@ export default function SubAdminDashboard() {
       setPendingMakes(m);
       setPendingModels(mo);
       setPendingPayments(p || []);
-      setPendingSaleListings(sl || []);
     } catch (err: any) {
       message.error(err.message || 'Error fetching data');
     } finally {
@@ -180,9 +177,6 @@ export default function SubAdminDashboard() {
       } else if (type === 'Vehicle') {
         await subadminApi.rejectVehicle(id, values.reason, values.comment);
         setPendingVehicles(prev => prev.filter(v => v._id !== id));
-      } else if (type === 'SaleListing') {
-        await saleListingApi.reject(id, values.reason, values.comment);
-        setPendingSaleListings(prev => prev.filter(s => s._id !== id));
       } else if (type === 'Review') {
         await subadminApi.updateReviewStatus(id, 'rejected', values.reason, values.comment);
         setReviews(prev => prev.map(r => r._id === id ? { ...r, status: 'rejected' as any } : r));
@@ -245,12 +239,15 @@ export default function SubAdminDashboard() {
     }
   };
 
-  const handleApproveMake = async (id: string) => {
+  const handleApproveMake = async (id: string, newName?: string) => {
     setActionLoading(id);
     try {
-      await subadminApi.approveMake(id);
+      await subadminApi.approveMake(id, newName);
       setPendingMakes(prev => prev.filter(m => m._id !== id));
       message.success('Vehicle make approved');
+      if (editModal.visible && editModal.id === id) {
+        setEditModal(prev => ({ ...prev, visible: false }));
+      }
     } catch (err: any) {
       message.error(err.message);
     } finally {
@@ -258,16 +255,31 @@ export default function SubAdminDashboard() {
     }
   };
 
-  const handleApproveModel = async (id: string) => {
+  const handleApproveModel = async (id: string, newName?: string) => {
     setActionLoading(id);
     try {
-      await subadminApi.approveModel(id);
-      setPendingModels(prev => prev.filter(mod => mod._id !== id));
+      await subadminApi.approveModel(id, newName);
+      setPendingModels(prev => prev.filter(m => m._id !== id));
       message.success('Vehicle model approved');
+      if (editModal.visible && editModal.id === id) {
+        setEditModal(prev => ({ ...prev, visible: false }));
+      }
     } catch (err: any) {
       message.error(err.message);
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleEditSuggestionSave = () => {
+    if (!editModal.name.trim()) {
+      message.error('Name cannot be empty');
+      return;
+    }
+    if (editModal.type === 'Make') {
+      handleApproveMake(editModal.id, editModal.name);
+    } else {
+      handleApproveModel(editModal.id, editModal.name);
     }
   };
 
@@ -403,10 +415,8 @@ export default function SubAdminDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC Reviews (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
-              { key: 'sale-approvals', icon: <TagIcon size={18} />, label: `Sale Approvals (${pendingSaleListings.length})` },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
-              { key: 'payments', icon: <DollarSign size={18} />, label: `Payments (${pendingPayments.length})` },
               { key: 'settings', icon: <Settings size={18} />, label: 'My Settings' },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `User Feedback` },
             ]}
@@ -436,10 +446,8 @@ export default function SubAdminDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${pendingVehicles.length})` },
-              { key: 'sale-approvals', icon: <TagIcon size={18} />, label: `Sales (${pendingSaleListings.length})` },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions` },
-              { key: 'payments', icon: <DollarSign size={18} />, label: `Payments` },
               { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
             ]}
@@ -470,10 +478,8 @@ export default function SubAdminDashboard() {
             <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1e293b' }}>
               {tab === 'users' && 'KYC Document Reviews'}
               {tab === 'vehicles' && 'Vehicle Approvals'}
-              {tab === 'sale-approvals' && 'Vehicle Seller Approvals'}
               {tab === 'reviews' && 'Review Moderation'}
               {tab === 'moderation' && 'Platform Content Suggestions'}
-              {tab === 'payments' && 'Subscription Payments'}
               {tab === 'settings' && 'Account Settings'}
               {tab === 'feedback' && 'Member Feedback'}
             </Title>
@@ -593,7 +599,7 @@ export default function SubAdminDashboard() {
                           </Space>
                         )
                       },
-                      { title: 'Phone Number', dataIndex: 'phone', render: p => p || <Text type="danger">Not provided</Text> },
+                      { title: 'Phone Number', render: (_, u) => u.documents?.phone || u.phone || <Text type="danger">Not provided</Text> },
                       { title: 'Submission Date', dataIndex: 'updatedAt', render: d => d ? new Date(d).toLocaleDateString() : 'Recent' },
                       { title: 'Status', render: (_, u) => u.isKycVerified ? <Tag color="success">VERIFIED</Tag> : <Tag color="warning">NEEDS REVIEW</Tag> },
                       {
@@ -647,59 +653,6 @@ export default function SubAdminDashboard() {
                           <Space>
                             <Button type="primary" icon={<CheckCircle size={14} />} onClick={() => handleApproveVehicle(v._id)} loading={actionLoading === v._id}>Approve</Button>
                             <Button danger icon={<XCircle size={14} />} onClick={() => handleRejectVehicle(v._id)} loading={actionLoading === v._id}>Reject</Button>
-                          </Space>
-                        )
-                      }
-                    ]}
-                  />
-                </div>
-              )}
-
-              {tab === 'sale-approvals' && (
-                <div className="animate-fade-in">
-                  <Title level={5} style={{ marginBottom: '1.5rem' }}>Vehicle Sale Listing Approvals</Title>
-                  <Table
-                    scroll={{ x: true }}
-                    dataSource={pendingSaleListings}
-                    rowKey="_id"
-                    pagination={{ pageSize: 12 }}
-                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
-                    columns={[
-                      {
-                        title: 'Vehicle',
-                        render: (_: any, v: VehicleSaleListing) => (
-                          <div>
-                            <Text strong>{v.title}</Text><br />
-                            <Text type="secondary" style={{ fontSize: '13px' }}>LKR {v.price.toLocaleString()} · {v.condition}</Text>
-                          </div>
-                        )
-                      },
-                      {
-                        title: 'Seller',
-                        render: (_: any, v: VehicleSaleListing) => {
-                          const s = typeof v.seller === 'object' ? v.seller : null;
-                          return s ? <div><Text strong>{(s as any).name}</Text><br /><Text type="secondary" style={{ fontSize: '12px' }}>{(s as any).email}</Text></div> : 'Unknown';
-                        }
-                      },
-                      { title: 'City', dataIndex: 'city', render: (c: string) => <Tag color="blue">{c}</Tag> },
-                      { title: 'Mileage', dataIndex: 'mileage', render: (m: number) => m ? `${m.toLocaleString()} km` : '-' },
-                      { title: 'Date', dataIndex: 'createdAt', render: (d: string) => d ? new Date(d).toLocaleDateString() : '-' },
-                      {
-                        title: 'Actions',
-                        render: (_: any, v: VehicleSaleListing) => (
-                          <Space>
-                            <Button type="primary" icon={<CheckCircle size={14} />} onClick={async () => {
-                              setActionLoading(v._id);
-                              try {
-                                await saleListingApi.approve(v._id);
-                                setPendingSaleListings(prev => prev.filter(s => s._id !== v._id));
-                                message.success('Sale listing approved');
-                              } catch (err: any) { message.error(err.message); }
-                              finally { setActionLoading(null); }
-                            }} loading={actionLoading === v._id}>Approve</Button>
-                            <Button danger icon={<XCircle size={14} />} onClick={() => {
-                              setRejectionModal({ visible: true, type: 'SaleListing' as any, id: v._id, targetName: v.title });
-                            }} loading={actionLoading === v._id}>Reject</Button>
                           </Space>
                         )
                       }
@@ -794,6 +747,7 @@ export default function SubAdminDashboard() {
                             title: 'Action',
                             render: (_, m) => (
                             <Space>
+                                <Button size="small" icon={<Edit2 size={14} />} onClick={() => setEditModal({ visible: true, id: m._id, type: 'Make', name: m.name })}>Edit & Approve</Button>
                                 <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleApproveMake(m._id)}>Approve</Button>
                                 <Button size="small" danger icon={<Trash2 size={14} />} onClick={() => handleDeleteMake(m._id)}>Delete</Button>
                               </Space>
@@ -818,6 +772,7 @@ export default function SubAdminDashboard() {
                             title: 'Action',
                             render: (_, mo) => (
                               <Space>
+                                <Button size="small" icon={<Edit2 size={14} />} onClick={() => setEditModal({ visible: true, id: mo._id, type: 'Model', name: mo.name })}>Edit & Approve</Button>
                                 <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleApproveModel(mo._id)}>Approve</Button>
                                 <Button size="small" danger icon={<Trash2 size={14} />} onClick={() => handleDeleteModel(mo._id)}>Delete</Button>
                               </Space>
@@ -830,61 +785,7 @@ export default function SubAdminDashboard() {
                 </div>
               )}
 
-              {tab === 'payments' && (
-                <div className="animate-fade-in">
-                  <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center' }}>
-                    <Title level={5} style={{ margin: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>Pending Subscription Payments</Title>
-                    <Button type="primary" onClick={fetchData}>Refresh</Button>
-                  </div>
-                  <Table
-                    scroll={{ x: true }}
-                    dataSource={pendingPayments}
-                    rowKey="_id"
-                    pagination={{ pageSize: 12 }}
-                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
-                    columns={[
-                      { title: 'Owner', render: (_, p: any) => <div><strong>{p.user?.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{p.user?.email}</Text></div> },
-                      { title: 'Tier', dataIndex: 'tier', render: (t: string) => <Tag color="blue">{t}</Tag> },
-                      { title: 'Method', dataIndex: 'method', render: (m: string) => <Tag color={m === 'PAYHERE' ? 'green' : 'orange'}>{m || 'MANUAL'}</Tag> },
-                      { title: 'Amount', dataIndex: 'amount', render: (a: number) => <Text strong>LKR {a?.toLocaleString()}</Text> },
-                      {
-                        title: 'Transaction/Ref', render: (_, p: any) => (
-                          <div>
-                            <Text copyable style={{ fontSize: '12px' }}>{p.transactionId || p.reference}</Text>
-                            {p.paidAt && <div style={{ fontSize: '11px', color: '#94a3b8' }}>Paid: {new Date(p.paidAt).toLocaleString()}</div>}
-                          </div>
-                        )
-                      },
-                      { 
-                        title: 'Receipt', 
-                        render: (_, p: any) => p.receiptImage ? (
-                          <Button 
-                            size="small" 
-                            icon={<FileText size={14} />} 
-                            onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'https://api.rentify.lk'}${p.receiptImage}`, '_blank')}
-                          >
-                            View
-                          </Button>
-                        ) : <Text type="secondary">N/A</Text>
-                      },
-                      {
-                        title: 'Action', render: (_, p: any) => (
-                          <Space>
-                            {p.status === 'approved' ? (
-                              <Tag color="success">Verified</Tag>
-                            ) : (
-                              <>
-                                <Button size="small" type="primary" icon={<CheckCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'approved')} loading={actionLoading === p._id}>Approve</Button>
-                                <Button size="small" danger icon={<XCircle size={14} />} onClick={() => handleVerifyPayment(p._id, 'rejected')} loading={actionLoading === p._id}>Reject</Button>
-                              </>
-                            )}
-                          </Space>
-                        )
-                      }
-                    ]}
-                  />
-                </div>
-              )}
+
 
               {tab === 'settings' && (
                 <div className="animate-fade-in" style={{ maxWidth: 600 }}>
@@ -1014,7 +915,7 @@ export default function SubAdminDashboard() {
 
                 <div>
                   <Title level={5} style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b' }}>Contact Info</Title>
-                  <Text strong>{selectedUser.phone || 'Phone not provided'}</Text><br />
+                  <Text strong>{selectedUser.documents?.phone || selectedUser.phone || 'Phone not provided'}</Text><br />
                   <Text type="secondary" style={{ fontSize: '13px' }}>{selectedUser.documents?.address || 'Address not listed'}</Text>
                 </div>
 
@@ -1130,6 +1031,24 @@ export default function SubAdminDashboard() {
         <img src={fullScreenImage || ''} style={{ maxWidth: '100vw', maxHeight: '90vh', objectFit: 'contain' }} alt="Fullscreen Preview" />
       </Modal>
 
+      {/* Edit Suggestion Modal */}
+      <Modal
+        title={`Edit ${editModal.type} Suggestion`}
+        open={editModal.visible}
+        onCancel={() => setEditModal(prev => ({ ...prev, visible: false }))}
+        onOk={handleEditSuggestionSave}
+        confirmLoading={!!actionLoading}
+        okText="Save & Approve"
+      >
+        <div style={{ marginBottom: 16 }}>Correct any spelling mistakes before approving this suggestion.</div>
+        <Input 
+          value={editModal.name} 
+          onChange={e => setEditModal(prev => ({ ...prev, name: e.target.value }))} 
+          placeholder={`Enter correct ${editModal.type} name`}
+          onPressEnter={handleEditSuggestionSave}
+        />
+      </Modal>
+
       {/* Rejection Reasons Modal (Universal) */}
       <Modal
         title={`Reject ${rejectionModal.type}: ${rejectionModal.targetName}`}
@@ -1161,15 +1080,6 @@ export default function SubAdminDashboard() {
                 "Invalid document proof for ownership",
                 "Year/Make/Model mismatch in description",
                 "Restricted vehicle category",
-                "Other"
-              ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
-
-              {(rejectionModal.type as string) === 'SaleListing' && [
-                "Inaccurate or misleading listing details",
-                "Photos do not match vehicle description",
-                "Suspected fraudulent listing",
-                "Duplicate listing",
-                "Inappropriate content",
                 "Other"
               ].map(r => <Select.Option key={r} value={r}>{r}</Select.Option>)}
 

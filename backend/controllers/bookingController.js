@@ -291,7 +291,7 @@ export const acceptBooking = async (req, res) => {
               <p><strong>Owner:</strong> ${ownerUser.name}</p>
               ${ownerUser.phone ? `<p><strong>Owner Phone:</strong> ${ownerUser.phone}</p>` : ""}
             </div>
-            <p>You can view your booking details in your <a href="${process.env.FRONTEND_URL || "https://rentify.lk"}/dashboard?tab=bookings" style="color: #1890ff;">dashboard</a>.</p>
+            <p>You can view your booking details in your <a href="${process.env.FRONTEND_URL || "https://rentify.lk"}/dashboard?tab=bookings&type=trips" style="color: #1890ff;">dashboard</a>.</p>
           </div>
         `,
       }),
@@ -482,12 +482,14 @@ export const getMyBookings = async (req, res) => {
       .populate("user", "-password")
       .sort({ createdAt: -1 });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Use 24 hours in the past for expiry to avoid timezone edge cases
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
 
     let needsUpdate = false;
     const processedBookings = bookings.map(b => {
-      if (b.status === "PENDING" && new Date(b.startDate) < today) {
+      if (b.status === "PENDING" && new Date(b.startDate) < yesterday) {
         b.status = "REJECTED";
         b.cancellationReason = "Booking automatically expired as the owner did not respond before the start date.";
         needsUpdate = true;

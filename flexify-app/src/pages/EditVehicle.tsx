@@ -83,6 +83,7 @@ export default function EditVehicle() {
 
   const [makes, setMakes] = useState<VehicleMake[]>([]);
   const [models, setModels] = useState<VehicleModel[]>([]);
+  const originalModelRef = useRef<string>('');
 
   // Fetch initial data
   useEffect(() => {
@@ -96,15 +97,6 @@ export default function EditVehicle() {
         ]);
 
         setMakes(allMakes);
-        
-        // Check if make is in approved list
-        const makeExists = allMakes.find((m: any) => m.name === vehicle.make);
-        if (makeExists) {
-          setSelectedMake(vehicle.make);
-        } else if (vehicle.make) {
-          setSelectedMake('Other');
-          setCustomMake(vehicle.make);
-        }
 
         // Robust Feature Parsing for existing data
         const parseExistingFeatures = (feat: any): string[] => {
@@ -126,11 +118,14 @@ export default function EditVehicle() {
             .filter(s => s && s.length > 1 && !s.includes('[') && !s.includes('"'));
         };
 
-        // Fill form
+        // Store original model name for use after models are fetched
+        originalModelRef.current = vehicle.model || '';
+
+        // Fill form with vehicle data (make/model will be set via selectedMake/selectedModel effects)
         setForm({
           title: vehicle.title,
-          make: vehicle.make,
-          model: vehicle.model,
+          make: vehicle.make || '',
+          model: vehicle.model || '',
           year: vehicle.year.toString(),
           pricePerDay: vehicle.pricePerDay.toString(),
           transmission: vehicle.transmission || 'Automatic',
@@ -153,12 +148,21 @@ export default function EditVehicle() {
           extraKmPrice: vehicle.extraKmPrice?.toString() || '',
           driverOption: vehicle.driverOption || 'self-drive',
           driverPricePerDay: vehicle.driverPricePerDay?.toString() || '',
-          mobileNumber: vehicle.mobileNumber || '',
+          mobileNumber: vehicle.mobileNumber || user?.phone || '',
           weddingHiresSpecial: !!vehicle.weddingHiresSpecial,
           isActive: vehicle.isActive
         });
 
-        // We'll set model after makes logic to avoid race condition with fetchModels useEffect
+        // Set make and model AFTER form is populated with other data
+        // Check if make is in approved list
+        const makeExists = allMakes.find((m: any) => m.name === vehicle.make);
+        if (makeExists) {
+          setSelectedMake(vehicle.make);
+        } else if (vehicle.make) {
+          setSelectedMake('Other');
+          setCustomMake(vehicle.make);
+        }
+
         setExistingPhotos(vehicle.photos || []);
         if (vehicle.location?.coordinates) {
           setPosition({ lat: vehicle.location.coordinates[1], lng: vehicle.location.coordinates[0] });
@@ -187,23 +191,28 @@ export default function EditVehicle() {
       try {
         const data = await vehicleApi.getModels(makeObj._id);
         setModels(data);
-
-        // Check if current form model is in the newly fetched list
-        // This is mainly for initial load
-        const modelExists = data.find((md: any) => md.name === form.model);
-        if (modelExists) {
-          setSelectedModel(form.model);
-        } else if (form.model && selectedMake !== 'Other') {
-          // If we have a model but it's not in the data, it's a custom model
-          setSelectedModel('Other');
-          setCustomModel(form.model);
-        }
       } catch (err) {
         console.error("Failed to load models", err);
       }
     };
-    if (makes.length > 0) fetchModels();
+    if (makes.length > 0 && selectedMake && selectedMake !== 'Other') fetchModels();
   }, [selectedMake, makes]);
+
+  // Set model AFTER models are fetched — uses ref to avoid race condition with form sync
+  useEffect(() => {
+    if (models.length === 0 || !originalModelRef.current) return;
+    
+    const vehicleModel = originalModelRef.current;
+    const modelExists = models.find((md: any) => md.name === vehicleModel);
+    if (modelExists) {
+      setSelectedModel(vehicleModel);
+    } else if (vehicleModel && selectedMake !== 'Other') {
+      setSelectedModel('Other');
+      setCustomModel(vehicleModel);
+    }
+    // Clear the ref after first use so subsequent make changes don't re-trigger this
+    originalModelRef.current = '';
+  }, [models]);
 
   useEffect(() => {
     const finalMake = selectedMake === 'Other' ? customMake : selectedMake;
@@ -406,33 +415,45 @@ export default function EditVehicle() {
                     <AntSelect
                       showSearch
                       optionFilterProp="children"
+                      filterOption={(input, option) =>
+                        (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                      }
                       className="antd-select-full"
                       placeholder="Select Brand"
                       value={selectedMake || undefined}
-                      onChange={(val: string) => { setSelectedMake(val); setSelectedModel(''); }}
+                      onChange={(val: string) => { setSelectedMake(val); setSelectedModel(''); setCustomModel(''); originalModelRef.current = ''; }}
                     >
                       {makes.map((m: VehicleMake) => (
                         <Option key={m._id} value={m.name}>{m.name}</Option>
                       ))}
-                      <Option value="Other">Other</Option>
+                      <Option value="Other">Other / Suggest New</Option>
                     </AntSelect>
+                    {selectedMake === 'Other' && (
+                      <input className="input-field" style={{ marginTop: '8px' }} placeholder="Custom Make..." value={customMake} onChange={(e) => setCustomMake(e.target.value)} required />
+                    )}
                   </div>
                   <div className="input-group">
                     <label>Model</label>
                     <AntSelect
                       showSearch
                       optionFilterProp="children"
+                      filterOption={(input, option) =>
+                        (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                      }
                       className="antd-select-full"
                       placeholder="Select Model"
                       value={selectedModel || undefined}
                       onChange={(val: string) => setSelectedModel(val)}
-                      disabled={!selectedMake}
+                      disabled={!selectedMake || (selectedMake === 'Other' && !customMake)}
                     >
                       {models.map((m: VehicleModel) => (
                         <Option key={m._id} value={m.name}>{m.name}</Option>
                       ))}
-                      <Option value="Other">Other</Option>
+                      <Option value="Other">Other / Suggest New</Option>
                     </AntSelect>
+                    {(selectedModel === 'Other' || selectedMake === 'Other') && (
+                      <input className="input-field" style={{ marginTop: '8px' }} placeholder="Custom Model..." value={customModel} onChange={(e) => setCustomModel(e.target.value)} required />
+                    )}
                   </div>
                 </div>
 
@@ -481,7 +502,7 @@ export default function EditVehicle() {
                 </div>
 
                 <div className="input-group">
-                  <label>Mobile Number</label>
+                  <label>Mobile Number <span style={{color: '#ef4444'}}>*</span></label>
                   <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} required />
                 </div>
 
