@@ -168,7 +168,12 @@ export const createVehicle = async (req, res) => {
       photos,
       location: {
         type: "Point",
-        coordinates: [parseFloat(lng) || 0, parseFloat(lat) || 0],
+        // Default to Sri Lanka center (7.8731, 80.7718) instead of [0, 0] (Atlantic Ocean)
+        // so vehicles are at least visible in island-wide searches if geocoding fails
+        coordinates: [
+          parseFloat(lng) || 80.7718,
+          parseFloat(lat) || 7.8731
+        ],
         address: address || "",
       },
       pricePerDay: parseFloat(pricePerDay),
@@ -540,8 +545,27 @@ export const listVehicles = async (req, res) => {
       }
     ]);
 
-    // Also return total count for pagination metadata
-    const totalCount = await Vehicle.countDocuments(filter);
+    // Accurate total count: use geo-aware count when radius search is active
+    // (countDocuments ignores the $geoNear distance constraint, inflating the total)
+    let totalCount;
+    if (useGeo) {
+      const countPipeline = [
+        {
+          $geoNear: {
+            near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+            distanceField: "distance",
+            maxDistance: parseFloat(radius) * 1000,
+            spherical: true,
+            query: filter,
+          }
+        },
+        { $count: "total" }
+      ];
+      const countResult = await Vehicle.aggregate(countPipeline);
+      totalCount = countResult.length > 0 ? countResult[0].total : 0;
+    } else {
+      totalCount = await Vehicle.countDocuments(filter);
+    }
 
     res.json({
       vehicles,

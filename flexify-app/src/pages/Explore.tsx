@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
 import VehicleCard from '../components/VehicleCard';
+import LocationModal from '../components/LocationModal';
 import './Explore.css';
 
 const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
@@ -40,6 +41,7 @@ interface Filters {
   driverOption: string;
   weddingHiresSpecial?: string;
   page?: string;
+  locationName?: string;
 }
 
 const RADIUS_OPTIONS = [
@@ -100,8 +102,11 @@ function RadiusPicker({ value, onChange }: { value: string; onChange: (val: stri
 }
 
 export default function Explore() {
-  const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const isMobile = useIsMobile();
+  
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(searchParams.get('q') || '');
@@ -125,7 +130,6 @@ export default function Explore() {
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 12, totalPages: 1 });
   const [isAppending, setIsAppending] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const isMobile = useIsMobile();
 
   const fetchVehicles = async (overrideQuery?: string, overrideType?: string, overrideFilters?: Partial<Filters>) => {
     setLoading(true);
@@ -156,10 +160,7 @@ export default function Explore() {
       const vehiclesList = response.vehicles || [];
       const paginationData = response.pagination || { total: 0, page: 1, limit: 12, totalPages: 1 };
       
-      // Filter out user's own vehicles
-      const filteredVehicles = user 
-        ? vehiclesList.filter((v: any) => v.owner?._id !== user._id && v.owner !== user._id)
-        : vehiclesList;
+      const filteredVehicles = vehiclesList;
         
       if (overrideFilters?.page && parseInt(overrideFilters.page as string) > 1) {
         setVehicles(prev => [...prev, ...filteredVehicles]);
@@ -185,7 +186,6 @@ export default function Explore() {
     // eslint-disable-next-line
   }, [searchParams]);
 
-  // Auto-refetch when radius changes while location is active
   const prevRadiusRef = React.useRef(filters.radius);
   useEffect(() => {
     if (filters.lat && filters.lng && prevRadiusRef.current !== filters.radius) {
@@ -204,24 +204,23 @@ export default function Explore() {
     setFilters({ 
       transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', 
       lat: '', lng: '', radius: '10', sort: 'newest', province: '', district: '',
-      startDate: '', endDate: '', driverOption: '', weddingHiresSpecial: ''
+      startDate: '', endDate: '', driverOption: '', weddingHiresSpecial: '', locationName: ''
     });
     setQuery('');
   };
 
-  const handleLocateMe = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const newLat = pos.coords.latitude.toString();
-        const newLng = pos.coords.longitude.toString();
-        const updatedFilters = { ...filters, lat: newLat, lng: newLng, province: '', district: '' };
-        setFilters(updatedFilters);
-        // Immediately fetch with the new location (avoids stale closure issue)
-        fetchVehicles(undefined, undefined, { lat: newLat, lng: newLng, province: '', district: '' });
-      }, () => {
-        alert("Failed to get location. Please enable location permissions.");
-      });
-    }
+  const handleLocationSelect = (lat: string, lng: string, locationName: string) => {
+    const updatedFilters = { 
+      ...filters, 
+      lat, 
+      lng, 
+      locationName,
+      province: '',
+      district: '' 
+    };
+    setFilters(updatedFilters);
+    setIsLocationModalOpen(false);
+    fetchVehicles(undefined, undefined, updatedFilters);
   };
 
   const handleLoadMore = () => {
@@ -273,7 +272,6 @@ export default function Explore() {
           }
         }}
       />
-      {/* Search Header */}
       <section className="explore-header section-padding">
         <div className="container" style={{ position: 'relative' }}>
           <div className="explore-title-container">
@@ -327,10 +325,13 @@ export default function Explore() {
                 <button 
                   type="button" 
                   className="quick-locate-btn" 
-                  onClick={handleLocateMe}
-                  title="Near Me"
+                  onClick={() => setIsLocationModalOpen(true)}
+                  title="Set Location"
                 >
-                  <Locate size={14} /> <span className="quick-locate-text">Near Me</span>
+                  <Locate size={14} /> 
+                  <span className="quick-locate-text">
+                    {filters.locationName || 'Set Location'}
+                  </span>
                 </button>
                 {isMobile ? (
                   <RadiusPicker
@@ -363,7 +364,6 @@ export default function Explore() {
         </div>
       </section>
 
-      {/* Filters Panel - All other filters under one topic */}
       {showFilters && (
         <div className="filters-panel animate-fade-in-down">
           <div className="container">
@@ -515,7 +515,6 @@ export default function Explore() {
         </div>
       )}
 
-      {/* Results */}
       <section className="explore-results section-padding">
         <div className="container">
           {vehicles.length > 0 && !loading && (
@@ -553,7 +552,6 @@ export default function Explore() {
             </div>
           )}
 
-          {/* Load More Button */}
           {pagination.page < pagination.totalPages && (
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '3rem' }}>
               <button 
@@ -568,6 +566,12 @@ export default function Explore() {
           )}
         </div>
       </section>
+
+      <LocationModal 
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        onSelect={handleLocationSelect}
+      />
     </div>
   );
 }

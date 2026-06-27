@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car, Truck, Bike, Bus, Compass } from 'lucide-react';
 import { Row, Col } from 'antd';
 import { vehicleApi, type Vehicle, type User, type PublicStats } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -43,11 +43,11 @@ export default function Home() {
   };
 
   const categories = [
-    { name: 'Cars', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Car' },
-    { name: 'SUVs', img: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=800&q=60', link: '/explore?type=SUV' },
-    { name: 'Vans', img: 'https://images.unsplash.com/photo-1650807486050-a142ea418b19?auto=format&fit=crop&q=80', link: '/explore?type=Van' },
-    { name: 'Trucks', img: 'https://images.unsplash.com/photo-1631377875413-b1e3e660bfa2?auto=format&fit=crop&q=80', link: '/explore?type=Truck' },
-    { name: 'Bikes', img: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=60', link: '/explore?type=Bike' },
+    { name: 'Cars', icon: <Car size={28} strokeWidth={1.2} />, link: '/explore?type=Car' },
+    { name: 'SUVs', icon: <Compass size={28} strokeWidth={1.2} />, link: '/explore?type=SUV' },
+    { name: 'Vans', icon: <Bus size={28} strokeWidth={1.2} />, link: '/explore?type=Van' },
+    { name: 'Trucks', icon: <Truck size={28} strokeWidth={1.2} />, link: '/explore?type=Truck' },
+    { name: 'Bikes', icon: <Bike size={28} strokeWidth={1.2} />, link: '/explore?type=Bike' },
   ];
 
   return (
@@ -281,9 +281,10 @@ export default function Home() {
           <p className="section-subtitle text-center">Find the perfect vehicle type for your needs</p>
           <div className="categories-grid">
             {categories.map((cat) => (
-              <Link to={cat.link} key={cat.name} className="category-card">
-                <img src={cat.img} alt={cat.name} className="category-img" />
-                <div className="category-overlay" />
+              <Link to={cat.link} key={cat.name} className="category-card-luxury">
+                <div className="category-icon-wrap">
+                  {cat.icon}
+                </div>
                 <h3 className="category-name">{cat.name}</h3>
               </Link>
             ))}

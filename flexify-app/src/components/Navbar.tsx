@@ -139,6 +139,27 @@ export default function Navbar() {
               <Link to="/explore" className="nav-link">
                 <Compass size={18} /> Explore
               </Link>
+              <Link to="/buy" className="nav-link">
+                <Tag size={18} /> Buy Vehicles
+              </Link>
+
+              {/* Split dropdown: main button = rental, dropdown shows both options */}
+              <div className="nav-split-dropdown">
+                <Link to="/list-vehicle" className="nav-link nav-split-main">
+                  <Car size={18} /> List Vehicle
+                </Link>
+                <button className="nav-split-arrow" onClick={(e) => e.currentTarget.parentElement?.classList.toggle('split-open')}>
+                  <ChevronDown size={14} />
+                </button>
+                <div className="nav-split-menu">
+                  <Link to="/list-vehicle" className="nav-split-item">
+                    <Car size={16} /> List for Rent
+                  </Link>
+                  <Link to="/list-sale" className="nav-split-item nav-split-item-sale">
+                    <Tag size={16} /> List for Sale
+                  </Link>
+                </div>
+              </div>
 
               <Link to="/list-vehicle" className="nav-link">
                 <Car size={18} /> List Vehicle
@@ -288,6 +309,10 @@ export default function Navbar() {
               <div className="mobile-section-title">Main Menu</div>
               <Link to="/home" className="mobile-link" onClick={() => setMobileOpen(false)}><Home size={18} /> Home</Link>
               <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}><Compass size={18} /> Explore</Link>
+              <Link to="/buy" className="mobile-link" onClick={() => setMobileOpen(false)}><Tag size={18} /> Buy a Vehicle</Link>
+
+              <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
+              <Link to="/list-sale" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
 
               <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List Vehicle</Link>
 
