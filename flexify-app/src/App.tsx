@@ -71,6 +71,15 @@ function NoNavbarLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function NoFooterLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="page-wrapper">
+      <Navbar />
+      <main className="main-content">{children}</main>
+    </div>
+  );
+}
+
 function RootRedirect() {
   const { user, loading } = useAuth();
 

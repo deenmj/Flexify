@@ -142,9 +142,7 @@ export default function Navbar() {
               <Link to="/buy" className="nav-link">
                 <Tag size={18} /> Buy Vehicles
               </Link>
-              <Link to="/subscription" className="nav-link">
-                <DollarSign size={18} /> Pricing
-              </Link>
+
               {/* Split dropdown: main button = rental, dropdown shows both options */}
               <div className="nav-split-dropdown">
                 <Link to="/list-vehicle" className="nav-link nav-split-main">
@@ -252,11 +250,7 @@ export default function Navbar() {
                       <Car size={16} /> List Vehicle
                     </Link>
                   )}
-                  {user && !isAdminRole && (
-                    <Link to="/subscription" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                      <DollarSign size={16} /> Pricing & Tiers
-                    </Link>
-                  )}
+
                   {user && user.verificationStatus === 'not_submitted' && !isAdminRole && (
                     <Link to="/verify" className="dropdown-item" onClick={() => setProfileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
                       <Shield size={16} /> One-Time Verification
@@ -312,7 +306,7 @@ export default function Navbar() {
               <Link to="/home" className="mobile-link" onClick={() => setMobileOpen(false)}><Home size={18} /> Home</Link>
               <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}><Compass size={18} /> Explore</Link>
               <Link to="/buy" className="mobile-link" onClick={() => setMobileOpen(false)}><Tag size={18} /> Buy a Vehicle</Link>
-              <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}><DollarSign size={18} /> Pricing</Link>
+
               <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
               <Link to="/list-sale" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
 
@@ -325,9 +319,7 @@ export default function Navbar() {
                   {isAdminRole && (
                     <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> My Vehicles & Bookings</Link>
                   )}
-                  {user && !isAdminRole && (
-                    <Link to="/subscription" className="mobile-link" onClick={() => setMobileOpen(false)}><DollarSign size={18} /> Pricing & Tiers</Link>
-                  )}
+
                   {user.verificationStatus === 'not_submitted' && !isAdminRole && (
                     <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
                       <Shield size={18} /> One-Time Verification
