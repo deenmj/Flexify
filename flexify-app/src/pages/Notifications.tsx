@@ -60,9 +60,6 @@ export default function Notifications() {
           case 'booking_update':
             navigate(`/dashboard?tab=bookings&highlight=${relatedId}`);
             break;
-          case 'subscription':
-            navigate('/subscription');
-            break;
           case 'kyc':
             navigate('/profile');
             break;
@@ -89,8 +86,6 @@ export default function Notifications() {
       case 'booking_request':
       case 'booking_update':
         return <Calendar size={20} className="icon-calendar" />;
-      case 'subscription':
-        return <CreditCard size={20} className="icon-subscription" />;
       case 'kyc':
         return <Shield size={20} className="icon-kyc" />;
       default:

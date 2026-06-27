@@ -329,8 +329,14 @@ export default function VerifyUser() {
     { key: 'selfie', label: 'Profile Photo', desc: 'Upload a recent photo of yourself (optional)', optional: true },
   ];
 
-  // Only allow form submission if not pending or approved
-  const canSubmit = user?.verificationStatus !== 'pending' && user?.verificationStatus !== 'approved';
+  const hasKycFields = Boolean(
+    user?.documents?.idNumber?.trim() && 
+    user?.documents?.address?.trim() && 
+    (user?.documents?.phone?.trim() || user?.phone?.trim())
+  );
+
+  // Only allow form submission if not pending or approved (unless they are missing mandatory fields)
+  const canSubmit = (user?.verificationStatus !== 'pending' && user?.verificationStatus !== 'approved') || !hasKycFields;
 
   // Determine the back link destination
   const backLink = returnTo || '/dashboard';

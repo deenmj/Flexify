@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, DollarSign, Compass, Home, CalendarCheck, Tag } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Compass, Home, CalendarCheck } from 'lucide-react';
 import { Badge, Tooltip, Modal } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { notificationApi, bookingApi } from '../api';
@@ -160,6 +160,10 @@ export default function Navbar() {
                   </Link>
                 </div>
               </div>
+
+              <Link to="/list-vehicle" className="nav-link">
+                <Car size={18} /> List Vehicle
+              </Link>
               <NavDropdown
                 label="Company"
                 items={[
@@ -309,6 +313,8 @@ export default function Navbar() {
 
               <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
               <Link to="/list-sale" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
+
+              <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List Vehicle</Link>
 
               {user && (
                 <>

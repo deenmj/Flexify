@@ -261,8 +261,12 @@ export const getPendingModels = async (req, res) => {
  */
 export const approveMake = async (req, res) => {
     try {
+        const { newName } = req.body || {};
         const make = await VehicleMake.findById(req.params.id);
         if (!make) return res.status(404).json({ message: "Make not found" });
+        if (newName && newName.trim() !== '') {
+            make.name = newName.trim();
+        }
         make.approved = true;
         await make.save();
         res.json({ message: "Make approved", make });
@@ -276,8 +280,12 @@ export const approveMake = async (req, res) => {
  */
 export const approveModel = async (req, res) => {
     try {
+        const { newName } = req.body || {};
         const model = await VehicleModel.findById(req.params.id);
         if (!model) return res.status(404).json({ message: "Model not found" });
+        if (newName && newName.trim() !== '') {
+            model.name = newName.trim();
+        }
         model.approved = true;
         await model.save();
         res.json({ message: "Model approved", model });
