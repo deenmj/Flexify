@@ -143,27 +143,14 @@ export default function Navbar() {
                 <Tag size={18} /> Buy Vehicles
               </Link>
 
-              {/* Split dropdown: main button = rental, dropdown shows both options */}
-              <div className="nav-split-dropdown">
-                <Link to="/list-vehicle" className="nav-link nav-split-main">
-                  <Car size={18} /> List Vehicle
-                </Link>
-                <button className="nav-split-arrow" onClick={(e) => e.currentTarget.parentElement?.classList.toggle('split-open')}>
-                  <ChevronDown size={14} />
-                </button>
-                <div className="nav-split-menu">
-                  <Link to="/list-vehicle" className="nav-split-item">
-                    <Car size={16} /> List for Rent
-                  </Link>
-                  <Link to="/list-sale" className="nav-split-item nav-split-item-sale">
-                    <Tag size={16} /> List for Sale
-                  </Link>
-                </div>
-              </div>
-
-              <Link to="/list-vehicle" className="nav-link">
-                <Car size={18} /> List Vehicle
-              </Link>
+              <NavDropdown
+                label="List Vehicle"
+                icon={Car}
+                items={[
+                  { label: 'List for Rent', href: '/list-vehicle', icon: Car, desc: 'Earn money by renting your vehicle' },
+                  ...(isAdminRole ? [{ label: 'List for Sale', href: '/list-sale', icon: Tag, desc: 'Sell your vehicle on Rentify' }] : []),
+                ]}
+              />
               <NavDropdown
                 label="Company"
                 items={[
@@ -312,9 +299,9 @@ export default function Navbar() {
               <Link to="/buy" className="mobile-link" onClick={() => setMobileOpen(false)}><Tag size={18} /> Buy a Vehicle</Link>
 
               <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
-              <Link to="/list-sale" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
-
-              <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List Vehicle</Link>
+              {isAdminRole && (
+                <Link to="/list-sale" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
+              )}
 
               {user && (
                 <>
@@ -356,11 +343,11 @@ export default function Navbar() {
   );
 }
 
-function NavDropdown({ label, items }: { label: string; items: { label: string; href: string; icon?: any; desc?: string }[] }) {
+function NavDropdown({ label, items, icon: Icon }: { label: string; items: { label: string; href: string; icon?: any; desc?: string }[], icon?: any }) {
   return (
     <div className="nav-dropdown">
       <button className="nav-link nav-dropdown-trigger">
-        {label} <ChevronDown size={14} />
+        {Icon && <Icon size={18} />} {label} <ChevronDown size={14} />
       </button>
       <div className="nav-dropdown-menu">
         <div className="nav-dropdown-grid">
