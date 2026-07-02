@@ -3,6 +3,7 @@
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/booking.js";
 import User from "../models/User.js";
+import Staff from "../models/Staff.js";
 import AuditLog from "../models/AuditLog.js";
 import Payment from "../models/Payment.js";
 import { logAdminAction } from "../utils/auditLogger.js";
@@ -335,9 +336,31 @@ export const deleteUserKyc = async (req, res) => {
  */
 export const getAllVehicles = async (req, res) => {
   try {
-    const vehicles = await Vehicle.find()
-      .populate("owner", "name email role ownerType")
+    let vehicles = await Vehicle.find()
+      .populate("owner", "name email role ownerType profilePic")
       .sort({ createdAt: -1 });
+
+    let healed = false;
+    for (let v of vehicles) {
+      if (!v.owner) {
+        const rawV = await Vehicle.findById(v._id).lean();
+        if (rawV && rawV.owner) {
+          const staff = await Staff.findById(rawV.owner);
+          if (staff) {
+            v.ownerModel = 'Staff';
+            await v.save();
+            healed = true;
+          }
+        }
+      }
+    }
+
+    if (healed) {
+      vehicles = await Vehicle.find()
+        .populate("owner", "name email role ownerType profilePic")
+        .sort({ createdAt: -1 });
+    }
+
     res.json(vehicles);
   } catch (err) {
     res.status(500).json({ message: err.message });
