@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col, Avatar, Spin } from 'antd';
@@ -62,6 +62,23 @@ export default function Dashboard() {
   const [showRenterModal, setShowRenterModal] = useState(false);
   const [selectedRenter, setSelectedRenter] = useState<any>(null);
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
+
+  // New Booking Success Modal
+  const location = useLocation();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successContact, setSuccessContact] = useState<any>(null);
+
+  useEffect(() => {
+    if (searchParams.get('newBooking') === '1' && location.state?.bookingSuccessData) {
+      const resp = location.state.bookingSuccessData;
+      if (resp.owner) {
+        setSuccessContact(resp.owner);
+        setShowSuccessModal(true);
+      }
+      // Clean up URL and state to prevent it showing again on refresh
+      window.history.replaceState({}, document.title, window.location.pathname + '?tab=bookings');
+    }
+  }, [searchParams, location.state]);
 
 
   const handleViewDetail = (booking: Booking) => {
@@ -1057,9 +1074,58 @@ export default function Dashboard() {
               );
             })()}
           </div>
-        ) : <Spin />}
+          </div>
       </Modal>
 
+      {/* SUCCESS BOOKING CONTACT MODAL */}
+      <Modal
+        title={null}
+        open={showSuccessModal}
+        onCancel={() => setShowSuccessModal(false)}
+        footer={null}
+        centered
+        width={480}
+        bodyStyle={{ padding: '24px', textAlign: 'center', borderRadius: '16px' }}
+      >
+        <div style={{ background: '#f0fdf4', width: '72px', height: '72px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', color: '#16a34a' }}>
+          <CheckCircle size={36} />
+        </div>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.75rem' }}>Your booking is secured!</h2>
+        <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: 1.5, marginBottom: '2rem' }}>
+          Contact the owner immediately to coordinate pickup and finalize any remaining details.
+        </p>
+
+        {successContact && (
+          <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '2rem' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #fff', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', margin: '0 auto 12px' }}>
+              <img src={getImageUrl(successContact.profilePic)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={successContact.name} />
+            </div>
+            <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#1e293b', marginBottom: '4px' }}>{successContact.name}</div>
+            <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Vehicle Owner</div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {successContact?.phone && (
+            <a 
+              href={`tel:${successContact.phone}`} 
+              className="btn btn-primary" 
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '12px', fontSize: '1.05rem', fontWeight: 700, background: '#16a34a', border: 'none' }}
+            >
+              <Phone size={20} /> Call Now
+            </a>
+          )}
+          {successContact?.email && (
+            <a 
+              href={`mailto:${successContact.email}`} 
+              className="btn btn-outline" 
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '12px', fontSize: '1.05rem', fontWeight: 600, color: '#334155', border: '1px solid #cbd5e1' }}
+            >
+              <MessageSquare size={20} /> Email Owner
+            </a>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

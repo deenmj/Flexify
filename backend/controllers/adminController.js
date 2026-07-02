@@ -171,9 +171,9 @@ export const updateUserRole = async (req, res) => {
       return res.status(400).json({ message: "Cannot change your own role" });
     }
 
-    const validRoles = ["user", "owner", "subadmin", "superadmin"];
+    const validRoles = ["user", "owner", "staff", "admin"];
     if (!validRoles.includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
+      return res.status(400).json({ message: "Invalid role. Cannot promote to superadmin." });
     }
 
     const oldRole = user.role;
@@ -186,8 +186,8 @@ export const updateUserRole = async (req, res) => {
       user.ownerType = null;
     }
 
-    // Subadmins and superadmins are auto KYC verified + free PRO subscription
-    if (role === "subadmin" || role === "superadmin") {
+    // Staff and Admins are auto KYC verified + free PRO subscription
+    if (role === "staff" || role === "admin") {
       user.isKycVerified = true;
       user.verificationStatus = "approved";
       // Grant free PRO subscription (unlimited vehicle listings, no expiry)

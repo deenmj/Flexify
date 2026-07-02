@@ -26,6 +26,8 @@ const ListVehicle = lazy(() => import('./pages/ListVehicle'));
 const Profile = lazy(() => import('./pages/Profile'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const VehicleSalesGallery = lazy(() => import('./pages/VehicleSalesGallery'));
+const VehicleSaleDetails = lazy(() => import('./pages/VehicleSaleDetails'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const StaffDashboard = lazy(() => import('./pages/StaffDashboard'));
@@ -155,6 +157,8 @@ export default function App() {
               {/* Public pages */}
               <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
               <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
+              <Route path="/buy" element={<AppLayout><VehicleSalesGallery /></AppLayout>} />
+              <Route path="/buy/:id" element={<AppLayout><VehicleSaleDetails /></AppLayout>} />
               <Route path="/vehicles/:id" element={<AppLayout><VehicleDetail /></AppLayout>} />
               <Route path="/about" element={<AppLayout><About /></AppLayout>} />
               <Route path="/faq" element={<AppLayout><FAQ /></AppLayout>} />
@@ -174,7 +178,7 @@ export default function App() {
               {/* Admin dashboards */}
               <Route path="/ceo-master-portal" element={<NoNavbarLayout><ProtectedRoute roles={['superadmin']} requireCeo={true}><SuperAdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
               <Route path="/admin" element={<NoNavbarLayout><ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
-              <Route path="/staff" element={<NoNavbarLayout><ProtectedRoute roles={['staff', 'admin']}><StaffDashboard /></ProtectedRoute></NoNavbarLayout>} />
+              <Route path="/staff" element={<NoNavbarLayout><ProtectedRoute roles={['staff', 'admin', 'superadmin']}><StaffDashboard /></ProtectedRoute></NoNavbarLayout>} />
               
               {/* Catch-all 404 Route */}
               <Route path="*" element={<AppLayout><NotFound /></AppLayout>} />

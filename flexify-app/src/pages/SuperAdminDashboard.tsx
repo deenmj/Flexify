@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
+import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, superAdminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
 import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert } from 'antd';
 import Table from '../components/ResponsiveTable';
@@ -10,6 +10,7 @@ import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
+import { ConfigProvider } from 'antd';
 
 const SRI_LANKA_DISTRICTS = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 'Galle', 'Matara', 'Hambantota',
@@ -33,7 +34,10 @@ export default function SuperAdminDashboard() {
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'overview';
-  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'bank-settings' | 'site-settings' | 'feedback'>(initialTab);
+  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'bank-settings' | 'site-settings' | 'feedback' | 'financials' | 'staff-management' | 'platform-settings'>(initialTab);
+
+  const [financials, setFinancials] = useState<any>(null);
+  const [staffData, setStaffData] = useState<any[]>([]);
 
   useEffect(() => {
     setSearchParams({ tab });
@@ -93,7 +97,7 @@ export default function SuperAdminDashboard() {
   }, [district, timeRange]);
 
   useEffect(() => {
-    if (user?.role !== 'admin') return;
+    if (user?.role !== 'superadmin') return;
 
     // Initial full load
     setLoading(true);
@@ -104,13 +108,17 @@ export default function SuperAdminDashboard() {
       adminApi.getAllBookings().catch(() => []),
       adminApi.getAuditLogs(1, 15).catch(() => ({ logs: [] })),
       adminApi.getPendingPayments().catch(() => []),
-    ]).then(([s, u, v, b, logs, p]) => {
+      superAdminApi.getFinancials().catch(() => null),
+      superAdminApi.getStaff().catch(() => [])
+    ]).then(([s, u, v, b, logs, p, f, st]) => {
       if (s) setStats(s);
       setAllUsers(u);
       setAllVehicles(v);
       setAllBookings(b);
       if (logs?.logs) setAuditLogs(logs.logs);
       setPendingPayments(p);
+      setFinancials(f);
+      setStaffData(st);
     }).finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -511,17 +519,19 @@ export default function SuperAdminDashboard() {
             bottom: 0,
             zIndex: 10,
             boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)',
-            backgroundColor: '#1e3a8a'
+            backgroundColor: '#0f172a'
           }}
         >
           <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
-            {collapsed ? 'CEO' : 'Rentify CEO Master'}
+            {collapsed ? 'CEO' : 'Rentify CEO Portal'}
           </div>
+          <ConfigProvider theme={{ components: { Menu: { darkItemSelectedBg: '#b8860b' } } }}>
           <Menu
             theme="dark"
             mode="inline"
             selectedKeys={[tab]}
             onClick={({ key }) => setTab(key as any)}
+            style={{ backgroundColor: '#0f172a' }}
             items={[
               { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
               { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: { color: '#b8860b' } },
@@ -535,6 +545,7 @@ export default function SuperAdminDashboard() {
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
             ]}
           />
+          </ConfigProvider>
         </Sider>
       ) : (
         <Drawer
@@ -544,11 +555,12 @@ export default function SuperAdminDashboard() {
           styles={{ body: { padding: 0 } }}
           width={260}
           closable={false}
-          bodyStyle={{ background: '#001529' }}
+          bodyStyle={{ background: '#0f172a' }}
         >
-          <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
-            Rentify CEO Master
+          <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px', background: '#0f172a' }}>
+            Rentify CEO Portal
           </div>
+          <ConfigProvider theme={{ components: { Menu: { darkItemSelectedBg: '#b8860b' } } }}>
           <Menu
             theme="dark"
             mode="inline"
@@ -557,6 +569,7 @@ export default function SuperAdminDashboard() {
               setTab(key as any);
               setMobileMenuOpen(false);
             }}
+            style={{ backgroundColor: '#0f172a' }}
             items={[
               { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
               { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: { color: '#b8860b' } },
@@ -570,6 +583,7 @@ export default function SuperAdminDashboard() {
               { key: 'feedback', icon: <MessageSquare size={18} />, label: 'Feedback' },
             ]}
           />
+          </ConfigProvider>
         </Drawer>
       )}
 
@@ -639,8 +653,8 @@ export default function SuperAdminDashboard() {
               ]
             }} placement="bottomRight">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px' }}>
-                <Avatar style={{ backgroundColor: '#b8860b' }}>CEO</Avatar>
-                {!isMobile && <Text strong style={{ color: '#334155' }}>Master CEO</Text>}
+                <Avatar style={{ backgroundColor: '#b8860b' }}>SA</Avatar>
+                {!isMobile && <Text strong style={{ color: '#334155' }}>SuperAdmin</Text>}
               </div>
             </Dropdown>
           </Space>
@@ -813,28 +827,28 @@ export default function SuperAdminDashboard() {
                     <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #fef3c7, #fffbeb)' }} bordered={false}>
                       <Statistic
                         title="Commissions Invoiced"
-                        value={1200000}
+                        value={financials?.commissionsInvoiced || 0}
                         prefix={<span style={{ fontWeight: 'bold', color: '#d97706', marginRight: 8 }}>LKR</span>}
                       />
                     </Card>
                     <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #dcfce7, #f0fdf4)' }} bordered={false}>
                       <Statistic
                         title="Commissions Paid"
-                        value={1100000}
+                        value={financials?.commissionsPaid || 0}
                         prefix={<span style={{ fontWeight: 'bold', color: '#16a34a', marginRight: 8 }}>LKR</span>}
                       />
                     </Card>
                     <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #e0e7ff, #eef2ff)' }} bordered={false}>
                       <Statistic
                         title="Rental Fees"
-                        value={3800000}
+                        value={financials?.rentalFees || 0}
                         prefix={<span style={{ fontWeight: 'bold', color: '#4f46e5', marginRight: 8 }}>LKR</span>}
                       />
                     </Card>
                     <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #fce7f3, #fdf2f8)' }} bordered={false}>
                       <Statistic
                         title="Global Profit"
-                        value={5000000}
+                        value={financials?.globalProfit || 0}
                         prefix={<span style={{ fontWeight: 'bold', color: '#db2777', marginRight: 8 }}>LKR</span>}
                       />
                     </Card>
@@ -846,12 +860,38 @@ export default function SuperAdminDashboard() {
                 <div className="animate-fade-in">
                   <Title level={5} style={{ marginBottom: '1.5rem', color: '#b8860b' }}>Internal Staff Management</Title>
                   <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                    <Text type="secondary">This section allows the CEO to view and manage internal staff members (managers, supervisors, staff).</Text>
-                    {/* Placeholder for staff table */}
-                    <div style={{ marginTop: '2rem', padding: '2rem', textAlign: 'center', background: '#f8fafc', borderRadius: '8px' }}>
-                      <Users size={48} color="#94a3b8" style={{ marginBottom: '1rem' }} />
-                      <p>Staff data will be loaded here...</p>
-                    </div>
+                    <Text type="secondary" style={{ display: 'block', marginBottom: '1.5rem' }}>This section allows the CEO to view internal staff members.</Text>
+                    
+                    <Table
+                      dataSource={staffData}
+                      rowKey="_id"
+                      pagination={{ pageSize: 10 }}
+                      style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                      columns={[
+                        { title: 'Name', dataIndex: 'name', key: 'name', render: (t, r) => <strong>{t}</strong> },
+                        { title: 'Email', dataIndex: 'email', key: 'email' },
+                        { 
+                          title: 'Role', 
+                          dataIndex: 'role', 
+                          key: 'role',
+                          render: (role) => (
+                            <Tag color={role === 'admin' ? 'purple' : 'cyan'}>
+                              {role.toUpperCase()}
+                            </Tag>
+                          )
+                        },
+                        { 
+                          title: 'Status', 
+                          dataIndex: 'status', 
+                          key: 'status',
+                          render: (status) => (
+                            <Tag color={status === 'active' ? 'success' : 'error'}>
+                              {status?.toUpperCase() || 'ACTIVE'}
+                            </Tag>
+                          )
+                        }
+                      ]}
+                    />
                   </Card>
                 </div>
               )}
@@ -1266,8 +1306,8 @@ export default function SuperAdminDashboard() {
             <Select>
               <Select.Option value="user">USER</Select.Option>
               <Select.Option value="owner">OWNER</Select.Option>
-              <Select.Option value="subadmin">SUB-ADMIN</Select.Option>
-              <Select.Option value="superadmin">SUPER-ADMIN</Select.Option>
+              <Select.Option value="staff">STAFF</Select.Option>
+              <Select.Option value="admin">ADMIN</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item

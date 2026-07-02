@@ -107,52 +107,7 @@ export default function VehicleDetail() {
       });
   }, [id]);
 
-  // Auto-complete pending booking after KYC verification
-  useEffect(() => {
-    if (!user || !id) return;
-    // Only proceed if user has completed KYC (status is no longer 'not_submitted')
-    if (user.verificationStatus === 'not_submitted') return;
-
-    try {
-      const stored = localStorage.getItem('pendingBooking');
-      if (!stored) return;
-
-      const pending = JSON.parse(stored);
-      // Only auto-book if the pending booking matches this vehicle
-      if (pending.vehicleId !== id) return;
-
-      // Clear immediately to prevent double-submission
-      localStorage.removeItem('pendingBooking');
-
-      // Auto-submit the booking
-      setShowBookingModal(true);
-      setBookingLoading(true);
-
-      bookingApi.create(pending.vehicleId, pending.startDate, pending.endDate, pending.withDriver)
-        .then((resp) => {
-          setCreatedBooking(resp);
-          message.success('KYC verified & booking submitted successfully!');
-          // Refresh availability in background
-          vehicleApi.getAvailability(id)
-            .then((data) => {
-              setBookedRanges(data.bookedRanges);
-              setBlackoutRanges(data.blackoutRanges);
-            })
-            .catch(err => console.error('Silent refresh failed:', err));
-        })
-        .catch((err: any) => {
-          console.error('Auto-booking failed:', err);
-          message.error(err.message || 'Failed to create booking after verification');
-          setShowBookingModal(false);
-        })
-        .finally(() => {
-          setBookingLoading(false);
-        });
-    } catch (e) {
-      localStorage.removeItem('pendingBooking');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.verificationStatus, id]);
+  // Auto-complete pending booking moved to Auth.tsx and VerifyUser.tsx
 
   // Helper: is a date within a booked range?
   const isDateBooked = useCallback((date: Dayjs, statusFilter?: string) => {
@@ -269,11 +224,6 @@ export default function VehicleDetail() {
   }, [isDateBooked, isDateBlackedOut, calendarDate]);
 
   const handleBookNow = async () => {
-    if (!user) {
-      navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
-      return;
-    }
-
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       message.error('Please select both pickup and return dates');
       return;
@@ -281,6 +231,18 @@ export default function VehicleDetail() {
 
     const startStr = dateRange[0].toISOString();
     const endStr = dateRange[1].toISOString();
+
+    if (!user) {
+      // Save intent before auth
+      localStorage.setItem('pendingBooking', JSON.stringify({
+        vehicleId: id,
+        startDate: startStr,
+        endDate: endStr,
+        withDriver,
+      }));
+      navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
+      return;
+    }
 
     const hasKycFields = Boolean(
       user.documents?.idNumber?.trim() && 

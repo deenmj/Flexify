@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Compass, Home, CalendarCheck, Tag } from 'lucide-react';
 import { Badge, Tooltip, Modal } from 'antd';
@@ -12,6 +12,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -136,13 +137,13 @@ export default function Navbar() {
           {/* Desktop Nav — All roles see full nav now */}
           <div>
             <div className="navbar-links">
-              <Link to="/home" className="nav-link nav-link-highlight">
+              <Link to="/home" className={`nav-link ${location.pathname === '/home' ? 'nav-link-highlight' : ''}`}>
                 <Home size={18} /> Home
               </Link>
-              <Link to="/explore" className="nav-link">
+              <Link to="/explore" className={`nav-link ${location.pathname === '/explore' ? 'nav-link-highlight' : ''}`}>
                 <Compass size={18} /> Explore
               </Link>
-              <Link to="/buy" className="nav-link">
+              <Link to="/buy" className={`nav-link ${location.pathname === '/buy' ? 'nav-link-highlight' : ''}`}>
                 <Tag size={18} /> Buy Vehicles
               </Link>
 

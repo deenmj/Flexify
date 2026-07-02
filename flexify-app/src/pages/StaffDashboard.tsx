@@ -3,14 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import AddVehicleSale from '../components/AddVehicleSale';
 import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
   LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon,
-  Eye, EyeOff, Trash2, Edit2
+  Eye, EyeOff, Trash2, Edit2, DollarSign
 } from 'lucide-react';
-import { subadminApi, adminApi, userApi, feedbackApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
-import { DollarSign } from 'lucide-react';
+import { subadminApi, adminApi, userApi, feedbackApi, salesApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
 
@@ -36,7 +36,7 @@ export default function StaffDashboard() {
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'users';
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback'>(initialTab);
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'list-sale'>(initialTab);
 
   useEffect(() => {
     setSearchParams({ tab });
@@ -47,16 +47,17 @@ export default function StaffDashboard() {
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [activeSales, setActiveSales] = useState<any[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState(false);
   const [editModal, setEditModal] = useState<{visible: boolean, id: string, type: 'Make' | 'Model', name: string}>({visible: false, id: '', type: 'Make', name: ''});
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
-  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [rejectionModal, setRejectionModal] = useState<{
     visible: boolean;
     type: 'KYC' | 'Vehicle' | 'Review';
     id: string;
     targetName: string;
   }>({ visible: false, type: 'KYC', id: '', targetName: '' });
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -71,7 +72,7 @@ export default function StaffDashboard() {
     if (socket) {
       socket.on('pendingUpdate', (data: any) => {
 
-        fetchData(); // Refresh all data when something changes
+        fetchData();
         notification.info({
           message: 'Real-time Update',
           description: `New ${data.type} update detected. Dashboard refreshed.`,
@@ -110,7 +111,7 @@ export default function StaffDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [s, u, v, r, m, mo, p] = await Promise.all([
+      const [s, u, v, r, m, mo, p, sales] = await Promise.all([
         subadminApi.getStats().catch(() => null),
         subadminApi.getPendingUsers().catch(() => []),
         subadminApi.getPendingVehicles().catch(() => []),
@@ -118,6 +119,7 @@ export default function StaffDashboard() {
         subadminApi.getPendingMakes().catch(() => []),
         subadminApi.getPendingModels().catch(() => []),
         adminApi.getPendingPayments().catch(() => []),
+        salesApi.getActiveSales().catch(() => []),
       ]);
       if (s) setStats(s);
       setPendingUsers(u);
@@ -126,6 +128,7 @@ export default function StaffDashboard() {
       setPendingMakes(m);
       setPendingModels(mo);
       setPendingPayments(p || []);
+      setActiveSales(sales);
     } catch (err: any) {
       message.error(err.message || 'Error fetching data');
     } finally {
@@ -133,28 +136,7 @@ export default function StaffDashboard() {
     }
   };
 
-  const handleCheck = (idx: number) => {
-    const updated = [...checkedItems];
-    updated[idx] = !updated[idx];
-    setCheckedItems(updated);
-  };
-
   const allChecked = checkedItems.every(Boolean);
-
-  const handleApproveUser = async (userId: string) => {
-    if (!allChecked) return;
-    setActionLoading(userId);
-    try {
-      await subadminApi.approveUser(userId);
-      setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
-      setShowModal(false);
-      message.success('User approved successfully');
-    } catch (err: any) {
-      message.error(err.message);
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const handleRejectUser = (userId: string) => {
     const user = pendingUsers.find(u => (u.id || u._id) === userId);
@@ -186,6 +168,19 @@ export default function StaffDashboard() {
       form.resetFields();
     } catch (err: any) {
       message.error(err.message || "Failed to reject");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleUpdateSaleStatus = async (id: string, status: string) => {
+    setActionLoading(id);
+    try {
+      await salesApi.updateSaleStatus(id, status);
+      message.success(`Status updated to ${status}`);
+      fetchData(); // Refresh the list
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update status');
     } finally {
       setActionLoading(null);
     }
@@ -271,18 +266,6 @@ export default function StaffDashboard() {
     }
   };
 
-  const handleEditSuggestionSave = () => {
-    if (!editModal.name.trim()) {
-      message.error('Name cannot be empty');
-      return;
-    }
-    if (editModal.type === 'Make') {
-      handleApproveMake(editModal.id, editModal.name);
-    } else {
-      handleApproveModel(editModal.id, editModal.name);
-    }
-  };
-
   const handleDeleteMake = async (id: string) => {
     if (!window.confirm("Delete this make suggestion?")) return;
     setActionLoading(id);
@@ -311,21 +294,15 @@ export default function StaffDashboard() {
     }
   };
 
-  const handleVerifyPayment = async (paymentId: string, status: 'approved' | 'rejected') => {
-    let reason = '';
-    if (status === 'rejected') {
-      reason = window.prompt('Enter rejection reason:') || 'Payment details incorrect';
+  const handleEditSuggestionSave = () => {
+    if (!editModal.name.trim()) {
+      message.error('Name cannot be empty');
+      return;
     }
-
-    setActionLoading(paymentId);
-    try {
-      const res = await adminApi.verifyPayment(paymentId, status, reason);
-      setPendingPayments(prev => prev.filter(p => p._id !== paymentId));
-      message.success(res.message);
-    } catch (err: any) {
-      message.error(err.message);
-    } finally {
-      setActionLoading(null);
+    if (editModal.type === 'Make') {
+      handleApproveMake(editModal.id, editModal.name.trim());
+    } else {
+      handleApproveModel(editModal.id, editModal.name.trim());
     }
   };
 
@@ -345,20 +322,6 @@ export default function StaffDashboard() {
   const handleLogout = () => {
     logout();
     navigate('/');
-  };
-
-  const handleDeleteFeedback = async (id: string) => {
-    if (!window.confirm("Delete this feedback?")) return;
-    setActionLoading(id);
-    try {
-      await feedbackApi.delete(id);
-      setFeedbacks(prev => prev.filter(f => f._id !== id));
-      message.success('Feedback deleted');
-    } catch (err: any) {
-      message.error(err.message || 'Failed to delete');
-    } finally {
-      setActionLoading(null);
-    }
   };
 
   const filteredUsers = pendingUsers.filter(u =>
@@ -415,6 +378,8 @@ export default function StaffDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC Reviews (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
+              { key: 'list-sale', icon: <Car size={18} />, label: 'List for Sale' },
+              { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
               { key: 'settings', icon: <Settings size={18} />, label: 'My Settings' },
@@ -446,6 +411,8 @@ export default function StaffDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${pendingVehicles.length})` },
+              { key: 'list-sale', icon: <Car size={18} />, label: 'List for Sale' },
+              { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions` },
               { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
@@ -478,6 +445,7 @@ export default function StaffDashboard() {
             <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1e293b' }}>
               {tab === 'users' && 'KYC Document Reviews'}
               {tab === 'vehicles' && 'Vehicle Approvals'}
+              {tab === 'list-sale' && 'Add Vehicle Listing'}
               {tab === 'reviews' && 'Review Moderation'}
               {tab === 'moderation' && 'Platform Content Suggestions'}
               {tab === 'settings' && 'Account Settings'}
@@ -541,7 +509,6 @@ export default function StaffDashboard() {
             <div style={{ textAlign: 'center', padding: '4rem' }}><Spin size="large" /></div>
           ) : (
             <>
-              {/* Quick Stats Header */}
               {stats && tab === 'users' && (
                 <div style={{ 
                   display: 'flex', 
@@ -613,6 +580,65 @@ export default function StaffDashboard() {
                           >
                             Review KYC
                           </Button>
+                        )
+                      }
+                    ]}
+                  />
+                </div>
+              )}
+
+              {tab === 'list-sale' && (
+                <div className="animate-fade-in">
+                  <AddVehicleSale />
+                </div>
+              )}
+
+              {tab === 'manage-sales' && (
+                <div className="animate-fade-in">
+                  <Title level={5} style={{ marginBottom: '1.5rem' }}>Manage Vehicle Sales</Title>
+                  <Table
+                    scroll={{ x: true }}
+                    dataSource={activeSales}
+                    rowKey="_id"
+                    pagination={{ pageSize: 12 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      {
+                        title: 'Vehicle',
+                        render: (_, v) => (
+                          <div>
+                            <Text strong>{v.title}</Text><br />
+                            <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
+                          </div>
+                        )
+                      },
+                      {
+                        title: 'Price',
+                        render: (_, v) => <Text strong>Rs. {v.askingPrice?.toLocaleString()}</Text>
+                      },
+                      {
+                        title: 'Status',
+                        dataIndex: 'status',
+                        render: (status) => {
+                          let color = 'blue';
+                          if (status === 'Sold Out') color = 'red';
+                          else if (status === 'New') color = 'green';
+                          return <Tag color={color}>{status}</Tag>;
+                        }
+                      },
+                      {
+                        title: 'Action',
+                        render: (_, v) => (
+                          <Select 
+                            value={v.status} 
+                            style={{ width: 120 }}
+                            onChange={(val) => handleUpdateSaleStatus(v._id, val)}
+                            loading={actionLoading === v._id}
+                          >
+                            <Option value="Available">Available</Option>
+                            <Option value="New">New</Option>
+                            <Option value="Sold Out">Sold Out</Option>
+                          </Select>
                         )
                       }
                     ]}
