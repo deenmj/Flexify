@@ -37,7 +37,7 @@ export default function About() {
         }}
       />
       {/* Hero Section */}
-      <section className="static-hero relative overflow-hidden flex items-center justify-center" style={{ padding: '6rem 2rem 4rem', minHeight: '85vh' }}>
+      <section className="about-hero-section">
         
         {/* Background Video */}
         <video 
@@ -45,24 +45,20 @@ export default function About() {
           loop 
           muted 
           playsInline 
-          className="absolute inset-0 w-full h-full object-cover z-0"
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
+          className="about-hero-video"
         >
           <source src="/give_then_updated.mp4" type="video/mp4" />
         </video>
 
         {/* Darkening Overlay */}
-        <div 
-          className="absolute inset-0 bg-black/60 z-10" 
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 10 }}
-        ></div>
+        <div className="about-hero-overlay"></div>
 
         {/* Text Container */}
-        <div className="container relative z-20" style={{ position: 'relative', zIndex: 20, textAlign: 'center', maxWidth: '800px' }}>
-          <h1 style={{ fontSize: '3rem', marginBottom: '1.5rem', fontWeight: 900, background: 'linear-gradient(135deg, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <div className="about-hero-content container">
+          <h1 className="about-hero-title">
             Redefining Mobility
           </h1>
-          <p style={{ fontSize: '1.25rem', lineHeight: 1.8, opacity: 0.9, marginBottom: '2rem' }}>
+          <p className="about-hero-subtitle">
             Rentify is the world's premier peer-to-peer vehicle sharing marketplace. 
             We empower individuals to monetize their vehicles while providing renters 
             with unprecedented access to a diverse fleet of cars, trucks, and specialty vehicles.

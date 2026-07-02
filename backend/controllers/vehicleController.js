@@ -665,7 +665,10 @@ export const getVehicleById = async (req, res) => {
  */
 export const getMyVehicles = async (req, res) => {
   try {
-    const vehicles = await Vehicle.find({ owner: req.user._id }).sort({ createdAt: -1 });
+    const ownerModelStr = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? 'Staff' : 'User';
+    const vehicles = await Vehicle.find({ owner: req.user._id })
+      .populate({ path: 'owner', model: ownerModelStr })
+      .sort({ createdAt: -1 });
     res.json(vehicles);
   } catch (err) {
     res.status(500).json({ message: err.message });

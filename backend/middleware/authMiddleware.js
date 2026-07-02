@@ -17,8 +17,12 @@ export const protect = async (req, res, next) => {
     
     if (decoded.isStaff) {
       req.user = await Staff.findById(decoded.id).select("-password");
+      // Fallback: if Staff record was deleted but they exist in User
+      if (!req.user) req.user = await User.findById(decoded.id).select("-password");
     } else {
       req.user = await User.findById(decoded.id).select("-password");
+      // Fallback: if this user was migrated to Staff but has a stale JWT without isStaff
+      if (!req.user) req.user = await Staff.findById(decoded.id).select("-password");
     }
 
     if (!req.user) return res.status(401).json({ message: "User not found" });
@@ -47,8 +51,10 @@ export const protectOptional = async (req, res, next) => {
       let user;
       if (decoded.isStaff) {
         user = await Staff.findById(decoded.id).select("-password");
+        if (!user) user = await User.findById(decoded.id).select("-password");
       } else {
         user = await User.findById(decoded.id).select("-password");
+        if (!user) user = await Staff.findById(decoded.id).select("-password");
       }
 
       if (user && user.status !== "blocked") {

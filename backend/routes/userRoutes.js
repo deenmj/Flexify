@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import User from "../models/User.js";
+import Staff from "../models/Staff.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
 import { kycStorage, profileStorage } from "../utils/cloudinary.js";
@@ -31,7 +32,8 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const user = await User.findById(req.user._id);
+      const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
+      const user = await Model.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       // Validate mandatory fields
@@ -95,7 +97,8 @@ router.put(
   profileUpload.fields([{ name: "profilePic", maxCount: 1 }]),
   async (req, res) => {
     try {
-      const user = await User.findById(req.user._id);
+      const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
+      const user = await Model.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       const files = req.files || {};
@@ -130,7 +133,8 @@ router.put(
   ]),
   async (req, res) => {
     try {
-      const user = await User.findById(req.user._id);
+      const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
+      const user = await Model.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       // Only allow updates if documents have been submitted at least once
@@ -170,7 +174,8 @@ router.put(
  */
 router.post("/become-owner", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
+    const user = await Model.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (user.role === "owner") {
@@ -205,7 +210,8 @@ router.post("/become-owner", protect, async (req, res) => {
  */
 router.put("/notification-settings", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
+    const user = await Model.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const { notificationEmail, isNotificationEmailActive } = req.body;
