@@ -1074,7 +1074,7 @@ export default function Dashboard() {
               );
             })()}
           </div>
-          </div>
+        ) : null}
       </Modal>
 
       {/* SUCCESS BOOKING CONTACT MODAL */}

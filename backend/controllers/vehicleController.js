@@ -4,6 +4,7 @@ import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/booking.js";
 import Blackout from "../models/Blackout.js";
 import User from "../models/User.js";
+import Staff from "../models/Staff.js";
 import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
@@ -159,8 +160,12 @@ export const createVehicle = async (req, res) => {
       if (m) finalModelName = m.name;
     }
 
+    const staffRoles = ["superadmin", "admin", "staff", "manager", "supervisor"];
+    const isOwnerStaff = staffRoles.includes(owner.role);
+
     const vehicle = await Vehicle.create({
       owner: owner._id,
+      ownerModel: isOwnerStaff ? "Staff" : "User",
       title,
       make: finalMakeName,
       model: finalModelName,
@@ -447,8 +452,13 @@ export const listVehicles = async (req, res) => {
         }
       ]
     }).distinct("_id");
+
+    // Fetch active staff (staff get free listings)
+    const activeStaff = await Staff.find({ status: { $ne: "blocked" } }).distinct("_id");
     
-    filter.owner = { $in: activeUsers };
+    // Combine allowed owners
+    const allowedOwners = [...activeUsers, ...activeStaff];
+    filter.owner = { $in: allowedOwners };
 
     // Build aggregation pipeline
     // NOTE: $near is NOT supported in aggregation $match stages.
@@ -478,10 +488,24 @@ export const listVehicles = async (req, res) => {
           from: "users",
           localField: "owner",
           foreignField: "_id",
-          as: "ownerInfo"
+          as: "userInfo"
         }
       },
-      { $unwind: "$ownerInfo" },
+      {
+        $lookup: {
+          from: "staffs",
+          localField: "owner",
+          foreignField: "_id",
+          as: "staffInfo"
+        }
+      },
+      {
+        $addFields: {
+          ownerInfoArr: { $concatArrays: ["$userInfo", "$staffInfo"] }
+        }
+      },
+      { $unwind: "$ownerInfoArr" },
+      { $addFields: { ownerInfo: "$ownerInfoArr" } },
       {
         $addFields: {
           tierBoost: {
@@ -588,12 +612,25 @@ export const listVehicles = async (req, res) => {
  */
 export const getVehicleById = async (req, res) => {
   try {
-    const vehicle = await Vehicle.findById(req.params.id)
+    let vehicle = await Vehicle.findById(req.params.id)
       .populate("owner", "name email profilePic ownerType phone");
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
 
+    // Self-healing migration for orphaned staff vehicles
+    if (!vehicle.owner) {
+      const rawVehicle = await Vehicle.findById(req.params.id).lean();
+      if (rawVehicle && rawVehicle.owner) {
+        const staffMember = await Staff.findById(rawVehicle.owner);
+        if (staffMember) {
+          vehicle.ownerModel = 'Staff';
+          await vehicle.save();
+          await vehicle.populate("owner", "name email profilePic ownerType phone");
+        }
+      }
+    }
+
     let canViewPhone = false;
-    if (req.user) {
+    if (req.user && vehicle.owner) {
       if (req.user._id.toString() === vehicle.owner._id.toString()) {
         canViewPhone = true;
       } else if (req.user.role === 'subadmin' || req.user.role === 'superadmin') {
