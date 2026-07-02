@@ -23,7 +23,8 @@ export default function MaintenanceScreen({ data }: { data?: MaintenanceData }) 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1rem'
+        padding: '1rem',
+        overflowY: 'auto'
       }}
     >
       {/* Centered Modal Box */}
@@ -34,8 +35,9 @@ export default function MaintenanceScreen({ data }: { data?: MaintenanceData }) 
           flexDirection: 'column',
           alignItems: 'center',
           textAlign: 'center',
-          padding: '3rem 2rem',
-          maxWidth: '550px',
+          padding: '2rem 1.5rem',
+          margin: 'auto', // helps with flex centering when taller than viewport
+          maxWidth: '500px',
           width: '100%',
           borderRadius: '24px',
           background: 'linear-gradient(145deg, #1e293b, #0f172a)',
@@ -45,37 +47,37 @@ export default function MaintenanceScreen({ data }: { data?: MaintenanceData }) 
         }}
       >
         {/* Animated Icon Cluster */}
-        <div style={{ position: 'relative', marginBottom: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '96px', width: '96px' }}>
+        <div style={{ position: 'relative', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '72px', width: '72px' }}>
           <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(99, 102, 241, 0.2)', borderRadius: '50%', filter: 'blur(20px)', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
           <Settings 
-            size={72} 
+            size={56} 
             color="#cbd5e1"
             style={{ position: 'relative', zIndex: 10, animation: 'spin 6s linear infinite' }}
           />
-          <div style={{ position: 'absolute', top: '-8px', right: '-8px', backgroundColor: '#3b82f6', padding: '8px', borderRadius: '50%', boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.39)' }}>
-            <Wrench size={20} color="#ffffff" />
+          <div style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: '#3b82f6', padding: '6px', borderRadius: '50%', boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.39)' }}>
+            <Wrench size={16} color="#ffffff" />
           </div>
         </div>
 
         {/* Messaging */}
-        <h1 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.025em', background: 'linear-gradient(to right, #ffffff, #93c5fd)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.75rem', letterSpacing: '-0.025em', background: 'linear-gradient(to right, #ffffff, #93c5fd)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           {title}
         </h1>
-        <p style={{ fontSize: '1.125rem', color: '#94a3b8', marginBottom: '2.5rem', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '1rem', color: '#94a3b8', marginBottom: '1.5rem', lineHeight: 1.5 }}>
           {message}
         </p>
 
         {/* Feature Highlights */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', width: '100%', marginBottom: '2.5rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <Clock size={28} color="#60a5fa" style={{ marginBottom: '0.75rem' }} />
-            <span style={{ fontSize: '0.875rem', color: '#94a3b8', fontWeight: 500, marginBottom: '0.25rem' }}>Estimated time</span>
-            <span style={{ fontSize: '1.125rem', fontWeight: 600, color: '#ffffff' }}>{time}</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', width: '100%', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <Clock size={24} color="#60a5fa" style={{ marginBottom: '0.5rem' }} />
+            <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500, marginBottom: '0.15rem' }}>Estimated time</span>
+            <span style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff' }}>{time}</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <ShieldCheck size={28} color="#818cf8" style={{ marginBottom: '0.75rem' }} />
-            <span style={{ fontSize: '0.875rem', color: '#94a3b8', fontWeight: 500, marginBottom: '0.25rem' }}>Status</span>
-            <span style={{ fontSize: '1.125rem', fontWeight: 600, color: '#ffffff' }}>{status}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <ShieldCheck size={24} color="#818cf8" style={{ marginBottom: '0.5rem' }} />
+            <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500, marginBottom: '0.15rem' }}>Status</span>
+            <span style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff' }}>{status}</span>
           </div>
         </div>
 
