@@ -1,7 +1,8 @@
 // Determine default backend URL based on environment
-export const getBaseUrl = () => import.meta.env.VITE_API_URL || (import.meta.env.MODE === 'development' ? 'http://localhost:5000' : 'https://api.rentify.lk');
+const isDev = import.meta.env.MODE === 'development';
+const defaultApiUrl = isDev ? 'http://localhost:5000' : 'https://api.rentify.lk';
 
-const API_BASE_URL = `${getBaseUrl()}/api`;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || defaultApiUrl}/api`;
 
 export const getImageUrl = (path?: any) => {
   const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80';
