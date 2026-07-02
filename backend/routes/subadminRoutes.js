@@ -1,6 +1,6 @@
 // backend/routes/subadminRoutes.js
 import express from "express";
-import { protect, requireSubAdmin } from "../middleware/authMiddleware.js";
+import { protect, requireStaff } from "../middleware/authMiddleware.js";
 import {
     getPendingUsers,
     getUserKycDetails,
@@ -23,7 +23,7 @@ const router = express.Router();
 
 // Middleware to protect all subadmin routes
 router.use(protect);
-router.use(requireSubAdmin);
+router.use(requireStaff);
 
 router.get("/stats", getSubadminStats);
 router.get("/pending-users", getPendingUsers);

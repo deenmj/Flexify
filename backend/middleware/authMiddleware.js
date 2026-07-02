@@ -1,6 +1,6 @@
-// backend/middleware/authMiddleware.js
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Staff from "../models/Staff.js";
 
 /**
  * Protect — verify JWT token, attach user to req
@@ -14,7 +14,13 @@ export const protect = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select("-password");
+    
+    if (decoded.isStaff) {
+      req.user = await Staff.findById(decoded.id).select("-password");
+    } else {
+      req.user = await User.findById(decoded.id).select("-password");
+    }
+
     if (!req.user) return res.status(401).json({ message: "User not found" });
 
     if (req.user.status === "blocked") {
@@ -37,7 +43,14 @@ export const protectOptional = async (req, res, next) => {
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.id).select("-password");
+      
+      let user;
+      if (decoded.isStaff) {
+        user = await Staff.findById(decoded.id).select("-password");
+      } else {
+        user = await User.findById(decoded.id).select("-password");
+      }
+
       if (user && user.status !== "blocked") {
         req.user = user;
       }
@@ -50,7 +63,7 @@ export const protectOptional = async (req, res, next) => {
 
 /**
  * requireRole — generic role gate. Pass one or more allowed roles.
- * Usage: requireRole("owner", "subadmin", "superadmin")
+ * Usage: requireRole("owner", "staff", "admin")
  */
 export const requireRole = (...roles) => (req, res, next) => {
   if (!req.user) return res.status(401).json({ message: "Not authorized" });
@@ -61,34 +74,45 @@ export const requireRole = (...roles) => (req, res, next) => {
 };
 
 /**
- * requireSuperAdmin — only superadmin
+ * requireAdmin — admin or superadmin
  */
-export const requireSuperAdmin = (req, res, next) => {
+export const requireAdmin = (req, res, next) => {
   if (!req.user) return res.status(401).json({ message: "Not authorized" });
-  if (req.user.role !== "superadmin") {
-    return res.status(403).json({ message: "Superadmin access required" });
+  if (req.user.role !== "admin" && req.user.role !== "superadmin") {
+    return res.status(403).json({ message: "Admin access required" });
   }
   next();
 };
 
 /**
- * requireSubAdmin — subadmin OR superadmin
+ * requireStaff — staff OR admin OR superadmin
  */
-export const requireSubAdmin = (req, res, next) => {
+export const requireStaff = (req, res, next) => {
   if (!req.user) return res.status(401).json({ message: "Not authorized" });
-  if (req.user.role !== "subadmin" && req.user.role !== "superadmin") {
-    return res.status(403).json({ message: "Sub-admin access required" });
+  if (req.user.role !== "staff" && req.user.role !== "admin" && req.user.role !== "superadmin") {
+    return res.status(403).json({ message: "Staff access required" });
   }
   next();
 };
 
 /**
- * requireVerifiedOwner — owner with ownerType VERIFIED, OR subadmin/superadmin
+ * isMasterCEO — specific to Admin@rentify.lk and superadmin
+ */
+export const isMasterCEO = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ message: "Not authorized" });
+  if (req.user.role !== "superadmin" || !req.user.email || req.user.email.toLowerCase() !== "admin@rentify.lk") {
+    return res.status(403).json({ message: "CEO Master Access Required" });
+  }
+  next();
+};
+
+/**
+ * requireVerifiedOwner — owner with ownerType VERIFIED, OR staff/admin/superadmin
  */
 export const requireVerifiedOwner = (req, res, next) => {
   if (!req.user) return res.status(401).json({ message: "Not authorized" });
   const isVerifiedOwner = req.user.role === "owner" && req.user.ownerType === "VERIFIED";
-  const isAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
+  const isAdmin = req.user.role === "staff" || req.user.role === "admin" || req.user.role === "superadmin";
   if (!isVerifiedOwner && !isAdmin) {
     return res.status(403).json({ message: "Verified owner access required" });
   }

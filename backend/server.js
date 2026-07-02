@@ -51,7 +51,9 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import sitemapRoutes from "./routes/sitemapRoutes.js";
+import superAdminRoutes from "./routes/superAdminRoutes.js";
 import { protect } from "./middleware/authMiddleware.js";
+import { maintenanceGuard } from "./middleware/maintenanceGuard.js";
 
 connectDB();
 
@@ -63,9 +65,14 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
   : [
       "https://rentify.lk",
-      "http://localhost:5173",
       "https://api.rentify.lk",
     ];
+
+// Always allow local dev ports in non-production environments
+if (process.env.NODE_ENV !== "production") {
+  if (!allowedOrigins.includes("http://localhost:5173")) allowedOrigins.push("http://localhost:5173");
+  if (!allowedOrigins.includes("http://localhost:5174")) allowedOrigins.push("http://localhost:5174");
+}
 
 const io = new Server(httpServer, {
   cors: {
@@ -117,7 +124,14 @@ app.set("trust proxy", 1);
 app.use(compression());
 
 // Security headers
-app.use(helmet());
+if (process.env.NODE_ENV === "production") {
+  app.use(helmet());
+} else {
+  app.use(helmet({
+    hsts: false,
+    crossOriginResourcePolicy: false,
+  }));
+}
 
 // CORS configuration
 app.use(cors({
@@ -159,6 +173,10 @@ app.get("/", (req, res) => {
   res.send("Rentify Backend is Running Successfully!");
 });
 
+// Apply Maintenance Guard globally to all /api routes
+// (The middleware itself handles bypasses for auth & settings)
+app.use("/api", maintenanceGuard);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", protect, userRoutes);
 app.use("/api/vehicles", vehicleRoutes);
@@ -173,6 +191,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api", sitemapRoutes);
+app.use("/api/superadmin", superAdminRoutes);
 
 // Google OAuth Fallback: in case Google console is misconfigured without the /api prefix
 app.use("/auth/google/callback", (req, res) => {

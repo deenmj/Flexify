@@ -17,7 +17,7 @@ import './Dashboard.css';
 const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
 
-export default function SubAdminDashboard() {
+export default function StaffDashboard() {
   const { user, logout, refreshUser } = useAuth();
   const { socket, connected: socketConnected } = useSocket();
   const navigate = useNavigate();
@@ -373,11 +373,11 @@ export default function SubAdminDashboard() {
     r.comment.toLowerCase().includes(reviewSearchQuery.toLowerCase())
   );
 
-  if (!user || (user.role !== 'subadmin' && user.role !== 'superadmin')) {
+  if (!user || (user.role !== 'staff' && user.role !== 'admin')) {
     return (
       <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
         <Shield size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
-        <h2>Sub-Admin Access Required</h2>
+        <h2>Staff Access Required</h2>
         <p>You do not have permission to access this page.</p>
         <Button onClick={() => navigate('/')}>Back to Home</Button>
       </div>
@@ -485,7 +485,7 @@ export default function SubAdminDashboard() {
             </Title>
           </div>
           <Space size={isMobile ? "small" : "large"}>
-            {user?.role === 'superadmin' && (
+            {user?.role === 'admin' && (
               <Button 
                 type="primary" 
                 onClick={() => navigate('/admin')} 

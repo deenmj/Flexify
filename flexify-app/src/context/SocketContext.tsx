@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { getBaseUrl } from '../api';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -23,7 +24,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (user) {
       // Connect to socket server
       const token = localStorage.getItem('token');
-      const newSocket = io(import.meta.env.VITE_API_URL || 'https://api.rentify.lk', {
+      const newSocket = io(getBaseUrl(), {
         auth: { token },
         transports: ['websocket'], // Prefer websockets
       });

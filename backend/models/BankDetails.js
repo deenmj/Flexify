@@ -20,7 +20,7 @@ const bankDetailsSchema = new mongoose.Schema(
     referenceEmail: {
       type: String,
       required: true,
-      default: "luxury@rentify.lk",
+      default: "admin@rentify.lk",
     },
     notes: {
       type: String,
