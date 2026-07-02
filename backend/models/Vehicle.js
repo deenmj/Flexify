@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const vehicleSchema = new mongoose.Schema(
   {
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    owner: { type: mongoose.Schema.Types.ObjectId, required: true, refPath: "ownerModel" },
+    ownerModel: { type: String, required: true, enum: ["User", "Staff"], default: "User" },
 
     title: { type: String, required: true },
     make: { type: String, required: true },
