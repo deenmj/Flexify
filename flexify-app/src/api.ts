@@ -67,7 +67,8 @@ export interface User {
   email: string;
   phone?: string;
   address?: string;
-  role: 'user' | 'owner' | 'subadmin' | 'superadmin';
+  role: 'user' | 'owner' | 'staff' | 'admin' | 'subadmin' | 'superadmin';
+  isStaff?: boolean;
   ownerType?: 'VERIFIED' | 'UNVERIFIED' | null;
   verified: boolean;
   isKycVerified: boolean;
@@ -309,12 +310,18 @@ function authHeadersOnly(): Record<string, string> {
 }
 
 async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const headers: any = {
+    ...authHeaders(),
+    ...options.headers,
+  };
+
+  if (options.body instanceof FormData) {
+    delete headers['Content-Type'];
+  }
+
   const res = await fetch(`${API_BASE_URL}${url}`, {
     ...options,
-    headers: {
-      ...authHeaders(),
-      ...options.headers,
-    },
+    headers,
   });
 
   let data;
@@ -534,6 +541,26 @@ export const adminApi = {
       method: 'POST',
       body: JSON.stringify({ paymentId, status, rejectionReason }),
     }),
+};
+
+export const superAdminApi = {
+  getFinancials: () => apiFetch('/superadmin/financials'),
+  getStaff: () => apiFetch('/superadmin/staff'),
+  updateSettings: (data: any) => apiFetch('/superadmin/settings', { method: 'PATCH', body: JSON.stringify(data) })
+};
+
+// =================== SALES API ===================
+export const salesApi = {
+  createVehicleSale: (data: any) => apiFetch('/sales/vehicles', { 
+    method: 'POST', 
+    body: data instanceof FormData ? data : JSON.stringify(data) 
+  }),
+  getActiveSales: () => apiFetch<any[]>('/sales/vehicles'),
+  getSaleById: (id: string) => apiFetch<any>(`/sales/vehicles/${id}`),
+  updateSaleStatus: (id: string, status: string) => apiFetch<any>(`/sales/vehicles/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status })
+  }),
 };
 
 // =================== SUBADMIN ===================

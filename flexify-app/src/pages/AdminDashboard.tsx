@@ -1188,8 +1188,8 @@ export default function AdminDashboard() {
             <Select>
               <Select.Option value="user">USER</Select.Option>
               <Select.Option value="owner">OWNER</Select.Option>
-              <Select.Option value="subadmin">SUB-ADMIN</Select.Option>
-              <Select.Option value="superadmin">SUPER-ADMIN</Select.Option>
+              <Select.Option value="staff">STAFF</Select.Option>
+              <Select.Option value="admin">ADMIN</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item

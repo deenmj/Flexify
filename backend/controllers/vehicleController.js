@@ -347,7 +347,7 @@ export const listVehicles = async (req, res) => {
       q, transmission, minPrice, maxPrice, seats, vehicleType, 
       lat, lng, radius, sort, province, district, 
       startDate, endDate, driverOption, weddingHiresSpecial,
-      page = 1, limit = 12 
+      page = 1, limit = 48 
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -429,6 +429,27 @@ export const listVehicles = async (req, res) => {
     else if (sort === "price_high") sortCondition = { pricePerDay: -1 };
     else if (sort === "popular" || sort === "rating") sortCondition = { timesRented: -1 };
 
+    // Fetch owners who have active/valid subscriptions
+    const now = new Date();
+    const activeUsers = await User.find({
+      $or: [
+        { subscription: null },
+        { subscription: { $exists: false } },
+        { "subscription.status": "active" },
+        { "subscription.status": "free" },
+        { 
+          "subscription.status": "expired",
+          "subscription.gracePeriodEnd": { $gte: now }
+        },
+        {
+          "subscription.status": "expired",
+          "subscription.gracePeriodEnd": { $exists: false }
+        }
+      ]
+    }).distinct("_id");
+    
+    filter.owner = { $in: activeUsers };
+
     // Build aggregation pipeline
     // NOTE: $near is NOT supported in aggregation $match stages.
     // Must use $geoNear as the FIRST pipeline stage for geospatial queries.
@@ -450,7 +471,6 @@ export const listVehicles = async (req, res) => {
     }
 
     // Use aggregation to filter by owner subscription status and apply tier boost
-    const now = new Date();
     const vehicles = await Vehicle.aggregate([
       ...pipeline,
       {
@@ -462,24 +482,6 @@ export const listVehicles = async (req, res) => {
         }
       },
       { $unwind: "$ownerInfo" },
-      {
-        $match: {
-          $or: [
-            { "ownerInfo.subscription": null },
-            { "ownerInfo.subscription": { $exists: false } }, // Handle missing field
-            { "ownerInfo.subscription.status": "active" },
-            { "ownerInfo.subscription.status": "free" },
-            { 
-              "ownerInfo.subscription.status": "expired",
-              "ownerInfo.subscription.gracePeriodEnd": { $gte: now }
-            },
-            {
-              "ownerInfo.subscription.status": "expired",
-              "ownerInfo.subscription.gracePeriodEnd": { $exists: false } // Fallback if grace missing
-            }
-          ]
-        }
-      },
       {
         $addFields: {
           tierBoost: {

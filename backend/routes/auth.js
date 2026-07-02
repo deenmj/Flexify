@@ -298,8 +298,12 @@ router.get("/verify-email/:token", async (req, res) => {
 ========================================================= */
 router.get("/me", protect, async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
-    res.json(user);
+    const userData = req.user.toObject();
+    // Ensure isStaff flag is present for frontend normalization
+    if (['staff', 'admin', 'superadmin'].includes(userData.role)) {
+      userData.isStaff = true;
+    }
+    res.json(userData);
   } catch (err) {
     next(err);
   }

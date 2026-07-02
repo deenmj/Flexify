@@ -27,11 +27,15 @@ export default function ProtectedRoute({ children, roles, excludeRoles, requireC
     }
   }
 
-  if (roles && !roles.includes(user.role)) {
-    if (user.role === 'staff') return <Navigate to="/staff" replace />;
-    if (user.role === 'admin') return <Navigate to="/admin" replace />;
-    if (user.role === 'superadmin') return <Navigate to="/ceo-master-portal" replace />;
-    return <Navigate to="/" replace />;
+  if (roles) {
+    const isStaffAllowed = roles.includes('staff') && user.isStaff === true;
+    
+    if (!roles.includes(user.role) && !isStaffAllowed) {
+      if (user.role === 'staff') return <Navigate to="/staff" replace />;
+      if (user.role === 'admin') return <Navigate to="/admin" replace />;
+      if (user.role === 'superadmin') return <Navigate to="/ceo-master-portal" replace />;
+      return <Navigate to="/" replace />;
+    }
   }
 
   if (excludeRoles && excludeRoles.includes(user.role)) {
