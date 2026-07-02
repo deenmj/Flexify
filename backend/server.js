@@ -68,12 +68,6 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       "https://api.rentify.lk",
     ];
 
-// Always allow local dev ports in non-production environments
-if (process.env.NODE_ENV !== "production") {
-  if (!allowedOrigins.includes("http://localhost:5173")) allowedOrigins.push("http://localhost:5173");
-  if (!allowedOrigins.includes("http://localhost:5174")) allowedOrigins.push("http://localhost:5174");
-}
-
 const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
@@ -124,14 +118,7 @@ app.set("trust proxy", 1);
 app.use(compression());
 
 // Security headers
-if (process.env.NODE_ENV === "production") {
-  app.use(helmet());
-} else {
-  app.use(helmet({
-    hsts: false,
-    crossOriginResourcePolicy: false,
-  }));
-}
+app.use(helmet());
 
 // CORS configuration
 app.use(cors({
