@@ -1,8 +1,7 @@
 // Determine default backend URL based on environment
-const isDev = import.meta.env.MODE === 'development';
-const defaultApiUrl = isDev ? 'http://localhost:5000' : 'https://api.rentify.lk';
+export const getBaseUrl = () => import.meta.env.VITE_API_URL || (import.meta.env.MODE === 'development' ? 'http://localhost:5000' : 'https://api.rentify.lk');
 
-const API_BASE_URL = `${import.meta.env.VITE_API_URL || defaultApiUrl}/api`;
+const API_BASE_URL = `${getBaseUrl()}/api`;
 
 export const getImageUrl = (path?: any) => {
   const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80';
@@ -710,6 +709,14 @@ export interface Founder {
   image: string;
 }
 
+export interface MaintenanceData {
+  isMaintenanceMode: boolean;
+  maintenanceTitle?: string;
+  maintenanceMessage?: string;
+  estimatedTime?: string;
+  progressStatus?: string;
+}
+
 export const settingsApi = {
   getContactDetails: () => apiFetch<{ email: string; phone: string; address: string; workingHours: string; }>('/settings/contact'),
   updateContactDetails: (data: { email: string; phone: string; address: string; workingHours: string; }) => 
@@ -733,6 +740,14 @@ export const settingsApi = {
 
   deleteFounder: (index: number) =>
     apiFetch<Founder[]>(`/settings/founders/${index}`, { method: 'DELETE' }),
+
+  getMaintenanceMode: () => apiFetch<MaintenanceData>('/settings/maintenance'),
+  
+  toggleMaintenanceMode: (data: MaintenanceData) => 
+    apiFetch<MaintenanceData>('/settings/maintenance', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
 };
 
 export const feedbackApi = {

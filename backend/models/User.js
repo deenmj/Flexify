@@ -42,10 +42,10 @@ const userSchema = new mongoose.Schema(
       default: "local",
     },
 
-    // Core role: user | owner | subadmin | superadmin
+    // Core role: user | owner
     role: {
       type: String,
-      enum: ["user", "owner", "subadmin", "superadmin"],
+      enum: ["user", "owner"],
       default: "user",
     },
 

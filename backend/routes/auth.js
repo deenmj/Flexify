@@ -11,6 +11,7 @@ import rateLimit from "express-rate-limit";
 
 import sendEmail from "../utils/sendEmail.js";
 import User from "../models/User.js";
+import Staff from "../models/Staff.js";
 import generateToken from "../utils/generateToken.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -212,7 +213,14 @@ router.post("/login", loginLimiter, async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email: email.toLowerCase() });
+    let user = await User.findOne({ email: email.toLowerCase() });
+    let isStaff = false;
+
+    if (!user) {
+      user = await Staff.findOne({ email: email.toLowerCase() });
+      if (user) isStaff = true;
+    }
+
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -223,7 +231,8 @@ router.post("/login", loginLimiter, async (req, res, next) => {
       });
     }
 
-    if (!user.verified) {
+    // Staff accounts might not require email verification in the same way, but let's keep it consistent
+    if (!isStaff && !user.verified) {
       return res.status(403).json({
         message: "Please verify your email before logging in",
       });
@@ -242,7 +251,7 @@ router.post("/login", loginLimiter, async (req, res, next) => {
     }
 
     res.json({
-      token: generateToken(user._id),
+      token: generateToken(user._id, isStaff),
       user: {
         id: user._id,
         name: user.name,
@@ -255,6 +264,7 @@ router.post("/login", loginLimiter, async (req, res, next) => {
         profilePic: user.profilePic,
         phone: user.phone,
         provider: user.provider,
+        isStaff, // explicit flag for frontend if needed
       },
     });
   } catch (err) {

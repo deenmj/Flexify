@@ -79,15 +79,17 @@ export default function Navbar() {
 
   const getDashboardLink = () => {
     if (!user) return null;
-    if (user.role === 'superadmin') return '/admin';
-    if (user.role === 'subadmin') return '/subadmin';
+    if (user.role === 'superadmin') return '/ceo-master-portal';
+    if (user.role === 'admin') return '/admin';
+    if (user.role === 'staff') return '/staff';
     return '/dashboard';
   };
 
   const getRoleBadge = () => {
     if (!user) return null;
-    if (user.role === 'superadmin') return { text: 'ADMIN', color: '#7c3aed' };
-    if (user.role === 'subadmin') return { text: 'STAFF', color: '#0d9488' };
+    if (user.role === 'superadmin') return { text: 'CEO', color: '#b8860b' };
+    if (user.role === 'admin') return { text: 'ADMIN', color: '#7c3aed' };
+    if (user.role === 'staff') return { text: 'STAFF', color: '#0d9488' };
     if (user.role === 'owner' && user.ownerType === 'VERIFIED') return { text: 'PRO', color: '#1890ff' };
     if (user.isKycVerified) return { text: '✓', color: '#16a34a' };
     return null;
@@ -111,8 +113,9 @@ export default function Navbar() {
 
   const badge = getRoleBadge();
   const isSuperAdmin = user?.role === 'superadmin';
-  const isStaff = user?.role === 'subadmin';
-  const isAdminRole = isSuperAdmin || isStaff;
+  const isAdmin = user?.role === 'admin';
+  const isStaff = user?.role === 'staff';
+  const isAdminRole = isSuperAdmin || isAdmin || isStaff;
 
   return (
     <>
@@ -227,7 +230,7 @@ export default function Navbar() {
                   </Link>
                   {getDashboardLink() && (
                     <Link to={getDashboardLink()!} className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                      <LayoutDashboard size={16} /> {isStaff ? 'Staff Dashboard' : isSuperAdmin ? 'Admin Dashboard' : 'Dashboard'}
+                      <LayoutDashboard size={16} /> {isSuperAdmin ? 'CEO Portal' : isAdmin ? 'Admin Dashboard' : isStaff ? 'Staff Dashboard' : 'Dashboard'}
                     </Link>
                   )}
 
@@ -307,7 +310,7 @@ export default function Navbar() {
                 <>
                   <div className="mobile-section-title">My Account</div>
                   <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>
-                    <LayoutDashboard size={18} /> {isSuperAdmin ? 'Admin Dashboard' : isStaff ? 'Staff Dashboard' : 'Dashboard'}
+                    <LayoutDashboard size={18} /> {isSuperAdmin ? 'CEO Portal' : isAdmin ? 'Admin Dashboard' : isStaff ? 'Staff Dashboard' : 'Dashboard'}
                   </Link>
                   {isAdminRole && (
                     <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> My Vehicles & Bookings</Link>

@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { protect } from '../middleware/authMiddleware.js';
-import { getContactDetails, updateContactDetails, getFounders, updateFounders, deleteFounder } from '../controllers/settingsController.js';
+import { getContactDetails, updateContactDetails, getFounders, updateFounders, deleteFounder, getMaintenanceMode, toggleMaintenanceMode } from '../controllers/settingsController.js';
 
 const router = express.Router();
 
@@ -24,6 +24,11 @@ const founderUpload = multer({
 router.get('/founders', getFounders);
 router.put('/founders', protect, founderUpload.any(), updateFounders);
 router.delete('/founders/:index', protect, deleteFounder);
+
+// Maintenance Mode
+router.route('/maintenance')
+  .get(getMaintenanceMode)
+  .put(protect, toggleMaintenanceMode);
 
 export default router;
 
