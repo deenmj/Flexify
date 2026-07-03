@@ -33,6 +33,8 @@ const AddVehicleSale: React.FC = () => {
       formData.append('title', values.title);
       formData.append('description', values.description);
       formData.append('status', 'New');
+      if (values.contactNumber) formData.append('contactNumber', values.contactNumber);
+      if (values.seoTags) formData.append('seoTags', JSON.stringify(values.seoTags));
       
       const ownerDetails = {
         name: values.ownerName,
@@ -186,6 +188,25 @@ const AddVehicleSale: React.FC = () => {
         <Form.Item name="description" label="Detailed Description (Service History, Faults, etc.)" rules={[{ required: true, message: 'Description is required' }]}>
           <TextArea rows={6} placeholder="Provide a comprehensive description of the vehicle's condition, history, and any modifications." />
         </Form.Item>
+
+        <Row gutter={16}>
+          <Col span={12} xs={24} md={12}>
+            <Form.Item name="contactNumber" label="Sales Contact Number" rules={[{ required: true, message: 'Contact Number is required' }]}>
+              <Input placeholder="+94..." />
+            </Form.Item>
+          </Col>
+          <Col span={12} xs={24} md={12}>
+            <Form.Item name="seoTags" label="SEO Keywords (Max 5)">
+              <Select 
+                mode="tags" 
+                style={{ width: '100%' }} 
+                placeholder="Type and press enter (e.g. SUV, Hybrid)"
+                tokenSeparators={[',']}
+                maxTagCount={5}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Form.Item label="Vehicle Images">
           <Upload.Dragger

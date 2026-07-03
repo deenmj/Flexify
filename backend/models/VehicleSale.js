@@ -17,11 +17,15 @@ const vehicleSaleSchema = new mongoose.Schema(
     askingPrice: { type: Number, required: true },
     commissionRate: { type: Number, default: 0 },
     isNegotiable: { type: Boolean, default: false },
+    finalNegotiatedPrice: { type: Number },
+    profitEarned: { type: Number },
 
     // Content
     title: { type: String, required: true },
     description: { type: String },
     images: { type: [String], default: [] }, // Array of URLs
+    seoTags: { type: [String], default: [] },
+    contactNumber: { type: String },
 
     // Internal Tracking
     listedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Staff", required: true },

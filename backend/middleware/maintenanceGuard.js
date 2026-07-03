@@ -42,8 +42,16 @@ export const maintenanceGuard = async (req, res, next) => {
         let user;
         if (decoded.isStaff) {
           user = await Staff.findById(decoded.id).select('-password');
+          if (!user) user = await User.findById(decoded.id).select('-password');
         } else {
           user = await User.findById(decoded.id).select('-password');
+          if (user && ['staff', 'admin', 'superadmin'].includes(user.role)) {
+            const staffUser = await Staff.findOne({ email: user.email }).select('-password');
+            if (staffUser) {
+              user = staffUser;
+            }
+          }
+          if (!user) user = await Staff.findById(decoded.id).select('-password');
         }
 
         if (user && (user.role === 'staff' || user.role === 'admin' || user.role === 'superadmin')) {

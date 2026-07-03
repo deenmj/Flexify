@@ -27,6 +27,8 @@ router.post("/vehicles", protect, requireStaff, upload.array("images", 10), asyn
       isNegotiable,
       title,
       description,
+      seoTags,
+      contactNumber,
       originalOwnerDetails: ownerDetailsStr,
       status,
     } = req.body;
@@ -61,6 +63,8 @@ router.post("/vehicles", protect, requireStaff, upload.array("images", 10), asyn
       isNegotiable: isNegotiable || false,
       title,
       description,
+      seoTags: seoTags ? (Array.isArray(seoTags) ? seoTags : JSON.parse(seoTags)) : [],
+      contactNumber,
       images: images || [],
       listedBy: req.user._id, // Bind the staff member creating it
       assignedStaff: {
@@ -77,6 +81,21 @@ router.post("/vehicles", protect, requireStaff, upload.array("images", 10), asyn
     res.status(201).json(savedSale);
   } catch (error) {
     console.error("Error creating vehicle sale:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+/**
+ * @route   GET /api/sales/staff/vehicles
+ * @desc    Get all active vehicle sales with full details for staff
+ * @access  Private (Staff/Admin/Superadmin only)
+ */
+router.get("/staff/vehicles", protect, requireStaff, async (req, res) => {
+  try {
+    const sales = await VehicleSale.find()
+    .sort("-createdAt");
+    res.json(sales);
+  } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -126,7 +145,7 @@ router.get("/vehicles/:id", async (req, res) => {
  */
 router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, finalNegotiatedPrice } = req.body;
     
     if (!["Available", "New", "Sold Out"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
@@ -138,6 +157,14 @@ router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
     }
 
     sale.status = status;
+    
+    // Handle final sale negotiation
+    if (status === 'Sold Out' && finalNegotiatedPrice) {
+      sale.finalNegotiatedPrice = finalNegotiatedPrice;
+      const profit = finalNegotiatedPrice * ((sale.commissionRate || 0) / 100);
+      sale.profitEarned = profit;
+    }
+
     const updatedSale = await sale.save();
     
     res.json(updatedSale);

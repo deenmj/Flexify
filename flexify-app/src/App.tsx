@@ -12,6 +12,7 @@ import BottomNav from './components/BottomNav';
 import ScrollRestoration from './components/ScrollRestoration';
 import ScrollToTop from './components/ScrollToTop';
 import MaintenanceScreen from './components/MaintenanceScreen';
+import InstallPWAModal from './components/InstallPWAModal';
 
 // Eagerly loaded (critical path — needed immediately)
 import NotFound from './pages/NotFound';
@@ -141,6 +142,7 @@ export default function App() {
       <ScrollRestoration />
       <AuthProvider>
         <SocketProvider>
+            <InstallPWAModal />
             <ScrollToTop />
             <MaintenanceWrapper checking={checkingMaintenance} maintenanceData={maintenanceData}>
               <Suspense fallback={<div className="page-loading-placeholder" />}>

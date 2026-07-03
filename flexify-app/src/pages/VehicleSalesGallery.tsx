@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Typography, Badge, Spin, Result } from 'antd';
+import { Row, Col, Typography, Badge, Spin, Result, Button, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { salesApi, getImageUrl } from '../api';
+import { salesApi, userApi, getImageUrl } from '../api';
+import { useAuth } from '../context/AuthContext';
+import { Heart, Share2, Activity, Settings, Calendar, Fuel } from 'lucide-react';
 
 const { Title, Text } = Typography;
 
@@ -11,6 +13,8 @@ export default function VehicleSalesGallery() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const { user, setUser } = useAuth();
+  
   useEffect(() => {
     const fetchSales = async () => {
       try {
@@ -24,6 +28,52 @@ export default function VehicleSalesGallery() {
     };
     fetchSales();
   }, []);
+
+  const isVehicleSaved = (vehicleId: string) => {
+    return user?.saleWishlist?.some((item: any) => 
+      (typeof item === 'string' ? item : item._id) === vehicleId
+    ) || false;
+  };
+
+  const handleToggleWishlist = async (e: React.MouseEvent, saleId: string) => {
+    e.stopPropagation();
+    if (!user) {
+      message.info('Please log in to save vehicles to your wishlist.');
+      navigate('/login');
+      return;
+    }
+    try {
+      const currentlySaved = isVehicleSaved(saleId);
+      const newWishlist = currentlySaved 
+        ? (user.saleWishlist || []).filter((item: any) => (typeof item === 'string' ? item : item._id) !== saleId)
+        : [...(user.saleWishlist || []), saleId];
+      setUser({ ...user, saleWishlist: newWishlist });
+
+      const res = await userApi.toggleWishlistSale(saleId);
+      setUser({ ...user, saleWishlist: res.saleWishlist });
+      message.success(res.message);
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update wishlist');
+    }
+  };
+
+  const handleShare = async (e: React.MouseEvent, saleId: string) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/buy/${saleId}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Check out this vehicle on Rentify',
+          url: url
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      message.success('Link copied to clipboard!');
+    }
+  };
 
   if (loading) {
     return (
@@ -42,7 +92,7 @@ export default function VehicleSalesGallery() {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '120px 20px 60px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px 60px' }}>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <Title level={2} style={{ color: '#0f172a', fontWeight: 700, margin: 0 }}>Vehicle Sales Marketplace</Title>
         <Text type="secondary" style={{ fontSize: '1.1rem' }}>Browse our exclusive selection of vehicles available for purchase.</Text>
@@ -53,7 +103,27 @@ export default function VehicleSalesGallery() {
           <Text type="secondary">No vehicles are currently listed for sale. Check back soon!</Text>
         </div>
       ) : (
-        <Row gutter={[24, 24]}>
+        <>
+          <style>{`
+            .luxury-gallery-card {
+              background-color: var(--bg-card);
+              border-radius: var(--radius-2xl, 24px);
+              border: 1px solid var(--border-color-light, #f1f5f9);
+              overflow: hidden;
+              box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              position: relative;
+              cursor: pointer;
+              transition: all var(--transition-base, 0.3s ease-out);
+            }
+            .luxury-gallery-card:hover {
+              box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0,0,0,0.1));
+              transform: translateY(-6px);
+            }
+          `}</style>
+          <Row gutter={[24, 24]}>
           {sales.map((vehicle) => {
             const primaryImage = vehicle.images && vehicle.images.length > 0 ? getImageUrl(vehicle.images[0]) : getImageUrl();
             
@@ -71,74 +141,82 @@ export default function VehicleSalesGallery() {
             return (
               <Col xs={24} sm={12} md={8} lg={8} key={vehicle._id}>
                 <div 
-                  className="vehicle-sale-card"
-                  style={{
-                    backgroundColor: '#fff',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    position: 'relative'
-                  }}
+                  className="luxury-gallery-card"
                   onClick={() => navigate(`/buy/${vehicle._id}`)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                  }}
                 >
-                  <div style={{ position: 'relative', paddingTop: '66.66%' }}>
+                  <div style={{ position: 'relative', width: '100%' }}>
                     <img 
                       src={primaryImage} 
                       alt={`${vehicle.make} ${vehicle.model}`} 
-                      style={{ 
-                        position: 'absolute', 
-                        top: 0, 
-                        left: 0, 
-                        width: '100%', 
-                        height: '100%', 
-                        objectFit: 'cover' 
-                      }} 
+                      style={{ aspectRatio: '16/10', width: '100%', objectFit: 'cover', display: 'block' }}
                     />
+                    
+                    {/* Action Buttons Overlay */}
+                    <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '8px', zIndex: 10 }}>
+                      <button 
+                        onClick={(e) => handleShare(e, vehicle._id)}
+                        style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
+                      >
+                        <Share2 size={18} color="var(--text-secondary)" />
+                      </button>
+                      <button 
+                        onClick={(e) => handleToggleWishlist(e, vehicle._id)}
+                        style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
+                      >
+                        {isVehicleSaved(vehicle._id) ? (
+                          <Heart size={18} color="#ef4444" fill="#ef4444" />
+                        ) : (
+                          <Heart size={18} color="var(--text-secondary)" />
+                        )}
+                      </button>
+                    </div>
+
                     {badgeText && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        backgroundColor: badgeColor,
-                        color: 'white',
-                        padding: '4px 12px',
-                        borderRadius: '20px',
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.05em',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                      }}>
+                      <div 
+                        style={{ 
+                          position: 'absolute', top: '12px', left: '12px', color: '#fff', padding: '4px 12px', 
+                          borderRadius: '20px', fontWeight: 'bold', fontSize: '10px', letterSpacing: '1px', 
+                          boxShadow: 'var(--shadow-sm)', backgroundColor: badgeColor 
+                        }}
+                      >
                         {badgeText}
                       </div>
                     )}
                   </div>
                   
-                  <div style={{ padding: '20px' }}>
-                    <Text type="secondary" style={{ fontSize: '0.85rem', fontWeight: 600 }}>{vehicle.year}</Text>
-                    <Title level={4} style={{ margin: '4px 0 12px', fontSize: '1.25rem' }}>
+                  <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                    <Text type="secondary" style={{ fontSize: '12px', fontWeight: 700, marginBottom: '4px', display: 'block' }}>
+                      {vehicle.year}
+                    </Text>
+                    <Title level={4} style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {vehicle.make} {vehicle.model}
                     </Title>
                     
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                      <Text type="secondary">{vehicle.mileage.toLocaleString()} km</Text>
-                      <Text type="secondary">{vehicle.transmission}</Text>
+                    {/* Specs Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Activity size={14} color="var(--text-tertiary)" />
+                        <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>{vehicle.mileage.toLocaleString()} km</Text>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Settings size={14} color="var(--text-tertiary)" />
+                        <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>{vehicle.transmission}</Text>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Fuel size={14} color="var(--text-tertiary)" />
+                        <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>{vehicle.fuelType}</Text>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Calendar size={14} color="var(--text-tertiary)" />
+                        <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>{vehicle.condition}</Text>
+                      </div>
                     </div>
                     
-                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
+                    <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color-light)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>
                         Rs. {vehicle.askingPrice.toLocaleString()}
                       </Text>
-                      <Text type="secondary" style={{ fontSize: '0.8rem' }}>
+                      <Text type="secondary" style={{ fontSize: '11px', fontWeight: 600 }}>
                         {vehicle.isNegotiable ? 'Negotiable' : 'Fixed'}
                       </Text>
                     </div>
@@ -148,6 +226,7 @@ export default function VehicleSalesGallery() {
             );
           })}
         </Row>
+        </>
       )}
     </div>
   );

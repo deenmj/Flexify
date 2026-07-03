@@ -8,7 +8,7 @@ import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Book
 import {
   Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
   Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle,
-  CalendarOff, Star, MessageSquare, Zap, Edit, Info, User, Users, FileText, Compass
+  CalendarOff, Star, MessageSquare, Zap, Edit, Info, User, Users, FileText, Compass, Heart
 } from 'lucide-react';
 import { notification } from 'antd';
 
@@ -27,11 +27,15 @@ export default function Dashboard() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [rentWishlist, setRentWishlist] = useState<Vehicle[]>([]);
+  const [saleWishlist, setSaleWishlist] = useState<any[]>([]);
+  const [wishlistSubTab, setWishlistSubTab] = useState<'rent' | 'buy'>('rent');
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews'>(() => {
+  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'wishlist'>(() => {
     const urlTab = searchParams.get('tab');
     if (urlTab === 'bookings') return 'bookings';
+    if (urlTab === 'wishlist') return 'wishlist';
     return user?.role === 'user' ? 'bookings' : 'vehicles';
   });
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -91,7 +95,7 @@ export default function Dashboard() {
     setSelectedRenter(initialUser);
     setActiveBookingId(bookingId);
     setShowRenterModal(true);
-    
+
     // Explicitly fetch full user details directly from the User collection
     // This bypasses any population issues in the main booking list
     try {
@@ -106,9 +110,11 @@ export default function Dashboard() {
   useEffect(() => {
     const highlightId = searchParams.get('highlight');
     const targetTab = searchParams.get('tab');
-    
+
     if (targetTab === 'bookings') {
       setTab('bookings');
+    } else if (targetTab === 'wishlist') {
+      setTab('wishlist');
     } else if (targetTab === 'vehicles' && (vehicles.length > 0 || user?.role === 'admin')) {
       setTab('vehicles');
     }
@@ -136,14 +142,18 @@ export default function Dashboard() {
     try {
       const v = await vehicleApi.getMy().catch(() => []);
       const b = await bookingApi.getMy().catch(() => []);
+      const rw = await userApi.getWishlistRent().catch(() => []);
+      const sw = await userApi.getWishlistSale().catch(() => []);
       setVehicles(v as Vehicle[]);
       setBookings(b as Booking[]);
-      
+      setRentWishlist(rw);
+      setSaleWishlist(sw);
+
       if (user?.role === 'owner') {
         const r = await reviewApi.getMyReviews().catch(() => []);
         setReviews(r as Review[]);
       }
-      
+
 
     } catch (err) {
       console.error("Failed to refresh dashboard data", err);
@@ -224,7 +234,7 @@ export default function Dashboard() {
 
   const handleAcceptBooking = async (id: string) => {
     const previousBookings = [...bookings];
-    
+
     // 1. Instant Optimistic UI Update
     setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CONFIRMED' } : bk));
     message.success('Booking confirmed!');
@@ -251,7 +261,7 @@ export default function Dashboard() {
       content: (
         <div style={{ marginTop: '16px' }}>
           <p style={{ marginBottom: '12px' }}>Are you sure you want to reject this booking request?</p>
-          <Input.TextArea 
+          <Input.TextArea
             placeholder="Tell the renter why you are rejecting (e.g., Vehicle needs maintenance)"
             onChange={(e) => { reason = e.target.value; }}
             rows={3}
@@ -278,7 +288,7 @@ export default function Dashboard() {
       content: (
         <div style={{ marginTop: '16px' }}>
           <p style={{ marginBottom: '12px' }}>Are you sure you want to cancel this booking?</p>
-          <Input.TextArea 
+          <Input.TextArea
             placeholder="Reason for cancellation (e.g., Change of plans)"
             onChange={(e) => { reason = e.target.value; }}
             rows={3}
@@ -346,7 +356,7 @@ export default function Dashboard() {
 
   const bookingStatusBadge = (status: string, startDate?: any) => {
     const isExpired = status === 'PENDING' && startDate && dayjs(startDate).isBefore(dayjs(), 'day');
-    
+
     if (isExpired) {
       return <Tag color="error" icon={<Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}>Expired</Tag>;
     }
@@ -371,7 +381,7 @@ export default function Dashboard() {
       const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)?._id || (b.owner as any)?.id : b.owner);
       const bRenterId = String(typeof b.user === 'object' ? (b.user as any)?._id || (b.user as any)?.id : b.user);
       const myId = String(user._id || user.id);
-      
+
       const isMyVehicle = myId === bOwnerId;
       const amIRenter = myId === bRenterId;
 
@@ -391,7 +401,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-page page-wrapper" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
-      <SEO 
+      <SEO
         title="My Dashboard — Manage Vehicles & Bookings | Rentify"
         description="Manage your vehicle listings, bookings, and earnings on Rentify.lk."
         noindex={true}
@@ -418,31 +428,45 @@ export default function Dashboard() {
         {/* Tabs - Navigation */}
         <div className="dashboard-nav">
           {user.role === 'user' && vehicles.length === 0 ? (
-            <button 
-              className={`nav-item active`} 
-              onClick={() => { setTab('bookings'); setBookingType('trips'); }}
-            >
-              <CalIcon size={16} /> My Trip History
-            </button>
+            <>
+              <button
+                className={`nav-item ${tab === 'bookings' || tab === 'vehicles' ? 'active' : ''}`}
+                onClick={() => { setTab('bookings'); setBookingType('trips'); }}
+              >
+                <CalIcon size={16} /> My Trip History
+              </button>
+              <button
+                className={`nav-item ${tab === 'wishlist' ? 'active' : ''}`}
+                onClick={() => setTab('wishlist')}
+              >
+                <Heart size={16} /> Wishlist
+              </button>
+            </>
           ) : (
             <>
-              <button 
-                className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`} 
+              <button
+                className={`nav-item ${tab === 'vehicles' ? 'active' : ''}`}
                 onClick={() => setTab('vehicles')}
               >
                 <Car size={16} /> My Vehicles
               </button>
-              <button 
-                className={`nav-item ${tab === 'bookings' && bookingType === 'received' ? 'active' : ''}`} 
+              <button
+                className={`nav-item ${tab === 'bookings' && bookingType === 'received' ? 'active' : ''}`}
                 onClick={() => { setTab('bookings'); setBookingType('received'); }}
               >
                 <CalIcon size={16} /> Manage Bookings
               </button>
-              <button 
-                className={`nav-item ${tab === 'bookings' && bookingType === 'trips' ? 'active' : ''}`} 
+              <button
+                className={`nav-item ${tab === 'bookings' && bookingType === 'trips' ? 'active' : ''}`}
                 onClick={() => { setTab('bookings'); setBookingType('trips'); }}
               >
                 <Compass size={16} /> My Trips
+              </button>
+              <button
+                className={`nav-item ${tab === 'wishlist' ? 'active' : ''}`}
+                onClick={() => setTab('wishlist')}
+              >
+                <Heart size={16} /> Wishlist
               </button>
             </>
           )}
@@ -501,7 +525,7 @@ export default function Dashboard() {
                       </div>
                       <h4 className="dash-vehicle-card-title">{v.title}</h4>
                       <div className="dash-vehicle-card-meta">{v.make} {v.model}</div>
-                      
+
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                         <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: isMobile ? '0.6rem' : '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
                       </div>
@@ -520,33 +544,33 @@ export default function Dashboard() {
 
               {/* Booking Filters */}
               <div className="dashboard-nav" style={{ marginBottom: 0 }}>
-                <button 
-                  className={`nav-item ${bookingFilter === 'all' ? 'active' : ''}`} 
+                <button
+                  className={`nav-item ${bookingFilter === 'all' ? 'active' : ''}`}
                   onClick={() => setBookingFilter('all')}
                 >
                   All
                 </button>
-                <button 
-                  className={`nav-item ${bookingFilter === 'pending' ? 'active' : ''}`} 
+                <button
+                  className={`nav-item ${bookingFilter === 'pending' ? 'active' : ''}`}
                   onClick={() => setBookingFilter('pending')}
                 >
                   Pending
                 </button>
-                <button 
-                  className={`nav-item ${bookingFilter === 'confirmed' ? 'active' : ''}`} 
+                <button
+                  className={`nav-item ${bookingFilter === 'confirmed' ? 'active' : ''}`}
                   onClick={() => setBookingFilter('confirmed')}
                 >
                   Confirmed
                 </button>
-                <button 
-                  className={`nav-item ${bookingFilter === 'past' ? 'active' : ''}`} 
+                <button
+                  className={`nav-item ${bookingFilter === 'past' ? 'active' : ''}`}
                   onClick={() => setBookingFilter('past')}
                 >
                   Past
                 </button>
               </div>
             </div>
-            
+
             {filteredBookings.length === 0 ? (
               <div className="dashboard-empty" style={{ padding: '5rem 2rem', textAlign: 'center' }}>
                 <div style={{ background: '#f8fafc', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid #e2e8f0' }}>
@@ -571,7 +595,7 @@ export default function Dashboard() {
                   const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)?._id || (b.owner as any)?.id : b.owner);
                   const bRenterId = String(typeof b.user === 'object' ? (b.user as any)?._id || (b.user as any)?.id : b.user);
                   const myId = String(user?._id || user?.id || '');
-                  
+
                   const isIamRenterOfThis = myId === bRenterId;
                   const isIamOwnerOfThis = myId === bOwnerId || isStaff;
                   const owner = typeof b.owner === 'object' ? b.owner : null;
@@ -601,7 +625,7 @@ export default function Dashboard() {
                             </div>
                             {bookingStatusBadge(b.status, b.startDate)}
                           </div>
-                          
+
                           <div className="booking-card-meta" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '10px' : '12px', background: '#f8fafc', padding: isMobile ? '12px' : '16px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                             <div>
                               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Trip Dates</div>
@@ -666,17 +690,17 @@ export default function Dashboard() {
                           <div className="booking-card-actions">
                             {b.status === 'PENDING' && isIamOwnerOfThis && bookingType === 'received' && (
                               <div style={{ display: 'flex', width: '100%' }}>
-                                <button 
-                                  className="btn btn-sm btn-primary" 
+                                <button
+                                  className="btn btn-sm btn-primary"
                                   disabled={dayjs(b.startDate).isBefore(dayjs(), 'day')}
-                                  style={{ 
-                                    flex: 1, 
-                                    background: dayjs(b.startDate).isBefore(dayjs(), 'day') ? '#cbd5e1' : '#1890ff', 
-                                    fontWeight: 600, 
+                                  style={{
+                                    flex: 1,
+                                    background: dayjs(b.startDate).isBefore(dayjs(), 'day') ? '#cbd5e1' : '#1890ff',
+                                    fontWeight: 600,
                                     height: '32px',
                                     cursor: dayjs(b.startDate).isBefore(dayjs(), 'day') ? 'not-allowed' : 'pointer'
                                   }}
-                                  onClick={() => { 
+                                  onClick={() => {
                                     const renter = typeof b.user === 'object' ? b.user : null;
                                     handleReviewRenter(b._id, renter);
                                   }}
@@ -691,10 +715,10 @@ export default function Dashboard() {
                             )}
 
                             {b.status === 'CONFIRMED' && !isPast && (
-                               ((isIamOwnerOfThis && bookingType === 'received') || (isIamRenterOfThis && (bookingType === 'trips' || user?.role === 'user')))
+                              ((isIamOwnerOfThis && bookingType === 'received') || (isIamRenterOfThis && (bookingType === 'trips' || user?.role === 'user')))
                             ) && (
-                              <button className="btn btn-sm btn-cancel-booking" onClick={() => handleCancelBooking(b._id)}>Cancel Booking</button>
-                            )}
+                                <button className="btn btn-sm btn-cancel-booking" onClick={() => handleCancelBooking(b._id)}>Cancel Booking</button>
+                              )}
 
                             {(b.status === 'COMPLETED' || (b.status === 'CONFIRMED' && isPast)) && isIamRenterOfThis && !b.isReviewed && (bookingType === 'trips' || user?.role === 'user') && (
                               <button className="btn btn-sm btn-primary" onClick={() => { setSelectedBookingId(b._id); setShowReviewModal(true); }}>Leave Review</button>
@@ -706,6 +730,108 @@ export default function Dashboard() {
                   );
                 })}
               </div>
+            )}
+          </div>
+        ) : tab === 'wishlist' ? (
+          <div className="dashboard-box">
+            <div className="dashboard-box-header" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '1.25rem 1.5rem' }}>
+              <h3 className="dashboard-box-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>Saved Vehicles</h3>
+              <div className="dashboard-nav" style={{ marginTop: '1rem', marginBottom: 0, width: '100%', borderBottom: 'none' }}>
+                <button
+                  className={`nav-item ${wishlistSubTab === 'rent' ? 'active' : ''}`}
+                  onClick={() => setWishlistSubTab('rent')}
+                >
+                  Saved Rentals
+                </button>
+                <button
+                  className={`nav-item ${wishlistSubTab === 'buy' ? 'active' : ''}`}
+                  onClick={() => setWishlistSubTab('buy')}
+                >
+                  Saved to Buy
+                </button>
+              </div>
+            </div>
+
+            {wishlistSubTab === 'buy' ? (
+              saleWishlist.length === 0 ? (
+                <div className="dashboard-empty" style={{ padding: '5rem 2rem', textAlign: 'center' }}>
+                  <div style={{ background: '#f8fafc', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid #e2e8f0' }}>
+                    <Heart size={40} strokeWidth={1.5} color="#94a3b8" />
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Your sales wishlist is empty</h3>
+                  <p style={{ color: 'var(--text-tertiary)', marginBottom: '2rem' }}>Save vehicles you are interested in buying to view them later.</p>
+                  <Link to="/buy" className="btn btn-primary" style={{ padding: '12px 32px' }}>
+                    <Car size={18} style={{ marginRight: '8px' }} /> Browse Marketplace
+                  </Link>
+                </div>
+              ) : (
+                <div className="dashboard-grid">
+                  {saleWishlist.filter((v: any) => v && v._id).map((v: any) => (
+                    <div key={v._id} className="dash-vehicle-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }} onClick={() => navigate(`/buy/${v._id}`)}>
+                      <div className="dash-vehicle-card-img">
+                        {v.images?.[0] ? (
+                          <img src={getImageUrl(v.images[0])} alt={v.title} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
+                            <Car size={32} color="#cbd5e1" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="dash-vehicle-card-body">
+                        <div style={{ textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 800, color: '#ef4444', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                          SAVED TO BUY
+                        </div>
+                        <h4 className="dash-vehicle-card-title">{v.make} {v.model}</h4>
+                        <div className="dash-vehicle-card-meta">{v.year} • {v.mileage?.toLocaleString()} km</div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                          <div className="dash-vehicle-card-price">LKR {v.askingPrice?.toLocaleString()}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              rentWishlist.length === 0 ? (
+                <div className="dashboard-empty" style={{ padding: '5rem 2rem', textAlign: 'center' }}>
+                  <div style={{ background: '#f8fafc', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid #e2e8f0' }}>
+                    <Heart size={40} strokeWidth={1.5} color="#94a3b8" />
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Your rental wishlist is empty</h3>
+                  <p style={{ color: 'var(--text-tertiary)', marginBottom: '2rem' }}>Save vehicles you want to rent later.</p>
+                  <Link to="/explore" className="btn btn-primary" style={{ padding: '12px 32px' }}>
+                    <Car size={18} style={{ marginRight: '8px' }} /> Explore Rentals
+                  </Link>
+                </div>
+              ) : (
+                <div className="dashboard-grid">
+                  {rentWishlist.filter((v: any) => v && v._id).map((v: any) => (
+                    <div key={v._id} className="dash-vehicle-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }} onClick={() => navigate(`/vehicles/${getVehicleSlug(v)}`)}>
+                      <div className="dash-vehicle-card-img">
+                        {v.photos?.[0] ? (
+                          <img src={getImageUrl(v.photos[0])} alt={v.title} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
+                            <Car size={32} color="#cbd5e1" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="dash-vehicle-card-body">
+                        <div style={{ textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 800, color: '#ef4444', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                          SAVED RENTAL
+                        </div>
+                        <h4 className="dash-vehicle-card-title">{v.make} {v.model}</h4>
+                        <div className="dash-vehicle-card-meta">{v.year} • {v.transmission}</div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                          <div className="dash-vehicle-card-price">LKR {v.pricePerDay?.toLocaleString()}<span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
           </div>
         ) : null}
@@ -739,9 +865,9 @@ export default function Dashboard() {
         onCancel={() => setShowRenterModal(false)}
         footer={[
           <Button key="close" onClick={() => setShowRenterModal(false)}>Close</Button>,
-          <Button 
-            key="reject" 
-            danger 
+          <Button
+            key="reject"
+            danger
             onClick={() => {
               if (activeBookingId) handleRejectBooking(activeBookingId);
               setShowRenterModal(false);
@@ -749,9 +875,9 @@ export default function Dashboard() {
           >
             Reject
           </Button>,
-          <Button 
-            key="approve" 
-            type="primary" 
+          <Button
+            key="approve"
+            type="primary"
             style={{ background: '#16a34a', borderColor: '#16a34a' }}
             onClick={() => {
               if (activeBookingId) handleAcceptBooking(activeBookingId);
@@ -770,8 +896,8 @@ export default function Dashboard() {
             {/* Top Bar with User Info */}
             <div style={{ padding: '16px', background: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 250px' }}>
-                <Avatar 
-                  size={56} 
+                <Avatar
+                  size={56}
                   src={getImageUrl(selectedRenter.profilePic)}
                   style={{ background: '#1890ff', flexShrink: 0 }}
                 >
@@ -805,17 +931,17 @@ export default function Dashboard() {
                   { label: 'Profile Photo', field: 'selfie' },
                 ].map((doc, idx) => {
                   const renterData = selectedRenter as any;
-                  const url = renterData.documents?.[doc.field] || 
-                              renterData[doc.field] || 
-                              null;
-                                
+                  const url = renterData.documents?.[doc.field] ||
+                    renterData[doc.field] ||
+                    null;
+
                   const fullUrl = getImageUrl(url);
-                  
+
                   return (
-                    <div key={idx} style={{ 
-                      background: '#fff', 
-                      padding: '12px', 
-                      borderRadius: '16px', 
+                    <div key={idx} style={{
+                      background: '#fff',
+                      padding: '12px',
+                      borderRadius: '16px',
                       border: '1px solid #f1f5f9',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                     }}>
@@ -950,9 +1076,9 @@ export default function Dashboard() {
                           {typeof selectedBooking.owner === 'object' ? (
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '16px' }}>
-                                <img 
-                                  src={getImageUrl((selectedBooking.owner as any).profilePic)} 
-                                  style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #bbf7d0' }} 
+                                <img
+                                  src={getImageUrl((selectedBooking.owner as any).profilePic)}
+                                  style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #bbf7d0' }}
                                 />
                                 <div>
                                   <div style={{ fontWeight: 700, color: '#166534', fontSize: '1rem' }}>{(selectedBooking.owner as any).name}</div>
@@ -1002,7 +1128,7 @@ export default function Dashboard() {
                           <Users size={18} color="var(--color-primary)" /> Renter Details & Verification
                         </h4>
                       </div>
-                      
+
                       <div style={{ padding: '1.5rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '1.5rem' }}>
                           <Avatar size={56} src={getImageUrl(renterObj.profilePic)} style={{ background: '#1890ff' }}>
@@ -1026,16 +1152,16 @@ export default function Dashboard() {
                             { label: 'Driver License', field: 'license' },
                             { label: 'Profile Photo', field: 'selfie' },
                           ].map((doc, idx) => {
-                            const url = renterObj.documents?.[doc.field] || 
-                                        renterObj[doc.field] || 
-                                        null;
+                            const url = renterObj.documents?.[doc.field] ||
+                              renterObj[doc.field] ||
+                              null;
                             const fullUrl = getImageUrl(url);
-                            
+
                             return (
-                              <div key={idx} style={{ 
-                                background: '#f8fafc', 
-                                padding: '8px', 
-                                borderRadius: '8px', 
+                              <div key={idx} style={{
+                                background: '#f8fafc',
+                                padding: '8px',
+                                borderRadius: '8px',
                                 border: '1px solid #e2e8f0'
                               }}>
                                 <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', marginBottom: '6px', textTransform: 'uppercase' }}>{doc.label}</div>
@@ -1107,18 +1233,18 @@ export default function Dashboard() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {successContact?.phone && (
-            <a 
-              href={`tel:${successContact.phone}`} 
-              className="btn btn-primary" 
+            <a
+              href={`tel:${successContact.phone}`}
+              className="btn btn-primary"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '12px', fontSize: '1.05rem', fontWeight: 700, background: '#16a34a', border: 'none' }}
             >
               <Phone size={20} /> Call Now
             </a>
           )}
           {successContact?.email && (
-            <a 
-              href={`mailto:${successContact.email}`} 
-              className="btn btn-outline" 
+            <a
+              href={`mailto:${successContact.email}`}
+              className="btn btn-outline"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '12px', fontSize: '1.05rem', fontWeight: 600, color: '#334155', border: '1px solid #cbd5e1' }}
             >
               <MessageSquare size={20} /> Email Owner

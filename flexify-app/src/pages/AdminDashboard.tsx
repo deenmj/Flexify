@@ -451,7 +451,7 @@ export default function AdminDashboard() {
     u.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (!user || user.role !== 'admin') {
+  if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
     return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Admin access required</h2></div>;
   }
 
@@ -828,7 +828,7 @@ export default function AdminDashboard() {
                         title: 'Actions', 
                         render: (_, u) => {
                           const id = (u.id || u._id)!;
-                          const isSuper = user.role === 'admin';
+                          const isSuper = user.role === 'admin' || user.role === 'superadmin';
                           return (
                             <Space>
                               {isSuper ? (
@@ -1189,7 +1189,7 @@ export default function AdminDashboard() {
               <Select.Option value="user">USER</Select.Option>
               <Select.Option value="owner">OWNER</Select.Option>
               <Select.Option value="staff">STAFF</Select.Option>
-              <Select.Option value="admin">ADMIN</Select.Option>
+              {user.role === 'superadmin' && <Select.Option value="admin">ADMIN</Select.Option>}
             </Select>
           </Form.Item>
           <Form.Item

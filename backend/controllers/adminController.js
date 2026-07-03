@@ -149,10 +149,17 @@ export const getAdminStats = async (req, res) => {
  */
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find()
-      .select("-password")
-      .sort({ createdAt: -1 });
-    res.json(users);
+    const users = await User.find().select("-password").lean();
+    const staff = await Staff.find().select("-password").lean();
+    
+    // Combine them, preferring staff over user if email matches
+    const staffEmails = new Set(staff.map(s => s.email.toLowerCase()));
+    const filteredUsers = users.filter(u => !staffEmails.has(u.email.toLowerCase()));
+    
+    const combined = [...filteredUsers, ...staff];
+    combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    res.json(combined);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -164,8 +171,19 @@ export const getAllUsers = async (req, res) => {
 export const updateUserRole = async (req, res) => {
   try {
     const { role, ownerType } = req.body;
-    const user = await User.findById(req.params.id);
+    let user = await Staff.findById(req.params.id);
+    if (!user) user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Prevent non-superadmins from modifying other admins or superadmins
+    if ((user.role === "admin" || user.role === "superadmin") && req.user.role !== "superadmin") {
+      return res.status(403).json({ message: "Only superadmins can modify admin or superadmin roles" });
+    }
+
+    // Prevent non-superadmins from assigning the admin role
+    if (role === "admin" && req.user.role !== "superadmin") {
+      return res.status(403).json({ message: "Only superadmins can assign the admin role" });
+    }
 
     // Prevent superadmin from demoting themselves
     if (user._id.toString() === req.user._id.toString()) {
@@ -222,7 +240,8 @@ export const updateUserRole = async (req, res) => {
 export const updateUserInfo = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
-    const user = await User.findById(req.params.id).select("-password");
+    let user = await Staff.findById(req.params.id).select("-password");
+    if (!user) user = await User.findById(req.params.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (name) user.name = name;
@@ -244,7 +263,8 @@ export const updateUserInfo = async (req, res) => {
 export const updateUserStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const user = await User.findById(req.params.id).select("-password");
+    let user = await Staff.findById(req.params.id).select("-password");
+    if (!user) user = await User.findById(req.params.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (user._id.toString() === req.user._id.toString()) {
@@ -293,7 +313,8 @@ export const updateUserStatus = async (req, res) => {
  */
 export const getUserKyc = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("name phone documents verificationStatus isKycVerified rejectionReason rejectionComment");
+    let user = await Staff.findById(req.params.id).select("name phone documents verificationStatus isKycVerified rejectionReason rejectionComment");
+    if (!user) user = await User.findById(req.params.id).select("name phone documents verificationStatus isKycVerified rejectionReason rejectionComment");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
@@ -306,7 +327,8 @@ export const getUserKyc = async (req, res) => {
  */
 export const deleteUserKyc = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    let user = await Staff.findById(req.params.id);
+    if (!user) user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.documents = { idNumber: "", license: "", selfie: "", address: "" };
@@ -465,7 +487,8 @@ export const getAuditLogs = async (req, res) => {
 export const updateUserSubscription = async (req, res) => {
   try {
     const { tier, status, endDate } = req.body;
-    const user = await User.findById(req.params.id);
+    let user = await Staff.findById(req.params.id);
+    if (!user) user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const oldSub = { ...user.subscription };

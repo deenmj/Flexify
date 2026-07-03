@@ -22,15 +22,17 @@ export default function ProtectedRoute({ children, roles, excludeRoles, requireC
   if (!user) return <Navigate to="/auth" replace />;
 
   if (requireCeo) {
-    if (user.role !== 'superadmin' || user.email?.toLowerCase() !== 'admin@rentify.lk') {
+    if (user.role !== 'superadmin') {
       return <Navigate to="/" replace />;
     }
   }
 
   if (roles) {
     const isStaffAllowed = roles.includes('staff') && user.isStaff === true;
+    const isSuperAdminAllowed = user.role === 'superadmin' && (roles.includes('admin') || roles.includes('staff') || roles.includes('superadmin'));
+    const isAdminAllowed = user.role === 'admin' && (roles.includes('staff') || roles.includes('admin'));
     
-    if (!roles.includes(user.role) && !isStaffAllowed) {
+    if (!roles.includes(user.role) && !isStaffAllowed && !isSuperAdminAllowed && !isAdminAllowed) {
       if (user.role === 'staff') return <Navigate to="/staff" replace />;
       if (user.role === 'admin') return <Navigate to="/admin" replace />;
       if (user.role === 'superadmin') return <Navigate to="/ceo-master-portal" replace />;

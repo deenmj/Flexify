@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image } from 'antd';
+import { notification, Modal, Form, Select, Input, InputNumber, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image, Tabs, Row, Col } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import AddVehicleSale from '../components/AddVehicleSale';
@@ -58,6 +58,10 @@ export default function StaffDashboard() {
     targetName: string;
   }>({ visible: false, type: 'KYC', id: '', targetName: '' });
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  const [isFinalizeSaleModalOpen, setIsFinalizeSaleModalOpen] = useState(false);
+  const [selectedSaleVehicle, setSelectedSaleVehicle] = useState<any>(null);
+  const [finalizeSaleForm] = Form.useForm();
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -119,7 +123,7 @@ export default function StaffDashboard() {
         subadminApi.getPendingMakes().catch(() => []),
         subadminApi.getPendingModels().catch(() => []),
         adminApi.getPendingPayments().catch(() => []),
-        salesApi.getActiveSales().catch(() => []),
+        salesApi.getStaffActiveSales().catch(() => []),
       ]);
       if (s) setStats(s);
       setPendingUsers(u);
@@ -181,6 +185,21 @@ export default function StaffDashboard() {
       fetchData(); // Refresh the list
     } catch (err: any) {
       message.error(err.message || 'Failed to update status');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleFinalizeSale = async (values: any) => {
+    if (!selectedSaleVehicle) return;
+    setActionLoading(selectedSaleVehicle._id);
+    try {
+      await salesApi.updateSaleStatus(selectedSaleVehicle._id, 'Sold Out', values.finalNegotiatedPrice);
+      message.success('Vehicle marked as sold and profit calculated!');
+      setIsFinalizeSaleModalOpen(false);
+      fetchData();
+    } catch (err: any) {
+      message.error(err.message || 'Failed to finalize sale');
     } finally {
       setActionLoading(null);
     }
@@ -336,7 +355,7 @@ export default function StaffDashboard() {
     r.comment.toLowerCase().includes(reviewSearchQuery.toLowerCase())
   );
 
-  if (!user || (user.role !== 'staff' && user.role !== 'admin')) {
+  if (!user || (user.role !== 'staff' && user.role !== 'admin' && user.role !== 'superadmin')) {
     return (
       <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
         <Shield size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
@@ -378,7 +397,6 @@ export default function StaffDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC Reviews (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
-              { key: 'list-sale', icon: <Car size={18} />, label: 'List for Sale' },
               { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
@@ -411,7 +429,6 @@ export default function StaffDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${pendingVehicles.length})` },
-              { key: 'list-sale', icon: <Car size={18} />, label: 'List for Sale' },
               { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions` },
@@ -445,7 +462,7 @@ export default function StaffDashboard() {
             <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1e293b' }}>
               {tab === 'users' && 'KYC Document Reviews'}
               {tab === 'vehicles' && 'Vehicle Approvals'}
-              {tab === 'list-sale' && 'Add Vehicle Listing'}
+              {tab === 'manage-sales' && 'Manage Vehicle Sales'}
               {tab === 'reviews' && 'Review Moderation'}
               {tab === 'moderation' && 'Platform Content Suggestions'}
               {tab === 'settings' && 'Account Settings'}
@@ -453,14 +470,14 @@ export default function StaffDashboard() {
             </Title>
           </div>
           <Space size={isMobile ? "small" : "large"}>
-            {user?.role === 'admin' && (
+            {(user?.role === 'admin' || user?.role === 'superadmin') && (
               <Button 
                 type="primary" 
-                onClick={() => navigate('/admin')} 
+                onClick={() => navigate(user?.role === 'superadmin' ? '/ceo-master-portal' : '/admin')} 
                 icon={<Shield size={16} />}
-                style={{ display: 'flex', alignItems: 'center', background: '#7c3aed' }}
+                style={{ display: 'flex', alignItems: 'center', background: user?.role === 'superadmin' ? '#b8860b' : '#7c3aed' }}
               >
-                {!isMobile && "Main Admin"}
+                {!isMobile && (user?.role === 'superadmin' ? "CEO Portal" : "Main Admin")}
               </Button>
             )}
             <Button 
@@ -587,62 +604,104 @@ export default function StaffDashboard() {
                 </div>
               )}
 
-              {tab === 'list-sale' && (
-                <div className="animate-fade-in">
-                  <AddVehicleSale />
-                </div>
-              )}
-
               {tab === 'manage-sales' && (
                 <div className="animate-fade-in">
-                  <Title level={5} style={{ marginBottom: '1.5rem' }}>Manage Vehicle Sales</Title>
-                  <Table
-                    scroll={{ x: true }}
-                    dataSource={activeSales}
-                    rowKey="_id"
-                    pagination={{ pageSize: 12 }}
-                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
-                    columns={[
-                      {
-                        title: 'Vehicle',
-                        render: (_, v) => (
-                          <div>
-                            <Text strong>{v.title}</Text><br />
-                            <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
-                          </div>
-                        )
-                      },
-                      {
-                        title: 'Price',
-                        render: (_, v) => <Text strong>Rs. {v.askingPrice?.toLocaleString()}</Text>
-                      },
-                      {
-                        title: 'Status',
-                        dataIndex: 'status',
-                        render: (status) => {
-                          let color = 'blue';
-                          if (status === 'Sold Out') color = 'red';
-                          else if (status === 'New') color = 'green';
-                          return <Tag color={color}>{status}</Tag>;
-                        }
-                      },
-                      {
-                        title: 'Action',
-                        render: (_, v) => (
-                          <Select 
-                            value={v.status} 
-                            style={{ width: 120 }}
-                            onChange={(val) => handleUpdateSaleStatus(v._id, val)}
-                            loading={actionLoading === v._id}
-                          >
-                            <Option value="Available">Available</Option>
-                            <Option value="New">New</Option>
-                            <Option value="Sold Out">Sold Out</Option>
-                          </Select>
-                        )
-                      }
-                    ]}
-                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <Title level={5} style={{ margin: 0 }}>Manage Vehicle Sales</Title>
+                    <Button type="primary" onClick={() => setIsAddVehicleModalOpen(true)} style={{ background: '#0f172a' }}>
+                      Add New Vehicle
+                    </Button>
+                  </div>
+                  
+                  <Tabs defaultActiveKey="active" type="card">
+                    <Tabs.TabPane tab="Active Listings" key="active">
+                      <Table
+                        scroll={{ x: true }}
+                        dataSource={activeSales.filter(v => v.status !== 'Sold Out')}
+                        rowKey="_id"
+                        pagination={{ pageSize: 12 }}
+                        style={{ border: '1px solid #f1f5f9', borderRadius: '8px', borderTop: 'none', borderTopLeftRadius: 0 }}
+                        columns={[
+                          {
+                            title: 'Vehicle',
+                            render: (_, v) => (
+                              <div>
+                                <Text strong>{v.title}</Text><br />
+                                <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
+                              </div>
+                            )
+                          },
+                          {
+                            title: 'Price & Comm.',
+                            render: (_, v) => (
+                              <div>
+                                <Text strong>Rs. {v.askingPrice?.toLocaleString()}</Text><br />
+                                <Text type="success" style={{ fontSize: '12px' }}>
+                                  Exp. Comm: Rs. {((v.askingPrice * (v.commissionRate || 0)) / 100).toLocaleString()} ({v.commissionRate || 0}%)
+                                </Text>
+                              </div>
+                            )
+                          },
+                          {
+                            title: 'Status',
+                            dataIndex: 'status',
+                            render: (status) => <Tag color={status === 'New' ? 'green' : 'blue'}>{status}</Tag>
+                          },
+                          {
+                            title: 'Action',
+                            render: (_, v) => (
+                              <Space>
+                                <Button size="small" onClick={() => { setSelectedSaleVehicle(v); setIsFinalizeSaleModalOpen(true); }}>
+                                  View / Sell
+                                </Button>
+                              </Space>
+                            )
+                          }
+                        ]}
+                      />
+                    </Tabs.TabPane>
+                    <Tabs.TabPane tab="Sold & Profits" key="sold">
+                      <div style={{ marginBottom: '16px', padding: '16px', background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '8px' }}>
+                        <Statistic 
+                          title="Total Platform Profit" 
+                          value={activeSales.filter(v => v.status === 'Sold Out').reduce((sum, v) => sum + (v.profitEarned || 0), 0)} 
+                          prefix="Rs." 
+                          valueStyle={{ color: '#16a34a', fontWeight: 'bold' }} 
+                        />
+                      </div>
+                      <Table
+                        scroll={{ x: true }}
+                        dataSource={activeSales.filter(v => v.status === 'Sold Out')}
+                        rowKey="_id"
+                        pagination={{ pageSize: 12 }}
+                        style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                        columns={[
+                          {
+                            title: 'Vehicle',
+                            render: (_, v) => (
+                              <div>
+                                <Text strong>{v.title}</Text><br />
+                                <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
+                              </div>
+                            )
+                          },
+                          {
+                            title: 'Final Price',
+                            render: (_, v) => <Text strong>Rs. {v.finalNegotiatedPrice?.toLocaleString()}</Text>
+                          },
+                          {
+                            title: 'Profit Earned',
+                            render: (_, v) => <Text type="success" strong>Rs. {v.profitEarned?.toLocaleString()}</Text>
+                          },
+                          {
+                            title: 'Status',
+                            dataIndex: 'status',
+                            render: () => <Tag color="red">Sold Out</Tag>
+                          }
+                        ]}
+                      />
+                    </Tabs.TabPane>
+                  </Tabs>
                 </div>
               )}
 
@@ -1126,6 +1185,136 @@ export default function StaffDashboard() {
             <Input.TextArea rows={4} placeholder="Detailed explanation..." />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Add Vehicle Modal */}
+      <Modal
+        title="Add New Vehicle Listing"
+        open={isAddVehicleModalOpen}
+        onCancel={() => setIsAddVehicleModalOpen(false)}
+        footer={null}
+        width={1000}
+        destroyOnClose
+      >
+        <AddVehicleSale />
+      </Modal>
+
+      {/* Finalize Sale Modal */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <DollarSign size={20} color="#16a34a" />
+            <span>Vehicle Sale Details & Finalize</span>
+          </div>
+        }
+        open={isFinalizeSaleModalOpen}
+        onCancel={() => {
+          setIsFinalizeSaleModalOpen(false);
+          finalizeSaleForm.resetFields();
+          setSelectedSaleVehicle(null);
+        }}
+        footer={null}
+        width={800}
+        bodyStyle={{ padding: '24px 0 0' }}
+      >
+        {selectedSaleVehicle && (
+          <Row gutter={[24, 24]}>
+            <Col xs={24} md={14}>
+              <Title level={4} style={{ marginBottom: 4 }}>
+                {selectedSaleVehicle.make} {selectedSaleVehicle.model} ({selectedSaleVehicle.year})
+              </Title>
+              <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                Reg: {selectedSaleVehicle.registrationNumber || 'N/A'} | Mileage: {selectedSaleVehicle.mileage?.toLocaleString()} km
+              </Text>
+              
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '24px' }}>
+                <Text type="secondary">Asking Price:</Text>
+                <Text style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
+                  Rs. {selectedSaleVehicle.askingPrice?.toLocaleString()}
+                </Text>
+              </div>
+              
+              <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <Text strong style={{ fontSize: '1rem' }}>Owner Details</Text>
+                  <Tag color="orange" style={{ margin: 0 }}>Internal Use Only</Tag>
+                </div>
+                
+                {(() => {
+                  try {
+                    // Check if it's already an object (which it is in the Mongoose schema)
+                    const owner = typeof selectedSaleVehicle.originalOwnerDetails === 'string' 
+                      ? JSON.parse(selectedSaleVehicle.originalOwnerDetails) 
+                      : (selectedSaleVehicle.originalOwnerDetails || {});
+                      
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div>
+                          <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>Name</Text>
+                          <Text strong>{owner.name || 'N/A'}</Text>
+                        </div>
+                        <div>
+                          <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>Phone</Text>
+                          <Text strong>{owner.phone || 'N/A'}</Text>
+                        </div>
+                        {owner.email && (
+                          <div>
+                            <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>Email</Text>
+                            <Text strong>{owner.email}</Text>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  } catch (e) {
+                    return <Text className="break-words whitespace-normal text-sm">Failed to load details.</Text>;
+                  }
+                })()}
+              </div>
+            </Col>
+            
+            <Col xs={24} md={10}>
+              <Card 
+                title={<span style={{ color: '#16a34a' }}>Finalize Sale</span>}
+                bordered={false} 
+                style={{ background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '12px' }}
+                headStyle={{ borderBottom: '1px solid #dcfce7' }}
+              >
+                <div style={{ marginBottom: '20px' }}>
+                  <Text type="secondary" style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>Commission Rate</Text>
+                  <Text strong style={{ fontSize: '16px' }}>{selectedSaleVehicle.commissionRate || 0}%</Text>
+                </div>
+
+                <Form form={finalizeSaleForm} layout="vertical" onFinish={handleFinalizeSale}>
+                  <Form.Item 
+                    name="finalNegotiatedPrice" 
+                    label="Final Negotiated Price (Rs.)"
+                    rules={[{ required: true, message: 'Final price is required' }]}
+                    style={{ marginBottom: '24px' }}
+                  >
+                    <InputNumber 
+                      size="large"
+                      style={{ width: '100%' }} 
+                      formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      parser={value => value!.replace(/\$\s?|(,*)/g, '') as any}
+                      placeholder="Enter final sold price"
+                    />
+                  </Form.Item>
+                  
+                  <Button 
+                    type="primary" 
+                    htmlType="submit" 
+                    block 
+                    size="large"
+                    style={{ background: '#16a34a', borderColor: '#16a34a', fontWeight: 600, height: '48px' }} 
+                    loading={!!actionLoading}
+                  >
+                    Mark as Sold & Record Profit
+                  </Button>
+                </Form>
+              </Card>
+            </Col>
+          </Row>
+        )}
       </Modal>
     </Layout>
   );

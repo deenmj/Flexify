@@ -21,6 +21,17 @@ export const protect = async (req, res, next) => {
       if (!req.user) req.user = await User.findById(decoded.id).select("-password");
     } else {
       req.user = await User.findById(decoded.id).select("-password");
+      
+      // Self-healing: if the found user has a staff role, their profile might have been migrated to the Staff collection
+      // with a new ID. We should try to fetch the updated Staff profile via email to resolve data missing issues.
+      if (req.user && ['staff', 'admin', 'superadmin'].includes(req.user.role)) {
+        const staffProfile = await Staff.findOne({ email: req.user.email }).select("-password");
+        if (staffProfile) {
+          req.user = staffProfile;
+          decoded.isStaff = true; // Fix downstream assumptions
+        }
+      }
+
       // Fallback: if this user was migrated to Staff but has a stale JWT without isStaff
       if (!req.user) req.user = await Staff.findById(decoded.id).select("-password");
     }
@@ -54,6 +65,13 @@ export const protectOptional = async (req, res, next) => {
         if (!user) user = await User.findById(decoded.id).select("-password");
       } else {
         user = await User.findById(decoded.id).select("-password");
+        if (user && ['staff', 'admin', 'superadmin'].includes(user.role)) {
+          const staffUser = await Staff.findOne({ email: user.email }).select("-password");
+          if (staffUser) {
+            user = staffUser;
+            decoded.isStaff = true;
+          }
+        }
         if (!user) user = await Staff.findById(decoded.id).select("-password");
       }
 
@@ -106,8 +124,8 @@ export const requireStaff = (req, res, next) => {
  */
 export const isMasterCEO = (req, res, next) => {
   if (!req.user) return res.status(401).json({ message: "Not authorized" });
-  if (req.user.role !== "superadmin" || !req.user.email || req.user.email.toLowerCase() !== "admin@rentify.lk") {
-    return res.status(403).json({ message: "CEO Master Access Required" });
+  if (req.user.role !== "superadmin") {
+    return res.status(403).json({ message: "Superadmin Access Required" });
   }
   next();
 };

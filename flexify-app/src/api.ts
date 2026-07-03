@@ -91,6 +91,9 @@ export interface User {
     startDate: string;
     endDate: string | null;
   };
+  wishlistSales?: string[]; // Deprecated, will be replaced
+  rentWishlist?: string[];
+  saleWishlist?: string[];
 }
 
 export interface Vehicle {
@@ -556,10 +559,11 @@ export const salesApi = {
     body: data instanceof FormData ? data : JSON.stringify(data) 
   }),
   getActiveSales: () => apiFetch<any[]>('/sales/vehicles'),
+  getStaffActiveSales: () => apiFetch<any[]>('/sales/staff/vehicles'),
   getSaleById: (id: string) => apiFetch<any>(`/sales/vehicles/${id}`),
-  updateSaleStatus: (id: string, status: string) => apiFetch<any>(`/sales/vehicles/${id}/status`, {
+  updateSaleStatus: (id: string, status: string, finalNegotiatedPrice?: number) => apiFetch<any>(`/sales/vehicles/${id}/status`, {
     method: 'PUT',
-    body: JSON.stringify({ status })
+    body: JSON.stringify({ status, finalNegotiatedPrice })
   }),
 };
 
@@ -677,9 +681,25 @@ export const userApi = {
       body: formData,
     }).then(async (res) => {
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Document update failed');
+      if (!res.ok) throw new Error(data.message || 'Documents update failed');
       return data;
     }),
+
+  toggleWishlistSale: (saleId: string) =>
+    apiFetch<{ message: string; saleWishlist: string[] }>(`/users/wishlist/sale/${saleId}`, {
+      method: 'POST',
+    }),
+
+  getWishlistSale: () =>
+    apiFetch<any[]>('/users/wishlist/sale'),
+
+  toggleWishlistRent: (vehicleId: string) =>
+    apiFetch<{ message: string; rentWishlist: string[] }>(`/users/wishlist/rent/${vehicleId}`, {
+      method: 'POST',
+    }),
+
+  getWishlistRent: () =>
+    apiFetch<Vehicle[]>('/users/wishlist/rent'),
 };
 
 // =================== OWNER / SUBSCRIPTIONS ===================

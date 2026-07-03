@@ -686,6 +686,35 @@
     display: none;
   }
 
+  /* Keep featured vehicle nav buttons visible on mobile */
+  .scroll-controls.featured-scroll-controls {
+    display: flex;
+    gap: 0.375rem;
+  }
+  .featured-scroll-controls .scroll-btn {
+    width: 32px;
+    height: 32px;
+  }
+  .featured-scroll-controls .scroll-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Mobile card sizing inside featured carousel */
+  .featured-scroll.scroll-container {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+  .featured-scroll .shared-vehicle-card-link {
+    flex: 0 0 75vw;
+    width: 75vw;
+    min-width: 75vw;
+    max-width: 75vw;
+    scroll-snap-align: center;
+  }
+
   /* Mobile horizontal scroll (slide show) */
   .mobile-grid {
     display: flex;
@@ -822,6 +851,14 @@
   }
   .vehicle-title {
     font-size: 1rem;
+  }
+
+  /* Featured cards slightly wider on tiny screens */
+  .featured-scroll .shared-vehicle-card-link {
+    flex: 0 0 85vw;
+    width: 85vw;
+    min-width: 85vw;
+    max-width: 85vw;
   }
 }
 

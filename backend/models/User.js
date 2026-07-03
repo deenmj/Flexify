@@ -101,6 +101,10 @@ const userSchema = new mongoose.Schema(
     profilePic: { type: String, default: "" },
     notificationEmail: { type: String, default: "" },
     isNotificationEmailActive: { type: Boolean, default: false },
+
+    // Wishlists
+    rentWishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Vehicle" }],
+    saleWishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "VehicleSale" }],
   },
   { timestamps: true }
 );

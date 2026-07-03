@@ -986,7 +986,7 @@ export default function SuperAdminDashboard() {
                         title: 'Actions', 
                         render: (_, u) => {
                           const id = (u.id || u._id)!;
-                          const isSuper = user.role === 'admin';
+                          const isSuper = user.role === 'admin' || user.role === 'superadmin';
                           return (
                             <Space>
                               {isSuper ? (

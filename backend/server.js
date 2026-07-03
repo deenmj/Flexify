@@ -34,6 +34,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
+import Staff from "./models/Staff.js";
 import Booking from "./models/booking.js";
 
 // Routes
@@ -83,7 +84,20 @@ io.use(async (socket, next) => {
     if (!token) return next(new Error("No token provided"));
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select("-password");
+    
+    let user;
+    if (decoded.isStaff) {
+      user = await Staff.findById(decoded.id).select("-password");
+      if (!user) user = await User.findById(decoded.id).select("-password");
+    } else {
+      user = await User.findById(decoded.id).select("-password");
+      if (user && ['staff', 'admin', 'superadmin'].includes(user.role)) {
+        const staffUser = await Staff.findOne({ email: user.email }).select("-password");
+        if (staffUser) user = staffUser;
+      }
+      if (!user) user = await Staff.findById(decoded.id).select("-password");
+    }
+
     if (!user) return next(new Error("User not found"));
 
     socket.user = user;
