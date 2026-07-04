@@ -19,7 +19,7 @@ export default function InstallPWAModal() {
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
-      
+
       // Stash the event so it can be triggered later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       // Show our custom modal
@@ -85,15 +85,16 @@ export default function InstallPWAModal() {
         <div style={{
           width: '64px', height: '64px',
           borderRadius: '16px',
-          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 1rem',
-          boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
+          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.1)',
+          overflow: 'hidden',
+          background: '#ffffff'
         }}>
           <img
-            src="/rentify-logo-dark.png"
+            src="/favicon.png"
             alt="Rentify"
-            style={{ width: '40px', height: '40px', objectFit: 'contain', filter: 'brightness(10)' }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         </div>
