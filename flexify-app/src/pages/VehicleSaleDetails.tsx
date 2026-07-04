@@ -61,21 +61,47 @@ export default function VehicleSaleDetails() {
     }
   };
 
-  const handleShare = async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      try {
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const shareText = `Check out this ${vehicle?.year} ${vehicle?.make} ${vehicle?.model} for Rs. ${vehicle?.askingPrice?.toLocaleString()} on Rentify!`;
+    const shareUrl = window.location.href;
+
+    try {
+      if (vehicle?.images?.[0]) {
+        // 1. Fetch the image and convert to a File object
+        const imageUrl = getImageUrl(vehicle.images[0]);
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'vehicle-image.jpg', { type: blob.type });
+
+        // 2. Check if the device supports sharing files
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `${vehicle?.make} ${vehicle?.model}`,
+            text: shareText,
+            url: shareUrl,
+          });
+          return;
+        }
+      }
+      
+      // Fallback for devices that support share but not files, or if no image
+      if (navigator.share) {
         await navigator.share({
           title: `${vehicle?.make} ${vehicle?.model}`,
-          text: `Check out this ${vehicle?.year} ${vehicle?.make} ${vehicle?.model} for Rs. ${vehicle?.askingPrice?.toLocaleString()} on Rentify!`,
-          url: url
+          text: shareText,
+          url: shareUrl,
         });
-      } catch (err) {
-        console.error('Error sharing:', err);
+      } else {
+        // Fallback for desktop
+        navigator.clipboard.writeText(shareUrl);
+        message.success("Link copied to clipboard!");
       }
-    } else {
-      navigator.clipboard.writeText(url);
-      message.success('Link copied to clipboard!');
+    } catch (error) {
+      console.error('Error sharing:', error);
     }
   };
 
@@ -152,6 +178,30 @@ export default function VehicleSaleDetails() {
           justify-content: center;
           transition: all 0.3s ease;
         }
+        
+        .luxury-title {
+          margin: 8px 0 0 !important;
+          font-weight: 900 !important;
+          color: var(--text-primary) !important;
+          line-height: 1.1 !important;
+          font-size: 2rem !important; /* Mobile default */
+        }
+        
+        .luxury-price {
+          font-weight: 900;
+          color: var(--text-primary);
+          letter-spacing: -1px;
+          font-size: 1.75rem; /* Mobile default */
+        }
+        
+        @media (min-width: 768px) {
+          .luxury-title {
+            font-size: 2.5rem !important;
+          }
+          .luxury-price {
+            font-size: 2.5rem;
+          }
+        }
       `}</style>
 
       <Button
@@ -204,11 +254,11 @@ export default function VehicleSaleDetails() {
              <Text type="secondary" style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
                {vehicle.year} • {vehicle.condition}
              </Text>
-             <Title level={1} style={{ margin: '8px 0 0', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+             <Title level={1} className="luxury-title text-2xl md:text-3xl font-bold">
                {vehicle.make} {vehicle.model}
              </Title>
              <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginTop: '16px' }}>
-               <Text style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-1px' }}>
+               <Text className="luxury-price text-2xl md:text-3xl font-bold">
                  Rs. {vehicle.askingPrice.toLocaleString()}
                </Text>
                {vehicle.isNegotiable && <Text type="secondary" style={{ fontWeight: 700 }}>(Negotiable)</Text>}

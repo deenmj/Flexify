@@ -199,7 +199,7 @@
 }
 
 .dash-vehicle-card-img {
-  height: 160px;
+  height: 200px;
   position: relative;
   overflow: hidden;
 }
@@ -314,7 +314,7 @@
     transform: none;
   }
   .dash-vehicle-card-img {
-    height: 100px;
+    height: 140px;
   }
   .dash-vehicle-card-body {
     padding: 0.625rem !important;
@@ -523,7 +523,7 @@
   }
 
   .dash-vehicle-card-img {
-    height: 120px;
+    height: 160px;
   }
   
   .dash-vehicle-card-body {
@@ -606,7 +606,7 @@
   }
 
   .dash-vehicle-card-img {
-    height: 100px;
+    height: 130px;
   }
   .dash-vehicle-card-body {
     padding: 0.5rem !important;

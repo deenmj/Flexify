@@ -300,7 +300,17 @@ router.get("/verify-email/:token", async (req, res) => {
 ========================================================= */
 router.get("/me", protect, async (req, res, next) => {
   try {
-    const userData = req.user.toObject();
+    let userModel = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
+    const user = await userModel.findById(req.user._id)
+      .populate('rentWishlist')
+      .populate('saleWishlist')
+      .select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userData = user.toObject();
     // Ensure isStaff flag is present for frontend normalization
     if (['staff', 'admin', 'superadmin'].includes(userData.role)) {
       userData.isStaff = true;

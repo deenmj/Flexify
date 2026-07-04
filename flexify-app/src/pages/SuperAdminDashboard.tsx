@@ -1376,6 +1376,26 @@ export default function SuperAdminDashboard() {
                 <Tag color={kycUser.isKycVerified ? 'success' : 'warning'}>{kycUser.verificationStatus?.toUpperCase()}</Tag>
               </div>
             </div>
+
+            {(kycUser as any).vehicles && (kycUser as any).vehicles.length > 0 && (
+              <div style={{ marginTop: '1.5rem' }}>
+                <Divider />
+                <Title level={5}>Owned Vehicles</Title>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                  {(kycUser as any).vehicles.map((v: any) => (
+                    <Card key={v._id} size="small" style={{ borderRadius: '8px' }}>
+                      <Text strong>{v.title}</Text>
+                      <br />
+                      <Text type="secondary" style={{ fontSize: '12px' }}>{v.make} {v.model}</Text>
+                      <br />
+                      <Tag color={v.status === 'active' ? 'success' : v.status === 'pending' ? 'processing' : 'error'} style={{ marginTop: '4px' }}>
+                        {v.status?.toUpperCase()}
+                      </Tag>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : <Spin />}
       </Modal>

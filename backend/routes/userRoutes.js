@@ -265,7 +265,7 @@ router.post("/wishlist/sale/:id", protect, async (req, res) => {
     const saleId = req.params.id;
     if (!user.saleWishlist) user.saleWishlist = [];
 
-    const index = user.saleWishlist.indexOf(saleId);
+    const index = user.saleWishlist.findIndex(id => id.toString() === saleId);
     if (index === -1) {
       user.saleWishlist.push(saleId);
     } else {
@@ -306,7 +306,7 @@ router.post("/wishlist/rent/:id", protect, async (req, res) => {
     const vehicleId = req.params.id;
     if (!user.rentWishlist) user.rentWishlist = [];
 
-    const index = user.rentWishlist.indexOf(vehicleId);
+    const index = user.rentWishlist.findIndex(id => id.toString() === vehicleId);
     if (index === -1) {
       user.rentWishlist.push(vehicleId);
     } else {

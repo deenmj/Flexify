@@ -558,6 +558,10 @@ export const salesApi = {
     method: 'POST', 
     body: data instanceof FormData ? data : JSON.stringify(data) 
   }),
+  updateVehicleSale: (id: string, data: any) => apiFetch(`/sales/vehicles/${id}`, {
+    method: 'PUT',
+    body: data instanceof FormData ? data : JSON.stringify(data)
+  }),
   getActiveSales: () => apiFetch<any[]>('/sales/vehicles'),
   getStaffActiveSales: () => apiFetch<any[]>('/sales/staff/vehicles'),
   getSaleById: (id: string) => apiFetch<any>(`/sales/vehicles/${id}`),

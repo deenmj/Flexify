@@ -1,17 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Input, InputNumber, Select, Button, Card, Typography, Row, Col, Divider, message, Upload } from 'antd';
 import { Car, DollarSign, FileText, User, UploadCloud } from 'lucide-react';
-import { salesApi } from '../api';
+import { salesApi, getImageUrl } from '../api';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
-const AddVehicleSale: React.FC = () => {
+interface Props {
+  initialData?: any;
+  onSuccess?: () => void;
+}
+
+const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [fileList, setFileList] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (initialData) {
+      form.setFieldsValue({
+        make: initialData.make,
+        model: initialData.model,
+        year: initialData.year,
+        registrationNumber: initialData.registrationNumber,
+        vin: initialData.vin,
+        mileage: initialData.mileage,
+        fuelType: initialData.fuelType,
+        transmission: initialData.transmission,
+        condition: initialData.condition,
+        askingPrice: initialData.askingPrice,
+        commissionRate: initialData.commissionRate,
+        isNegotiable: initialData.isNegotiable,
+        title: initialData.title,
+        description: initialData.description,
+        contactNumber: initialData.contactNumber,
+        seoTags: initialData.seoTags,
+        ownerName: initialData.originalOwnerDetails?.name,
+        ownerPhone: initialData.originalOwnerDetails?.phone,
+        ownerEmail: initialData.originalOwnerDetails?.email,
+      });
+      if (initialData.images) {
+        setExistingImages(initialData.images);
+      }
+    } else {
+      form.resetFields();
+      setExistingImages([]);
+      setFileList([]);
+    }
+  }, [initialData, form]);
 
   const onFinish = async (values: any) => {
     try {
@@ -43,16 +81,28 @@ const AddVehicleSale: React.FC = () => {
       };
       formData.append('originalOwnerDetails', JSON.stringify(ownerDetails));
 
+      if (initialData) {
+        formData.append('existingImages', JSON.stringify(existingImages));
+      }
+
       fileList.forEach(file => {
         formData.append('images', file.originFileObj);
       });
 
-      await salesApi.createVehicleSale(formData);
-      message.success('Vehicle successfully listed for sale!');
+      if (initialData) {
+        await salesApi.updateVehicleSale(initialData._id, formData);
+        message.success('Vehicle sale listing updated successfully!');
+      } else {
+        await salesApi.createVehicleSale(formData);
+        message.success('Vehicle successfully listed for sale!');
+      }
+      
       form.resetFields();
       setFileList([]);
+      setExistingImages([]);
+      if (onSuccess) onSuccess();
     } catch (error: any) {
-      message.error(error.message || 'Failed to list vehicle for sale');
+      message.error(error.message || `Failed to ${initialData ? 'update' : 'list'} vehicle`);
     } finally {
       setLoading(false);
     }
@@ -61,8 +111,8 @@ const AddVehicleSale: React.FC = () => {
   return (
     <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #e2e8f0', maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <Title level={4} style={{ color: '#0f172a', margin: 0 }}>List Vehicle for Sale</Title>
-        <Text type="secondary">Internal Staff Tool - Add a new vehicle to the sales division</Text>
+        <Title level={4} style={{ color: '#0f172a', margin: 0 }}>{initialData ? 'Edit Vehicle Sale Listing' : 'List Vehicle for Sale'}</Title>
+        <Text type="secondary">Internal Staff Tool - {initialData ? 'Update an existing vehicle in the sales division' : 'Add a new vehicle to the sales division'}</Text>
       </div>
 
       <Form form={form} layout="vertical" onFinish={onFinish}>
@@ -209,6 +259,24 @@ const AddVehicleSale: React.FC = () => {
         </Row>
 
         <Form.Item label="Vehicle Images">
+          {existingImages.length > 0 && (
+            <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {existingImages.map((img, idx) => (
+                <div key={idx} style={{ position: 'relative' }}>
+                  <img src={getImageUrl(img)} alt="Vehicle" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />
+                  <Button 
+                    size="small" 
+                    danger 
+                    type="primary" 
+                    shape="circle" 
+                    icon={<span>X</span>} 
+                    style={{ position: 'absolute', top: -5, right: -5 }}
+                    onClick={() => setExistingImages(prev => prev.filter((_, i) => i !== idx))}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
           <Upload.Dragger
             multiple
             listType="picture"
@@ -226,7 +294,7 @@ const AddVehicleSale: React.FC = () => {
 
         <Form.Item>
           <Button type="primary" htmlType="submit" size="large" block loading={loading} style={{ marginTop: '1rem', background: '#0f172a' }}>
-            Publish Sales Listing
+            {initialData ? 'Update Sales Listing' : 'Publish Sales Listing'}
           </Button>
         </Form.Item>
       </Form>

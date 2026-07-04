@@ -59,6 +59,7 @@ export default function StaffDashboard() {
   }>({ visible: false, type: 'KYC', id: '', targetName: '' });
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  const [editingVehicleSale, setEditingVehicleSale] = useState<any>(null);
   const [isFinalizeSaleModalOpen, setIsFinalizeSaleModalOpen] = useState(false);
   const [selectedSaleVehicle, setSelectedSaleVehicle] = useState<any>(null);
   const [finalizeSaleForm] = Form.useForm();
@@ -606,27 +607,81 @@ export default function StaffDashboard() {
 
               {tab === 'manage-sales' && (
                 <div className="animate-fade-in">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <Title level={5} style={{ margin: 0 }}>Manage Vehicle Sales</Title>
-                    <Button type="primary" onClick={() => setIsAddVehicleModalOpen(true)} style={{ background: '#0f172a' }}>
-                      Add New Vehicle
+                  <style>{`
+                    .luxury-tabs .ant-tabs-nav {
+                      margin-bottom: 24px;
+                    }
+                    .luxury-tabs .ant-tabs-tab {
+                      border-radius: 8px !important;
+                      border: 1px solid #e2e8f0 !important;
+                      background: white !important;
+                      padding: 10px 28px !important;
+                      transition: all 0.3s ease;
+                      font-weight: 500;
+                    }
+                    .luxury-tabs .ant-tabs-tab:hover {
+                      border-color: #cbd5e1 !important;
+                      color: #0f172a !important;
+                    }
+                    .luxury-tabs .ant-tabs-tab-active {
+                      background: #0f172a !important;
+                      border-color: #0f172a !important;
+                    }
+                    .luxury-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+                      color: white !important;
+                      font-weight: 600;
+                    }
+                    .luxury-table .ant-table {
+                      background: white !important;
+                      border-radius: 12px;
+                      overflow: hidden;
+                      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+                      border: 1px solid #f1f5f9;
+                    }
+                    .luxury-table .ant-table-thead > tr > th {
+                      background: #f8fafc !important;
+                      color: #475569 !important;
+                      font-weight: 700;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                      font-size: 12px;
+                      border-bottom: 2px solid #e2e8f0;
+                      padding: 18px 24px;
+                    }
+                    .luxury-table .ant-table-tbody > tr > td {
+                      padding: 20px 24px;
+                      border-bottom: 1px solid #f1f5f9;
+                      background: white !important;
+                      transition: background 0.2s ease;
+                    }
+                    .luxury-table .ant-table-tbody > tr:hover > td {
+                      background: #f8fafc !important;
+                    }
+                    .luxury-table .ant-pagination {
+                      margin: 20px 24px !important;
+                    }
+                  `}</style>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <Title level={4} style={{ margin: 0, fontWeight: 700, color: '#0f172a' }}>Manage Vehicle Sales</Title>
+                    <Button type="primary" size="large" onClick={() => { setEditingVehicleSale(null); setIsAddVehicleModalOpen(true); }} style={{ background: '#0f172a', borderRadius: '8px', fontWeight: 600, padding: '0 24px' }}>
+                      + Add New Vehicle
                     </Button>
                   </div>
                   
-                  <Tabs defaultActiveKey="active" type="card">
+                  <Tabs defaultActiveKey="active" type="card" className="luxury-tabs">
                     <Tabs.TabPane tab="Active Listings" key="active">
                       <Table
+                        className="luxury-table"
                         scroll={{ x: true }}
                         dataSource={activeSales.filter(v => v.status !== 'Sold Out')}
                         rowKey="_id"
                         pagination={{ pageSize: 12 }}
-                        style={{ border: '1px solid #f1f5f9', borderRadius: '8px', borderTop: 'none', borderTopLeftRadius: 0 }}
                         columns={[
                           {
                             title: 'Vehicle',
                             render: (_, v) => (
                               <div>
-                                <Text strong>{v.title}</Text><br />
+                                <Text strong style={{ fontSize: '15px', color: '#0f172a' }}>{v.title}</Text><br />
                                 <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
                               </div>
                             )
@@ -635,8 +690,8 @@ export default function StaffDashboard() {
                             title: 'Price & Comm.',
                             render: (_, v) => (
                               <div>
-                                <Text strong>Rs. {v.askingPrice?.toLocaleString()}</Text><br />
-                                <Text type="success" style={{ fontSize: '12px' }}>
+                                <Text strong style={{ fontSize: '15px' }}>Rs. {v.askingPrice?.toLocaleString()}</Text><br />
+                                <Text type="success" style={{ fontSize: '13px', fontWeight: 500 }}>
                                   Exp. Comm: Rs. {((v.askingPrice * (v.commissionRate || 0)) / 100).toLocaleString()} ({v.commissionRate || 0}%)
                                 </Text>
                               </div>
@@ -645,13 +700,16 @@ export default function StaffDashboard() {
                           {
                             title: 'Status',
                             dataIndex: 'status',
-                            render: (status) => <Tag color={status === 'New' ? 'green' : 'blue'}>{status}</Tag>
+                            render: (status) => <Tag color={status === 'New' ? '#10b981' : '#3b82f6'} style={{ padding: '4px 12px', borderRadius: '6px', fontWeight: 600 }}>{status.toUpperCase()}</Tag>
                           },
                           {
                             title: 'Action',
                             render: (_, v) => (
                               <Space>
-                                <Button size="small" onClick={() => { setSelectedSaleVehicle(v); setIsFinalizeSaleModalOpen(true); }}>
+                                <Button onClick={() => { setEditingVehicleSale(v); setIsAddVehicleModalOpen(true); }} style={{ borderRadius: '6px', fontWeight: 500 }}>
+                                  Edit
+                                </Button>
+                                <Button type="primary" onClick={() => { setSelectedSaleVehicle(v); setIsFinalizeSaleModalOpen(true); }} style={{ background: '#0f172a', borderRadius: '6px', fontWeight: 500 }}>
                                   View / Sell
                                 </Button>
                               </Space>
@@ -661,20 +719,20 @@ export default function StaffDashboard() {
                       />
                     </Tabs.TabPane>
                     <Tabs.TabPane tab="Sold & Profits" key="sold">
-                      <div style={{ marginBottom: '16px', padding: '16px', background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '8px' }}>
+                      <div style={{ marginBottom: '24px', padding: '24px', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0', borderRadius: '12px', boxShadow: '0 4px 15px -3px rgba(22, 163, 74, 0.1)' }}>
                         <Statistic 
-                          title="Total Platform Profit" 
+                          title={<span style={{ color: '#15803d', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Platform Profit</span>}
                           value={activeSales.filter(v => v.status === 'Sold Out').reduce((sum, v) => sum + (v.profitEarned || 0), 0)} 
                           prefix="Rs." 
-                          valueStyle={{ color: '#16a34a', fontWeight: 'bold' }} 
+                          valueStyle={{ color: '#16a34a', fontWeight: 800, fontSize: '32px' }} 
                         />
                       </div>
                       <Table
+                        className="luxury-table"
                         scroll={{ x: true }}
                         dataSource={activeSales.filter(v => v.status === 'Sold Out')}
                         rowKey="_id"
                         pagination={{ pageSize: 12 }}
-                        style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
                         columns={[
                           {
                             title: 'Vehicle',
@@ -1187,16 +1245,23 @@ export default function StaffDashboard() {
         </Form>
       </Modal>
 
-      {/* Add Vehicle Modal */}
+      {/* Add / Edit Vehicle Modal */}
       <Modal
-        title="Add New Vehicle Listing"
+        title={editingVehicleSale ? "Edit Vehicle Listing" : "Add New Vehicle Listing"}
         open={isAddVehicleModalOpen}
-        onCancel={() => setIsAddVehicleModalOpen(false)}
+        onCancel={() => { setIsAddVehicleModalOpen(false); setEditingVehicleSale(null); }}
         footer={null}
-        width={1000}
+        width={768}
         destroyOnClose
       >
-        <AddVehicleSale />
+        <AddVehicleSale 
+          initialData={editingVehicleSale} 
+          onSuccess={() => {
+            setIsAddVehicleModalOpen(false);
+            setEditingVehicleSale(null);
+            fetchData();
+          }} 
+        />
       </Modal>
 
       {/* Finalize Sale Modal */}

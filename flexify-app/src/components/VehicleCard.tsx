@@ -39,18 +39,45 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigating to the vehicle link
-    if (navigator.share) {
-      try {
+    e.stopPropagation();
+
+    const shareText = `Check out this ${vehicle.year || ''} ${vehicle.make} ${vehicle.model} on Rentify!`;
+    const shareUrl = `${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`;
+
+    try {
+      if (vehicle.photos?.[0]) {
+        // 1. Fetch the image and convert to a File object
+        const imageUrl = getOptimizedImageUrl(vehicle.photos[0], 400, 300);
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'vehicle-image.jpg', { type: blob.type });
+
+        // 2. Check if the device supports sharing files
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: vehicle.title,
+            text: shareText,
+            url: shareUrl,
+          });
+          return;
+        }
+      }
+      
+      // Fallback for devices that support share but not files, or if no image
+      if (navigator.share) {
         await navigator.share({
           title: vehicle.title,
-          text: `Check out this ${vehicle.make} ${vehicle.model} on Rentify!`,
-          url: `${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`,
+          text: shareText,
+          url: shareUrl,
         });
-      } catch (err) {
-        console.error('Error sharing:', err);
+      } else {
+        // Fallback for desktop
+        navigator.clipboard.writeText(shareUrl);
+        message.success('Link copied to clipboard!');
       }
-    } else {
-      navigator.clipboard.writeText(`${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`);
+    } catch (err) {
+      console.error('Error sharing:', err);
     }
   };
 

@@ -60,6 +60,15 @@ const staffSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+staffSchema.virtual('vehicles', {
+  ref: 'Vehicle',
+  localField: '_id',
+  foreignField: 'owner'
+});
+
+staffSchema.set('toObject', { virtuals: true });
+staffSchema.set('toJSON', { virtuals: true });
+
 // Hash password before save
 staffSchema.pre("save", async function (next) {
   if (!this.password || !this.isModified("password")) return next();

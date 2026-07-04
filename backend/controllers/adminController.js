@@ -313,8 +313,16 @@ export const updateUserStatus = async (req, res) => {
  */
 export const getUserKyc = async (req, res) => {
   try {
-    let user = await Staff.findById(req.params.id).select("name phone documents verificationStatus isKycVerified rejectionReason rejectionComment");
-    if (!user) user = await User.findById(req.params.id).select("name phone documents verificationStatus isKycVerified rejectionReason rejectionComment");
+    let user = await Staff.findById(req.params.id)
+      .select("-password")
+      .populate("vehicles");
+      
+    if (!user) {
+      user = await User.findById(req.params.id)
+        .select("-password")
+        .populate("vehicles");
+    }
+    
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {

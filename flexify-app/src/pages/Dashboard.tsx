@@ -399,6 +399,34 @@ export default function Dashboard() {
     return true;
   });
 
+  const handleRemoveRentWishlist = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      if (user) {
+        setUser({ ...user, rentWishlist: user.rentWishlist.filter((v: any) => v._id !== id) });
+        await userApi.toggleWishlistRent(id);
+        message.success('Removed from rental wishlist');
+      }
+    } catch (err) {
+      console.error('Failed to remove from wishlist', err);
+    }
+  };
+
+  const handleRemoveSaleWishlist = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      if (user) {
+        setUser({ ...user, saleWishlist: user.saleWishlist.filter((v: any) => v._id !== id) });
+        await userApi.toggleWishlistSale(id);
+        message.success('Removed from sales wishlist');
+      }
+    } catch (err) {
+      console.error('Failed to remove from wishlist', err);
+    }
+  };
+
+  console.log('Wishlist Data:', user?.rentWishlist, user?.saleWishlist);
+
   return (
     <div className="dashboard-page page-wrapper" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
       <SEO
@@ -753,29 +781,26 @@ export default function Dashboard() {
             </div>
 
             {wishlistSubTab === 'buy' ? (
-              saleWishlist.length === 0 ? (
-                <div className="dashboard-empty" style={{ padding: '5rem 2rem', textAlign: 'center' }}>
-                  <div style={{ background: '#f8fafc', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid #e2e8f0' }}>
-                    <Heart size={40} strokeWidth={1.5} color="#94a3b8" />
-                  </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Your sales wishlist is empty</h3>
-                  <p style={{ color: 'var(--text-tertiary)', marginBottom: '2rem' }}>Save vehicles you are interested in buying to view them later.</p>
-                  <Link to="/buy" className="btn btn-primary" style={{ padding: '12px 32px' }}>
-                    <Car size={18} style={{ marginRight: '8px' }} /> Browse Marketplace
-                  </Link>
-                </div>
+              !user?.saleWishlist || user.saleWishlist.length === 0 ? (
+                <p className="text-gray-500 text-center py-10">You haven't saved any vehicles to buy yet.</p>
               ) : (
                 <div className="dashboard-grid">
-                  {saleWishlist.filter((v: any) => v && v._id).map((v: any) => (
+                  {user.saleWishlist.filter((v: any) => v && v._id).map((v: any) => (
                     <div key={v._id} className="dash-vehicle-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }} onClick={() => navigate(`/buy/${v._id}`)}>
                       <div className="dash-vehicle-card-img">
                         {v.images?.[0] ? (
-                          <img src={getImageUrl(v.images[0])} alt={v.title} />
+                          <img src={getImageUrl(v.images[0])} alt={v.make} />
                         ) : (
                           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
                             <Car size={32} color="#cbd5e1" />
                           </div>
                         )}
+                        <button 
+                          onClick={(e) => handleRemoveSaleWishlist(e, v._id)}
+                          style={{ position: 'absolute', top: '12px', right: '12px', padding: '8px', background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(4px)', borderRadius: '50%', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}
+                        >
+                          <Heart size={18} fill="#ef4444" color="#ef4444" />
+                        </button>
                       </div>
                       <div className="dash-vehicle-card-body">
                         <div style={{ textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 800, color: '#ef4444', marginBottom: '2px', letterSpacing: '0.04em' }}>
@@ -783,7 +808,6 @@ export default function Dashboard() {
                         </div>
                         <h4 className="dash-vehicle-card-title">{v.make} {v.model}</h4>
                         <div className="dash-vehicle-card-meta">{v.year} • {v.mileage?.toLocaleString()} km</div>
-
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                           <div className="dash-vehicle-card-price">LKR {v.askingPrice?.toLocaleString()}</div>
                         </div>
@@ -793,20 +817,11 @@ export default function Dashboard() {
                 </div>
               )
             ) : (
-              rentWishlist.length === 0 ? (
-                <div className="dashboard-empty" style={{ padding: '5rem 2rem', textAlign: 'center' }}>
-                  <div style={{ background: '#f8fafc', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid #e2e8f0' }}>
-                    <Heart size={40} strokeWidth={1.5} color="#94a3b8" />
-                  </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Your rental wishlist is empty</h3>
-                  <p style={{ color: 'var(--text-tertiary)', marginBottom: '2rem' }}>Save vehicles you want to rent later.</p>
-                  <Link to="/explore" className="btn btn-primary" style={{ padding: '12px 32px' }}>
-                    <Car size={18} style={{ marginRight: '8px' }} /> Explore Rentals
-                  </Link>
-                </div>
+              !user?.rentWishlist || user.rentWishlist.length === 0 ? (
+                <p className="text-gray-500 text-center py-10">You haven't saved any rental vehicles yet.</p>
               ) : (
                 <div className="dashboard-grid">
-                  {rentWishlist.filter((v: any) => v && v._id).map((v: any) => (
+                  {user.rentWishlist.filter((v: any) => v && v._id).map((v: any) => (
                     <div key={v._id} className="dash-vehicle-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }} onClick={() => navigate(`/vehicles/${getVehicleSlug(v)}`)}>
                       <div className="dash-vehicle-card-img">
                         {v.photos?.[0] ? (
@@ -816,6 +831,12 @@ export default function Dashboard() {
                             <Car size={32} color="#cbd5e1" />
                           </div>
                         )}
+                        <button 
+                          onClick={(e) => handleRemoveRentWishlist(e, v._id)}
+                          style={{ position: 'absolute', top: '12px', right: '12px', padding: '8px', background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(4px)', borderRadius: '50%', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}
+                        >
+                          <Heart size={18} fill="#ef4444" color="#ef4444" />
+                        </button>
                       </div>
                       <div className="dash-vehicle-card-body">
                         <div style={{ textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: 800, color: '#ef4444', marginBottom: '2px', letterSpacing: '0.04em' }}>
@@ -823,7 +844,6 @@ export default function Dashboard() {
                         </div>
                         <h4 className="dash-vehicle-card-title">{v.make} {v.model}</h4>
                         <div className="dash-vehicle-card-meta">{v.year} • {v.transmission}</div>
-
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                           <div className="dash-vehicle-card-price">LKR {v.pricePerDay?.toLocaleString()}<span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
                         </div>

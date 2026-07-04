@@ -109,6 +109,15 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+userSchema.virtual('vehicles', {
+  ref: 'Vehicle',
+  localField: '_id',
+  foreignField: 'owner'
+});
+
+userSchema.set('toObject', { virtuals: true });
+userSchema.set('toJSON', { virtuals: true });
+
 // Hash password before save
 userSchema.pre("save", async function (next) {
   if (!this.password || !this.isModified("password")) return next();

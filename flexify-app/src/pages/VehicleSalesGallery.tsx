@@ -58,20 +58,49 @@ export default function VehicleSalesGallery() {
   };
 
   const handleShare = async (e: React.MouseEvent, saleId: string) => {
+    e.preventDefault();
     e.stopPropagation();
-    const url = `${window.location.origin}/buy/${saleId}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Check out this vehicle on Rentify',
-          url: url
-        });
-      } catch (err) {
-        console.error('Error sharing:', err);
+
+    const vehicle = vehicles.find(v => v._id === saleId);
+    if (!vehicle) return;
+
+    const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for Rs. ${vehicle.askingPrice?.toLocaleString()} on Rentify!`;
+    const shareUrl = `${window.location.origin}/buy/${saleId}`;
+
+    try {
+      if (vehicle.images?.[0]) {
+        // 1. Fetch the image and convert to a File object
+        const imageUrl = getImageUrl(vehicle.images[0]);
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'vehicle-image.jpg', { type: blob.type });
+
+        // 2. Check if the device supports sharing files
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `${vehicle.make} ${vehicle.model}`,
+            text: shareText,
+            url: shareUrl,
+          });
+          return;
+        }
       }
-    } else {
-      navigator.clipboard.writeText(url);
-      message.success('Link copied to clipboard!');
+      
+      // Fallback for devices that support share but not files, or if no image
+      if (navigator.share) {
+        await navigator.share({
+          title: `${vehicle.make} ${vehicle.model}`,
+          text: shareText,
+          url: shareUrl,
+        });
+      } else {
+        // Fallback for desktop
+        navigator.clipboard.writeText(shareUrl);
+        message.success('Link copied to clipboard!');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
     }
   };
 

@@ -86,6 +86,68 @@ router.post("/vehicles", protect, requireStaff, upload.array("images", 10), asyn
 });
 
 /**
+ * @route   PUT /api/sales/vehicles/:id
+ * @desc    Update an existing vehicle listing for sale
+ * @access  Private (Staff/Admin/Superadmin only)
+ */
+router.put("/vehicles/:id", protect, requireStaff, upload.array("images", 10), async (req, res) => {
+  try {
+    const saleId = req.params.id;
+    const sale = await VehicleSale.findById(saleId);
+    if (!sale) return res.status(404).json({ message: "Vehicle sale not found" });
+
+    const {
+      make, model, year, registrationNumber, vin, mileage, fuelType, transmission,
+      condition, askingPrice, commissionRate, isNegotiable, title, description,
+      seoTags, contactNumber, originalOwnerDetails: ownerDetailsStr, status,
+      existingImages: existingImagesStr
+    } = req.body;
+
+    if (ownerDetailsStr) {
+      try {
+        sale.originalOwnerDetails = JSON.parse(ownerDetailsStr);
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid owner details format" });
+      }
+    }
+
+    let existingImages = [];
+    if (existingImagesStr) {
+      try {
+        existingImages = JSON.parse(existingImagesStr);
+      } catch (e) {}
+    }
+
+    const newImages = req.files ? req.files.map((file) => file.path) : [];
+    sale.images = [...existingImages, ...newImages];
+
+    if (make) sale.make = make;
+    if (model) sale.model = model;
+    if (year) sale.year = year;
+    if (registrationNumber) sale.registrationNumber = registrationNumber;
+    if (vin) sale.vin = vin;
+    if (mileage) sale.mileage = mileage;
+    if (fuelType) sale.fuelType = fuelType;
+    if (transmission) sale.transmission = transmission;
+    if (condition) sale.condition = condition;
+    if (askingPrice) sale.askingPrice = askingPrice;
+    if (commissionRate !== undefined) sale.commissionRate = commissionRate;
+    if (isNegotiable !== undefined) sale.isNegotiable = isNegotiable;
+    if (title) sale.title = title;
+    if (description) sale.description = description;
+    if (seoTags) sale.seoTags = Array.isArray(seoTags) ? seoTags : JSON.parse(seoTags);
+    if (contactNumber) sale.contactNumber = contactNumber;
+    if (status) sale.status = status;
+
+    const savedSale = await sale.save();
+    res.json(savedSale);
+  } catch (error) {
+    console.error("Error updating vehicle sale:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+/**
  * @route   GET /api/sales/staff/vehicles
  * @desc    Get all active vehicle sales with full details for staff
  * @access  Private (Staff/Admin/Superadmin only)
