@@ -225,13 +225,13 @@ export default function VehicleSaleDetails() {
                     <img
                       src={getImageUrl(img)}
                       alt={`Vehicle view ${index + 1}`}
-                      style={{ width: '100%', height: '500px', objectFit: 'cover', borderRadius: 'var(--radius-xl, 16px)' }}
+                      style={{ width: '100%', height: '400px', objectFit: 'cover', borderRadius: 'var(--radius-xl, 16px)' }}
                     />
                   </div>
                 ))}
               </Carousel>
             ) : (
-              <div style={{ width: '100%', height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+              <div style={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
                 <Info size={48} />
               </div>
             )}

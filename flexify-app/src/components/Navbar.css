@@ -234,6 +234,25 @@
   box-shadow: var(--shadow-md);
 }
 
+.mobile-plus-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-plus-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+    color: white;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    margin-right: 4px;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+  }
+}
+
 .logout-top-btn {
   background: #fff1f2 !important;
   color: #e11d48 !important;

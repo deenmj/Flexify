@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { Row, Col, DatePicker } from 'antd';
+import { Row, Col, DatePicker, Dropdown } from 'antd';
 const { RangePicker } = DatePicker;
-import { Search, SlidersHorizontal, Locate, ChevronDown, X, Plus } from 'lucide-react';
+import { Search, SlidersHorizontal, Locate, ChevronDown, X, Plus, Car, Tag } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -105,7 +105,8 @@ export default function Explore() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  
+  const isAdminRole = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'staff';
+
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,9 +160,9 @@ export default function Explore() {
       const response = await vehicleApi.getAll(params);
       const vehiclesList = response.vehicles || [];
       const paginationData = response.pagination || { total: 0, page: 1, limit: 12, totalPages: 1 };
-      
+
       const filteredVehicles = vehiclesList;
-        
+
       if (overrideFilters?.page && parseInt(overrideFilters.page as string) > 1) {
         setVehicles(prev => [...prev, ...filteredVehicles]);
       } else {
@@ -201,8 +202,8 @@ export default function Explore() {
   };
 
   const clearFilters = () => {
-    setFilters({ 
-      transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '', 
+    setFilters({
+      transmission: '', minPrice: '', maxPrice: '', seats: '', vehicleType: '',
       lat: '', lng: '', radius: '10', sort: 'newest', province: '', district: '',
       startDate: '', endDate: '', driverOption: '', weddingHiresSpecial: '', locationName: ''
     });
@@ -210,13 +211,13 @@ export default function Explore() {
   };
 
   const handleLocationSelect = (lat: string, lng: string, locationName: string) => {
-    const updatedFilters = { 
-      ...filters, 
-      lat, 
-      lng, 
+    const updatedFilters = {
+      ...filters,
+      lat,
+      lng,
       locationName,
       province: '',
-      district: '' 
+      district: ''
     };
     setFilters(updatedFilters);
     setIsLocationModalOpen(false);
@@ -234,7 +235,7 @@ export default function Explore() {
 
   return (
     <div className="explore-page">
-      <SEO 
+      <SEO
         title={
           filters.vehicleType && filters.district
             ? `Rent ${filters.vehicleType}s in ${filters.district} | Rentify`
@@ -276,44 +277,76 @@ export default function Explore() {
         <div className="container" style={{ position: 'relative' }}>
           <div className="explore-title-container">
             <h1 className="explore-title">Explore Vehicles for Rent in Sri Lanka</h1>
-            <Link to="/list-vehicle" className="explore-list-btn">
-              <Plus size={18} /> <span>List Vehicle</span>
-            </Link>
+            {isAdminRole ? (
+              <Dropdown menu={{ items: [
+                { key: 'rent', label: (
+                  <Link to="/list-vehicle" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
+                      <Car size={18} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>Earn money by renting</span>
+                    </div>
+                  </Link>
+                ) },
+                { type: 'divider' },
+                { key: 'sale', label: (
+                  <Link to="/list-sale" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
+                      <Tag size={18} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
+                    </div>
+                  </Link>
+                ) }
+              ] }} trigger={['click']} placement="bottomRight" overlayStyle={{ minWidth: '220px', padding: '4px' }}>
+                <button className="explore-list-btn d-none-mobile" style={{ border: 'none', cursor: 'pointer' }}>
+                  <Plus size={18} /> <span>List Vehicle</span>
+                </button>
+              </Dropdown>
+            ) : (
+              <Link to="/list-vehicle" className="explore-list-btn d-none-mobile">
+                <Plus size={18} /> <span>List Vehicle</span>
+              </Link>
+            )}
           </div>
           <p className="explore-subtitle">Find the perfect vehicle for your journey</p>
-          
+
           <div className="explore-controls-container">
             <div className="explore-search-row">
               <form onSubmit={handleSearch} className="explore-search">
                 <div className="explore-search-inner">
                   <Search size={18} className="explore-search-icon" />
-                    <input
-                      type="text"
-                      placeholder="Search by name, model..."
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      className="explore-search-input"
+                  <input
+                    type="text"
+                    placeholder="Search by name, model..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="explore-search-input"
+                  />
+                  <div className="search-date-picker d-none-mobile">
+                    <RangePicker
+                      variant="borderless"
+                      placeholder={['Start Date', 'End Date']}
+                      style={{ width: '230px' }}
+                      onChange={(dates) => {
+                        if (dates) {
+                          setFilters({
+                            ...filters,
+                            startDate: dates[0]?.toISOString() || '',
+                            endDate: dates[1]?.toISOString() || ''
+                          });
+                        } else {
+                          setFilters({ ...filters, startDate: '', endDate: '' });
+                        }
+                      }}
+                      disabledDate={(current) => current && current < dayjs().startOf('day')}
                     />
-                    <div className="search-date-picker d-none-mobile">
-                      <RangePicker 
-                        variant="borderless"
-                        placeholder={['Start Date', 'End Date']}
-                        style={{ width: '230px' }}
-                        onChange={(dates) => {
-                          if (dates) {
-                            setFilters({ 
-                              ...filters, 
-                              startDate: dates[0]?.toISOString() || '', 
-                              endDate: dates[1]?.toISOString() || '' 
-                            });
-                          } else {
-                            setFilters({ ...filters, startDate: '', endDate: '' });
-                          }
-                        }}
-                        disabledDate={(current) => current && current < dayjs().startOf('day')}
-                      />
-                    </div>
-                    <button type="button" className="filter-toggle-btn" onClick={() => setShowFilters(!showFilters)}>
+                  </div>
+                  <button type="button" className="filter-toggle-btn" onClick={() => setShowFilters(!showFilters)}>
                     <SlidersHorizontal size={14} />
                     Filters
                   </button>
@@ -322,13 +355,13 @@ export default function Explore() {
               </form>
 
               <div className="explore-quick-filters">
-                <button 
-                  type="button" 
-                  className="quick-locate-btn" 
+                <button
+                  type="button"
+                  className="quick-locate-btn"
                   onClick={() => setIsLocationModalOpen(true)}
                   title="Set Location"
                 >
-                  <Locate size={14} /> 
+                  <Locate size={14} />
                   <span className="quick-locate-text">
                     {filters.locationName || 'Set Location'}
                   </span>
@@ -339,7 +372,7 @@ export default function Explore() {
                     onChange={(val) => setFilters({ ...filters, radius: val })}
                   />
                 ) : (
-                  <select 
+                  <select
                     className="quick-radius-select"
                     value={filters.radius}
                     onChange={(e) => {
@@ -480,15 +513,15 @@ export default function Explore() {
               ) : (
                 <div className="input-group">
                   <label>Travel Dates</label>
-                  <RangePicker 
+                  <RangePicker
                     style={{ width: '100%', height: '42px', borderRadius: '8px' }}
                     value={filters.startDate && filters.endDate ? [dayjs(filters.startDate), dayjs(filters.endDate)] : null}
                     onChange={(dates) => {
                       if (dates) {
-                        setFilters({ 
-                          ...filters, 
-                          startDate: dates[0]?.toISOString() || '', 
-                          endDate: dates[1]?.toISOString() || '' 
+                        setFilters({
+                          ...filters,
+                          startDate: dates[0]?.toISOString() || '',
+                          endDate: dates[1]?.toISOString() || ''
                         });
                       } else {
                         setFilters({ ...filters, startDate: '', endDate: '' });
@@ -554,9 +587,9 @@ export default function Explore() {
 
           {pagination.page < pagination.totalPages && (
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '3rem' }}>
-              <button 
-                onClick={handleLoadMore} 
-                className="btn btn-secondary" 
+              <button
+                onClick={handleLoadMore}
+                className="btn btn-secondary"
                 disabled={loading}
                 style={{ minWidth: '160px' }}
               >
@@ -567,7 +600,7 @@ export default function Explore() {
         </div>
       </section>
 
-      <LocationModal 
+      <LocationModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}
         onSelect={handleLocationSelect}
