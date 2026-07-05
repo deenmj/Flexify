@@ -44,7 +44,7 @@ router.post("/vehicles", protect, requireStaff, upload.array("images", 10), asyn
     const images = req.files ? req.files.map((file) => file.path) : [];
 
     // Validate required fields
-    if (!make || !model || !year || !registrationNumber || !mileage || !fuelType || !transmission || !condition || !askingPrice || !title || !originalOwnerDetails?.name || !originalOwnerDetails?.phone) {
+    if (!make || !model || !year || !mileage || !fuelType || !transmission || !condition || !askingPrice || !title || !originalOwnerDetails?.name || !originalOwnerDetails?.phone) {
       return res.status(400).json({ message: "Please provide all required fields." });
     }
 
@@ -124,7 +124,7 @@ router.put("/vehicles/:id", protect, requireStaff, upload.array("images", 10), a
     if (make) sale.make = make;
     if (model) sale.model = model;
     if (year) sale.year = year;
-    if (registrationNumber) sale.registrationNumber = registrationNumber;
+    if (registrationNumber !== undefined) sale.registrationNumber = registrationNumber;
     if (vin) sale.vin = vin;
     if (mileage) sale.mileage = mileage;
     if (fuelType) sale.fuelType = fuelType;

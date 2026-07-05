@@ -309,7 +309,9 @@ export default function VehicleSaleDetails() {
                  <FileText size={20} color="var(--text-tertiary)" style={{ marginRight: '16px', flexShrink: 0 }} />
                  <div>
                    <Text style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Registration</Text>
-                   <Text style={{ fontWeight: 900, color: 'var(--text-primary)', fontSize: '14px' }}>{vehicle.registrationNumber}</Text>
+                   <Text style={{ fontWeight: 900, color: 'var(--text-primary)', fontSize: '14px' }}>
+                     {vehicle.registrationNumber ? vehicle.registrationNumber : <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic', fontWeight: 600 }}>Unregistered</span>}
+                   </Text>
                  </div>
                </div>
 

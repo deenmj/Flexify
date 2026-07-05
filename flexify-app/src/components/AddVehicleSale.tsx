@@ -135,7 +135,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
             </Form.Item>
           </Col>
           <Col span={8} xs={24} md={8}>
-            <Form.Item name="registrationNumber" label="Registration No." rules={[{ required: true, message: 'Reg number is required' }]}>
+            <Form.Item name="registrationNumber" label="Registration No. (Optional)" extra={<Text type="secondary" style={{ fontSize: '0.75rem' }}>Optional for brand new/unregistered vehicles</Text>}>
               <Input placeholder="e.g. CBA-1234" />
             </Form.Item>
           </Col>
