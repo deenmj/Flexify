@@ -159,9 +159,7 @@ router.post("/payhere-notify", async (req, res) => {
         payment.paidAt = new Date();
         await payment.save();
 
-        // Try User first, fallback to Staff
-        let user = await User.findById(payment.user._id);
-        if (!user) user = await Staff.findById(payment.user._id);
+        const user = await User.findById(payment.user._id);
         const now = new Date();
         let currentEndDate = user.subscription.endDate && user.subscription.endDate > now 
           ? new Date(user.subscription.endDate) 
