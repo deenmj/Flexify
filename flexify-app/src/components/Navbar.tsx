@@ -152,7 +152,7 @@ export default function Navbar() {
                 icon={Car}
                 items={[
                   { label: 'List for Rent', href: '/list-vehicle', icon: Car, desc: 'Earn money by renting your vehicle' },
-                  ...(isAdminRole ? [{ label: 'List for Sale', href: '/list-sale', icon: Tag, desc: 'Sell your vehicle on Rentify' }] : []),
+                  ...(isAdminRole ? [{ label: 'List for Sale', href: '/staff?tab=manage-sales&openAdd=true', icon: Tag, desc: 'Sell your vehicle on Rentify' }] : []),
                 ]}
               />
               <NavDropdown
@@ -184,7 +184,7 @@ export default function Navbar() {
                 ) },
                 { type: 'divider' },
                 { key: 'sale', label: (
-                  <Link to="/list-sale" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                  <Link to="/staff?tab=manage-sales&openAdd=true" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
                       <Tag size={18} />
                     </div>
@@ -339,7 +339,7 @@ export default function Navbar() {
 
               <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
               {isAdminRole && (
-                <Link to="/list-sale" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
+                <Link to="/staff?tab=manage-sales&openAdd=true" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
               )}
 
               {user && (

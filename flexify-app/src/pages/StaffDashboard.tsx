@@ -39,8 +39,28 @@ export default function StaffDashboard() {
   const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'list-sale'>(initialTab);
 
   useEffect(() => {
-    setSearchParams({ tab });
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      if (newParams.get('tab') !== tab) {
+        newParams.set('tab', tab);
+      }
+      return newParams;
+    }, { replace: true });
   }, [tab, setSearchParams]);
+
+  useEffect(() => {
+    if (searchParams.get('openAdd') === 'true') {
+      setIsAddVehicleModalOpen(true);
+      if (tab !== 'manage-sales') {
+        setTab('manage-sales');
+      }
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.delete('openAdd');
+        return newParams;
+      }, { replace: true });
+    }
+  }, [searchParams, tab, setSearchParams]);
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewSearchQuery, setReviewSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
