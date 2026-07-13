@@ -37,12 +37,28 @@ export default function About() {
         }}
       />
       {/* Hero Section */}
-      <section className="static-hero" style={{ padding: '6rem 2rem 4rem' }}>
-        <div className="container" style={{ textAlign: 'center', maxWidth: '800px' }}>
-          <h1 style={{ fontSize: '3rem', marginBottom: '1.5rem', fontWeight: 900, background: 'linear-gradient(135deg, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+      <section className="about-hero-section">
+        
+        {/* Background Video */}
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="about-hero-video"
+        >
+          <source src="/give_then_updated.mp4" type="video/mp4" />
+        </video>
+
+        {/* Darkening Overlay */}
+        <div className="about-hero-overlay"></div>
+
+        {/* Text Container */}
+        <div className="about-hero-content container">
+          <h1 className="about-hero-title">
             Redefining Mobility
           </h1>
-          <p style={{ fontSize: '1.25rem', lineHeight: 1.8, opacity: 0.9, marginBottom: '2rem' }}>
+          <p className="about-hero-subtitle">
             Rentify is the world's premier peer-to-peer vehicle sharing marketplace. 
             We empower individuals to monetize their vehicles while providing renters 
             with unprecedented access to a diverse fleet of cars, trucks, and specialty vehicles.

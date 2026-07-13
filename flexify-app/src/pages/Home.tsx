@@ -234,38 +234,23 @@ export default function Home() {
               <h2 className="section-title">Featured Vehicles</h2>
               <p className="section-subtitle">Handpicked rides for every journey</p>
             </div>
-            {!isMobile && (
-              <div className="scroll-controls">
-                <button className="scroll-btn" onClick={() => scroll(vehicleScrollRef, 'left')}><ChevronLeft size={20} /></button>
-                <button className="scroll-btn" onClick={() => scroll(vehicleScrollRef, 'right')}><ChevronRight size={20} /></button>
+            <div className="scroll-controls featured-scroll-controls">
+              <button className="scroll-btn" onClick={() => scroll(vehicleScrollRef, 'left')} aria-label="Previous"><ChevronLeft size={20} /></button>
+              <button className="scroll-btn" onClick={() => scroll(vehicleScrollRef, 'right')} aria-label="Next"><ChevronRight size={20} /></button>
+            </div>
+          </div>
+          <div className="scroll-container featured-scroll" ref={vehicleScrollRef}>
+            {vehicles.slice(0, 12).map((vehicle) => (
+              <VehicleCard key={vehicle._id} vehicle={vehicle} />
+            ))}
+            {vehicles.length === 0 && (
+              <div className="empty-state-card" style={{ width: '100%', textAlign: 'center', padding: '3rem', background: 'rgba(255,255,255,0.05)', borderRadius: '1rem', border: '1px dashed var(--border-color)' }}>
+                <Car size={40} style={{ color: 'var(--text-tertiary)', marginBottom: '1rem' }} />
+                <p style={{ color: 'var(--text-secondary)', margin: 0 }}>No featured vehicles available yet.</p>
+                <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>List your vehicle to see it here!</p>
               </div>
             )}
           </div>
-          {!isMobile ? (
-            <div className="scroll-container" ref={vehicleScrollRef}>
-              {vehicles.slice(0, 12).map((vehicle) => (
-                <VehicleCard key={vehicle._id} vehicle={vehicle} />
-              ))}
-              {vehicles.length === 0 && (
-                <div className="empty-state-card" style={{ width: '100%', textAlign: 'center', padding: '3rem', background: 'rgba(255,255,255,0.05)', borderRadius: '1rem', border: '1px dashed var(--border-color)' }}>
-                  <Car size={40} style={{ color: 'var(--text-tertiary)', marginBottom: '1rem' }} />
-                  <p style={{ color: 'var(--text-secondary)', margin: 0 }}>No featured vehicles available yet.</p>
-                  <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>List your vehicle to see it here!</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="mobile-grid">
-              {vehicles.slice(0, 6).map((vehicle) => (
-                <VehicleCard key={vehicle._id} vehicle={vehicle} />
-              ))}
-              {vehicles.length === 0 && (
-                <div className="empty-state-card" style={{ width: '100%', textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '1rem', border: '1px dashed var(--border-color)' }}>
-                  <p style={{ color: 'var(--text-secondary)', margin: 0 }}>No featured vehicles available yet.</p>
-                </div>
-              )}
-            </div>
-          )}
           <div className="section-footer">
             <Link to="/explore" className="btn btn-secondary">
               View All Vehicles <ArrowRight size={16} />

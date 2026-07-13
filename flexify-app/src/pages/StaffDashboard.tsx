@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { notification, Modal, Form, Select, Input, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image } from 'antd';
+import { notification, Modal, Form, Select, Input, InputNumber, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image, Tabs, Row, Col } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import AddVehicleSale from '../components/AddVehicleSale';
 import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
   LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon,
-  Eye, EyeOff, Trash2, Edit2
+  Eye, EyeOff, Trash2, Edit2, DollarSign
 } from 'lucide-react';
-import { subadminApi, adminApi, userApi, feedbackApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
-import { DollarSign } from 'lucide-react';
+import { subadminApi, adminApi, userApi, feedbackApi, salesApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { useSocket } from '../context/SocketContext';
 import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
 
-export default function SubAdminDashboard() {
+export default function StaffDashboard() {
   const { user, logout, refreshUser } = useAuth();
   const { socket, connected: socketConnected } = useSocket();
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export default function SubAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'users';
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback'>(initialTab);
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'list-sale'>(initialTab);
 
   useEffect(() => {
     setSearchParams({ tab });
@@ -47,16 +47,22 @@ export default function SubAdminDashboard() {
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [activeSales, setActiveSales] = useState<any[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState(false);
   const [editModal, setEditModal] = useState<{visible: boolean, id: string, type: 'Make' | 'Model', name: string}>({visible: false, id: '', type: 'Make', name: ''});
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
-  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [rejectionModal, setRejectionModal] = useState<{
     visible: boolean;
     type: 'KYC' | 'Vehicle' | 'Review';
     id: string;
     targetName: string;
   }>({ visible: false, type: 'KYC', id: '', targetName: '' });
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  const [editingVehicleSale, setEditingVehicleSale] = useState<any>(null);
+  const [isFinalizeSaleModalOpen, setIsFinalizeSaleModalOpen] = useState(false);
+  const [selectedSaleVehicle, setSelectedSaleVehicle] = useState<any>(null);
+  const [finalizeSaleForm] = Form.useForm();
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -71,7 +77,7 @@ export default function SubAdminDashboard() {
     if (socket) {
       socket.on('pendingUpdate', (data: any) => {
 
-        fetchData(); // Refresh all data when something changes
+        fetchData();
         notification.info({
           message: 'Real-time Update',
           description: `New ${data.type} update detected. Dashboard refreshed.`,
@@ -110,7 +116,7 @@ export default function SubAdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [s, u, v, r, m, mo, p] = await Promise.all([
+      const [s, u, v, r, m, mo, p, sales] = await Promise.all([
         subadminApi.getStats().catch(() => null),
         subadminApi.getPendingUsers().catch(() => []),
         subadminApi.getPendingVehicles().catch(() => []),
@@ -118,6 +124,7 @@ export default function SubAdminDashboard() {
         subadminApi.getPendingMakes().catch(() => []),
         subadminApi.getPendingModels().catch(() => []),
         adminApi.getPendingPayments().catch(() => []),
+        salesApi.getStaffActiveSales().catch(() => []),
       ]);
       if (s) setStats(s);
       setPendingUsers(u);
@@ -126,6 +133,7 @@ export default function SubAdminDashboard() {
       setPendingMakes(m);
       setPendingModels(mo);
       setPendingPayments(p || []);
+      setActiveSales(sales);
     } catch (err: any) {
       message.error(err.message || 'Error fetching data');
     } finally {
@@ -133,28 +141,7 @@ export default function SubAdminDashboard() {
     }
   };
 
-  const handleCheck = (idx: number) => {
-    const updated = [...checkedItems];
-    updated[idx] = !updated[idx];
-    setCheckedItems(updated);
-  };
-
   const allChecked = checkedItems.every(Boolean);
-
-  const handleApproveUser = async (userId: string) => {
-    if (!allChecked) return;
-    setActionLoading(userId);
-    try {
-      await subadminApi.approveUser(userId);
-      setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
-      setShowModal(false);
-      message.success('User approved successfully');
-    } catch (err: any) {
-      message.error(err.message);
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const handleRejectUser = (userId: string) => {
     const user = pendingUsers.find(u => (u.id || u._id) === userId);
@@ -186,6 +173,34 @@ export default function SubAdminDashboard() {
       form.resetFields();
     } catch (err: any) {
       message.error(err.message || "Failed to reject");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleUpdateSaleStatus = async (id: string, status: string) => {
+    setActionLoading(id);
+    try {
+      await salesApi.updateSaleStatus(id, status);
+      message.success(`Status updated to ${status}`);
+      fetchData(); // Refresh the list
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update status');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleFinalizeSale = async (values: any) => {
+    if (!selectedSaleVehicle) return;
+    setActionLoading(selectedSaleVehicle._id);
+    try {
+      await salesApi.updateSaleStatus(selectedSaleVehicle._id, 'Sold Out', values.finalNegotiatedPrice);
+      message.success('Vehicle marked as sold and profit calculated!');
+      setIsFinalizeSaleModalOpen(false);
+      fetchData();
+    } catch (err: any) {
+      message.error(err.message || 'Failed to finalize sale');
     } finally {
       setActionLoading(null);
     }
@@ -271,18 +286,6 @@ export default function SubAdminDashboard() {
     }
   };
 
-  const handleEditSuggestionSave = () => {
-    if (!editModal.name.trim()) {
-      message.error('Name cannot be empty');
-      return;
-    }
-    if (editModal.type === 'Make') {
-      handleApproveMake(editModal.id, editModal.name);
-    } else {
-      handleApproveModel(editModal.id, editModal.name);
-    }
-  };
-
   const handleDeleteMake = async (id: string) => {
     if (!window.confirm("Delete this make suggestion?")) return;
     setActionLoading(id);
@@ -311,21 +314,15 @@ export default function SubAdminDashboard() {
     }
   };
 
-  const handleVerifyPayment = async (paymentId: string, status: 'approved' | 'rejected') => {
-    let reason = '';
-    if (status === 'rejected') {
-      reason = window.prompt('Enter rejection reason:') || 'Payment details incorrect';
+  const handleEditSuggestionSave = () => {
+    if (!editModal.name.trim()) {
+      message.error('Name cannot be empty');
+      return;
     }
-
-    setActionLoading(paymentId);
-    try {
-      const res = await adminApi.verifyPayment(paymentId, status, reason);
-      setPendingPayments(prev => prev.filter(p => p._id !== paymentId));
-      message.success(res.message);
-    } catch (err: any) {
-      message.error(err.message);
-    } finally {
-      setActionLoading(null);
+    if (editModal.type === 'Make') {
+      handleApproveMake(editModal.id, editModal.name.trim());
+    } else {
+      handleApproveModel(editModal.id, editModal.name.trim());
     }
   };
 
@@ -347,20 +344,6 @@ export default function SubAdminDashboard() {
     navigate('/');
   };
 
-  const handleDeleteFeedback = async (id: string) => {
-    if (!window.confirm("Delete this feedback?")) return;
-    setActionLoading(id);
-    try {
-      await feedbackApi.delete(id);
-      setFeedbacks(prev => prev.filter(f => f._id !== id));
-      message.success('Feedback deleted');
-    } catch (err: any) {
-      message.error(err.message || 'Failed to delete');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const filteredUsers = pendingUsers.filter(u =>
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -373,11 +356,11 @@ export default function SubAdminDashboard() {
     r.comment.toLowerCase().includes(reviewSearchQuery.toLowerCase())
   );
 
-  if (!user || (user.role !== 'subadmin' && user.role !== 'superadmin')) {
+  if (!user || (user.role !== 'staff' && user.role !== 'admin' && user.role !== 'superadmin')) {
     return (
       <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
         <Shield size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
-        <h2>Sub-Admin Access Required</h2>
+        <h2>Staff Access Required</h2>
         <p>You do not have permission to access this page.</p>
         <Button onClick={() => navigate('/')}>Back to Home</Button>
       </div>
@@ -415,6 +398,7 @@ export default function SubAdminDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC Reviews (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
+              { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
               { key: 'settings', icon: <Settings size={18} />, label: 'My Settings' },
@@ -446,6 +430,7 @@ export default function SubAdminDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${pendingVehicles.length})` },
+              { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions` },
               { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
@@ -478,6 +463,7 @@ export default function SubAdminDashboard() {
             <Title level={isMobile ? 5 : 4} style={{ margin: 0, color: '#1e293b' }}>
               {tab === 'users' && 'KYC Document Reviews'}
               {tab === 'vehicles' && 'Vehicle Approvals'}
+              {tab === 'manage-sales' && 'Manage Vehicle Sales'}
               {tab === 'reviews' && 'Review Moderation'}
               {tab === 'moderation' && 'Platform Content Suggestions'}
               {tab === 'settings' && 'Account Settings'}
@@ -485,14 +471,14 @@ export default function SubAdminDashboard() {
             </Title>
           </div>
           <Space size={isMobile ? "small" : "large"}>
-            {user?.role === 'superadmin' && (
+            {(user?.role === 'admin' || user?.role === 'superadmin') && (
               <Button 
                 type="primary" 
-                onClick={() => navigate('/admin')} 
+                onClick={() => navigate(user?.role === 'superadmin' ? '/ceo-master-portal' : '/admin')} 
                 icon={<Shield size={16} />}
-                style={{ display: 'flex', alignItems: 'center', background: '#7c3aed' }}
+                style={{ display: 'flex', alignItems: 'center', background: user?.role === 'superadmin' ? '#b8860b' : '#7c3aed' }}
               >
-                {!isMobile && "Main Admin"}
+                {!isMobile && (user?.role === 'superadmin' ? "CEO Portal" : "Main Admin")}
               </Button>
             )}
             <Button 
@@ -541,7 +527,6 @@ export default function SubAdminDashboard() {
             <div style={{ textAlign: 'center', padding: '4rem' }}><Spin size="large" /></div>
           ) : (
             <>
-              {/* Quick Stats Header */}
               {stats && tab === 'users' && (
                 <div style={{ 
                   display: 'flex', 
@@ -617,6 +602,164 @@ export default function SubAdminDashboard() {
                       }
                     ]}
                   />
+                </div>
+              )}
+
+              {tab === 'manage-sales' && (
+                <div className="animate-fade-in">
+                  <style>{`
+                    .luxury-tabs .ant-tabs-nav {
+                      margin-bottom: 24px;
+                    }
+                    .luxury-tabs .ant-tabs-tab {
+                      border-radius: 8px !important;
+                      border: 1px solid #e2e8f0 !important;
+                      background: white !important;
+                      padding: 10px 28px !important;
+                      transition: all 0.3s ease;
+                      font-weight: 500;
+                    }
+                    .luxury-tabs .ant-tabs-tab:hover {
+                      border-color: #cbd5e1 !important;
+                      color: #0f172a !important;
+                    }
+                    .luxury-tabs .ant-tabs-tab-active {
+                      background: #0f172a !important;
+                      border-color: #0f172a !important;
+                    }
+                    .luxury-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+                      color: white !important;
+                      font-weight: 600;
+                    }
+                    .luxury-table .ant-table {
+                      background: white !important;
+                      border-radius: 12px;
+                      overflow: hidden;
+                      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+                      border: 1px solid #f1f5f9;
+                    }
+                    .luxury-table .ant-table-thead > tr > th {
+                      background: #f8fafc !important;
+                      color: #475569 !important;
+                      font-weight: 700;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                      font-size: 12px;
+                      border-bottom: 2px solid #e2e8f0;
+                      padding: 18px 24px;
+                    }
+                    .luxury-table .ant-table-tbody > tr > td {
+                      padding: 20px 24px;
+                      border-bottom: 1px solid #f1f5f9;
+                      background: white !important;
+                      transition: background 0.2s ease;
+                    }
+                    .luxury-table .ant-table-tbody > tr:hover > td {
+                      background: #f8fafc !important;
+                    }
+                    .luxury-table .ant-pagination {
+                      margin: 20px 24px !important;
+                    }
+                  `}</style>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <Title level={4} style={{ margin: 0, fontWeight: 700, color: '#0f172a' }}>Manage Vehicle Sales</Title>
+                    <Button type="primary" size="large" onClick={() => { setEditingVehicleSale(null); setIsAddVehicleModalOpen(true); }} style={{ background: '#0f172a', borderRadius: '8px', fontWeight: 600, padding: '0 24px' }}>
+                      + Add New Vehicle
+                    </Button>
+                  </div>
+                  
+                  <Tabs defaultActiveKey="active" type="card" className="luxury-tabs">
+                    <Tabs.TabPane tab="Active Listings" key="active">
+                      <Table
+                        className="luxury-table"
+                        scroll={{ x: true }}
+                        dataSource={activeSales.filter(v => v.status !== 'Sold Out')}
+                        rowKey="_id"
+                        pagination={{ pageSize: 12 }}
+                        columns={[
+                          {
+                            title: 'Vehicle',
+                            render: (_, v) => (
+                              <div>
+                                <Text strong style={{ fontSize: '15px', color: '#0f172a' }}>{v.title}</Text><br />
+                                <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
+                              </div>
+                            )
+                          },
+                          {
+                            title: 'Price & Comm.',
+                            render: (_, v) => (
+                              <div>
+                                <Text strong style={{ fontSize: '15px' }}>Rs. {v.askingPrice?.toLocaleString()}</Text><br />
+                                <Text type="success" style={{ fontSize: '13px', fontWeight: 500 }}>
+                                  Exp. Comm: Rs. {((v.askingPrice * (v.commissionRate || 0)) / 100).toLocaleString()} ({v.commissionRate || 0}%)
+                                </Text>
+                              </div>
+                            )
+                          },
+                          {
+                            title: 'Status',
+                            dataIndex: 'status',
+                            render: (status) => <Tag color={status === 'New' ? '#10b981' : '#3b82f6'} style={{ padding: '4px 12px', borderRadius: '6px', fontWeight: 600 }}>{status.toUpperCase()}</Tag>
+                          },
+                          {
+                            title: 'Action',
+                            render: (_, v) => (
+                              <Space>
+                                <Button onClick={() => { setEditingVehicleSale(v); setIsAddVehicleModalOpen(true); }} style={{ borderRadius: '6px', fontWeight: 500 }}>
+                                  Edit
+                                </Button>
+                                <Button type="primary" onClick={() => { setSelectedSaleVehicle(v); setIsFinalizeSaleModalOpen(true); }} style={{ background: '#0f172a', borderRadius: '6px', fontWeight: 500 }}>
+                                  View / Sell
+                                </Button>
+                              </Space>
+                            )
+                          }
+                        ]}
+                      />
+                    </Tabs.TabPane>
+                    <Tabs.TabPane tab="Sold & Profits" key="sold">
+                      <div style={{ marginBottom: '24px', padding: '24px', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0', borderRadius: '12px', boxShadow: '0 4px 15px -3px rgba(22, 163, 74, 0.1)' }}>
+                        <Statistic 
+                          title={<span style={{ color: '#15803d', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Platform Profit</span>}
+                          value={activeSales.filter(v => v.status === 'Sold Out').reduce((sum, v) => sum + (v.profitEarned || 0), 0)} 
+                          prefix="Rs." 
+                          valueStyle={{ color: '#16a34a', fontWeight: 800, fontSize: '32px' }} 
+                        />
+                      </div>
+                      <Table
+                        className="luxury-table"
+                        scroll={{ x: true }}
+                        dataSource={activeSales.filter(v => v.status === 'Sold Out')}
+                        rowKey="_id"
+                        pagination={{ pageSize: 12 }}
+                        columns={[
+                          {
+                            title: 'Vehicle',
+                            render: (_, v) => (
+                              <div>
+                                <Text strong>{v.title}</Text><br />
+                                <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
+                              </div>
+                            )
+                          },
+                          {
+                            title: 'Final Price',
+                            render: (_, v) => <Text strong>Rs. {v.finalNegotiatedPrice?.toLocaleString()}</Text>
+                          },
+                          {
+                            title: 'Profit Earned',
+                            render: (_, v) => <Text type="success" strong>Rs. {v.profitEarned?.toLocaleString()}</Text>
+                          },
+                          {
+                            title: 'Status',
+                            dataIndex: 'status',
+                            render: () => <Tag color="red">Sold Out</Tag>
+                          }
+                        ]}
+                      />
+                    </Tabs.TabPane>
+                  </Tabs>
                 </div>
               )}
 
@@ -1100,6 +1243,143 @@ export default function SubAdminDashboard() {
             <Input.TextArea rows={4} placeholder="Detailed explanation..." />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Add / Edit Vehicle Modal */}
+      <Modal
+        title={editingVehicleSale ? "Edit Vehicle Listing" : "Add New Vehicle Listing"}
+        open={isAddVehicleModalOpen}
+        onCancel={() => { setIsAddVehicleModalOpen(false); setEditingVehicleSale(null); }}
+        footer={null}
+        width={768}
+        destroyOnClose
+      >
+        <AddVehicleSale 
+          initialData={editingVehicleSale} 
+          onSuccess={() => {
+            setIsAddVehicleModalOpen(false);
+            setEditingVehicleSale(null);
+            fetchData();
+          }} 
+        />
+      </Modal>
+
+      {/* Finalize Sale Modal */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <DollarSign size={20} color="#16a34a" />
+            <span>Vehicle Sale Details & Finalize</span>
+          </div>
+        }
+        open={isFinalizeSaleModalOpen}
+        onCancel={() => {
+          setIsFinalizeSaleModalOpen(false);
+          finalizeSaleForm.resetFields();
+          setSelectedSaleVehicle(null);
+        }}
+        footer={null}
+        width={800}
+        bodyStyle={{ padding: '24px 0 0' }}
+      >
+        {selectedSaleVehicle && (
+          <Row gutter={[24, 24]}>
+            <Col xs={24} md={14}>
+              <Title level={4} style={{ marginBottom: 4 }}>
+                {selectedSaleVehicle.make} {selectedSaleVehicle.model} ({selectedSaleVehicle.year})
+              </Title>
+              <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                Reg: {selectedSaleVehicle.registrationNumber || 'N/A'} | Mileage: {selectedSaleVehicle.mileage?.toLocaleString()} km
+              </Text>
+              
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '24px' }}>
+                <Text type="secondary">Asking Price:</Text>
+                <Text style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
+                  Rs. {selectedSaleVehicle.askingPrice?.toLocaleString()}
+                </Text>
+              </div>
+              
+              <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <Text strong style={{ fontSize: '1rem' }}>Owner Details</Text>
+                  <Tag color="orange" style={{ margin: 0 }}>Internal Use Only</Tag>
+                </div>
+                
+                {(() => {
+                  try {
+                    // Check if it's already an object (which it is in the Mongoose schema)
+                    const owner = typeof selectedSaleVehicle.originalOwnerDetails === 'string' 
+                      ? JSON.parse(selectedSaleVehicle.originalOwnerDetails) 
+                      : (selectedSaleVehicle.originalOwnerDetails || {});
+                      
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div>
+                          <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>Name</Text>
+                          <Text strong>{owner.name || 'N/A'}</Text>
+                        </div>
+                        <div>
+                          <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>Phone</Text>
+                          <Text strong>{owner.phone || 'N/A'}</Text>
+                        </div>
+                        {owner.email && (
+                          <div>
+                            <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>Email</Text>
+                            <Text strong>{owner.email}</Text>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  } catch (e) {
+                    return <Text className="break-words whitespace-normal text-sm">Failed to load details.</Text>;
+                  }
+                })()}
+              </div>
+            </Col>
+            
+            <Col xs={24} md={10}>
+              <Card 
+                title={<span style={{ color: '#16a34a' }}>Finalize Sale</span>}
+                bordered={false} 
+                style={{ background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '12px' }}
+                headStyle={{ borderBottom: '1px solid #dcfce7' }}
+              >
+                <div style={{ marginBottom: '20px' }}>
+                  <Text type="secondary" style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>Commission Rate</Text>
+                  <Text strong style={{ fontSize: '16px' }}>{selectedSaleVehicle.commissionRate || 0}%</Text>
+                </div>
+
+                <Form form={finalizeSaleForm} layout="vertical" onFinish={handleFinalizeSale}>
+                  <Form.Item 
+                    name="finalNegotiatedPrice" 
+                    label="Final Negotiated Price (Rs.)"
+                    rules={[{ required: true, message: 'Final price is required' }]}
+                    style={{ marginBottom: '24px' }}
+                  >
+                    <InputNumber 
+                      size="large"
+                      style={{ width: '100%' }} 
+                      formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      parser={value => value!.replace(/\$\s?|(,*)/g, '') as any}
+                      placeholder="Enter final sold price"
+                    />
+                  </Form.Item>
+                  
+                  <Button 
+                    type="primary" 
+                    htmlType="submit" 
+                    block 
+                    size="large"
+                    style={{ background: '#16a34a', borderColor: '#16a34a', fontWeight: 600, height: '48px' }} 
+                    loading={!!actionLoading}
+                  >
+                    Mark as Sold & Record Profit
+                  </Button>
+                </Form>
+              </Card>
+            </Col>
+          </Row>
+        )}
       </Modal>
     </Layout>
   );

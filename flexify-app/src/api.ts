@@ -67,7 +67,8 @@ export interface User {
   email: string;
   phone?: string;
   address?: string;
-  role: 'user' | 'owner' | 'subadmin' | 'superadmin';
+  role: 'user' | 'owner' | 'staff' | 'admin' | 'subadmin' | 'superadmin';
+  isStaff?: boolean;
   ownerType?: 'VERIFIED' | 'UNVERIFIED' | null;
   verified: boolean;
   isKycVerified: boolean;
@@ -90,6 +91,9 @@ export interface User {
     startDate: string;
     endDate: string | null;
   };
+  wishlistSales?: string[]; // Deprecated, will be replaced
+  rentWishlist?: string[];
+  saleWishlist?: string[];
 }
 
 export interface Vehicle {
@@ -309,12 +313,18 @@ function authHeadersOnly(): Record<string, string> {
 }
 
 async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const headers: any = {
+    ...authHeaders(),
+    ...options.headers,
+  };
+
+  if (options.body instanceof FormData) {
+    delete headers['Content-Type'];
+  }
+
   const res = await fetch(`${API_BASE_URL}${url}`, {
     ...options,
-    headers: {
-      ...authHeaders(),
-      ...options.headers,
-    },
+    headers,
   });
 
   let data;
@@ -536,6 +546,31 @@ export const adminApi = {
     }),
 };
 
+export const superAdminApi = {
+  getFinancials: () => apiFetch('/superadmin/financials'),
+  getStaff: () => apiFetch('/superadmin/staff'),
+  updateSettings: (data: any) => apiFetch('/superadmin/settings', { method: 'PATCH', body: JSON.stringify(data) })
+};
+
+// =================== SALES API ===================
+export const salesApi = {
+  createVehicleSale: (data: any) => apiFetch('/sales/vehicles', { 
+    method: 'POST', 
+    body: data instanceof FormData ? data : JSON.stringify(data) 
+  }),
+  updateVehicleSale: (id: string, data: any) => apiFetch(`/sales/vehicles/${id}`, {
+    method: 'PUT',
+    body: data instanceof FormData ? data : JSON.stringify(data)
+  }),
+  getActiveSales: () => apiFetch<any[]>('/sales/vehicles'),
+  getStaffActiveSales: () => apiFetch<any[]>('/sales/staff/vehicles'),
+  getSaleById: (id: string) => apiFetch<any>(`/sales/vehicles/${id}`),
+  updateSaleStatus: (id: string, status: string, finalNegotiatedPrice?: number) => apiFetch<any>(`/sales/vehicles/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status, finalNegotiatedPrice })
+  }),
+};
+
 // =================== SUBADMIN ===================
 export const subadminApi = {
   getStats: () => apiFetch<SubadminStats>('/subadmin/stats'),
@@ -650,9 +685,25 @@ export const userApi = {
       body: formData,
     }).then(async (res) => {
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Document update failed');
+      if (!res.ok) throw new Error(data.message || 'Documents update failed');
       return data;
     }),
+
+  toggleWishlistSale: (saleId: string) =>
+    apiFetch<{ message: string; saleWishlist: string[] }>(`/users/wishlist/sale/${saleId}`, {
+      method: 'POST',
+    }),
+
+  getWishlistSale: () =>
+    apiFetch<any[]>('/users/wishlist/sale'),
+
+  toggleWishlistRent: (vehicleId: string) =>
+    apiFetch<{ message: string; rentWishlist: string[] }>(`/users/wishlist/rent/${vehicleId}`, {
+      method: 'POST',
+    }),
+
+  getWishlistRent: () =>
+    apiFetch<Vehicle[]>('/users/wishlist/rent'),
 };
 
 // =================== OWNER / SUBSCRIPTIONS ===================
@@ -710,6 +761,14 @@ export interface Founder {
   image: string;
 }
 
+export interface MaintenanceData {
+  isMaintenanceMode: boolean;
+  maintenanceTitle?: string;
+  maintenanceMessage?: string;
+  estimatedTime?: string;
+  progressStatus?: string;
+}
+
 export const settingsApi = {
   getContactDetails: () => apiFetch<{ email: string; phone: string; address: string; workingHours: string; }>('/settings/contact'),
   updateContactDetails: (data: { email: string; phone: string; address: string; workingHours: string; }) => 
@@ -733,6 +792,14 @@ export const settingsApi = {
 
   deleteFounder: (index: number) =>
     apiFetch<Founder[]>(`/settings/founders/${index}`, { method: 'DELETE' }),
+
+  getMaintenanceMode: () => apiFetch<MaintenanceData>('/settings/maintenance'),
+  
+  toggleMaintenanceMode: (data: MaintenanceData) => 
+    apiFetch<MaintenanceData>('/settings/maintenance', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
 };
 
 export const feedbackApi = {

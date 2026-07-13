@@ -5,9 +5,10 @@ interface Props {
   children: React.ReactNode;
   roles?: string[];
   excludeRoles?: string[];
+  requireCeo?: boolean;
 }
 
-export default function ProtectedRoute({ children, roles, excludeRoles }: Props) {
+export default function ProtectedRoute({ children, roles, excludeRoles, requireCeo }: Props) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -20,15 +21,29 @@ export default function ProtectedRoute({ children, roles, excludeRoles }: Props)
 
   if (!user) return <Navigate to="/auth" replace />;
 
-  if (roles && !roles.includes(user.role)) {
-    if (user.role === 'subadmin') return <Navigate to="/subadmin" replace />;
-    if (user.role === 'superadmin') return <Navigate to="/admin" replace />;
-    return <Navigate to="/" replace />;
+  if (requireCeo) {
+    if (user.role !== 'superadmin') {
+      return <Navigate to="/" replace />;
+    }
+  }
+
+  if (roles) {
+    const isStaffAllowed = roles.includes('staff') && user.isStaff === true;
+    const isSuperAdminAllowed = user.role === 'superadmin' && (roles.includes('admin') || roles.includes('staff') || roles.includes('superadmin'));
+    const isAdminAllowed = user.role === 'admin' && (roles.includes('staff') || roles.includes('admin'));
+    
+    if (!roles.includes(user.role) && !isStaffAllowed && !isSuperAdminAllowed && !isAdminAllowed) {
+      if (user.role === 'staff') return <Navigate to="/staff" replace />;
+      if (user.role === 'admin') return <Navigate to="/admin" replace />;
+      if (user.role === 'superadmin') return <Navigate to="/ceo-master-portal" replace />;
+      return <Navigate to="/" replace />;
+    }
   }
 
   if (excludeRoles && excludeRoles.includes(user.role)) {
-    if (user.role === 'subadmin') return <Navigate to="/subadmin" replace />;
-    if (user.role === 'superadmin') return <Navigate to="/admin" replace />;
+    if (user.role === 'staff') return <Navigate to="/staff" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
+    if (user.role === 'superadmin') return <Navigate to="/ceo-master-portal" replace />;
     return <Navigate to="/" replace />;
   }
 

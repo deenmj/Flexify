@@ -201,3 +201,64 @@ export const deleteFounder = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+// =================== MAINTENANCE MODE ===================
+
+// @desc    Get maintenance mode status
+// @route   GET /api/settings/maintenance
+// @access  Public
+export const getMaintenanceMode = async (req, res) => {
+  try {
+    const settings = await Settings.findOne({ key: 'isMaintenanceMode' });
+    if (!settings) {
+      return res.json({ isMaintenanceMode: false });
+    }
+    
+    // Support backward compatibility if it's stored as a boolean
+    if (typeof settings.value === 'boolean') {
+      return res.json({ isMaintenanceMode: settings.value });
+    }
+    
+    // Return full object
+    res.json(settings.value);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Toggle maintenance mode
+// @route   PUT /api/settings/maintenance
+// @access  Private/Admin
+export const toggleMaintenanceMode = async (req, res) => {
+  try {
+    const { isMaintenanceMode, maintenanceTitle, maintenanceMessage, estimatedTime, progressStatus } = req.body;
+    
+    if (!['admin', 'superadmin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Only admins can toggle maintenance mode' });
+    }
+
+    const payload = {
+      isMaintenanceMode: Boolean(isMaintenanceMode),
+      maintenanceTitle: maintenanceTitle || 'System Upgrade',
+      maintenanceMessage: maintenanceMessage || 'We are performing scheduled maintenance to bring you an even better, faster, and more secure Rentify experience. We\'ll be back shortly!',
+      estimatedTime: estimatedTime || '~ 15 Minutes',
+      progressStatus: progressStatus || 'Upgrading Database...'
+    };
+
+    let settings = await Settings.findOne({ key: 'isMaintenanceMode' });
+    
+    if (settings) {
+      settings.value = payload;
+      await settings.save();
+    } else {
+      settings = await Settings.create({
+        key: 'isMaintenanceMode',
+        value: payload
+      });
+    }
+
+    res.json(settings.value);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

@@ -42,10 +42,10 @@ const userSchema = new mongoose.Schema(
       default: "local",
     },
 
-    // Core role: user | owner | subadmin | superadmin
+    // Core role: user | owner | staff | admin
     role: {
       type: String,
-      enum: ["user", "owner", "subadmin", "superadmin"],
+      enum: ["user", "owner", "staff", "admin", "subadmin", "superadmin"],
       default: "user",
     },
 
@@ -101,9 +101,22 @@ const userSchema = new mongoose.Schema(
     profilePic: { type: String, default: "" },
     notificationEmail: { type: String, default: "" },
     isNotificationEmailActive: { type: Boolean, default: false },
+
+    // Wishlists
+    rentWishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Vehicle" }],
+    saleWishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "VehicleSale" }],
   },
   { timestamps: true }
 );
+
+userSchema.virtual('vehicles', {
+  ref: 'Vehicle',
+  localField: '_id',
+  foreignField: 'owner'
+});
+
+userSchema.set('toObject', { virtuals: true });
+userSchema.set('toJSON', { virtuals: true });
 
 // Hash password before save
 userSchema.pre("save", async function (next) {

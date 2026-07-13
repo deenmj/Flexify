@@ -1,32 +1,89 @@
 import { Link } from 'react-router-dom';
-import { type Vehicle, getOptimizedImageUrl, getVehicleSlug } from '../api';
-import { Users, Star, Zap, Gauge, MapPin, Verified, Share2 } from 'lucide-react';
+import { type Vehicle, getOptimizedImageUrl, getVehicleSlug, userApi } from '../api';
+import { Users, Star, Zap, Gauge, MapPin, Verified, Share2, Heart } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { message } from 'antd';
+import { useState, useEffect } from 'react';
 import './VehicleCard.css';
 
 export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const ownerData = typeof vehicle.owner === 'object' ? vehicle.owner : null;
   const isBike = vehicle.serviceType?.[0]?.toLowerCase() === 'bike' || vehicle.serviceType?.[0]?.toLowerCase() === 'scooter';
+  const { user, setUser } = useAuth();
+
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    const saved = user?.rentWishlist?.some((item: any) => 
+      (typeof item === 'string' ? item : item._id) === vehicle._id
+    ) || false;
+    setIsSaved(saved);
+  }, [user?.rentWishlist, vehicle._id]);
+
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user) {
+      message.info('Please log in to save this rental.');
+      return;
+    }
+    try {
+      setIsSaved(!isSaved); // Optimistic update
+      const res = await userApi.toggleWishlistRent(vehicle._id);
+      // @ts-ignore
+      setUser({ ...user, rentWishlist: res.rentWishlist });
+      message.success(res.message);
+    } catch (err: any) {
+      message.error(err.message || 'Failed to update wishlist');
+    }
+  };
 
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigating to the vehicle link
-    if (navigator.share) {
-      try {
+    e.stopPropagation();
+
+    const shareText = `Check out this ${vehicle.year || ''} ${vehicle.make} ${vehicle.model} on Rentify!`;
+    const shareUrl = `${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`;
+
+    try {
+      if (vehicle.photos?.[0]) {
+        // 1. Fetch the image and convert to a File object
+        const imageUrl = getOptimizedImageUrl(vehicle.photos[0], 400, 300);
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'vehicle-image.jpg', { type: blob.type });
+
+        // 2. Check if the device supports sharing files
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: vehicle.title,
+            text: shareText,
+            url: shareUrl,
+          });
+          return;
+        }
+      }
+      
+      // Fallback for devices that support share but not files, or if no image
+      if (navigator.share) {
         await navigator.share({
           title: vehicle.title,
-          text: `Check out this ${vehicle.make} ${vehicle.model} on Rentify!`,
-          url: `${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`,
+          text: shareText,
+          url: shareUrl,
         });
-      } catch (err) {
-        console.error('Error sharing:', err);
+      } else {
+        // Fallback for desktop
+        navigator.clipboard.writeText(shareUrl);
+        message.success('Link copied to clipboard!');
       }
-    } else {
-      navigator.clipboard.writeText(`${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`);
+    } catch (err) {
+      console.error('Error sharing:', err);
     }
   };
 
   return (
     <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="shared-vehicle-card-link">
-      <div className="shared-vehicle-card card">
+      <div className="shared-vehicle-card card rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 relative">
         <div className="shared-vehicle-img-wrap">
           <img
             src={getOptimizedImageUrl(vehicle.photos?.[0], 400, 300)}
@@ -35,6 +92,23 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             className="shared-vehicle-img"
             onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=800&q=80'; }}
           />
+          
+          {/* Heart Button Overlay */}
+          <button 
+            onClick={handleToggleWishlist}
+            style={{
+              position: 'absolute', top: '12px', right: '12px',
+              width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.9)', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', 
+              cursor: 'pointer', zIndex: 10, boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+            }}
+          >
+            {isSaved ? (
+              <Heart size={16} color="#ef4444" fill="#ef4444" />
+            ) : (
+              <Heart size={16} color="#475569" />
+            )}
+          </button>
         </div>
         <div className="shared-vehicle-body">
           {/* Tags row below image */}

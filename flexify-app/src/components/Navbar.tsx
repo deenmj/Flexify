@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Compass, Home, CalendarCheck, Tag } from 'lucide-react';
-import { Badge, Tooltip, Modal } from 'antd';
+import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Compass, Home, CalendarCheck, Tag, Plus } from 'lucide-react';
+import { Badge, Tooltip, Modal, Dropdown } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { notificationApi, bookingApi } from '../api';
 import './Navbar.css';
@@ -12,6 +12,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -79,15 +80,17 @@ export default function Navbar() {
 
   const getDashboardLink = () => {
     if (!user) return null;
-    if (user.role === 'superadmin') return '/admin';
-    if (user.role === 'subadmin') return '/subadmin';
+    if (user.role === 'superadmin') return '/ceo-master-portal';
+    if (user.role === 'admin') return '/admin';
+    if (user.role === 'staff') return '/staff';
     return '/dashboard';
   };
 
   const getRoleBadge = () => {
     if (!user) return null;
-    if (user.role === 'superadmin') return { text: 'ADMIN', color: '#7c3aed' };
-    if (user.role === 'subadmin') return { text: 'STAFF', color: '#0d9488' };
+    if (user.role === 'superadmin') return { text: 'CEO', color: '#b8860b' };
+    if (user.role === 'admin') return { text: 'ADMIN', color: '#7c3aed' };
+    if (user.role === 'staff') return { text: 'STAFF', color: '#0d9488' };
     if (user.role === 'owner' && user.ownerType === 'VERIFIED') return { text: 'PRO', color: '#1890ff' };
     if (user.isKycVerified) return { text: '✓', color: '#16a34a' };
     return null;
@@ -111,8 +114,9 @@ export default function Navbar() {
 
   const badge = getRoleBadge();
   const isSuperAdmin = user?.role === 'superadmin';
-  const isStaff = user?.role === 'subadmin';
-  const isAdminRole = isSuperAdmin || isStaff;
+  const isAdmin = user?.role === 'admin';
+  const isStaff = user?.role === 'staff';
+  const isAdminRole = isSuperAdmin || isAdmin || isStaff;
 
   return (
     <>
@@ -133,13 +137,13 @@ export default function Navbar() {
           {/* Desktop Nav — All roles see full nav now */}
           <div>
             <div className="navbar-links">
-              <Link to="/home" className="nav-link nav-link-highlight">
+              <Link to="/home" className={`nav-link ${location.pathname === '/home' ? 'nav-link-highlight' : ''}`}>
                 <Home size={18} /> Home
               </Link>
-              <Link to="/explore" className="nav-link">
-                <Compass size={18} /> Explore
+              <Link to="/explore" className={`nav-link ${location.pathname === '/explore' ? 'nav-link-highlight' : ''}`}>
+                <Compass size={18} /> Rent a Vehicle
               </Link>
-              <Link to="/buy" className="nav-link">
+              <Link to="/buy" className={`nav-link ${location.pathname === '/buy' ? 'nav-link-highlight' : ''}`}>
                 <Tag size={18} /> Buy Vehicles
               </Link>
 
@@ -165,6 +169,41 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="navbar-actions">
+            {isAdminRole ? (
+              <Dropdown menu={{ items: [
+                { key: 'rent', label: (
+                  <Link to="/list-vehicle" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
+                      <Car size={18} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>Earn money by renting</span>
+                    </div>
+                  </Link>
+                ) },
+                { type: 'divider' },
+                { key: 'sale', label: (
+                  <Link to="/list-sale" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
+                      <Tag size={18} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
+                    </div>
+                  </Link>
+                ) }
+              ] }} trigger={['click']} placement="bottomRight" overlayStyle={{ minWidth: '220px', padding: '4px' }}>
+                <button className="mobile-plus-btn" title="List Vehicle" style={{ border: 'none', cursor: 'pointer' }}>
+                  <Plus size={18} strokeWidth={2.5} />
+                </button>
+              </Dropdown>
+            ) : (
+              <Link to="/list-vehicle" className="mobile-plus-btn" title="List Vehicle">
+                <Plus size={18} strokeWidth={2.5} />
+              </Link>
+            )}
             <Link to="/explore" className="nav-action-btn" title="Search">
               <Search size={20} />
             </Link>
@@ -227,7 +266,7 @@ export default function Navbar() {
                   </Link>
                   {getDashboardLink() && (
                     <Link to={getDashboardLink()!} className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                      <LayoutDashboard size={16} /> {isStaff ? 'Staff Dashboard' : isSuperAdmin ? 'Admin Dashboard' : 'Dashboard'}
+                      <LayoutDashboard size={16} /> {isSuperAdmin ? 'CEO Portal' : isAdmin ? 'Admin Dashboard' : isStaff ? 'Staff Dashboard' : 'Dashboard'}
                     </Link>
                   )}
 
@@ -295,7 +334,7 @@ export default function Navbar() {
               )}
               <div className="mobile-section-title">Main Menu</div>
               <Link to="/home" className="mobile-link" onClick={() => setMobileOpen(false)}><Home size={18} /> Home</Link>
-              <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}><Compass size={18} /> Explore</Link>
+              <Link to="/explore" className="mobile-link" onClick={() => setMobileOpen(false)}><Compass size={18} /> Rent a Vehicle</Link>
               <Link to="/buy" className="mobile-link" onClick={() => setMobileOpen(false)}><Tag size={18} /> Buy a Vehicle</Link>
 
               <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
@@ -307,7 +346,7 @@ export default function Navbar() {
                 <>
                   <div className="mobile-section-title">My Account</div>
                   <Link to={getDashboardLink()!} className="mobile-link" onClick={() => setMobileOpen(false)}>
-                    <LayoutDashboard size={18} /> {isSuperAdmin ? 'Admin Dashboard' : isStaff ? 'Staff Dashboard' : 'Dashboard'}
+                    <LayoutDashboard size={18} /> {isSuperAdmin ? 'CEO Portal' : isAdmin ? 'Admin Dashboard' : isStaff ? 'Staff Dashboard' : 'Dashboard'}
                   </Link>
                   {isAdminRole && (
                     <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> My Vehicles & Bookings</Link>

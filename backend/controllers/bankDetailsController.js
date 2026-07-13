@@ -12,7 +12,7 @@ export const getBankDetails = async (req, res) => {
         bankName: "Commercial Bank",
         accountName: "Rentify Pvt Ltd",
         accountNumber: "8010045622",
-        referenceEmail: "luxury@rentify.lk",
+        referenceEmail: "admin@rentify.lk",
       });
     }
     res.json(details);

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Check, X, Mail } from 'lucide-react';
+import { bookingApi } from '../api';
 import './Auth.css';
 import RentifyLogo from '../components/RentifyLogo';
 import SEO from '../components/SEO';
@@ -51,8 +52,39 @@ export default function Auth() {
       if (mode === 'login') {
         await login(email, password);
         const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        const pendingBookingStr = localStorage.getItem('pendingBooking');
+        if (pendingBookingStr) {
+          const pending = JSON.parse(pendingBookingStr);
+          const hasKycFields = Boolean(
+            user.documents?.idNumber?.trim() && 
+            user.documents?.address?.trim() && 
+            (user.documents?.phone?.trim() || user.phone?.trim())
+          );
+          
+          if (hasKycFields) {
+            localStorage.removeItem('pendingBooking');
+            try {
+              const resp = await bookingApi.create(
+                pending.vehicleId,
+                pending.startDate,
+                pending.endDate,
+                pending.withDriver
+              );
+              navigate('/dashboard?tab=bookings&newBooking=1', { state: { bookingSuccessData: resp } });
+              return;
+            } catch (err: any) {
+              console.error('Auto-booking failed post-login:', err);
+              // Fallback to explore if auto-book fails, letting the user try manually again later
+            }
+          } else {
+            navigate(`/verify?pendingBooking=true`);
+            return;
+          }
+        }
+
         if (user.role === 'superadmin') navigate('/admin');
-        else if (user.role === 'subadmin') navigate('/subadmin');
+        else if (user.role === 'subadmin' || user.role === 'staff' || user.role === 'admin') navigate('/staff');
         else if (user.role === 'owner') navigate('/dashboard?tab=vehicles');
         else navigate('/explore');
       } else {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
+import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, superAdminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
 import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert } from 'antd';
 import Table from '../components/ResponsiveTable';
@@ -10,6 +10,7 @@ import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
+import { ConfigProvider } from 'antd';
 
 const SRI_LANKA_DISTRICTS = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 'Galle', 'Matara', 'Hambantota',
@@ -17,7 +18,7 @@ const SRI_LANKA_DISTRICTS = [
   'Kurunegala', 'Puttalam', 'Anuradhapura', 'Polonnaruwa', 'Badulla', 'Moneragala', 'Ratnapura', 'Kegalle'
 ];
 
-export default function AdminDashboard() {
+export default function SuperAdminDashboard() {
   const { user, logout } = useAuth();
   const { connected: socketConnected } = useSocket();
   const navigate = useNavigate();
@@ -33,7 +34,10 @@ export default function AdminDashboard() {
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'overview';
-  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'bank-settings' | 'site-settings' | 'feedback'>(initialTab);
+  const [tab, setTab] = useState<'overview' | 'users' | 'vehicles' | 'bookings' | 'bank-settings' | 'site-settings' | 'feedback' | 'financials' | 'staff-management' | 'platform-settings'>(initialTab);
+
+  const [financials, setFinancials] = useState<any>(null);
+  const [staffData, setStaffData] = useState<any[]>([]);
 
   useEffect(() => {
     setSearchParams({ tab });
@@ -93,7 +97,7 @@ export default function AdminDashboard() {
   }, [district, timeRange]);
 
   useEffect(() => {
-    if (user?.role !== 'admin') return;
+    if (user?.role !== 'superadmin') return;
 
     // Initial full load
     setLoading(true);
@@ -104,13 +108,17 @@ export default function AdminDashboard() {
       adminApi.getAllBookings().catch(() => []),
       adminApi.getAuditLogs(1, 15).catch(() => ({ logs: [] })),
       adminApi.getPendingPayments().catch(() => []),
-    ]).then(([s, u, v, b, logs, p]) => {
+      superAdminApi.getFinancials().catch(() => null),
+      superAdminApi.getStaff().catch(() => [])
+    ]).then(([s, u, v, b, logs, p, f, st]) => {
       if (s) setStats(s);
       setAllUsers(u);
       setAllVehicles(v);
       setAllBookings(b);
       if (logs?.logs) setAuditLogs(logs.logs);
       setPendingPayments(p);
+      setFinancials(f);
+      setStaffData(st);
     }).finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -356,13 +364,6 @@ export default function AdminDashboard() {
         .then(setSiteSettings)
         .catch(() => message.error('Failed to load site settings'))
         .finally(() => setSiteSettingsLoading(false));
-
-      settingsApi.getMaintenanceMode()
-        .then(res => {
-          setIsMaintenanceMode(res.isMaintenanceMode);
-          maintenanceForm.setFieldsValue(res);
-        })
-        .catch(err => console.error(err));
     }
   }, [tab, siteSettings]);
 
@@ -374,6 +375,14 @@ export default function AdminDashboard() {
         .then(setFounders)
         .catch(() => message.error('Failed to load founders'))
         .finally(() => setFoundersLoading(false));
+    }
+    if (tab === 'platform-settings') {
+      settingsApi.getMaintenanceMode()
+        .then(res => {
+          setIsMaintenanceMode(res.isMaintenanceMode);
+          maintenanceForm.setFieldsValue(res);
+        })
+        .catch(err => console.error(err));
     }
   }, [tab]);
 
@@ -451,8 +460,8 @@ export default function AdminDashboard() {
     u.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
-    return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>Admin access required</h2></div>;
+  if (!user || user.role !== 'superadmin' || user.email?.toLowerCase() !== 'admin@rentify.lk') {
+    return <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}><h2>CEO Master access required</h2></div>;
   }
 
   const roleBadge = (u: User) => {
@@ -510,26 +519,33 @@ export default function AdminDashboard() {
             bottom: 0,
             zIndex: 10,
             boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)',
+            backgroundColor: '#0f172a'
           }}
         >
           <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
-            {collapsed ? 'RN' : 'Rentify Admin'}
+            {collapsed ? 'CEO' : 'Rentify CEO Portal'}
           </div>
+          <ConfigProvider theme={{ components: { Menu: { darkItemSelectedBg: '#b8860b' } } }}>
           <Menu
             theme="dark"
             mode="inline"
             selectedKeys={[tab]}
             onClick={({ key }) => setTab(key as any)}
+            style={{ backgroundColor: '#0f172a' }}
             items={[
               { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
+              { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: { color: '#b8860b' } },
+              { key: 'staff-management', icon: <Users size={18} />, label: 'Staff Management', style: { color: '#b8860b' } },
               { key: 'users', icon: <Users size={18} />, label: `Users (${allUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${allVehicles.length})` },
               { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: `Bank Settings` },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: `Site Settings` },
+              { key: 'platform-settings', icon: <Edit2 size={18} />, label: 'Platform Settings', style: { color: '#b8860b' } },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
             ]}
           />
+          </ConfigProvider>
         </Sider>
       ) : (
         <Drawer
@@ -539,11 +555,12 @@ export default function AdminDashboard() {
           styles={{ body: { padding: 0 } }}
           width={260}
           closable={false}
-          bodyStyle={{ background: '#001529' }}
+          bodyStyle={{ background: '#0f172a' }}
         >
-          <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
-            Rentify Admin
+          <div style={{ padding: '24px 16px', color: 'white', textAlign: 'center', fontSize: '1.25rem', fontWeight: 800, borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px', background: '#0f172a' }}>
+            Rentify CEO Portal
           </div>
+          <ConfigProvider theme={{ components: { Menu: { darkItemSelectedBg: '#b8860b' } } }}>
           <Menu
             theme="dark"
             mode="inline"
@@ -552,16 +569,21 @@ export default function AdminDashboard() {
               setTab(key as any);
               setMobileMenuOpen(false);
             }}
+            style={{ backgroundColor: '#0f172a' }}
             items={[
               { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
+              { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: { color: '#b8860b' } },
+              { key: 'staff-management', icon: <Users size={18} />, label: 'Staff Management', style: { color: '#b8860b' } },
               { key: 'users', icon: <Users size={18} />, label: 'Users' },
               { key: 'vehicles', icon: <Car size={18} />, label: 'Vehicles' },
               { key: 'bookings', icon: <Calendar size={18} />, label: 'Bookings' },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: 'Bank Settings' },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: 'Site Settings' },
+              { key: 'platform-settings', icon: <Edit2 size={18} />, label: 'Platform Settings', style: { color: '#b8860b' } },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: 'Feedback' },
             ]}
           />
+          </ConfigProvider>
         </Drawer>
       )}
 
@@ -631,8 +653,8 @@ export default function AdminDashboard() {
               ]
             }} placement="bottomRight">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px' }}>
-                <Avatar style={{ backgroundColor: '#7c3aed' }}>AD</Avatar>
-                {!isMobile && <Text strong style={{ color: '#334155' }}>Admin</Text>}
+                <Avatar style={{ backgroundColor: '#b8860b' }}>SA</Avatar>
+                {!isMobile && <Text strong style={{ color: '#334155' }}>SuperAdmin</Text>}
               </div>
             </Dropdown>
           </Space>
@@ -795,6 +817,142 @@ export default function AdminDashboard() {
                       ]}
                     />
                   </div>
+                </div>
+              )}
+
+              {tab === 'financials' && (
+                <div className="animate-fade-in">
+                  <Title level={5} style={{ marginBottom: '1.5rem', color: '#b8860b' }}>Global Revenue & Commission</Title>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+                    <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #fef3c7, #fffbeb)' }} bordered={false}>
+                      <Statistic
+                        title="Commissions Invoiced"
+                        value={financials?.commissionsInvoiced || 0}
+                        prefix={<span style={{ fontWeight: 'bold', color: '#d97706', marginRight: 8 }}>LKR</span>}
+                      />
+                    </Card>
+                    <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #dcfce7, #f0fdf4)' }} bordered={false}>
+                      <Statistic
+                        title="Commissions Paid"
+                        value={financials?.commissionsPaid || 0}
+                        prefix={<span style={{ fontWeight: 'bold', color: '#16a34a', marginRight: 8 }}>LKR</span>}
+                      />
+                    </Card>
+                    <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #e0e7ff, #eef2ff)' }} bordered={false}>
+                      <Statistic
+                        title="Rental Fees"
+                        value={financials?.rentalFees || 0}
+                        prefix={<span style={{ fontWeight: 'bold', color: '#4f46e5', marginRight: 8 }}>LKR</span>}
+                      />
+                    </Card>
+                    <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #fce7f3, #fdf2f8)' }} bordered={false}>
+                      <Statistic
+                        title="Global Profit"
+                        value={financials?.globalProfit || 0}
+                        prefix={<span style={{ fontWeight: 'bold', color: '#db2777', marginRight: 8 }}>LKR</span>}
+                      />
+                    </Card>
+                  </div>
+                </div>
+              )}
+
+              {tab === 'staff-management' && (
+                <div className="animate-fade-in">
+                  <Title level={5} style={{ marginBottom: '1.5rem', color: '#b8860b' }}>Internal Staff Management</Title>
+                  <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                    <Text type="secondary" style={{ display: 'block', marginBottom: '1.5rem' }}>This section allows the CEO to view internal staff members.</Text>
+                    
+                    <Table
+                      dataSource={staffData}
+                      rowKey="_id"
+                      pagination={{ pageSize: 10 }}
+                      style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                      columns={[
+                        { title: 'Name', dataIndex: 'name', key: 'name', render: (t, r) => <strong>{t}</strong> },
+                        { title: 'Email', dataIndex: 'email', key: 'email' },
+                        { 
+                          title: 'Role', 
+                          dataIndex: 'role', 
+                          key: 'role',
+                          render: (role) => (
+                            <Tag color={role === 'admin' ? 'purple' : 'cyan'}>
+                              {role.toUpperCase()}
+                            </Tag>
+                          )
+                        },
+                        { 
+                          title: 'Status', 
+                          dataIndex: 'status', 
+                          key: 'status',
+                          render: (status) => (
+                            <Tag color={status === 'active' ? 'success' : 'error'}>
+                              {status?.toUpperCase() || 'ACTIVE'}
+                            </Tag>
+                          )
+                        }
+                      ]}
+                    />
+                  </Card>
+                </div>
+              )}
+
+              {tab === 'platform-settings' && (
+                <div className="animate-fade-in">
+                  <Title level={5} style={{ marginBottom: '1.5rem', color: '#b8860b' }}>Master Configuration</Title>
+                  <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ marginBottom: '1.5rem', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
+                      <div style={{ marginBottom: '1rem' }}>
+                        <h4 style={{ margin: 0 }}>Maintenance Mode</h4>
+                        <Text type="secondary">Toggle platform access for all public users.</Text>
+                      </div>
+                      
+                      <Form form={maintenanceForm} layout="vertical" disabled={isMaintenanceMode}>
+                        <Row gutter={16}>
+                          <Col span={12}>
+                            <Form.Item name="maintenanceTitle" label="Title" initialValue="System Upgrade">
+                              <Input placeholder="e.g. System Upgrade" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={12}>
+                            <Form.Item name="estimatedTime" label="Estimated Time" initialValue="~ 15 Minutes">
+                              <Input placeholder="e.g. ~ 15 Minutes or 2:00 PM" />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                        <Form.Item name="maintenanceMessage" label="Message" initialValue="We are performing scheduled maintenance to bring you an even better, faster, and more secure Rentify experience. We'll be back shortly!">
+                          <Input.TextArea rows={2} placeholder="Message displayed to users" />
+                        </Form.Item>
+                        <Form.Item name="progressStatus" label="Progress Status" initialValue="Upgrading Database...">
+                          <Input placeholder="e.g. Upgrading Database..." />
+                        </Form.Item>
+                      </Form>
+
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                        <Button 
+                          type={isMaintenanceMode ? "primary" : "default"} 
+                          danger={!isMaintenanceMode} 
+                          loading={maintenanceLoading}
+                          onClick={handleToggleMaintenance}
+                        >
+                          {isMaintenanceMode ? 'Disable Maintenance Mode' : 'Activate Maintenance Mode'}
+                        </Button>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid #f1f5f9' }}>
+                      <div>
+                        <h4 style={{ margin: 0 }}>Global Sales Commission</h4>
+                        <Text type="secondary">Set the base commission % for all rentals.</Text>
+                      </div>
+                      <Button type="primary" style={{ background: '#b8860b' }}>Configure (15%)</Button>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0' }}>
+                      <div>
+                        <h4 style={{ margin: 0 }}>Corporate Partners</h4>
+                        <Text type="secondary">Manage enterprise rental partnerships.</Text>
+                      </div>
+                      <Button type="primary" style={{ background: '#b8860b' }}>Manage Partners</Button>
+                    </div>
+                  </Card>
                 </div>
               )}
 
@@ -988,46 +1146,6 @@ export default function AdminDashboard() {
                     )}
                   </Card>
 
-                  {/* ========== MAINTENANCE MODE ========== */}
-                  <Card title={<Space><ShieldAlert size={18} /> Global Maintenance Mode</Space>} bordered={false} style={{ borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '2rem' }}>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <Text type="secondary">Configure the maintenance screen details before enabling. Staff can bypass this via /auth.</Text>
-                    </div>
-                    
-                    <Form form={maintenanceForm} layout="vertical" disabled={isMaintenanceMode}>
-                      <Row gutter={16}>
-                        <Col span={12}>
-                          <Form.Item name="maintenanceTitle" label="Title" initialValue="System Upgrade">
-                            <Input placeholder="e.g. System Upgrade" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                          <Form.Item name="estimatedTime" label="Estimated Time" initialValue="~ 15 Minutes">
-                            <Input placeholder="e.g. ~ 15 Minutes or 2:00 PM" />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                      <Form.Item name="maintenanceMessage" label="Message" initialValue="We are performing scheduled maintenance to bring you an even better, faster, and more secure Rentify experience. We'll be back shortly!">
-                        <Input.TextArea rows={2} placeholder="Message displayed to users" />
-                      </Form.Item>
-                      <Form.Item name="progressStatus" label="Progress Status" initialValue="Upgrading Database...">
-                        <Input placeholder="e.g. Upgrading Database..." />
-                      </Form.Item>
-                    </Form>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                      <Button 
-                        type={isMaintenanceMode ? "primary" : "default"} 
-                        danger={!isMaintenanceMode} 
-                        loading={maintenanceLoading}
-                        onClick={handleToggleMaintenance}
-                        size="large"
-                      >
-                        {isMaintenanceMode ? 'Disable Maintenance Mode' : 'Activate Maintenance Mode'}
-                      </Button>
-                    </div>
-                  </Card>
-
                   {/* ========== FOUNDERS MANAGEMENT ========== */}
                   <Card 
                     title={<Space><Users size={18} /> Founders Management</Space>}
@@ -1189,7 +1307,7 @@ export default function AdminDashboard() {
               <Select.Option value="user">USER</Select.Option>
               <Select.Option value="owner">OWNER</Select.Option>
               <Select.Option value="staff">STAFF</Select.Option>
-              {user.role === 'superadmin' && <Select.Option value="admin">ADMIN</Select.Option>}
+              <Select.Option value="admin">ADMIN</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item

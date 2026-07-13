@@ -4,6 +4,7 @@ import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/booking.js";
 import Blackout from "../models/Blackout.js";
 import User from "../models/User.js";
+import Staff from "../models/Staff.js";
 import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
@@ -159,8 +160,12 @@ export const createVehicle = async (req, res) => {
       if (m) finalModelName = m.name;
     }
 
+    const staffRoles = ["superadmin", "admin", "staff", "manager", "supervisor"];
+    const isOwnerStaff = staffRoles.includes(owner.role);
+
     const vehicle = await Vehicle.create({
       owner: owner._id,
+      ownerModel: isOwnerStaff ? "Staff" : "User",
       title,
       make: finalMakeName,
       model: finalModelName,
@@ -347,7 +352,7 @@ export const listVehicles = async (req, res) => {
       q, transmission, minPrice, maxPrice, seats, vehicleType, 
       lat, lng, radius, sort, province, district, 
       startDate, endDate, driverOption, weddingHiresSpecial,
-      page = 1, limit = 12 
+      page = 1, limit = 48 
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -429,6 +434,32 @@ export const listVehicles = async (req, res) => {
     else if (sort === "price_high") sortCondition = { pricePerDay: -1 };
     else if (sort === "popular" || sort === "rating") sortCondition = { timesRented: -1 };
 
+    // Fetch owners who have active/valid subscriptions
+    const now = new Date();
+    const activeUsers = await User.find({
+      $or: [
+        { subscription: null },
+        { subscription: { $exists: false } },
+        { "subscription.status": "active" },
+        { "subscription.status": "free" },
+        { 
+          "subscription.status": "expired",
+          "subscription.gracePeriodEnd": { $gte: now }
+        },
+        {
+          "subscription.status": "expired",
+          "subscription.gracePeriodEnd": { $exists: false }
+        }
+      ]
+    }).distinct("_id");
+
+    // Fetch active staff (staff get free listings)
+    const activeStaff = await Staff.find({ status: { $ne: "blocked" } }).distinct("_id");
+    
+    // Combine allowed owners
+    const allowedOwners = [...activeUsers, ...activeStaff];
+    filter.owner = { $in: allowedOwners };
+
     // Build aggregation pipeline
     // NOTE: $near is NOT supported in aggregation $match stages.
     // Must use $geoNear as the FIRST pipeline stage for geospatial queries.
@@ -450,7 +481,6 @@ export const listVehicles = async (req, res) => {
     }
 
     // Use aggregation to filter by owner subscription status and apply tier boost
-    const now = new Date();
     const vehicles = await Vehicle.aggregate([
       ...pipeline,
       {
@@ -458,28 +488,24 @@ export const listVehicles = async (req, res) => {
           from: "users",
           localField: "owner",
           foreignField: "_id",
-          as: "ownerInfo"
+          as: "userInfo"
         }
       },
-      { $unwind: "$ownerInfo" },
       {
-        $match: {
-          $or: [
-            { "ownerInfo.subscription": null },
-            { "ownerInfo.subscription": { $exists: false } }, // Handle missing field
-            { "ownerInfo.subscription.status": "active" },
-            { "ownerInfo.subscription.status": "free" },
-            { 
-              "ownerInfo.subscription.status": "expired",
-              "ownerInfo.subscription.gracePeriodEnd": { $gte: now }
-            },
-            {
-              "ownerInfo.subscription.status": "expired",
-              "ownerInfo.subscription.gracePeriodEnd": { $exists: false } // Fallback if grace missing
-            }
-          ]
+        $lookup: {
+          from: "staffs",
+          localField: "owner",
+          foreignField: "_id",
+          as: "staffInfo"
         }
       },
+      {
+        $addFields: {
+          ownerInfoArr: { $concatArrays: ["$userInfo", "$staffInfo"] }
+        }
+      },
+      { $unwind: "$ownerInfoArr" },
+      { $addFields: { ownerInfo: "$ownerInfoArr" } },
       {
         $addFields: {
           tierBoost: {
@@ -586,12 +612,25 @@ export const listVehicles = async (req, res) => {
  */
 export const getVehicleById = async (req, res) => {
   try {
-    const vehicle = await Vehicle.findById(req.params.id)
+    let vehicle = await Vehicle.findById(req.params.id)
       .populate("owner", "name email profilePic ownerType phone");
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
 
+    // Self-healing migration for orphaned staff vehicles
+    if (!vehicle.owner) {
+      const rawVehicle = await Vehicle.findById(req.params.id).lean();
+      if (rawVehicle && rawVehicle.owner) {
+        const staffMember = await Staff.findById(rawVehicle.owner);
+        if (staffMember) {
+          vehicle.ownerModel = 'Staff';
+          await vehicle.save();
+          await vehicle.populate("owner", "name email profilePic ownerType phone");
+        }
+      }
+    }
+
     let canViewPhone = false;
-    if (req.user) {
+    if (req.user && vehicle.owner) {
       if (req.user._id.toString() === vehicle.owner._id.toString()) {
         canViewPhone = true;
       } else if (req.user.role === 'subadmin' || req.user.role === 'superadmin') {
@@ -626,7 +665,10 @@ export const getVehicleById = async (req, res) => {
  */
 export const getMyVehicles = async (req, res) => {
   try {
-    const vehicles = await Vehicle.find({ owner: req.user._id }).sort({ createdAt: -1 });
+    const ownerModelStr = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? 'Staff' : 'User';
+    const vehicles = await Vehicle.find({ owner: req.user._id })
+      .populate({ path: 'owner', model: ownerModelStr })
+      .sort({ createdAt: -1 });
     res.json(vehicles);
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -1,6 +1,7 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import User from "../models/User.js";
+import Staff from "../models/Staff.js";
 import Payment from "../models/Payment.js";
 import { logAdminAction } from "../utils/auditLogger.js";
 import crypto from "crypto";
@@ -38,7 +39,8 @@ router.post("/subscribe", protect, paymentUpload.single("receipt"), async (req, 
         return res.status(400).json({ message: "Payment reference is required" });
     }
 
-    const user = await User.findById(req.user._id);
+    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
+    const user = await Model.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const receiptPath = req.file ? req.file.path : null;

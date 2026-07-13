@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
+import Staff from "../models/Staff.js";
 
 // Check if critical client credentials are present
 if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
@@ -21,9 +22,15 @@ if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
         try {
           const email = profile.emails[0].value;
 
-          // Find or create user
-          let user = await User.findOne({ email });
+          // Check Staff collection first (mirrors login flow)
+          let user = await Staff.findOne({ email });
 
+          // Then check User collection
+          if (!user) {
+            user = await User.findOne({ email });
+          }
+
+          // Create new user if neither exists
           if (!user) {
             user = await User.create({
               name: profile.displayName,

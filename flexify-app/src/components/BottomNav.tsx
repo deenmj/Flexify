@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, Plus, Calendar, User } from 'lucide-react';
+import { Home, Compass, Calendar, User, Tag } from 'lucide-react';
 import './BottomNav.css';
 
 export default function BottomNav() {
@@ -28,15 +28,15 @@ export default function BottomNav() {
       
       <Link to="/explore" className={`bottom-nav-item ${isActive('/explore') ? 'active' : ''}`}>
         <Compass size={22} strokeWidth={isActive('/explore') ? 2.5 : 2} />
-        <span>Explore</span>
+        <span>Rent</span>
       </Link>
       
-      <div className="bottom-nav-item bottom-nav-fab-container">
-        <Link to="/list-vehicle" className="bottom-nav-fab">
-          <Plus size={28} strokeWidth={2.5} />
-        </Link>
-      </div>
+      <Link to="/buy" className={`bottom-nav-item ${isActive('/buy') ? 'active' : ''}`}>
+        <Tag size={22} strokeWidth={isActive('/buy') ? 2.5 : 2} />
+        <span>Buy</span>
+      </Link>
       
+
       <Link to="/dashboard" className={`bottom-nav-item ${isActive('/dashboard') ? 'active' : ''}`}>
         <Calendar size={22} strokeWidth={isActive('/dashboard') ? 2.5 : 2} />
         <span>Bookings</span>

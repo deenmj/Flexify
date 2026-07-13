@@ -28,7 +28,7 @@
 
 .shared-vehicle-img-wrap {
   position: relative;
-  height: 200px;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
   background-color: #f1f5f9;
 }
@@ -219,7 +219,7 @@
   }
 
   .shared-vehicle-img-wrap {
-    height: 130px; /* Compact mobile image height */
+    aspect-ratio: 16 / 10;
   }
 
   .shared-vehicle-body {

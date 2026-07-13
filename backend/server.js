@@ -34,6 +34,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
+import Staff from "./models/Staff.js";
 import Booking from "./models/booking.js";
 
 // Routes
@@ -43,6 +44,7 @@ import vehicleRoutes from "./routes/vehicleRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import subadminRoutes from "./routes/subadminRoutes.js";
+import salesRoutes from "./routes/salesRoutes.js";
 import blackoutRoutes from "./routes/blackoutRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import ownerRoutes from "./routes/ownerRoutes.js";
@@ -51,7 +53,9 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import sitemapRoutes from "./routes/sitemapRoutes.js";
+import superAdminRoutes from "./routes/superAdminRoutes.js";
 import { protect } from "./middleware/authMiddleware.js";
+import { maintenanceGuard } from "./middleware/maintenanceGuard.js";
 
 connectDB();
 
@@ -63,7 +67,6 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
   : [
       "https://rentify.lk",
-      "http://localhost:5173",
       "https://api.rentify.lk",
     ];
 
@@ -81,7 +84,20 @@ io.use(async (socket, next) => {
     if (!token) return next(new Error("No token provided"));
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select("-password");
+    
+    let user;
+    if (decoded.isStaff) {
+      user = await Staff.findById(decoded.id).select("-password");
+      if (!user) user = await User.findById(decoded.id).select("-password");
+    } else {
+      user = await User.findById(decoded.id).select("-password");
+      if (user && ['staff', 'admin', 'superadmin'].includes(user.role)) {
+        const staffUser = await Staff.findOne({ email: user.email }).select("-password");
+        if (staffUser) user = staffUser;
+      }
+      if (!user) user = await Staff.findById(decoded.id).select("-password");
+    }
+
     if (!user) return next(new Error("User not found"));
 
     socket.user = user;
@@ -159,12 +175,17 @@ app.get("/", (req, res) => {
   res.send("Rentify Backend is Running Successfully!");
 });
 
+// Apply Maintenance Guard globally to all /api routes
+// (The middleware itself handles bypasses for auth & settings)
+app.use("/api", maintenanceGuard);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", protect, userRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/bookings", protect, bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/subadmin", subadminRoutes);
+app.use("/api/sales", salesRoutes);
 app.use("/api/blackouts", blackoutRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/owner", ownerRoutes);
@@ -173,6 +194,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api", sitemapRoutes);
+app.use("/api/superadmin", superAdminRoutes);
 
 // Google OAuth Fallback: in case Google console is misconfigured without the /api prefix
 app.use("/auth/google/callback", (req, res) => {

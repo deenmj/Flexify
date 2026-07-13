@@ -29,6 +29,86 @@
   opacity: 0.8;
 }
 
+/* About Us Hero Video Section */
+.about-hero-section {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 85vh;
+  padding: 6rem 2rem 4rem;
+  background-color: #0f172a; /* Fallback */
+}
+
+.about-hero-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.about-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Darker overlay for better mobile contrast */
+  z-index: 10;
+}
+
+.about-hero-content {
+  position: relative;
+  z-index: 20;
+  text-align: center;
+  max-width: 800px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-hero-title {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffffff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+}
+
+.about-hero-subtitle {
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .about-hero-section {
+    min-height: 60vh;
+    padding: 4rem 1rem 3rem;
+  }
+  .about-hero-overlay {
+    background-color: rgba(0, 0, 0, 0.85); /* Even darker on mobile where video might crop awkwardly */
+  }
+  .about-hero-title {
+    font-size: 2.25rem;
+    margin-bottom: 1rem;
+  }
+  .about-hero-subtitle {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+}
+
 .static-content {
   padding: 0;
 }

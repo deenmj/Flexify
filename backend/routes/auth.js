@@ -11,6 +11,7 @@ import rateLimit from "express-rate-limit";
 
 import sendEmail from "../utils/sendEmail.js";
 import User from "../models/User.js";
+import Staff from "../models/Staff.js";
 import generateToken from "../utils/generateToken.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -212,7 +213,16 @@ router.post("/login", loginLimiter, async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email: email.toLowerCase() });
+    // IMPORTANT: Check Staff collection FIRST.
+    // After the DB split, admin/staff accounts may still have stale records in User.
+    // By checking Staff first, we ensure they authenticate against the correct collection.
+    let user = await Staff.findOne({ email: email.toLowerCase() });
+    let isStaff = !!user;
+
+    if (!user) {
+      user = await User.findOne({ email: email.toLowerCase() });
+    }
+
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -223,7 +233,8 @@ router.post("/login", loginLimiter, async (req, res, next) => {
       });
     }
 
-    if (!user.verified) {
+    // Staff accounts might not require email verification in the same way, but let's keep it consistent
+    if (!isStaff && !user.verified) {
       return res.status(403).json({
         message: "Please verify your email before logging in",
       });
@@ -242,7 +253,7 @@ router.post("/login", loginLimiter, async (req, res, next) => {
     }
 
     res.json({
-      token: generateToken(user._id),
+      token: generateToken(user._id, isStaff),
       user: {
         id: user._id,
         name: user.name,
@@ -255,6 +266,7 @@ router.post("/login", loginLimiter, async (req, res, next) => {
         profilePic: user.profilePic,
         phone: user.phone,
         provider: user.provider,
+        isStaff, // explicit flag for frontend if needed
       },
     });
   } catch (err) {
@@ -288,8 +300,22 @@ router.get("/verify-email/:token", async (req, res) => {
 ========================================================= */
 router.get("/me", protect, async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
-    res.json(user);
+    let userModel = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
+    const user = await userModel.findById(req.user._id)
+      .populate('rentWishlist')
+      .populate('saleWishlist')
+      .select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userData = user.toObject();
+    // Ensure isStaff flag is present for frontend normalization
+    if (['staff', 'admin', 'superadmin'].includes(userData.role)) {
+      userData.isStaff = true;
+    }
+    res.json(userData);
   } catch (err) {
     next(err);
   }
@@ -323,7 +349,9 @@ router.get(
       return res.redirect(`${frontendUrl}/auth?error=account_suspended`);
     }
 
-    const token = generateToken(req.user._id);
+    // Detect if this user is staff/admin (for correct JWT flag)
+    const isStaff = ['staff', 'admin', 'superadmin'].includes(req.user.role);
+    const token = generateToken(req.user._id, isStaff);
     res.redirect(`${frontendUrl}/google-success?token=${token}`);
   }
 );
@@ -334,7 +362,8 @@ router.get(
 router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
   const { email } = req.body;
   try {
-    const user = await User.findOne({ email: email.toLowerCase() });
+    let user = await Staff.findOne({ email: email.toLowerCase() });
+    if (!user) user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(404).json({ message: "No account with this email" });
     if (user.provider === "google") {
       return res.status(400).json({ message: "This account uses Google login." });
@@ -384,10 +413,16 @@ router.post("/reset-password/:token", async (req, res) => {
   try {
     // Hash the incoming token to compare with the stored hashed version
     const hashedToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
-    const user = await User.findOne({
+    let user = await Staff.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
     });
+    if (!user) {
+      user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetExpires: { $gt: Date.now() },
+      });
+    }
 
     if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 

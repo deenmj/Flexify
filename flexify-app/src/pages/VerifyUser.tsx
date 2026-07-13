@@ -237,13 +237,12 @@ export default function VerifyUser() {
           
           setMessage('Verified & booking submitted successfully! Redirecting...');
           
-          // Redirect to the vehicle page after a short delay
+          // Redirect to the dashboard with the booking success data
           setTimeout(() => {
-            if (returnTo) {
-              navigate(returnTo, { replace: true });
-            } else {
-              navigate('/dashboard', { replace: true });
-            }
+            navigate('/dashboard?tab=bookings&newBooking=1', { 
+              replace: true, 
+              state: { bookingSuccessData: resp } 
+            });
           }, 1500);
           return;
         } catch (bookingErr: any) {
