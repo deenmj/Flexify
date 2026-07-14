@@ -34,8 +34,8 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-      const user = await Model.findById(req.user._id);
+      let user = await Staff.findById(req.user._id);
+      if (!user) user = await User.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       // Validate mandatory fields
@@ -99,8 +99,8 @@ router.put(
   profileUpload.fields([{ name: "profilePic", maxCount: 1 }]),
   async (req, res) => {
     try {
-      const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-      const user = await Model.findById(req.user._id);
+      let user = await Staff.findById(req.user._id);
+      if (!user) user = await User.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       const files = req.files || {};
@@ -135,8 +135,8 @@ router.put(
   ]),
   async (req, res) => {
     try {
-      const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-      const user = await Model.findById(req.user._id);
+      let user = await Staff.findById(req.user._id);
+      if (!user) user = await User.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
       // Only allow updates if documents have been submitted at least once
@@ -176,8 +176,8 @@ router.put(
  */
 router.post("/become-owner", protect, async (req, res) => {
   try {
-    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-    const user = await Model.findById(req.user._id);
+    let user = await Staff.findById(req.user._id);
+    if (!user) user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (user.role === "owner") {
@@ -212,8 +212,8 @@ router.post("/become-owner", protect, async (req, res) => {
  */
 router.put("/notification-settings", protect, async (req, res) => {
   try {
-    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-    const user = await Model.findById(req.user._id);
+    let user = await Staff.findById(req.user._id);
+    if (!user) user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const { notificationEmail, isNotificationEmailActive } = req.body;
@@ -258,8 +258,8 @@ router.get("/test-email", protect, async (req, res) => {
  */
 router.post("/wishlist/sale/:id", protect, async (req, res) => {
   try {
-    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-    const user = await Model.findById(req.user._id);
+    let user = await Staff.findById(req.user._id);
+    if (!user) user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const saleId = req.params.id;
@@ -284,8 +284,8 @@ router.post("/wishlist/sale/:id", protect, async (req, res) => {
  */
 router.get("/wishlist/sale", protect, async (req, res) => {
   try {
-    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-    const user = await Model.findById(req.user._id).populate("saleWishlist");
+    let user = await Staff.findById(req.user._id).populate("saleWishlist");
+    if (!user) user = await User.findById(req.user._id).populate("saleWishlist");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json(user.saleWishlist || []);
@@ -299,8 +299,8 @@ router.get("/wishlist/sale", protect, async (req, res) => {
  */
 router.post("/wishlist/rent/:id", protect, async (req, res) => {
   try {
-    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-    const user = await Model.findById(req.user._id);
+    let user = await Staff.findById(req.user._id);
+    if (!user) user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const vehicleId = req.params.id;
@@ -325,8 +325,8 @@ router.post("/wishlist/rent/:id", protect, async (req, res) => {
  */
 router.get("/wishlist/rent", protect, async (req, res) => {
   try {
-    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-    const user = await Model.findById(req.user._id).populate("rentWishlist");
+    let user = await Staff.findById(req.user._id).populate("rentWishlist");
+    if (!user) user = await User.findById(req.user._id).populate("rentWishlist");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json(user.rentWishlist || []);
@@ -336,3 +336,5 @@ router.get("/wishlist/rent", protect, async (req, res) => {
 });
 
 export default router;
+
+

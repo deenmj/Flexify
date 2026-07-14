@@ -20,3 +20,5 @@ router.get("/my", protect, getMyBookings);
 router.get("/renter-details/:bookingId", protect, getRenterDetails);
 
 export default router;
+
+

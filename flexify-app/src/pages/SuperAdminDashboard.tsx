@@ -534,14 +534,14 @@ export default function SuperAdminDashboard() {
             style={{ backgroundColor: '#0f172a' }}
             items={[
               { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
-              { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: { color: '#b8860b' } },
-              { key: 'staff-management', icon: <Users size={18} />, label: 'Staff Management', style: { color: '#b8860b' } },
+              { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: tab === 'financials' ? {} : { color: '#b8860b' } },
+              { key: 'staff-management', icon: <Users size={18} />, label: 'Staff Management', style: tab === 'staff-management' ? {} : { color: '#b8860b' } },
               { key: 'users', icon: <Users size={18} />, label: `Users (${allUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${allVehicles.length})` },
               { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: `Bank Settings` },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: `Site Settings` },
-              { key: 'platform-settings', icon: <Edit2 size={18} />, label: 'Platform Settings', style: { color: '#b8860b' } },
+              { key: 'platform-settings', icon: <Edit2 size={18} />, label: 'Platform Settings', style: tab === 'platform-settings' ? {} : { color: '#b8860b' } },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
             ]}
           />
@@ -572,14 +572,14 @@ export default function SuperAdminDashboard() {
             style={{ backgroundColor: '#0f172a' }}
             items={[
               { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
-              { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: { color: '#b8860b' } },
-              { key: 'staff-management', icon: <Users size={18} />, label: 'Staff Management', style: { color: '#b8860b' } },
+              { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: tab === 'financials' ? {} : { color: '#b8860b' } },
+              { key: 'staff-management', icon: <Users size={18} />, label: 'Staff Management', style: tab === 'staff-management' ? {} : { color: '#b8860b' } },
               { key: 'users', icon: <Users size={18} />, label: 'Users' },
               { key: 'vehicles', icon: <Car size={18} />, label: 'Vehicles' },
               { key: 'bookings', icon: <Calendar size={18} />, label: 'Bookings' },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: 'Bank Settings' },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: 'Site Settings' },
-              { key: 'platform-settings', icon: <Edit2 size={18} />, label: 'Platform Settings', style: { color: '#b8860b' } },
+              { key: 'platform-settings', icon: <Edit2 size={18} />, label: 'Platform Settings', style: tab === 'platform-settings' ? {} : { color: '#b8860b' } },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: 'Feedback' },
             ]}
           />
@@ -863,7 +863,7 @@ export default function SuperAdminDashboard() {
                     <Text type="secondary" style={{ display: 'block', marginBottom: '1.5rem' }}>This section allows the CEO to view internal staff members.</Text>
                     
                     <Table
-                      dataSource={staffData}
+                      dataSource={allUsers.filter(u => ['staff', 'subadmin', 'admin'].includes(u.role))}
                       rowKey="_id"
                       pagination={{ pageSize: 10 }}
                       style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}

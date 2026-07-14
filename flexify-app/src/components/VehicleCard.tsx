@@ -22,6 +22,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 
   const handleToggleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!user) {
       message.info('Please log in to save this rental.');
       return;

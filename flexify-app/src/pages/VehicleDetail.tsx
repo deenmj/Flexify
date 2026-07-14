@@ -27,7 +27,7 @@ export default function VehicleDetail() {
   // Intersection Observer for sticky bar
   useEffect(() => {
     if (!isMobile) return;
-    
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         // If sentinel is visible, it means we reached the bottom (footer area)
@@ -140,7 +140,7 @@ export default function VehicleDetail() {
     const confirmed = isDateBooked(date, 'CONFIRMED');
     const pending = isDateBooked(date, 'PENDING');
     const blackedOut = isDateBlackedOut(date);
-    
+
     // Determine the status and label
     let statusClass = '';
     let label = '';
@@ -187,7 +187,7 @@ export default function VehicleDetail() {
     const confirmed = isDateBooked(date, 'CONFIRMED');
     const pending = isDateBooked(date, 'PENDING');
     const blackedOut = isDateBlackedOut(date);
-    
+
     const isCurrentMonth = date.month() === calendarDate.month() && date.year() === calendarDate.year();
 
     if (!isCurrentMonth) {
@@ -200,7 +200,7 @@ export default function VehicleDetail() {
 
     let status = 'available';
     let tooltip = '';
-    
+
     if (isPast) {
       status = 'past';
     } else if (confirmed) {
@@ -245,8 +245,8 @@ export default function VehicleDetail() {
     }
 
     const hasKycFields = Boolean(
-      user.documents?.idNumber?.trim() && 
-      user.documents?.address?.trim() && 
+      user.documents?.idNumber?.trim() &&
+      user.documents?.address?.trim() &&
       (user.documents?.phone?.trim() || user.phone?.trim())
     );
 
@@ -269,7 +269,7 @@ export default function VehicleDetail() {
       const resp = await bookingApi.create(id!, startStr, endStr, withDriver);
       setCreatedBooking(resp);
       message.success('Booking request submitted!');
-      
+
       // Background refresh
       vehicleApi.getAvailability(id!)
         .then((data) => {
@@ -290,8 +290,8 @@ export default function VehicleDetail() {
   const getBookingButtonText = () => {
     if (!user) return 'Sign In to Book';
     const hasKycFields = Boolean(
-      user.documents?.idNumber?.trim() && 
-      user.documents?.address?.trim() && 
+      user.documents?.idNumber?.trim() &&
+      user.documents?.address?.trim() &&
       (user.documents?.phone?.trim() || user.phone?.trim())
     );
     return hasKycFields ? 'Book Now' : 'Verify and Book';
@@ -411,7 +411,7 @@ export default function VehicleDetail() {
   const days = dateRange && dateRange[0] && dateRange[1]
     ? dateRange[1].diff(dateRange[0], 'day') || 1
     : 0;
-    
+
   let totalAmount = 0;
   if (days > 0 && vehicle) {
     if (days >= 30 && vehicle.pricePerMonth) {
@@ -427,7 +427,7 @@ export default function VehicleDetail() {
     } else {
       totalAmount = days * vehicle.pricePerDay;
     }
-    
+
     // Add driver cost if applicable
     if (vehicle.driverOption === 'with-driver' || (vehicle.driverOption === 'both' && withDriver)) {
       totalAmount += days * (vehicle.driverPricePerDay || 0);
@@ -436,7 +436,7 @@ export default function VehicleDetail() {
 
   return (
     <div className="vehicle-detail-page">
-      <SEO 
+      <SEO
         title={`${vehicle.title} for Rent in ${vehicle.city || vehicle.district} | Rentify`}
         description={`Rent ${vehicle.make} ${vehicle.model}${vehicle.year ? ` (${vehicle.year})` : ''} in ${vehicle.city || ''}, ${vehicle.district} from LKR ${vehicle.pricePerDay.toLocaleString()}/day. ${vehicle.transmission}, ${vehicle.seats} seats${vehicle.driverOption === 'both' ? ', self-drive or with driver' : ''}. Verified owner — book instantly on Rentify.lk!`}
         keywords={`rent ${vehicle.make} ${vehicle.model} Sri Lanka, ${vehicle.make} rental ${vehicle.district}, ${(vehicle as any).vehicleType || 'car'} hire ${vehicle.city || vehicle.district}, self drive ${vehicle.district}`}
@@ -486,12 +486,12 @@ export default function VehicleDetail() {
         }}
       />
       <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
-        
+
         <Row gutter={[24, 24]}>
           {/* LEFT COLUMN: Main Content */}
           <Col xs={24} lg={16}>
             <div className="detail-carousel-container">
-              <div 
+              <div
                 className="detail-main-gallery"
                 ref={scrollContainerRef}
                 onScroll={(e) => {
@@ -555,8 +555,8 @@ export default function VehicleDetail() {
                     <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: 0 }}>
                       {vehicle.title}
                     </h1>
-                    <div 
-                      className="detail-rating" 
+                    <div
+                      className="detail-rating"
                       onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
                       style={{ cursor: 'pointer', margin: 0 }}
                     >
@@ -568,11 +568,11 @@ export default function VehicleDetail() {
                   <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
                     <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
                     {vehicle.weddingHiresSpecial && (
-                      <Tag 
-                        style={{ 
-                          padding: '2px 10px', 
-                          fontSize: '0.8rem', 
-                          fontWeight: 800, 
+                      <Tag
+                        style={{
+                          padding: '2px 10px',
+                          fontSize: '0.8rem',
+                          fontWeight: 800,
                           borderRadius: '6px',
                           border: 'none',
                           background: 'linear-gradient(135deg, #f5d0fe 0%, #f472b6 100%)',
@@ -611,7 +611,7 @@ export default function VehicleDetail() {
               )}
 
               <div className="location-context">
-                <MapPin size={16} /> 
+                <MapPin size={16} />
                 <span>{vehicle.city}, {vehicle.district}, {vehicle.province}</span>
               </div>
 
@@ -704,7 +704,7 @@ export default function VehicleDetail() {
               {(() => {
                 const parseFeatures = (feat: any): string[] => {
                   if (!feat) return [];
-                  
+
                   // Helper to flatten and clean up nested strings
                   const flatten = (data: any): string[] => {
                     if (Array.isArray(data)) {
@@ -729,7 +729,7 @@ export default function VehicleDetail() {
                   };
 
                   const results = flatten(feat);
-                  
+
                   // Final unique filter and cleanup
                   return Array.from(new Set(results))
                     .filter(s => s && s.length > 1 && !s.includes('[') && !s.includes('"'));
@@ -753,9 +753,9 @@ export default function VehicleDetail() {
                         const featLower = f.toLowerCase().replace(/[^a-z]/g, '');
                         const feat = featureMap[featLower] || { label: f.charAt(0).toUpperCase() + f.slice(1), icon: '✨' };
                         return (
-                          <Tag 
-                            key={idx} 
-                            color="blue" 
+                          <Tag
+                            key={idx}
+                            color="blue"
                             icon={<span style={{ marginRight: 4 }}>{feat.icon}</span>}
                             style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: '#eff6ff', color: '#1e40af', margin: 0 }}
                           >
@@ -777,14 +777,14 @@ export default function VehicleDetail() {
               <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
                 View available dates for this vehicle. High demand usually affects pickup times.
               </p>
-              
+
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={18}>
-                  <Calendar 
-                    fullscreen={false} 
+                  <Calendar
+                    fullscreen={false}
                     value={calendarDate}
                     onChange={setCalendarDate}
-                    fullCellRender={(date) => fullCellRender(date as Dayjs)} 
+                    fullCellRender={(date) => fullCellRender(date as Dayjs)}
                     headerRender={({ value, onChange }) => {
                       return (
                         <div style={{ padding: '8px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -794,16 +794,16 @@ export default function VehicleDetail() {
                             </span>
                           </div>
                           <div style={{ display: 'flex', gap: '4px' }}>
-                            <Button 
-                              size="small" 
-                              icon={<ChevronLeft size={16} />} 
+                            <Button
+                              size="small"
+                              icon={<ChevronLeft size={16} />}
                               onClick={() => {
                                 const now = value.clone().subtract(1, 'month');
                                 onChange(now);
                               }}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             />
-                            <Button 
+                            <Button
                               size="small"
                               onClick={() => {
                                 onChange(dayjs());
@@ -812,9 +812,9 @@ export default function VehicleDetail() {
                             >
                               Today
                             </Button>
-                            <Button 
-                              size="small" 
-                              icon={<ChevronRight size={16} />} 
+                            <Button
+                              size="small"
+                              icon={<ChevronRight size={16} />}
                               onClick={() => {
                                 const now = value.clone().add(1, 'month');
                                 onChange(now);
@@ -902,8 +902,8 @@ export default function VehicleDetail() {
                       {vehicle.kmLimitPerDay && vehicle.extraKmPrice
                         ? `LKR ${vehicle.extraKmPrice.toLocaleString()} per extra km`
                         : vehicle.kmLimitPerDay
-                        ? 'Contact owner for extra km charges'
-                        : 'Drive as much as you need'}
+                          ? 'Contact owner for extra km charges'
+                          : 'Drive as much as you need'}
                     </div>
                   </div>
                   {vehicle.kmLimitPerDay && vehicle.extraKmPrice && (
@@ -929,8 +929,8 @@ export default function VehicleDetail() {
                 )}
 
                 {(bookedRanges.length > 0 || blackoutRanges.length > 0) && (
-                  <Tag 
-                    color="orange" 
+                  <Tag
+                    color="orange"
                     icon={<AlertTriangle size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
                     style={{ marginTop: '1rem', borderRadius: '4px', padding: '2px 8px', width: '100%', textAlign: 'center' }}
                   >
@@ -1058,18 +1058,18 @@ export default function VehicleDetail() {
 
               {typeof createdBooking.owner === 'object' && createdBooking.owner.phone && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
-                  <a 
-                    href={`tel:${createdBooking.owner.phone}`} 
-                    className="btn btn-outline" 
+                  <a
+                    href={`tel:${createdBooking.owner.phone}`}
+                    className="btn btn-outline"
                     style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0' }}
                   >
                     <Phone size={16} /> Call
                   </a>
-                  <a 
-                    href={`https://wa.me/${createdBooking.owner.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${createdBooking.owner.name},\n\nI just requested to book your ${vehicle?.title} on Rentify from ${dayjs(createdBooking.startDate).format('MMM D')} to ${dayjs(createdBooking.endDate).format('MMM D')}.\n\nPlease let me know if it's available!`)}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="btn" 
+                  <a
+                    href={`https://wa.me/${createdBooking.owner.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${createdBooking.owner.name},\n\nI just requested to book your ${vehicle?.title} on Rentify from ${dayjs(createdBooking.startDate).format('MMM D')} to ${dayjs(createdBooking.endDate).format('MMM D')}.\n\nPlease let me know if it's available!`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn"
                     style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0', background: '#25D366', color: 'white', border: 'none' }}
                   >
                     <MessageCircle size={16} /> WhatsApp
@@ -1180,7 +1180,7 @@ export default function VehicleDetail() {
                           {days % 30 > 0 && (
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                               <span>Daily Rate x {days % 30} days</span>
-                              <span>LKR {( (days % 30) * vehicle.pricePerDay).toLocaleString()}</span>
+                              <span>LKR {((days % 30) * vehicle.pricePerDay).toLocaleString()}</span>
                             </div>
                           )}
                         </>
@@ -1193,7 +1193,7 @@ export default function VehicleDetail() {
                           {days % 7 > 0 && (
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                               <span>Daily Rate x {days % 7} days</span>
-                              <span>LKR {( (days % 7) * vehicle.pricePerDay).toLocaleString()}</span>
+                              <span>LKR {((days % 7) * vehicle.pricePerDay).toLocaleString()}</span>
                             </div>
                           )}
                         </>
@@ -1259,9 +1259,9 @@ export default function VehicleDetail() {
           <button className="detail-lightbox-close" onClick={() => setShowLightbox(false)} aria-label="Close">
             <X size={32} />
           </button>
-          
+
           {displayImages.length > 1 && (
-            <button 
+            <button
               className="detail-lightbox-nav prev"
               onClick={(e) => {
                 e.stopPropagation();
@@ -1273,15 +1273,15 @@ export default function VehicleDetail() {
             </button>
           )}
 
-          <img 
-            src={getImageUrl(displayImages[activeImage])} 
-            alt={vehicle.title} 
-            className="detail-lightbox-img" 
-            onClick={(e) => e.stopPropagation()} 
+          <img
+            src={getImageUrl(displayImages[activeImage])}
+            alt={vehicle.title}
+            className="detail-lightbox-img"
+            onClick={(e) => e.stopPropagation()}
           />
 
           {displayImages.length > 1 && (
-            <button 
+            <button
               className="detail-lightbox-nav next"
               onClick={(e) => {
                 e.stopPropagation();

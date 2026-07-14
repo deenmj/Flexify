@@ -70,14 +70,7 @@ function NoNavbarLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function NoFooterLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="page-wrapper">
-      <Navbar />
-      <main className="main-content">{children}</main>
-    </div>
-  );
-}
+
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -89,9 +82,11 @@ function RootRedirect() {
   );
 
   if (!user) return <Navigate to="/explore" replace />;
-  if (user.role === 'superadmin') return <Navigate to="/ceo-master-portal" replace />;
-  if (user.role === 'admin') return <Navigate to="/admin" replace />;
-  if (user.role === 'staff') return <Navigate to="/staff" replace />;
+
+  const role = (user.role || '').toLowerCase();
+  if (role === 'superadmin') return <Navigate to="/ceo-master-portal" replace />;
+  if (role === 'admin') return <Navigate to="/admin" replace />;
+  if (role === 'staff' || role === 'subadmin') return <Navigate to="/staff" replace />;
 
   return <Navigate to="/explore" replace />;
 }
@@ -110,7 +105,8 @@ function MaintenanceWrapper({ children, checking, maintenanceData }: { children:
   // - If the URL is exactly '/auth', let them through so they can log in.
   // - If the user is staff/admin/superadmin, let them through.
   const isAuthPage = location.pathname === '/auth';
-  const isStaff = user && ['staff', 'admin', 'superadmin'].includes(user.role);
+  const userRole = (user?.role || '').toLowerCase();
+  const isStaff = user && ['staff', 'subadmin', 'admin', 'superadmin'].includes(userRole);
 
   if (maintenanceData?.isMaintenanceMode && !isStaff && !isAuthPage) {
     return <MaintenanceScreen data={maintenanceData} />;
@@ -180,7 +176,14 @@ export default function App() {
               {/* Admin dashboards */}
               <Route path="/ceo-master-portal" element={<NoNavbarLayout><ProtectedRoute roles={['superadmin']} requireCeo={true}><SuperAdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
               <Route path="/admin" element={<NoNavbarLayout><ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
-              <Route path="/staff" element={<NoNavbarLayout><ProtectedRoute roles={['staff', 'admin', 'superadmin']}><StaffDashboard /></ProtectedRoute></NoNavbarLayout>} />
+              <Route path="/staff" element={<NoNavbarLayout><ProtectedRoute roles={['staff', 'subadmin', 'admin', 'superadmin']}><StaffDashboard /></ProtectedRoute></NoNavbarLayout>} />
+              <Route path="/subadmin" element={<NoNavbarLayout><ProtectedRoute roles={['staff', 'subadmin', 'admin', 'superadmin']}><StaffDashboard /></ProtectedRoute></NoNavbarLayout>} />
+              
+              {/* Route Aliases */}
+              <Route path="/dashboard-verified" element={<Navigate to="/dashboard" replace />} />
+
+              {/* Unauthorized Fallback */}
+              <Route path="/unauthorized" element={<AppLayout><div style={{ padding: '100px 20px', textAlign: 'center' }}><h1>403 - Unauthorized Access</h1><p>You do not have permission to view this page.</p><a href="/" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>Return Home</a></div></AppLayout>} />
               
               {/* Catch-all 404 Route */}
               <Route path="*" element={<AppLayout><NotFound /></AppLayout>} />

@@ -328,12 +328,12 @@ export default function Profile() {
           <div className="card profile-card">
             <h3 className="profile-card-title">Quick Actions</h3>
             <div className="profile-actions-list">
-              <a href="/dashboard" className="profile-action-item">
+              <Link to="/dashboard" className="profile-action-item">
                 <Shield size={16} /> Go to Dashboard
-              </a>
-              <a href="/list-vehicle" className="profile-action-item">
+              </Link>
+              <Link to="/list-vehicle" className="profile-action-item">
                 <span>🚗</span> List a Vehicle
-              </a>
+              </Link>
               {user.verificationStatus === 'not_submitted' && (
                 <Link to="/verify" className="profile-action-item" style={{ background: 'var(--color-primary)', color: 'white', borderRadius: '12px' }}>
                   <Shield size={16} color="white" />
@@ -341,16 +341,16 @@ export default function Profile() {
                 </Link>
               )}
 
-              <a href="/about" className="profile-action-item">
+              <Link to="/about" className="profile-action-item">
                 <span>ℹ️</span> About Rentify
-              </a>
+              </Link>
               {user.role !== 'superadmin' && (
-                <a href="/contact" className="profile-action-item">
+                <Link to="/contact" className="profile-action-item">
                   <span>📞</span> Contact Support
-                </a>
+                </Link>
               )}
-              <button 
-                onClick={() => { if(window.confirm('Are you sure you want to logout?')) { logout(); } }} 
+              <button
+                onClick={() => { if (window.confirm('Are you sure you want to logout?')) { logout(); } }}
                 className="profile-action-item logout-action"
                 style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)', cursor: 'pointer', width: '100%', textAlign: 'left', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}
               >

@@ -292,7 +292,7 @@ export default function Explore() {
                 ) },
                 { type: 'divider' },
                 { key: 'sale', label: (
-                  <Link to="/list-sale" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                  <Link to="/staff?tab=manage-sales&openAdd=true" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
                       <Tag size={18} />
                     </div>

@@ -44,3 +44,5 @@ router.patch("/settings", protect, isMasterCEO, async (req, res) => {
 });
 
 export default router;
+
+

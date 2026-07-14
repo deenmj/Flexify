@@ -22,6 +22,7 @@ router.post("/vehicles", protect, requireStaff, upload.array("images", 10), asyn
       fuelType,
       transmission,
       condition,
+      category,
       askingPrice,
       commissionRate,
       isNegotiable,
@@ -58,6 +59,7 @@ router.post("/vehicles", protect, requireStaff, upload.array("images", 10), asyn
       fuelType,
       transmission,
       condition,
+      category,
       askingPrice,
       commissionRate: commissionRate || 0,
       isNegotiable: isNegotiable || false,
@@ -98,7 +100,7 @@ router.put("/vehicles/:id", protect, requireStaff, upload.array("images", 10), a
 
     const {
       make, model, year, registrationNumber, vin, mileage, fuelType, transmission,
-      condition, askingPrice, commissionRate, isNegotiable, title, description,
+      condition, category, askingPrice, commissionRate, isNegotiable, title, description,
       seoTags, contactNumber, originalOwnerDetails: ownerDetailsStr, status,
       existingImages: existingImagesStr
     } = req.body;
@@ -130,6 +132,7 @@ router.put("/vehicles/:id", protect, requireStaff, upload.array("images", 10), a
     if (fuelType) sale.fuelType = fuelType;
     if (transmission) sale.transmission = transmission;
     if (condition) sale.condition = condition;
+    if (category) sale.category = category;
     if (askingPrice) sale.askingPrice = askingPrice;
     if (commissionRate !== undefined) sale.commissionRate = commissionRate;
     if (isNegotiable !== undefined) sale.isNegotiable = isNegotiable;
@@ -169,9 +172,25 @@ router.get("/staff/vehicles", protect, requireStaff, async (req, res) => {
  */
 router.get("/vehicles", async (req, res) => {
   try {
-    const sales = await VehicleSale.find({ 
-      status: { $in: ["Available", "New", "Sold Out"] } 
-    })
+    const { search, category } = req.query;
+    
+    let query = { status: { $in: ["Available", "New", "Sold Out"] } };
+    
+    if (category && category !== 'All') {
+      query.category = category;
+    }
+    
+    if (search) {
+      // Create regex for title, make, and model
+      const searchRegex = new RegExp(search, 'i');
+      query.$or = [
+        { title: searchRegex },
+        { make: searchRegex },
+        { model: searchRegex }
+      ];
+    }
+
+    const sales = await VehicleSale.find(query)
     .select("-originalOwnerDetails")
     .sort("-createdAt");
     res.json(sales);
@@ -236,3 +255,5 @@ router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
 });
 
 export default router;
+
+

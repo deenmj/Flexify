@@ -82,7 +82,7 @@ export default function Navbar() {
     if (!user) return null;
     if (user.role === 'superadmin') return '/ceo-master-portal';
     if (user.role === 'admin') return '/admin';
-    if (user.role === 'staff') return '/staff';
+    if (user.role === 'staff' || user.role === 'subadmin') return '/staff';
     return '/dashboard';
   };
 
@@ -90,7 +90,7 @@ export default function Navbar() {
     if (!user) return null;
     if (user.role === 'superadmin') return { text: 'CEO', color: '#b8860b' };
     if (user.role === 'admin') return { text: 'ADMIN', color: '#7c3aed' };
-    if (user.role === 'staff') return { text: 'STAFF', color: '#0d9488' };
+    if (user.role === 'staff' || user.role === 'subadmin') return { text: 'STAFF', color: '#0d9488' };
     if (user.role === 'owner' && user.ownerType === 'VERIFIED') return { text: 'PRO', color: '#1890ff' };
     if (user.isKycVerified) return { text: '✓', color: '#16a34a' };
     return null;
@@ -115,7 +115,7 @@ export default function Navbar() {
   const badge = getRoleBadge();
   const isSuperAdmin = user?.role === 'superadmin';
   const isAdmin = user?.role === 'admin';
-  const isStaff = user?.role === 'staff';
+  const isStaff = user?.role === 'staff' || user?.role === 'subadmin';
   const isAdminRole = isSuperAdmin || isAdmin || isStaff;
 
   return (
@@ -127,7 +127,7 @@ export default function Navbar() {
             <button className="mobile-menu-btn menu-btn-left" onClick={() => setMobileOpen(true)}>
               <Menu size={24} strokeWidth={2.5} />
             </button>
-            
+
             <Link to={isAdminRole ? getDashboardLink()! : '/home'} className="navbar-logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', height: '100%', gap: '8px' }}>
               <RentifyLogo className="logo-img" />
               <span className="logo-text">Rentify</span>
@@ -152,7 +152,7 @@ export default function Navbar() {
                 icon={Car}
                 items={[
                   { label: 'List for Rent', href: '/list-vehicle', icon: Car, desc: 'Earn money by renting your vehicle' },
-                  ...(isAdminRole ? [{ label: 'List for Sale', href: '/list-sale', icon: Tag, desc: 'Sell your vehicle on Rentify' }] : []),
+                  ...(isAdminRole ? [{ label: 'List for Sale', href: '/staff?tab=manage-sales&openAdd=true', icon: Tag, desc: 'Sell your vehicle on Rentify' }] : []),
                 ]}
               />
               <NavDropdown
@@ -170,31 +170,37 @@ export default function Navbar() {
           {/* Right side */}
           <div className="navbar-actions">
             {isAdminRole ? (
-              <Dropdown menu={{ items: [
-                { key: 'rent', label: (
-                  <Link to="/list-vehicle" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
-                      <Car size={18} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>Earn money by renting</span>
-                    </div>
-                  </Link>
-                ) },
-                { type: 'divider' },
-                { key: 'sale', label: (
-                  <Link to="/list-sale" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
-                      <Tag size={18} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
-                    </div>
-                  </Link>
-                ) }
-              ] }} trigger={['click']} placement="bottomRight" overlayStyle={{ minWidth: '220px', padding: '4px' }}>
+              <Dropdown menu={{
+                items: [
+                  {
+                    key: 'rent', label: (
+                      <Link to="/list-vehicle" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
+                          <Car size={18} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
+                          <span style={{ fontSize: '12px', color: '#64748b' }}>Earn money by renting</span>
+                        </div>
+                      </Link>
+                    )
+                  },
+                  { type: 'divider' },
+                  {
+                    key: 'sale', label: (
+                      <Link to="/staff?tab=manage-sales&openAdd=true" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
+                          <Tag size={18} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>
+                          <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
+                        </div>
+                      </Link>
+                    )
+                  }
+                ]
+              }} trigger={['click']} placement="bottomRight" overlayStyle={{ minWidth: '220px', padding: '4px' }}>
                 <button className="mobile-plus-btn" title="List Vehicle" style={{ border: 'none', cursor: 'pointer' }}>
                   <Plus size={18} strokeWidth={2.5} />
                 </button>
@@ -312,8 +318,8 @@ export default function Navbar() {
             </div>
             <div className="mobile-menu-body">
               {user && (
-                <div 
-                  className="mobile-user-info" 
+                <div
+                  className="mobile-user-info"
                   onClick={() => { setMobileOpen(false); navigate('/profile'); }}
                   style={{ cursor: 'pointer' }}
                 >
@@ -339,7 +345,7 @@ export default function Navbar() {
 
               <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
               {isAdminRole && (
-                <Link to="/list-sale" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
+                <Link to="/staff?tab=manage-sales&openAdd=true" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
               )}
 
               {user && (
@@ -364,7 +370,7 @@ export default function Navbar() {
               <Link to="/about" className="mobile-link" onClick={() => setMobileOpen(false)}><Info size={18} /> About Us</Link>
               <Link to="/faq" className="mobile-link" onClick={() => setMobileOpen(false)}><HelpCircle size={18} /> FAQ</Link>
               <Link to="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}><Phone size={18} /> Contact</Link>
-              
+
               <div style={{ marginTop: '1rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color-light)' }}>
                 {user ? (
                   <button className="mobile-link mobile-logout" onClick={() => { handleLogout(); setMobileOpen(false); }}>

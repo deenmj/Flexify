@@ -9,3 +9,5 @@ router.route("/")
   .patch(protect, requireAdmin, updateBankDetails);
 
 export default router;
+
+

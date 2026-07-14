@@ -39,3 +39,5 @@ router.get("/payments/pending", protect, requireStaff, getPendingPayments);
 router.post("/payments/verify", protect, requireStaff, verifyPayment);
 
 export default router;
+
+

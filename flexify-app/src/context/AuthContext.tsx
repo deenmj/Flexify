@@ -27,13 +27,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
-  // If we have cached user data, don't block the UI with loading state
-  // The background refresh will silently update if needed
   const [loading, setLoading] = useState(() => {
-    const hasUser = localStorage.getItem('user');
     const hasToken = localStorage.getItem('token');
-    // Only show loading if we have a token but no cached user (first load after token set)
-    return hasToken && !hasUser ? true : false;
+    // Wait for refreshUser to complete if there's a token, ensuring strict role evaluation
+    return !!hasToken;
   });
 
   const saveAuth = useCallback((userData: User, tokenStr: string) => {
