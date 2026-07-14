@@ -16,3 +16,5 @@ router.get("/vehicle/:vehicleId", getVehicleBlackouts);
 router.delete("/:id", deleteBlackout);
 
 export default router;
+
+

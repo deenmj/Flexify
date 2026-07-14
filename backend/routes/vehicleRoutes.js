@@ -34,3 +34,5 @@ router.delete("/:id", protect, deleteVehicle);
 router.patch("/:id/status", protect, toggleVehicleStatus);
 
 export default router;
+
+

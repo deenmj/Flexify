@@ -1,18 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import dayjs, { type Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { Calendar, Modal, message, Select, Tag, DatePicker, Button, Form, Input, Rate, Image, Row, Col, Avatar, Spin } from 'antd';
-import { vehicleApi, bookingApi, blackoutApi, reviewApi, type Vehicle, type Booking, type BookedRange, type Blackout, type BlackoutRange, type Review, getImageUrl, getVehicleSlug } from '../api';
+import { Modal, message, Tag, Button, Form, Input, Rate, Image, Avatar, Spin } from 'antd';
+import { vehicleApi, bookingApi, userApi, reviewApi, type Vehicle, type Booking, getImageUrl, getVehicleSlug } from '../api';
 import {
-  Car, Calendar as CalIcon, DollarSign, CheckCircle, XCircle,
-  Clock, Eye, EyeOff, Trash2, Phone, Shield, AlertTriangle,
-  CalendarOff, Star, MessageSquare, Zap, Edit, Info, User, Users, FileText, Compass, Heart
+  Car, Calendar as CalIcon, CheckCircle, XCircle,
+  Clock, Eye, Phone, Shield, AlertTriangle,
+  MessageSquare, Info, User, Users, FileText, Compass, Heart
 } from 'lucide-react';
 import { notification } from 'antd';
-
-const { RangePicker } = DatePicker;
 import { useSocket } from '../context/SocketContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -21,16 +19,13 @@ import './Dashboard.css';
 dayjs.extend(isBetween);
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { socket } = useSocket();
   const isMobile = useIsMobile();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [rentWishlist, setRentWishlist] = useState<Vehicle[]>([]);
-  const [saleWishlist, setSaleWishlist] = useState<any[]>([]);
-  const [wishlistSubTab, setWishlistSubTab] = useState<'rent' | 'buy'>('rent');
   const [loading, setLoading] = useState(true);
+  const [wishlistSubTab, setWishlistSubTab] = useState<'rent' | 'buy'>('rent');
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'wishlist'>(() => {
     const urlTab = searchParams.get('tab');
@@ -38,7 +33,7 @@ export default function Dashboard() {
     if (urlTab === 'wishlist') return 'wishlist';
     return user?.role === 'user' ? 'bookings' : 'vehicles';
   });
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const selectedCategory = 'All';
   const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'confirmed' | 'past'>('all');
   const [bookingType, setBookingType] = useState<'received' | 'trips'>(() => {
     const urlType = searchParams.get('type');
@@ -142,17 +137,8 @@ export default function Dashboard() {
     try {
       const v = await vehicleApi.getMy().catch(() => []);
       const b = await bookingApi.getMy().catch(() => []);
-      const rw = await userApi.getWishlistRent().catch(() => []);
-      const sw = await userApi.getWishlistSale().catch(() => []);
       setVehicles(v as Vehicle[]);
       setBookings(b as Booking[]);
-      setRentWishlist(rw);
-      setSaleWishlist(sw);
-
-      if (user?.role === 'owner') {
-        const r = await reviewApi.getMyReviews().catch(() => []);
-        setReviews(r as Review[]);
-      }
 
 
     } catch (err) {
@@ -206,31 +192,6 @@ export default function Dashboard() {
   }, [socket, user]);
 
 
-
-  const handleToggleStatus = async (id: string) => {
-    try {
-      await vehicleApi.toggleStatus(id);
-      setVehicles(prev => prev.map(v => v._id === id ? { ...v, isActive: !v.isActive } : v));
-      message.success('Vehicle status updated');
-    } catch (err: any) { message.error(err.message || 'Failed to update status'); }
-  };
-
-  const handleDeleteVehicle = async (id: string) => {
-    Modal.confirm({
-      title: 'Delete Vehicle',
-      content: 'Are you sure you want to delete this vehicle? This action cannot be undone.',
-      okText: 'Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
-        try {
-          await vehicleApi.delete(id);
-          setVehicles(prev => prev.filter(v => v._id !== id));
-          message.success('Vehicle deleted');
-        } catch (err: any) { message.error(err.message || 'Failed to delete vehicle'); }
-      },
-    });
-  };
 
   const handleAcceptBooking = async (id: string) => {
     const previousBookings = [...bookings];
@@ -327,15 +288,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleToggleReviewVisibility = async (reviewId: string) => {
-    try {
-      const res = await reviewApi.toggleVisibility(reviewId);
-      setReviews((prev: Review[]) => prev.map((r: Review) => r._id === reviewId ? res.review : r));
-      message.success(res.message);
-    } catch (err: any) {
-      message.error(err.message || 'Failed to update review visibility');
-    }
-  };
 
 
 
@@ -344,8 +296,6 @@ export default function Dashboard() {
   // Staff (subadmin) behaves like a verified owner in the dashboard
   const isStaff = user.role === 'subadmin';
   const isOwner = user.role === 'owner' || isStaff;
-  const isVerifiedOwner = (isOwner && user.isKycVerified) || isStaff;
-  const isUnverifiedOwner = user.role === 'owner' && !user.isKycVerified && !isStaff;
 
   const vehicleStatusBadge = (status: string, isActive: boolean) => {
     if (status === 'pending') return <Tag color="warning" icon={<Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}>Pending</Tag>;
@@ -400,10 +350,11 @@ export default function Dashboard() {
   });
 
   const handleRemoveRentWishlist = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
     e.stopPropagation();
     try {
       if (user) {
-        setUser({ ...user, rentWishlist: user.rentWishlist.filter((v: any) => v._id !== id) });
+        setUser({ ...user, rentWishlist: (user.rentWishlist || []).filter((v: any) => v._id !== id) });
         await userApi.toggleWishlistRent(id);
         message.success('Removed from rental wishlist');
       }
@@ -413,10 +364,11 @@ export default function Dashboard() {
   };
 
   const handleRemoveSaleWishlist = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
     e.stopPropagation();
     try {
       if (user) {
-        setUser({ ...user, saleWishlist: user.saleWishlist.filter((v: any) => v._id !== id) });
+        setUser({ ...user, saleWishlist: (user.saleWishlist || []).filter((v: any) => v._id !== id) });
         await userApi.toggleWishlistSale(id);
         message.success('Removed from sales wishlist');
       }

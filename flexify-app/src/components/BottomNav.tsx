@@ -25,23 +25,23 @@ export default function BottomNav() {
         <Home size={22} strokeWidth={isActive('/home') ? 2.5 : 2} />
         <span>Home</span>
       </Link>
-      
+
       <Link to="/explore" className={`bottom-nav-item ${isActive('/explore') ? 'active' : ''}`}>
         <Compass size={22} strokeWidth={isActive('/explore') ? 2.5 : 2} />
         <span>Rent</span>
       </Link>
-      
+
       <Link to="/buy" className={`bottom-nav-item ${isActive('/buy') ? 'active' : ''}`}>
         <Tag size={22} strokeWidth={isActive('/buy') ? 2.5 : 2} />
         <span>Buy</span>
       </Link>
-      
+
 
       <Link to="/dashboard" className={`bottom-nav-item ${isActive('/dashboard') ? 'active' : ''}`}>
         <Calendar size={22} strokeWidth={isActive('/dashboard') ? 2.5 : 2} />
         <span>Bookings</span>
       </Link>
-      
+
       <Link to="/profile" className={`bottom-nav-item ${isActive('/profile') ? 'active' : ''}`}>
         <User size={22} strokeWidth={isActive('/profile') ? 2.5 : 2} />
         <span>Profile</span>

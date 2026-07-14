@@ -356,7 +356,8 @@ export default function StaffDashboard() {
     r.comment.toLowerCase().includes(reviewSearchQuery.toLowerCase())
   );
 
-  if (!user || (user.role !== 'staff' && user.role !== 'admin' && user.role !== 'superadmin')) {
+  const currentRole = (user?.role || '').toLowerCase();
+  if (!user || (currentRole !== 'staff' && currentRole !== 'subadmin' && currentRole !== 'admin' && currentRole !== 'superadmin')) {
     return (
       <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
         <Shield size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />

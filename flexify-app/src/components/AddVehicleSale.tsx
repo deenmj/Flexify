@@ -30,6 +30,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         fuelType: initialData.fuelType,
         transmission: initialData.transmission,
         condition: initialData.condition,
+        category: initialData.category,
         askingPrice: initialData.askingPrice,
         commissionRate: initialData.commissionRate,
         isNegotiable: initialData.isNegotiable,
@@ -65,6 +66,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
       formData.append('fuelType', values.fuelType);
       formData.append('transmission', values.transmission);
       formData.append('condition', values.condition);
+      if (values.category) formData.append('category', values.category);
       formData.append('askingPrice', values.askingPrice);
       formData.append('commissionRate', values.commissionRate || 0);
       formData.append('isNegotiable', values.isNegotiable || false);
@@ -176,6 +178,20 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
                 <Option value="New">New</Option>
                 <Option value="Used">Used</Option>
                 <Option value="Reconditioned">Reconditioned</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12} xs={24} md={12}>
+            <Form.Item name="category" label="Category">
+              <Select placeholder="Select a category" allowClear>
+                <Option value="Car">Car</Option>
+                <Option value="Bike">Bike</Option>
+                <Option value="Van">Van</Option>
+                <Option value="SUV">SUV</Option>
+                <Option value="TukTuk">TukTuk</Option>
+                <Option value="Other">Other</Option>
               </Select>
             </Form.Item>
           </Col>

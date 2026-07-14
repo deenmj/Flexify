@@ -20,26 +20,29 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    const token = localStorage.getItem('token');
+    
+    if (user && token) {
       // Connect to socket server
-      const token = localStorage.getItem('token');
       const newSocket = io(import.meta.env.VITE_API_URL || 'https://api.rentify.lk', {
         auth: { token },
         transports: ['websocket'], // Prefer websockets
       });
 
       newSocket.on('connect', () => {
-
         setConnected(true);
       });
 
       newSocket.on('disconnect', () => {
-
         setConnected(false);
       });
 
       newSocket.on('connect_error', (err) => {
-        console.error('Socket connection error:', err.message);
+        console.error('Socket Auth Failed:', err.message);
+        // Explicitly disconnect on auth error to prevent repeated connection attempts
+        if (err.message.includes('Authentication') || err.message.includes('Auth')) {
+          newSocket.disconnect();
+        }
       });
 
       // eslint-disable-next-line react-hooks/set-state-in-effect

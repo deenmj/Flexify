@@ -38,9 +38,8 @@ router.post("/subscribe", protect, paymentUpload.single("receipt"), async (req, 
     if (!reference) {
         return res.status(400).json({ message: "Payment reference is required" });
     }
-
-    const Model = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-    const user = await Model.findById(req.user._id);
+    let user = await Staff.findById(req.user._id);
+    if (!user) user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const receiptPath = req.file ? req.file.path : null;
@@ -208,3 +207,5 @@ router.post("/payhere-notify", async (req, res) => {
 });
 
 export default router;
+
+

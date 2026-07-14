@@ -45,7 +45,9 @@ export default function VehicleSaleDetails() {
     setIsContactModalOpen(true);
   };
 
-  const handleToggleWishlist = async () => {
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!user) {
       message.info('Please log in to save this vehicle.');
       navigate('/login');

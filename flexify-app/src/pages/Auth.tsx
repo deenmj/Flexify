@@ -26,7 +26,7 @@ export default function Auth() {
 
   useEffect(() => {
     if (user) {
-      if (user.role === 'superadmin') navigate('/admin');
+      if (user.role === 'superadmin') navigate('/ceo-master-portal');
       else if (user.role === 'subadmin') navigate('/subadmin');
       else if (user.role === 'owner') navigate('/dashboard?tab=vehicles');
       else navigate('/explore');
@@ -83,7 +83,7 @@ export default function Auth() {
           }
         }
 
-        if (user.role === 'superadmin') navigate('/admin');
+        if (user.role === 'superadmin') navigate('/ceo-master-portal');
         else if (user.role === 'subadmin' || user.role === 'staff' || user.role === 'admin') navigate('/staff');
         else if (user.role === 'owner') navigate('/dashboard?tab=vehicles');
         else navigate('/explore');

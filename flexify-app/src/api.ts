@@ -562,7 +562,13 @@ export const salesApi = {
     method: 'PUT',
     body: data instanceof FormData ? data : JSON.stringify(data)
   }),
-  getActiveSales: () => apiFetch<any[]>('/sales/vehicles'),
+  getActiveSales: (search?: string, category?: string) => {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (category) params.append('category', category);
+    const qs = params.toString();
+    return apiFetch<any[]>(`/sales/vehicles${qs ? `?${qs}` : ''}`);
+  },
   getStaffActiveSales: () => apiFetch<any[]>('/sales/staff/vehicles'),
   getSaleById: (id: string) => apiFetch<any>(`/sales/vehicles/${id}`),
   updateSaleStatus: (id: string, status: string, finalNegotiatedPrice?: number) => apiFetch<any>(`/sales/vehicles/${id}/status`, {
