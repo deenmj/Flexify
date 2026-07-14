@@ -300,11 +300,18 @@ router.get("/verify-email/:token", async (req, res) => {
 ========================================================= */
 router.get("/me", protect, async (req, res, next) => {
   try {
-    let userModel = ['staff', 'admin', 'superadmin'].includes(req.user.role) ? Staff : User;
-    const user = await userModel.findById(req.user._id)
+    // Try Staff first, then fallback to User (handles migrated accounts)
+    let user = await Staff.findById(req.user._id)
       .populate('rentWishlist')
       .populate('saleWishlist')
       .select("-password");
+    
+    if (!user) {
+      user = await User.findById(req.user._id)
+        .populate('rentWishlist')
+        .populate('saleWishlist')
+        .select("-password");
+    }
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
