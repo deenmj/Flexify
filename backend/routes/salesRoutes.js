@@ -59,7 +59,7 @@ router.post("/vehicles", protect, requireStaff, upload.array("images", 10), asyn
       fuelType,
       transmission,
       condition,
-      category,
+      category: category ? (Array.isArray(category) ? category : JSON.parse(category)) : [],
       askingPrice,
       commissionRate: commissionRate || 0,
       isNegotiable: isNegotiable || false,
@@ -132,7 +132,7 @@ router.put("/vehicles/:id", protect, requireStaff, upload.array("images", 10), a
     if (fuelType) sale.fuelType = fuelType;
     if (transmission) sale.transmission = transmission;
     if (condition) sale.condition = condition;
-    if (category) sale.category = category;
+    if (category) sale.category = Array.isArray(category) ? category : JSON.parse(category);
     if (askingPrice) sale.askingPrice = askingPrice;
     if (commissionRate !== undefined) sale.commissionRate = commissionRate;
     if (isNegotiable !== undefined) sale.isNegotiable = isNegotiable;

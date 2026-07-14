@@ -12,7 +12,7 @@ const vehicleSaleSchema = new mongoose.Schema(
     fuelType: { type: String, required: true },
     transmission: { type: String, required: true },
     condition: { type: String, enum: ["New", "Used", "Reconditioned"], required: true },
-    category: { type: String, required: false },
+    category: { type: [String], default: [] },
 
     // Financials
     askingPrice: { type: Number, required: true },

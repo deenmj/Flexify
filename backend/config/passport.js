@@ -42,6 +42,8 @@ if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
               status: "active",
               profilePic: profile.photos?.[0]?.value || null,
               provider: "google",
+              verified: true,
+              emailVerifiedAt: new Date(),
             });
           }
 

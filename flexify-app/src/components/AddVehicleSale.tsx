@@ -30,7 +30,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         fuelType: initialData.fuelType,
         transmission: initialData.transmission,
         condition: initialData.condition,
-        category: initialData.category,
+        category: initialData.category ? (Array.isArray(initialData.category) ? initialData.category : [initialData.category]) : [],
         askingPrice: initialData.askingPrice,
         commissionRate: initialData.commissionRate,
         isNegotiable: initialData.isNegotiable,
@@ -66,7 +66,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
       formData.append('fuelType', values.fuelType);
       formData.append('transmission', values.transmission);
       formData.append('condition', values.condition);
-      if (values.category) formData.append('category', values.category);
+      if (values.category) formData.append('category', JSON.stringify(values.category));
       formData.append('askingPrice', values.askingPrice);
       formData.append('commissionRate', values.commissionRate || 0);
       formData.append('isNegotiable', values.isNegotiable || false);
@@ -184,8 +184,8 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         </Row>
         <Row gutter={16}>
           <Col span={12} xs={24} md={12}>
-            <Form.Item name="category" label="Category">
-              <Select placeholder="Select a category" allowClear>
+            <Form.Item name="category" label="Categories">
+              <Select mode="tags" placeholder="Select or type categories" allowClear>
                 <Option value="Car">Car</Option>
                 <Option value="Bike">Bike</Option>
                 <Option value="Van">Van</Option>
