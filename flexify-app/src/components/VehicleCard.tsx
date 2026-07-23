@@ -133,9 +133,11 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
                 </span>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: 700, color: '#f59e0b', flexShrink: 0, marginTop: '2px' }}>
-              <Star size={12} fill="currentColor" /> {vehicle.averageRating ? vehicle.averageRating.toFixed(1) : 'New'}
-            </div>
+            {vehicle.averageRating ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: 700, color: '#f59e0b', flexShrink: 0, marginTop: '2px' }}>
+                <Star size={12} fill="currentColor" /> {vehicle.averageRating.toFixed(1)}
+              </div>
+            ) : null}
           </div>
 
           <p className="shared-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>
