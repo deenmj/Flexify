@@ -23,7 +23,7 @@ export const createVehicle = async (req, res) => {
       seats, description, lat, lng, address, serviceType,
       engineCapacity, fuelConsumption, features, province, district, city,
       pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
-      driverOption, driverPricePerDay, mobileNumber, weddingHiresSpecial
+      driverOption, driverPricePerDay, mobileNumber, contactMethod, weddingHiresSpecial
     } = req.body;
 
     // Auto-promote regular users to owner role when they create their first listing
@@ -204,6 +204,7 @@ export const createVehicle = async (req, res) => {
       driverOption: driverOption || "self-drive",
       driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
       mobileNumber: mobileNumber || null,
+      contactMethod: contactMethod || "both",
       weddingHiresSpecial: weddingHiresSpecial === "true" || weddingHiresSpecial === true,
     });
 
@@ -232,7 +233,7 @@ export const updateVehicle = async (req, res) => {
       title, make, model, year, pricePerDay, transmission, fuelType, seats, description, 
       lat, lng, address, engineCapacity, fuelConsumption, features, province, district, city,
       pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
-      driverOption, driverPricePerDay, mobileNumber, weddingHiresSpecial
+      driverOption, driverPricePerDay, mobileNumber, contactMethod, weddingHiresSpecial
     } = req.body;
 
     if (!mobileNumber && isOwner) {
@@ -248,6 +249,7 @@ export const updateVehicle = async (req, res) => {
       driverOption,
       driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
       mobileNumber: mobileNumber !== undefined ? (mobileNumber || null) : undefined,
+      contactMethod: contactMethod !== undefined ? contactMethod : undefined,
       weddingHiresSpecial: weddingHiresSpecial !== undefined ? (weddingHiresSpecial === "true" || weddingHiresSpecial === true) : undefined
     };
 
@@ -565,6 +567,7 @@ export const listVehicles = async (req, res) => {
           driverOption: 1,
           driverPricePerDay: 1,
           mobileNumber: 1,
+          contactMethod: 1,
           weddingHiresSpecial: 1,
           createdAt: 1
         }

@@ -130,6 +130,7 @@ export interface Vehicle {
   driverOption?: string;
   driverPricePerDay?: number;
   mobileNumber?: string;
+  contactMethod?: 'call' | 'whatsapp' | 'both';
   weddingHiresSpecial?: boolean;
   province?: string;
   city?: string;

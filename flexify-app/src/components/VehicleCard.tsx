@@ -117,6 +117,15 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             {vehicle.transmission && <span className="v-card-tag">{vehicle.transmission}</span>}
             {ownerData?.ownerType === 'VERIFIED' && <span className="v-card-tag v-verified"><Verified size={10} style={{ marginRight: '2px' }} /> Verified</span>}
             {vehicle.weddingHiresSpecial && <span className="v-card-tag v-wedding">💍 Wedding Hire</span>}
+            
+            {!isBike && vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive">🚗 Self Drive Only</span>}
+            {!isBike && vehicle.driverOption === 'with-driver' && <span className="v-card-tag v-with-driver">👨‍✈️ With Driver Only</span>}
+            {!isBike && vehicle.driverOption === 'both' && (
+              <>
+                <span className="v-card-tag v-self-drive">🚗 Self Drive</span>
+                <span className="v-card-tag v-both-driver">👨‍✈️ Driver Available</span>
+              </>
+            )}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
@@ -135,11 +144,6 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             <span>
               <Gauge size={12} /> {vehicle.kmLimitPerDay ? `${vehicle.kmLimitPerDay} km/day` : 'Unlimited km'}
             </span>
-            {!isBike && (
-              <span>
-                {vehicle.driverOption === 'with-driver' ? 'With Driver' : vehicle.driverOption === 'both' ? 'Self/Driver' : 'Self Drive'}
-              </span>
-            )}
           </div>
 
           <div className="shared-vehicle-location" title={vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}>
