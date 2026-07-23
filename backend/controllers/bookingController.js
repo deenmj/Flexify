@@ -94,7 +94,12 @@ export const createBooking = async (req, res) => {
     // Build response immediately from existing data (no re-query)
     const responseData = booking.toObject();
     responseData.vehicle = vehicle;
-    responseData.owner = vehicle.owner;
+    // Use vehicle-specific mobile number instead of owner's personal phone
+    const ownerData = vehicle.owner.toObject ? vehicle.owner.toObject() : { ...vehicle.owner };
+    if (vehicle.mobileNumber) {
+      ownerData.phone = vehicle.mobileNumber;
+    }
+    responseData.owner = ownerData;
     responseData.user = { _id: req.user._id, name: req.user.name, email: req.user.email, phone: req.user.phone };
 
     // RETURN RESPONSE IMMEDIATELY — don't wait for email/notifications
@@ -216,9 +221,9 @@ export const acceptBooking = async (req, res) => {
 
     // Build response from existing populated data (no re-query)
     const result = booking.toObject();
-    // Ensure owner phone is visible for confirmed bookings
-    if (result.owner && !result.owner.phone) {
-      result.owner.phone = booking.owner.phone;
+    // Use the vehicle's listing mobile number instead of owner's personal phone
+    if (booking.vehicle?.mobileNumber && result.owner) {
+      result.owner.phone = booking.vehicle.mobileNumber;
     }
 
     // RETURN RESPONSE IMMEDIATELY
@@ -289,7 +294,7 @@ export const acceptBooking = async (req, res) => {
               <p><strong>Dates:</strong> ${sDate} - ${eDate}</p>
               <p><strong>Total:</strong> LKR ${booking.totalAmount.toLocaleString()}</p>
               <p><strong>Owner:</strong> ${ownerUser.name}</p>
-              ${ownerUser.phone ? `<p><strong>Owner Phone:</strong> ${ownerUser.phone}</p>` : ""}
+              ${booking.vehicle?.mobileNumber ? `<p><strong>Owner Phone:</strong> ${booking.vehicle.mobileNumber}</p>` : (ownerUser.phone ? `<p><strong>Owner Phone:</strong> ${ownerUser.phone}</p>` : "")}
             </div>
             <p>You can view your booking details in your <a href="${process.env.FRONTEND_URL || "https://rentify.lk"}/dashboard?tab=bookings&type=trips" style="color: #1890ff;">dashboard</a>.</p>
           </div>
@@ -506,8 +511,15 @@ export const getMyBookings = async (req, res) => {
       ).catch(err => console.error("Auto-expire bookings failed:", err.message));
     }
 
-    // Data is sent in full to client. Dashboard UI handles masking based on status.
-    res.json(processedBookings);
+    // Override owner phone with vehicle-specific mobile number for each booking
+    const finalBookings = processedBookings.map(b => {
+      const obj = b.toObject ? b.toObject() : b;
+      if (obj.vehicle?.mobileNumber && obj.owner) {
+        obj.owner.phone = obj.vehicle.mobileNumber;
+      }
+      return obj;
+    });
+    res.json(finalBookings);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
