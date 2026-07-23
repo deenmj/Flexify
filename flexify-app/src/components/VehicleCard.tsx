@@ -116,6 +116,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           <div className="shared-vehicle-tags-row">
             {vehicle.transmission && vehicle.driverOption !== 'with-driver' && <span className="v-card-tag">{vehicle.transmission}</span>}
             {ownerData?.ownerType === 'VERIFIED' && <span className="v-card-tag v-verified"><Verified size={10} style={{ marginRight: '2px' }} /> Verified</span>}
+            {vehicle.weddingHiresSpecial && <span className="v-card-tag v-wedding">💍 Wedding Hire</span>}
             
             {!isBike && vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive">🚗 Self Drive</span>}
             {!isBike && vehicle.driverOption === 'with-driver' && <span className="v-card-tag v-with-driver">👨‍✈️ With Driver Only</span>}

@@ -567,25 +567,6 @@ export default function VehicleDetail() {
                   </div>
                   <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
                     <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
-                    {vehicle.weddingHiresSpecial && (
-                      <Tag
-                        style={{
-                          padding: '2px 10px',
-                          fontSize: '0.8rem',
-                          fontWeight: 800,
-                          borderRadius: '6px',
-                          border: 'none',
-                          background: 'linear-gradient(135deg, #f5d0fe 0%, #f472b6 100%)',
-                          color: '#701a75',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          boxShadow: '0 4px 12px rgba(244, 114, 182, 0.2)'
-                        }}
-                      >
-                        💍 Wedding Hire Special
-                      </Tag>
-                    )}
                   </p>
                 </div>
               </div>
@@ -695,6 +676,12 @@ export default function VehicleDetail() {
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
                 </div>
+                {vehicle.weddingHiresSpecial && (
+                  <div className="spec-item">
+                    <span className="spec-label">Special</span>
+                    <span className="spec-value">💍 Wedding Hire</span>
+                  </div>
+                )}
                 </div>
 
               {(() => {
