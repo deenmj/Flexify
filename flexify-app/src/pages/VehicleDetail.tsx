@@ -627,7 +627,24 @@ export default function VehicleDetail() {
               <h3 className="section-title-minor" style={{ marginTop: '2.5rem', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', borderLeft: '4px solid var(--primary-color)', paddingLeft: '12px' }}>
                 Technical Specifications
               </h3>
-              <div className="detail-specs-grid" style={{ marginTop: '1.25rem' }}>
+              
+              {!isBike && (
+                <div style={{ marginBottom: '1.25rem', padding: '1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div style={{ fontWeight: 700, color: '#334155' }}>Driver Options:</div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>🚗 Self Drive Only</span>}
+                    {vehicle.driverOption === 'with-driver' && <span className="v-card-tag v-with-driver" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>👨‍✈️ With Driver Only</span>}
+                    {vehicle.driverOption === 'both' && (
+                      <>
+                        <span className="v-card-tag v-self-drive" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>🚗 Self Drive</span>
+                        <span className="v-card-tag v-both-driver" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>👨‍✈️ Driver Available</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              <div className="detail-specs-grid" style={{ marginTop: '0' }}>
                 <div className="spec-item">
                   <span className="spec-label">Transmission</span>
                   <span className="spec-value">{vehicle.transmission}</span>
@@ -681,25 +698,7 @@ export default function VehicleDetail() {
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
                 </div>
-                {!isBike && (
-                  <>
-                    <div className="spec-item">
-                      <span className="spec-label">Driver Option</span>
-                      <span className="spec-value" style={{ fontWeight: 600, color: '#6b21a8' }}>
-                        {vehicle.driverOption === 'both' ? 'Self / With Driver' : vehicle.driverOption === 'with-driver' ? 'With Driver' : 'Self Drive'}
-                      </span>
-                    </div>
-                    {vehicle.driverOption !== 'self-drive' && vehicle.driverPricePerDay ? (
-                      <div className="spec-item">
-                        <span className="spec-label">Driver Price</span>
-                        <span className="spec-value" style={{ fontWeight: 600, color: '#c2410c' }}>
-                          LKR {vehicle.driverPricePerDay} /day
-                        </span>
-                      </div>
-                    ) : null}
-                  </>
-                )}
-              </div>
+                </div>
 
               {(() => {
                 const parseFeatures = (feat: any): string[] => {
@@ -888,7 +887,35 @@ export default function VehicleDetail() {
                     </div>
                     <span className="pricing-period">per day</span>
                   </div>
-
+                  
+                  {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
+                    <div className="pricing-tiers">
+                      {vehicle.pricePerWeek && (
+                        <div className="pricing-tier-item">
+                          <div className="pricing-tier-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                          </div>
+                          <div className="pricing-tier-info">
+                            <span className="pricing-tier-label">Weekly Rate</span>
+                            <span className="pricing-tier-amount">LKR {vehicle.pricePerWeek.toLocaleString()}</span>
+                          </div>
+                          <div className="pricing-tier-save">Save ~{Math.round((1 - (vehicle.pricePerWeek / (vehicle.pricePerDay * 7))) * 100)}%</div>
+                        </div>
+                      )}
+                      {vehicle.pricePerMonth && (
+                        <div className="pricing-tier-item">
+                          <div className="pricing-tier-icon pricing-tier-icon-monthly">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                          </div>
+                          <div className="pricing-tier-info">
+                            <span className="pricing-tier-label">Monthly Rate</span>
+                            <span className="pricing-tier-amount">LKR {vehicle.pricePerMonth.toLocaleString()}</span>
+                          </div>
+                          <div className="pricing-tier-save pricing-tier-save-best">Save ~{Math.round((1 - (vehicle.pricePerMonth / (vehicle.pricePerDay * 30))) * 100)}%</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                 </div>
 

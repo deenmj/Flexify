@@ -104,6 +104,21 @@
   color: #be185d;
 }
 
+.v-card-tag.v-self-drive {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.v-card-tag.v-with-driver {
+  background: #fef08a;
+  color: #854d0e;
+}
+
+.v-card-tag.v-both-driver {
+  background: #dcfce7;
+  color: #15803d;
+}
+
 .shared-vehicle-title {
   font-size: 0.95rem;
   font-weight: 700;
