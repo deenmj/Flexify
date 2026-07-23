@@ -122,12 +122,18 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             {!isBike && vehicle.driverOption === 'both' && <span className="v-card-tag v-both-driver">👨‍✈️ Driver Optional</span>}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-            <h3 className="shared-vehicle-title" title={vehicle.title} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {vehicle.title}
-              {vehicle.weddingHiresSpecial && <span className="v-card-tag v-wedding" style={{ fontSize: '0.7rem', padding: '2px 6px', marginTop: 0 }}>💍 Wedding Hire</span>}
-            </h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: 700, color: '#f59e0b', flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+              <h3 className="shared-vehicle-title" title={vehicle.title} style={{ flex: '0 1 auto' }}>
+                {vehicle.title}
+              </h3>
+              {vehicle.weddingHiresSpecial && (
+                <span className="v-card-tag v-wedding" style={{ fontSize: '10px', padding: '2px 6px', flexShrink: 0 }}>
+                  💍 Wedding
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: 700, color: '#f59e0b', flexShrink: 0, marginTop: '2px' }}>
               <Star size={12} fill="currentColor" /> {vehicle.averageRating ? vehicle.averageRating.toFixed(1) : 'New'}
             </div>
           </div>
