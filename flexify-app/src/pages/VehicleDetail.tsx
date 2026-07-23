@@ -632,23 +632,20 @@ export default function VehicleDetail() {
                 <div style={{ marginBottom: '1.25rem', padding: '1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                   <div style={{ fontWeight: 700, color: '#334155' }}>Driver Options:</div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>🚗 Self Drive Only</span>}
+                    {vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>🚗 Self Drive</span>}
                     {vehicle.driverOption === 'with-driver' && <span className="v-card-tag v-with-driver" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>👨‍✈️ With Driver Only</span>}
-                    {vehicle.driverOption === 'both' && (
-                      <>
-                        <span className="v-card-tag v-self-drive" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>🚗 Self Drive</span>
-                        <span className="v-card-tag v-both-driver" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>👨‍✈️ Driver Available</span>
-                      </>
-                    )}
+                    {vehicle.driverOption === 'both' && <span className="v-card-tag v-both-driver" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>👨‍✈️ Driver Optional</span>}
                   </div>
                 </div>
               )}
               
               <div className="detail-specs-grid" style={{ marginTop: '0' }}>
-                <div className="spec-item">
-                  <span className="spec-label">Transmission</span>
-                  <span className="spec-value">{vehicle.transmission}</span>
-                </div>
+                {vehicle.driverOption !== 'with-driver' && (
+                  <div className="spec-item">
+                    <span className="spec-label">Transmission</span>
+                    <span className="spec-value">{vehicle.transmission}</span>
+                  </div>
+                )}
                 <div className="spec-item">
                   <span className="spec-label">Fuel Type</span>
                   <span className="spec-value">{vehicle.fuelType}</span>
