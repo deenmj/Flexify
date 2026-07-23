@@ -724,7 +724,7 @@ export default function VehicleDetail() {
                 return (
                   <div className="detail-features-section" style={{ marginTop: '2.5rem' }}>
                     <h3 className="section-title-minor">Features & Amenities</h3>
-                    <div className="detail-features-tags" style={{ marginTop: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    <div className="detail-features-grid" style={{ marginTop: '1.25rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '16px' }}>
                       {safeFeatures.map((f, idx) => {
                         const featureMap: Record<string, { label: string; icon: string }> = {
                           ac: { label: 'A/C', icon: '❄️' },
@@ -736,14 +736,38 @@ export default function VehicleDetail() {
                         const featLower = f.toLowerCase().replace(/[^a-z]/g, '');
                         const feat = featureMap[featLower] || { label: f.charAt(0).toUpperCase() + f.slice(1), icon: '✨' };
                         return (
-                          <Tag
+                          <div
                             key={idx}
-                            color="blue"
-                            icon={<span style={{ marginRight: 4 }}>{feat.icon}</span>}
-                            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: '#eff6ff', color: '#1e40af', margin: 0 }}
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center',
+                              gap: '10px',
+                              padding: '16px 20px', 
+                              borderRadius: '12px', 
+                              fontSize: '0.95rem', 
+                              fontWeight: 700, 
+                              border: '1px solid #e2e8f0', 
+                              background: '#ffffff', 
+                              color: '#0f172a',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                              transition: 'all 0.2s ease',
+                              cursor: 'default'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)';
+                              e.currentTarget.style.borderColor = '#cbd5e1';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
+                              e.currentTarget.style.borderColor = '#e2e8f0';
+                            }}
                           >
-                            {feat.label}
-                          </Tag>
+                            <span style={{ fontSize: '1.1rem' }}>{feat.icon}</span>
+                            <span>{feat.label}</span>
+                          </div>
                         );
                       })}
                     </div>
