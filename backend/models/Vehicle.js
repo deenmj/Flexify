@@ -73,6 +73,11 @@ const vehicleSchema = new mongoose.Schema(
 
     // Contact and Special options
     mobileNumber: { type: String, required: true },
+    contactMethod: {
+      type: String,
+      enum: ["call", "whatsapp", "both"],
+      default: "both"
+    },
     weddingHiresSpecial: { type: Boolean, default: false },
   },
   { timestamps: true }

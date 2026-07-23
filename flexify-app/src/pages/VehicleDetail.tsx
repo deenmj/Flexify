@@ -1057,23 +1057,27 @@ export default function VehicleDetail() {
               </div>
 
               {typeof createdBooking.owner === 'object' && createdBooking.owner.phone && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
-                  <a
-                    href={`tel:${createdBooking.owner.phone}`}
-                    className="btn btn-outline"
-                    style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0' }}
-                  >
-                    <Phone size={16} /> Call
-                  </a>
-                  <a
-                    href={`https://wa.me/${createdBooking.owner.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${createdBooking.owner.name},\n\nI just requested to book your ${vehicle?.title} on Rentify from ${dayjs(createdBooking.startDate).format('MMM D')} to ${dayjs(createdBooking.endDate).format('MMM D')}.\n\nPlease let me know if it's available!`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn"
-                    style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0', background: '#25D366', color: 'white', border: 'none' }}
-                  >
-                    <MessageCircle size={16} /> WhatsApp
-                  </a>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem', marginTop: '0.5rem', ...( (!vehicle?.contactMethod || vehicle.contactMethod === 'both') ? { gridTemplateColumns: '1fr 1fr' } : {} ) }}>
+                  {(!vehicle?.contactMethod || vehicle.contactMethod === 'call' || vehicle.contactMethod === 'both') && (
+                    <a
+                      href={`tel:${createdBooking.owner.phone}`}
+                      className="btn btn-outline"
+                      style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0' }}
+                    >
+                      <Phone size={16} /> Call
+                    </a>
+                  )}
+                  {(!vehicle?.contactMethod || vehicle.contactMethod === 'whatsapp' || vehicle.contactMethod === 'both') && (
+                    <a
+                      href={`https://wa.me/${createdBooking.owner.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${createdBooking.owner.name},\n\nI just requested to book your ${vehicle?.title} on Rentify from ${dayjs(createdBooking.startDate).format('MMM D')} to ${dayjs(createdBooking.endDate).format('MMM D')}.\n\nPlease let me know if it's available!`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn"
+                      style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0', background: '#25D366', color: 'white', border: 'none' }}
+                    >
+                      <MessageCircle size={16} /> WhatsApp
+                    </a>
+                  )}
                 </div>
               )}
             </div>

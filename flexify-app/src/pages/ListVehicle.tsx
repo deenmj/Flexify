@@ -90,6 +90,7 @@ export default function ListVehicle() {
     driverOption: 'self-drive',
     driverPricePerDay: '',
     mobileNumber: '',
+    contactMethod: 'both' as 'call' | 'whatsapp' | 'both',
     weddingHiresSpecial: false
   });
 
@@ -501,6 +502,36 @@ export default function ListVehicle() {
                 <div className="input-group">
                   <label>Mobile Number <span style={{color: '#ef4444'}}>*</span></label>
                   <input type="tel" className="input-field" placeholder="e.g. +94771234567" value={form.mobileNumber} onChange={(e) => setForm({ ...form, mobileNumber: e.target.value })} required />
+                  
+                  <div style={{ marginTop: '0.75rem' }}>
+                    <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>Preferred Contact Method</label>
+                    <div className="km-limit-presets" style={{ width: '100%', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className={`km-preset-btn ${form.contactMethod === 'call' ? 'active' : ''}`}
+                        onClick={() => setForm({ ...form, contactMethod: 'call' })}
+                        style={{ flex: 1, padding: '0.5rem' }}
+                      >
+                        📞 Call
+                      </button>
+                      <button
+                        type="button"
+                        className={`km-preset-btn ${form.contactMethod === 'whatsapp' ? 'active' : ''}`}
+                        onClick={() => setForm({ ...form, contactMethod: 'whatsapp' })}
+                        style={{ flex: 1, padding: '0.5rem' }}
+                      >
+                        💬 WhatsApp
+                      </button>
+                      <button
+                        type="button"
+                        className={`km-preset-btn ${form.contactMethod === 'both' ? 'active' : ''}`}
+                        onClick={() => setForm({ ...form, contactMethod: 'both' })}
+                        style={{ flex: 1, padding: '0.5rem' }}
+                      >
+                        ✅ Both
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {form.serviceType !== 'Bike' && (
@@ -675,7 +706,11 @@ export default function ListVehicle() {
                             <span>👨‍✈️</span>
                             <div>
                               <label>Driver Price Per Day (LKR)</label>
-                              <p className="km-limit-hint">Extra amount charged per day for the driver</p>
+                              <p className="km-limit-hint">
+                                {form.driverOption === 'with-driver' 
+                                  ? 'Leave empty if the driver is included in the base price' 
+                                  : 'Extra amount charged per day for the driver'}
+                              </p>
                             </div>
                           </div>
                           <div className="km-limit-custom">
@@ -686,7 +721,7 @@ export default function ListVehicle() {
                               value={form.driverPricePerDay}
                               onChange={(e) => setForm({ ...form, driverPricePerDay: e.target.value })}
                               min="0"
-                              required={form.driverOption !== 'self-drive'}
+                              required={form.driverOption === 'both'}
                             />
                             <span className="km-suffix">LKR/day</span>
                           </div>
