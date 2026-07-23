@@ -1120,7 +1120,13 @@ export default function VehicleDetail() {
                           value={dateRange && dateRange[0] ? dateRange[0].format('YYYY-MM-DD') : ''}
                           onChange={(e) => {
                             const val = e.target.value;
-                            setDateRange([val ? dayjs(val) : null, dateRange?.[1] || null]);
+                            const newStart = val ? dayjs(val) : null;
+                            const currentEnd = dateRange?.[1] || null;
+                            if (newStart && (!currentEnd || currentEnd.isBefore(newStart, 'day'))) {
+                              setDateRange([newStart, newStart]);
+                            } else {
+                              setDateRange([newStart, currentEnd]);
+                            }
                           }}
                           min={dayjs().format('YYYY-MM-DD')}
                           style={{ width: '100%', height: '44px' }}

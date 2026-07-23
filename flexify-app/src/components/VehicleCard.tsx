@@ -116,7 +116,6 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           <div className="shared-vehicle-tags-row">
             {vehicle.transmission && vehicle.driverOption !== 'with-driver' && <span className="v-card-tag">{vehicle.transmission}</span>}
             {ownerData?.ownerType === 'VERIFIED' && <span className="v-card-tag v-verified"><Verified size={10} style={{ marginRight: '2px' }} /> Verified</span>}
-            {vehicle.weddingHiresSpecial && <span className="v-card-tag v-wedding">💍 Wedding Hire</span>}
             
             {!isBike && vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive">🚗 Self Drive</span>}
             {!isBike && vehicle.driverOption === 'with-driver' && <span className="v-card-tag v-with-driver">👨‍✈️ With Driver Only</span>}
@@ -124,7 +123,10 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-            <h3 className="shared-vehicle-title" title={vehicle.title}>{vehicle.title}</h3>
+            <h3 className="shared-vehicle-title" title={vehicle.title} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {vehicle.title}
+              {vehicle.weddingHiresSpecial && <span className="v-card-tag v-wedding" style={{ fontSize: '0.7rem', padding: '2px 6px', marginTop: 0 }}>💍 Wedding Hire</span>}
+            </h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: 700, color: '#f59e0b', flexShrink: 0 }}>
               <Star size={12} fill="currentColor" /> {vehicle.averageRating ? vehicle.averageRating.toFixed(1) : 'New'}
             </div>
