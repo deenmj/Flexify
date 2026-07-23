@@ -114,25 +114,30 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <div className="shared-vehicle-body">
           {/* Tags row below image */}
           <div className="shared-vehicle-tags-row">
-            {vehicle.transmission && <span className="v-card-tag">{vehicle.transmission}</span>}
+            {vehicle.transmission && vehicle.driverOption !== 'with-driver' && <span className="v-card-tag">{vehicle.transmission}</span>}
             {ownerData?.ownerType === 'VERIFIED' && <span className="v-card-tag v-verified"><Verified size={10} style={{ marginRight: '2px' }} /> Verified</span>}
-            {vehicle.weddingHiresSpecial && <span className="v-card-tag v-wedding">💍 Wedding Hire</span>}
             
-            {!isBike && vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive">🚗 Self Drive Only</span>}
+            {!isBike && vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive">🚗 Self Drive</span>}
             {!isBike && vehicle.driverOption === 'with-driver' && <span className="v-card-tag v-with-driver">👨‍✈️ With Driver Only</span>}
-            {!isBike && vehicle.driverOption === 'both' && (
-              <>
-                <span className="v-card-tag v-self-drive">🚗 Self Drive</span>
-                <span className="v-card-tag v-both-driver">👨‍✈️ Driver Available</span>
-              </>
-            )}
+            {!isBike && vehicle.driverOption === 'both' && <span className="v-card-tag v-both-driver">👨‍✈️ Driver Optional</span>}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-            <h3 className="shared-vehicle-title" title={vehicle.title}>{vehicle.title}</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: 700, color: '#f59e0b', flexShrink: 0 }}>
-              <Star size={12} fill="currentColor" /> {vehicle.averageRating ? vehicle.averageRating.toFixed(1) : 'New'}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+              <h3 className="shared-vehicle-title" title={vehicle.title} style={{ flex: '0 1 auto' }}>
+                {vehicle.title}
+              </h3>
+              {vehicle.weddingHiresSpecial && (
+                <span className="v-card-tag v-wedding" style={{ fontSize: '10px', padding: '2px 6px', flexShrink: 0 }}>
+                  💍 Wedding
+                </span>
+              )}
             </div>
+            {vehicle.averageRating ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: 700, color: '#f59e0b', flexShrink: 0, marginTop: '2px' }}>
+                <Star size={12} fill="currentColor" /> {vehicle.averageRating.toFixed(1)}
+              </div>
+            ) : null}
           </div>
 
           <p className="shared-vehicle-model">{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</p>

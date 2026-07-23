@@ -567,25 +567,6 @@ export default function VehicleDetail() {
                   </div>
                   <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
                     <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
-                    {vehicle.weddingHiresSpecial && (
-                      <Tag
-                        style={{
-                          padding: '2px 10px',
-                          fontSize: '0.8rem',
-                          fontWeight: 800,
-                          borderRadius: '6px',
-                          border: 'none',
-                          background: 'linear-gradient(135deg, #f5d0fe 0%, #f472b6 100%)',
-                          color: '#701a75',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          boxShadow: '0 4px 12px rgba(244, 114, 182, 0.2)'
-                        }}
-                      >
-                        💍 Wedding Hire Special
-                      </Tag>
-                    )}
                   </p>
                 </div>
               </div>
@@ -632,23 +613,20 @@ export default function VehicleDetail() {
                 <div style={{ marginBottom: '1.25rem', padding: '1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                   <div style={{ fontWeight: 700, color: '#334155' }}>Driver Options:</div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>🚗 Self Drive Only</span>}
+                    {vehicle.driverOption === 'self-drive' && <span className="v-card-tag v-self-drive" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>🚗 Self Drive</span>}
                     {vehicle.driverOption === 'with-driver' && <span className="v-card-tag v-with-driver" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>👨‍✈️ With Driver Only</span>}
-                    {vehicle.driverOption === 'both' && (
-                      <>
-                        <span className="v-card-tag v-self-drive" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>🚗 Self Drive</span>
-                        <span className="v-card-tag v-both-driver" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>👨‍✈️ Driver Available</span>
-                      </>
-                    )}
+                    {vehicle.driverOption === 'both' && <span className="v-card-tag v-both-driver" style={{ fontSize: '0.85rem', padding: '4px 10px' }}>👨‍✈️ Driver Optional</span>}
                   </div>
                 </div>
               )}
               
               <div className="detail-specs-grid" style={{ marginTop: '0' }}>
-                <div className="spec-item">
-                  <span className="spec-label">Transmission</span>
-                  <span className="spec-value">{vehicle.transmission}</span>
-                </div>
+                {vehicle.driverOption !== 'with-driver' && (
+                  <div className="spec-item">
+                    <span className="spec-label">Transmission</span>
+                    <span className="spec-value">{vehicle.transmission}</span>
+                  </div>
+                )}
                 <div className="spec-item">
                   <span className="spec-label">Fuel Type</span>
                   <span className="spec-value">{vehicle.fuelType}</span>
@@ -698,6 +676,12 @@ export default function VehicleDetail() {
                   <span className="spec-label">Category</span>
                   <span className="spec-value">{vehicle.serviceType?.[0] || 'Standard'}</span>
                 </div>
+                {vehicle.weddingHiresSpecial && (
+                  <div className="spec-item">
+                    <span className="spec-label">Special</span>
+                    <span className="spec-value">💍 Wedding Hire</span>
+                  </div>
+                )}
                 </div>
 
               {(() => {
@@ -740,7 +724,7 @@ export default function VehicleDetail() {
                 return (
                   <div className="detail-features-section" style={{ marginTop: '2.5rem' }}>
                     <h3 className="section-title-minor">Features & Amenities</h3>
-                    <div className="detail-features-tags" style={{ marginTop: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    <div className="detail-features-grid" style={{ marginTop: '1.25rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '16px' }}>
                       {safeFeatures.map((f, idx) => {
                         const featureMap: Record<string, { label: string; icon: string }> = {
                           ac: { label: 'A/C', icon: '❄️' },
@@ -752,14 +736,38 @@ export default function VehicleDetail() {
                         const featLower = f.toLowerCase().replace(/[^a-z]/g, '');
                         const feat = featureMap[featLower] || { label: f.charAt(0).toUpperCase() + f.slice(1), icon: '✨' };
                         return (
-                          <Tag
+                          <div
                             key={idx}
-                            color="blue"
-                            icon={<span style={{ marginRight: 4 }}>{feat.icon}</span>}
-                            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: '#eff6ff', color: '#1e40af', margin: 0 }}
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center',
+                              gap: '10px',
+                              padding: '16px 20px', 
+                              borderRadius: '12px', 
+                              fontSize: '0.95rem', 
+                              fontWeight: 700, 
+                              border: '1px solid #e2e8f0', 
+                              background: '#ffffff', 
+                              color: '#0f172a',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                              transition: 'all 0.2s ease',
+                              cursor: 'default'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)';
+                              e.currentTarget.style.borderColor = '#cbd5e1';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
+                              e.currentTarget.style.borderColor = '#e2e8f0';
+                            }}
                           >
-                            {feat.label}
-                          </Tag>
+                            <span style={{ fontSize: '1.1rem' }}>{feat.icon}</span>
+                            <span>{feat.label}</span>
+                          </div>
                         );
                       })}
                     </div>
@@ -1136,7 +1144,13 @@ export default function VehicleDetail() {
                           value={dateRange && dateRange[0] ? dateRange[0].format('YYYY-MM-DD') : ''}
                           onChange={(e) => {
                             const val = e.target.value;
-                            setDateRange([val ? dayjs(val) : null, dateRange?.[1] || null]);
+                            const newStart = val ? dayjs(val) : null;
+                            const currentEnd = dateRange?.[1] || null;
+                            if (newStart && (!currentEnd || currentEnd.isBefore(newStart, 'day'))) {
+                              setDateRange([newStart, newStart]);
+                            } else {
+                              setDateRange([newStart, currentEnd]);
+                            }
                           }}
                           min={dayjs().format('YYYY-MM-DD')}
                           style={{ width: '100%', height: '44px' }}

@@ -7,167 +7,148 @@ interface BeforeInstallPromptEvent extends Event {
 
 export default function InstallPWAModal() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-    if (isStandalone) {
-      return;
-    }
+    if (isStandalone) return;
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
-
-      // Stash the event so it can be triggered later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Show our custom modal
-      setShowModal(true);
+      setShowBanner(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
+
+  // Hide banner on scroll
+  useEffect(() => {
+    if (!showBanner) return;
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      if (currentY > lastY + 20) {
+        setHidden(true);
+      } else if (currentY < lastY - 10) {
+        setHidden(false);
+      }
+      lastY = currentY;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [showBanner]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
-    // Show the native install prompt
     deferredPrompt.prompt();
-    // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       console.log('User accepted the install prompt');
     }
-    // Clear the saved prompt since it can't be used again
     setDeferredPrompt(null);
-    setShowModal(false);
+    setShowBanner(false);
   };
 
-  if (!showModal) return null;
+  if (!showBanner) return null;
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(0, 0, 0, 0.55)',
-      backdropFilter: 'blur(6px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1rem',
-    }}>
-      <div style={{
-        background: '#ffffff',
-        borderRadius: '20px',
-        padding: '2rem 1.75rem',
-        maxWidth: '360px',
-        width: '100%',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.25)',
-        textAlign: 'center',
-        position: 'relative',
-        animation: 'pwa-modal-in 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-      }}>
-        {/* Close button */}
-        <button
-          onClick={() => setShowModal(false)}
+    <>
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9999,
+          display: 'flex',
+          justifyContent: 'center',
+          padding: '10px 16px',
+          pointerEvents: 'none',
+        }}
+      >
+        <div
           style={{
-            position: 'absolute', top: '12px', right: '14px',
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: '1.25rem', color: '#94a3b8', lineHeight: 1,
-          }}
-          aria-label="Close"
-        >
-          ✕
-        </button>
-
-        {/* App icon */}
-        <div style={{
-          width: '64px', height: '64px',
-          borderRadius: '16px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 1rem',
-          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.1)',
-          overflow: 'hidden',
-          background: '#ffffff'
-        }}>
-          <img
-            src="/favicon.png"
-            alt="Rentify"
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        </div>
-
-        <h2 style={{
-          fontSize: '1.25rem', fontWeight: 800, color: '#0f172a',
-          margin: '0 0 2px',
-        }}>
-          Install Rentify
-        </h2>
-        <p style={{
-          fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500,
-          margin: '0 0 1rem',
-        }}>
-          rentify.lk
-        </p>
-        <p style={{
-          fontSize: '0.9rem', color: '#475569', lineHeight: 1.5,
-          margin: '0 0 1.5rem',
-        }}>
-          Add our app to your home screen for a faster, app-like experience with instant access!
-        </p>
-
-        {/* Install button */}
-        <button
-          onClick={handleInstallClick}
-          style={{
-            width: '100%',
-            padding: '14px 0',
-            border: 'none',
+            background: '#ffffff',
             borderRadius: '14px',
-            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-            color: '#ffffff',
-            fontSize: '1rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            (e.target as HTMLElement).style.transform = 'translateY(-1px)';
-            (e.target as HTMLElement).style.boxShadow = '0 6px 20px rgba(37, 99, 235, 0.45)';
-          }}
-          onMouseLeave={(e) => {
-            (e.target as HTMLElement).style.transform = 'translateY(0)';
-            (e.target as HTMLElement).style.boxShadow = '0 4px 14px rgba(37, 99, 235, 0.35)';
+            padding: '10px 14px',
+            maxWidth: '420px',
+            width: '100%',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            pointerEvents: 'auto',
+            transform: hidden ? 'translateY(-110%)' : 'translateY(0)',
+            opacity: hidden ? 0 : 1,
+            transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+            border: '1px solid #e2e8f0',
           }}
         >
-          Install App
-        </button>
+          {/* App icon */}
+          <div
+            style={{
+              width: '40px', height: '40px', flexShrink: 0,
+              borderRadius: '10px',
+              overflow: 'hidden',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              background: '#f8fafc',
+            }}
+          >
+            <img
+              src="/favicon.png"
+              alt="Rentify"
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          </div>
 
-        {/* Maybe later link */}
-        <button
-          onClick={() => setShowModal(false)}
-          style={{
-            display: 'block',
-            margin: '12px auto 0',
-            background: 'none', border: 'none',
-            color: '#94a3b8', fontSize: '0.8rem', fontWeight: 500,
-            cursor: 'pointer',
-          }}
-        >
-          Maybe later
-        </button>
+          {/* Text */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>Install Rentify</div>
+            <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '1px' }}>Add to home screen for quick access</div>
+          </div>
+
+          {/* Install button */}
+          <button
+            onClick={handleInstallClick}
+            style={{
+              flexShrink: 0,
+              padding: '7px 14px',
+              border: 'none',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+              color: '#fff',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(37,99,235,0.3)',
+            }}
+          >
+            Install
+          </button>
+
+          {/* Dismiss */}
+          <button
+            onClick={() => setShowBanner(false)}
+            style={{
+              flexShrink: 0,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#94a3b8',
+              fontSize: '1rem',
+              lineHeight: 1,
+              padding: '2px',
+            }}
+            aria-label="Dismiss"
+          >
+            ✕
+          </button>
+        </div>
       </div>
-
-      {/* Keyframe animation injected via style tag */}
-      <style>{`
-        @keyframes pwa-modal-in {
-          from { opacity: 0; transform: scale(0.9) translateY(20px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
-    </div>
+    </>
   );
 }
