@@ -68,7 +68,18 @@ const userSchema = new mongoose.Schema(
 
     // KYC verification for renters / owners
     isKycVerified: { type: Boolean, default: false },
+    // Deprecated: Splitting into rent/sales specific statuses
     verificationStatus: {
+      type: String,
+      enum: ["not_submitted", "pending", "approved", "rejected"],
+      default: "not_submitted",
+    },
+    rentVerificationStatus: {
+      type: String,
+      enum: ["not_submitted", "pending", "approved", "rejected"],
+      default: "not_submitted",
+    },
+    salesVerificationStatus: {
       type: String,
       enum: ["not_submitted", "pending", "approved", "rejected"],
       default: "not_submitted",

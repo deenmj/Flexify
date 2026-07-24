@@ -39,9 +39,9 @@ export default function VerifyUser() {
 
   const [form, setForm] = useState({
     fullName: user?.name || '',
-    phone: user?.phone || '',
-    idNumber: '',
-    address: '',
+    phone: user?.documents?.phone || user?.phone || '',
+    idNumber: user?.documents?.idNumber || '',
+    address: user?.documents?.address || '',
   });
   const [files, setFiles] = useState<{ license?: File; selfie?: File }>({});
   const [previews, setPreviews] = useState<{ license?: string; selfie?: string }>({});

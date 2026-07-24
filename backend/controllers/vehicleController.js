@@ -222,11 +222,12 @@ export const updateVehicle = async (req, res) => {
     const vehicle = await Vehicle.findById(req.params.id);
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
 
-    // Only owner, subadmin, or superadmin can edit
+    // Moderation Override Logic
     const isOwner = vehicle.owner.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({ message: "Not authorized" });
+    const isMasterAdmin = ["admin", "superadmin", "subadmin"].includes(req.user.role);
+
+    if (!isOwner && !isMasterAdmin) {
+      return res.status(403).json({ message: "Forbidden: You do not have permission to edit this listing. Staff cannot edit other's listings." });
     }
 
     const { 
@@ -394,7 +395,11 @@ export const listVehicles = async (req, res) => {
     }
 
     if (vehicleType) {
-      filter.serviceType = vehicleType;
+      if (vehicleType.includes(',')) {
+        filter.serviceType = { $in: vehicleType.split(',') };
+      } else {
+        filter.serviceType = vehicleType;
+      }
     }
 
     if (province) filter.province = province;

@@ -4,7 +4,7 @@ import User from "../models/User.js";
 import Staff from "../models/Staff.js";
 import Vehicle from "../models/Vehicle.js";
 import VehicleSale from "../models/VehicleSale.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, requireStaff } from "../middleware/authMiddleware.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
 import { kycStorage, profileStorage } from "../utils/cloudinary.js";
 
@@ -332,6 +332,36 @@ router.get("/wishlist/rent", protect, async (req, res) => {
     res.json(user.rentWishlist || []);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+/**
+ * Get pending sales verification requests
+ */
+router.get("/pending-sales", protect, requireStaff, async (req, res) => {
+  try {
+    const pendingUsers = await User.find({ salesVerificationStatus: "pending" })
+      .select("name email phone documents salesVerificationStatus createdAt");
+    res.json(pendingUsers);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching pending sales requests" });
+  }
+});
+
+/**
+ * Approve sales verification request
+ */
+router.put("/:id/approve-sales", protect, requireStaff, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.salesVerificationStatus = "approved";
+    await user.save();
+
+    res.json({ message: "Sales verification approved successfully!", user });
+  } catch (err) {
+    res.status(500).json({ message: "Error approving sales request" });
   }
 });
 

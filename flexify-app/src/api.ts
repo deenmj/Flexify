@@ -73,11 +73,14 @@ export interface User {
   verified: boolean;
   isKycVerified: boolean;
   verificationStatus: 'not_submitted' | 'pending' | 'approved' | 'rejected';
+  rentVerificationStatus: 'not_submitted' | 'pending' | 'approved' | 'rejected';
+  salesVerificationStatus: 'not_submitted' | 'pending' | 'approved' | 'rejected';
   documents?: {
     idNumber?: string;
     license?: string;
     selfie?: string;
     address?: string;
+    phone?: string;
   };
   profilePic: string;
   notificationEmail?: string;
@@ -711,6 +714,13 @@ export const userApi = {
 
   getWishlistRent: () =>
     apiFetch<Vehicle[]>('/users/wishlist/rent'),
+
+  getPendingSalesRequests: () => apiFetch<User[]>('/users/pending-sales'),
+
+  approveSalesRequest: (userId: string) =>
+    apiFetch<{ message: string; user: User }>(`/users/${userId}/approve-sales`, {
+      method: 'PUT',
+    }),
 };
 
 // =================== OWNER / SUBSCRIPTIONS ===================

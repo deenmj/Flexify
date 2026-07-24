@@ -156,18 +156,6 @@ export default function VehicleSalesGallery() {
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{ width: '100%', maxWidth: '600px', margin: '0 auto', borderRadius: '12px' }}
         />
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', justifyContent: 'center' }}>
-          {['All', 'Car', 'Bike', 'Van', 'SUV', 'TukTuk', 'Other'].map(cat => (
-            <Button 
-              key={cat} 
-              type={selectedCategory === cat ? 'primary' : 'default'}
-              shape="round"
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {cat}
-            </Button>
-          ))}
-        </div>
       </div>
 
       {sales.length === 0 ? (

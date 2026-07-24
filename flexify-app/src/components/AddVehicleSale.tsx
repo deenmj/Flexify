@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Input, InputNumber, Select, Button, Card, Typography, Row, Col, Divider, message, Upload } from 'antd';
 import { Car, DollarSign, FileText, User, UploadCloud } from 'lucide-react';
 import { salesApi, getImageUrl } from '../api';
+import imageCompression from 'browser-image-compression';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -87,8 +88,26 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         formData.append('existingImages', JSON.stringify(existingImages));
       }
 
-      fileList.forEach(file => {
-        formData.append('images', file.originFileObj);
+      const compressionOptions = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: 'image/webp'
+      };
+
+      const compressedImages = await Promise.all(
+        fileList.map(async (file) => {
+          try {
+            return await imageCompression(file.originFileObj, compressionOptions);
+          } catch (err) {
+            console.error('Compression error:', err);
+            return file.originFileObj;
+          }
+        })
+      );
+
+      compressedImages.forEach(file => {
+        formData.append('images', file);
       });
 
       if (initialData) {

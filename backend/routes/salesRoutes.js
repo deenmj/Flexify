@@ -1,5 +1,5 @@
 import express from "express";
-import { protect, requireStaff } from "../middleware/authMiddleware.js";
+import { protect, requireStaff, requireSalesVerified } from "../middleware/authMiddleware.js";
 import VehicleSale from "../models/VehicleSale.js";
 import { upload } from "../utils/upload.js";
 
@@ -10,7 +10,7 @@ const router = express.Router();
  * @desc    Create a new vehicle listing for sale
  * @access  Private (Staff/Admin/Superadmin only)
  */
-router.post("/vehicles", protect, requireStaff, upload.array("images", 10), async (req, res) => {
+router.post("/vehicles", protect, requireSalesVerified, upload.array("images", 10), async (req, res) => {
   try {
     const {
       make,
@@ -92,11 +92,19 @@ router.post("/vehicles", protect, requireStaff, upload.array("images", 10), asyn
  * @desc    Update an existing vehicle listing for sale
  * @access  Private (Staff/Admin/Superadmin only)
  */
-router.put("/vehicles/:id", protect, requireStaff, upload.array("images", 10), async (req, res) => {
+router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res) => {
   try {
     const saleId = req.params.id;
     const sale = await VehicleSale.findById(saleId);
     if (!sale) return res.status(404).json({ message: "Vehicle sale not found" });
+
+    // Moderation Override Logic
+    const isOwner = sale.listedBy.toString() === req.user._id.toString();
+    const isMasterAdmin = ["admin", "superadmin", "subadmin"].includes(req.user.role);
+
+    if (!isOwner && !isMasterAdmin) {
+      return res.status(403).json({ message: "Forbidden: You do not have permission to edit this listing. Staff cannot edit other's listings." });
+    }
 
     const {
       make, model, year, registrationNumber, vin, mileage, fuelType, transmission,

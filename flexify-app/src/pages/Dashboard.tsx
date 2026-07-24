@@ -8,7 +8,7 @@ import { vehicleApi, bookingApi, userApi, reviewApi, type Vehicle, type Booking,
 import {
   Car, Calendar as CalIcon, CheckCircle, XCircle,
   Clock, Eye, Phone, Shield, AlertTriangle,
-  MessageSquare, Info, User, Users, FileText, Compass, Heart
+  MessageSquare, Info, User, Users, FileText, Compass, Heart, Lock
 } from 'lucide-react';
 import { notification } from 'antd';
 import { useSocket } from '../context/SocketContext';
@@ -461,9 +461,29 @@ export default function Dashboard() {
           <div className="dashboard-box">
             <div className="dashboard-box-header" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <h3 className="dashboard-box-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>My Vehicles</h3>
-              <Link to="/list-vehicle" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700 }}>
-                <Car size={18} style={{ marginRight: '8px' }} /> List New
-              </Link>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                {/* Rent Section */}
+                {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.rentVerificationStatus === 'approved') ? (
+                  <Link to="/list-vehicle" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700 }}>
+                    <Car size={18} style={{ marginRight: '8px' }} /> List for Rent
+                  </Link>
+                ) : (
+                  <Link to="/verify?type=rent" className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7 }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Rent KYC
+                  </Link>
+                )}
+
+                {/* Sales Section */}
+                {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.salesVerificationStatus === 'approved') ? (
+                  <Link to="/staff-dashboard" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
+                    <Car size={18} style={{ marginRight: '8px' }} /> List for Sale
+                  </Link>
+                ) : (
+                  <Link to="/verify?type=sales" className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7 }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Sales KYC
+                  </Link>
+                )}
+              </div>
             </div>
 
             {filteredVehicles.length === 0 ? (
