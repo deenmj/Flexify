@@ -27,9 +27,17 @@ const vehicleSaleSchema = new mongoose.Schema(
     images: { type: [String], default: [] }, // Array of URLs
     seoTags: { type: [String], default: [] },
     contactNumber: { type: String },
+    
+    // Location
+    location: {
+      type: { type: String, enum: ["Point"], default: "Point" },
+      coordinates: { type: [Number], required: true }, // [longitude, latitude]
+      address: { type: String }
+    },
 
     // Internal Tracking
     listedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Staff", required: true },
+    dateListed: { type: Date, default: Date.now },
     assignedStaff: {
       id: { type: mongoose.Schema.Types.ObjectId, ref: "Staff" },
       name: { type: String },
@@ -53,6 +61,7 @@ const vehicleSaleSchema = new mongoose.Schema(
 // Indexes for common queries
 vehicleSaleSchema.index({ status: 1, createdAt: -1 });
 vehicleSaleSchema.index({ listedBy: 1 });
+vehicleSaleSchema.index({ location: "2dsphere" });
 vehicleSaleSchema.index(
   { title: "text", make: "text", model: "text" },
   { name: "VehicleSaleSearchIndex" }

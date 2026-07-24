@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { Row, Col, DatePicker, Dropdown } from 'antd';
+import { Row, Col, DatePicker, Dropdown, Select } from 'antd';
 const { RangePicker } = DatePicker;
 import { Search, SlidersHorizontal, Locate, ChevronDown, X, Plus, Car, Tag } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
@@ -417,19 +417,22 @@ export default function Explore() {
                 </select>
               </div>
               <div className="input-group">
-                <label>Vehicle Type</label>
-                <select
-                  className="input-field"
-                  value={filters.vehicleType}
-                  onChange={(e) => setFilters({ ...filters, vehicleType: e.target.value })}
-                >
-                  <option value="">All Types</option>
-                  <option value="Car">Car</option>
-                  <option value="SUV">SUV</option>
-                  <option value="Van">Van</option>
-                  <option value="Bike">Bike</option>
-                  <option value="Truck">Truck</option>
-                </select>
+                <label>Vehicle Type(s)</label>
+                <Select
+                  mode="multiple"
+                  allowClear
+                  placeholder="Select Types"
+                  style={{ width: '100%' }}
+                  value={filters.vehicleType ? filters.vehicleType.split(',').filter(Boolean) : []}
+                  onChange={(values: string[]) => setFilters({ ...filters, vehicleType: values.join(',') })}
+                  options={[
+                    { value: 'Car', label: 'Car' },
+                    { value: 'SUV', label: 'SUV' },
+                    { value: 'Van', label: 'Van' },
+                    { value: 'Bike', label: 'Bike' },
+                    { value: 'Truck', label: 'Truck' },
+                  ]}
+                />
               </div>
               <div className="input-group">
                 <label>Driver Option</label>

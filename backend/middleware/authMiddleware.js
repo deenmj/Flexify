@@ -157,3 +157,29 @@ export const requireKycVerified = (req, res, next) => {
   }
   next();
 };
+
+/**
+ * requireRentVerified — user must have rent verification approved
+ */
+export const requireRentVerified = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ message: "Not authorized" });
+  const isVerified = req.user.rentVerificationStatus === "approved";
+  const isAdmin = ["staff", "subadmin", "admin", "superadmin"].includes(req.user.role);
+  if (!isVerified && !isAdmin) {
+    return res.status(403).json({ message: "Rent verification required to publish rentals." });
+  }
+  next();
+};
+
+/**
+ * requireSalesVerified — user must have sales verification approved
+ */
+export const requireSalesVerified = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ message: "Not authorized" });
+  const isVerified = req.user.salesVerificationStatus === "approved";
+  const isAdmin = ["staff", "subadmin", "admin", "superadmin"].includes(req.user.role);
+  if (!isVerified && !isAdmin) {
+    return res.status(403).json({ message: "Sales verification required to publish sales." });
+  }
+  next();
+};

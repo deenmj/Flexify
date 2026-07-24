@@ -29,6 +29,7 @@ export default function StaffDashboard() {
   const [stats, setStats] = useState<SubadminStats | null>(null);
   const [pendingUsers, setPendingUsers] = useState<User[]>([]);
   const [pendingVehicles, setPendingVehicles] = useState<Vehicle[]>([]);
+  const [pendingSalesUsers, setPendingSalesUsers] = useState<User[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [pendingMakes, setPendingMakes] = useState<VehicleMake[]>([]);
   const [pendingModels, setPendingModels] = useState<VehicleModel[]>([]);
@@ -36,7 +37,7 @@ export default function StaffDashboard() {
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'users';
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'list-sale'>(initialTab);
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'list-sale' | 'sales-requests'>(initialTab);
 
   useEffect(() => {
     setSearchParams({ tab });
@@ -116,7 +117,7 @@ export default function StaffDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [s, u, v, r, m, mo, p, sales] = await Promise.all([
+      const [s, u, v, r, m, mo, p, sales, pendingSales] = await Promise.all([
         subadminApi.getStats().catch(() => null),
         subadminApi.getPendingUsers().catch(() => []),
         subadminApi.getPendingVehicles().catch(() => []),
@@ -125,6 +126,7 @@ export default function StaffDashboard() {
         subadminApi.getPendingModels().catch(() => []),
         adminApi.getPendingPayments().catch(() => []),
         salesApi.getStaffActiveSales().catch(() => []),
+        userApi.getPendingSalesRequests().catch(() => []),
       ]);
       if (s) setStats(s);
       setPendingUsers(u);
@@ -134,6 +136,7 @@ export default function StaffDashboard() {
       setPendingModels(mo);
       setPendingPayments(p || []);
       setActiveSales(sales);
+      setPendingSalesUsers(pendingSales);
     } catch (err: any) {
       message.error(err.message || 'Error fetching data');
     } finally {
@@ -142,6 +145,19 @@ export default function StaffDashboard() {
   };
 
   const allChecked = checkedItems.every(Boolean);
+
+  const handleApproveSalesUser = async (userId: string) => {
+    setActionLoading(userId);
+    try {
+      await userApi.approveSalesRequest(userId);
+      message.success('Sales verification approved successfully!');
+      setPendingSalesUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
+    } catch (err: any) {
+      message.error(err.message || 'Error approving sales request');
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const handleRejectUser = (userId: string) => {
     const user = pendingUsers.find(u => (u.id || u._id) === userId);
@@ -399,6 +415,7 @@ export default function StaffDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC Reviews (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
+              { key: 'sales-requests', icon: <CheckCircle size={18} />, label: `Sales Requests (${pendingSalesUsers.length})` },
               { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
@@ -431,6 +448,7 @@ export default function StaffDashboard() {
             items={[
               { key: 'users', icon: <Shield size={18} />, label: `KYC (${pendingUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${pendingVehicles.length})` },
+              { key: 'sales-requests', icon: <CheckCircle size={18} />, label: `Sales Requests (${pendingSalesUsers.length})` },
               { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
               { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
               { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions` },
@@ -598,6 +616,56 @@ export default function StaffDashboard() {
                             onClick={() => { setSelectedUser(u); setShowModal(true); }}
                           >
                             Review KYC
+                          </Button>
+                        )
+                      }
+                    ]}
+                  />
+                </div>
+              )}
+
+              {tab === 'sales-requests' && (
+                <div className="animate-fade-in">
+                  <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center' }}>
+                    <Title level={5} style={{ margin: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>Sales Access Requests</Title>
+                    <div style={{ display: 'flex', width: isMobile ? '100%' : 'auto', gap: '8px' }}>
+                      <Button type="primary" onClick={fetchData}>Refresh</Button>
+                    </div>
+                  </div>
+
+                  <Table
+                    scroll={{ x: true }}
+                    dataSource={pendingSalesUsers}
+                    rowKey={u => (u.id || u._id || Math.random()).toString()}
+                    pagination={{ pageSize: 12 }}
+                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
+                    columns={[
+                      {
+                        title: 'User Profile',
+                        render: (_, u) => (
+                          <Space size="middle">
+                            <Avatar style={{ background: 'linear-gradient(45deg, #2563eb, #3b82f6)' }}>{u.name.charAt(0)}</Avatar>
+                            <div>
+                              <Text strong>{u.name}</Text><br />
+                              <Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text>
+                            </div>
+                          </Space>
+                        )
+                      },
+                      { title: 'Phone Number', render: (_, u) => u.documents?.phone || u.phone || <Text type="danger">Not provided</Text> },
+                      { title: 'Request Date', dataIndex: 'createdAt', render: d => d ? new Date(d).toLocaleDateString() : 'Recent' },
+                      { title: 'Status', render: (_, u) => <Tag color="warning">PENDING SALES</Tag> },
+                      {
+                        title: 'Action',
+                        render: (_, u) => (
+                          <Button
+                            type="primary"
+                            style={{ background: '#16a34a' }}
+                            icon={<CheckCircle size={14} />}
+                            loading={actionLoading === (u.id || u._id)}
+                            onClick={() => handleApproveSalesUser(u.id || u._id)}
+                          >
+                            Approve
                           </Button>
                         )
                       }
