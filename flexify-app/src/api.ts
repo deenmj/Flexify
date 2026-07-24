@@ -714,6 +714,13 @@ export const userApi = {
 
   getWishlistRent: () =>
     apiFetch<Vehicle[]>('/users/wishlist/rent'),
+
+  getPendingSalesRequests: () => apiFetch<User[]>('/users/pending-sales'),
+
+  approveSalesRequest: (userId: string) =>
+    apiFetch<{ message: string; user: User }>(`/users/${userId}/approve-sales`, {
+      method: 'PUT',
+    }),
 };
 
 // =================== OWNER / SUBSCRIPTIONS ===================
