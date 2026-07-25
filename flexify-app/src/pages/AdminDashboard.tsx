@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
+import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, subadminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
 import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon } from 'lucide-react';
-import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert } from 'antd';
+import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert, Switch } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
@@ -823,6 +823,23 @@ export default function AdminDashboard() {
                             {(u.status || 'active').toUpperCase()}
                           </Tag>
                         ) 
+                      },
+                      {
+                        title: 'Sales Access',
+                        render: (_, u) => (
+                          <Switch 
+                            checked={u.hasSalesAccess} 
+                            onChange={async (checked) => {
+                              try {
+                                const res = await subadminApi.toggleSalesAccess(u.id || u._id);
+                                setAllUsers(prev => prev.map(user => (user.id || user._id) === (u.id || u._id) ? { ...user, hasSalesAccess: checked } : user));
+                                message.success(res.message);
+                              } catch (err: any) {
+                                message.error(err.message || 'Failed to toggle sales access');
+                              }
+                            }}
+                          />
+                        )
                       },
                       {
                         title: 'Actions', 

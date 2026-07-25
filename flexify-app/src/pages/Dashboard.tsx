@@ -4,7 +4,7 @@ import { Link, useSearchParams, useNavigate, useLocation } from 'react-router-do
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Modal, message, Tag, Button, Form, Input, Rate, Image, Avatar, Spin } from 'antd';
-import { vehicleApi, bookingApi, userApi, reviewApi, type Vehicle, type Booking, getImageUrl, getVehicleSlug } from '../api';
+import { vehicleApi, bookingApi, userApi, reviewApi, salesApi, type Vehicle, type Booking, getImageUrl, getVehicleSlug } from '../api';
 import {
   Car, Calendar as CalIcon, CheckCircle, XCircle,
   Clock, Eye, Phone, Shield, AlertTriangle,
@@ -14,6 +14,8 @@ import { notification } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
+import AddVehicleSale from '../components/AddVehicleSale';
+import { Tag as AntTag } from 'antd';
 import './Dashboard.css';
 
 dayjs.extend(isBetween);
@@ -27,10 +29,14 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [wishlistSubTab, setWishlistSubTab] = useState<'rent' | 'buy'>('rent');
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'wishlist'>(() => {
+  const [activeSales, setActiveSales] = useState<any[]>([]);
+  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  const [editingVehicleSale, setEditingVehicleSale] = useState<any>(null);
+  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'wishlist' | 'sales'>(() => {
     const urlTab = searchParams.get('tab');
     if (urlTab === 'bookings') return 'bookings';
     if (urlTab === 'wishlist') return 'wishlist';
+    if (urlTab === 'sales') return 'sales';
     return user?.role === 'user' ? 'bookings' : 'vehicles';
   });
   const selectedCategory = 'All';
@@ -112,6 +118,11 @@ export default function Dashboard() {
       setTab('wishlist');
     } else if (targetTab === 'vehicles' && (vehicles.length > 0 || user?.role === 'admin')) {
       setTab('vehicles');
+    } else if (targetTab === 'sales') {
+      setTab('sales');
+      if (searchParams.get('openAdd') === 'true') {
+        setIsAddVehicleModalOpen(true);
+      }
     }
 
     if (highlightId && bookings.length > 0) {
@@ -137,8 +148,10 @@ export default function Dashboard() {
     try {
       const v = await vehicleApi.getMy().catch(() => []);
       const b = await bookingApi.getMy().catch(() => []);
+      const s = user?.role === 'owner' ? await salesApi.getStaffActiveSales().catch(() => []) : [];
       setVehicles(v as Vehicle[]);
       setBookings(b as Booking[]);
+      setActiveSales(s);
 
 
     } catch (err) {
@@ -481,7 +494,7 @@ export default function Dashboard() {
                 )}
 
                 {/* Sales Section */}
-                {(isStaff || user.role === 'admin' || user.role === 'superadmin' || (user?.salesVerificationStatus === 'approved' || user?.verificationStatus === 'approved')) ? (
+                {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
                   <Link to="/staff?tab=manage-sales&openAdd=true" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
                     <Tag size={18} style={{ marginRight: '8px' }} /> List for Sale
                   </Link>
@@ -541,6 +554,83 @@ export default function Dashboard() {
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                         <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: isMobile ? '0.6rem' : '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : tab === 'sales' ? (
+          <div className="dashboard-box">
+            <div className="dashboard-box-header" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <h3 className="dashboard-box-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>My Sales</h3>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
+                  <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
+                    <AntTag color="transparent" style={{ border: 'none', margin: 0, padding: 0 }}><Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /></AntTag> List for Sale
+                  </button>
+                ) : (
+                  <Link to="/verify?type=sales" className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7 }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Sales KYC
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {activeSales.length === 0 ? (
+              <div className="dashboard-empty" style={{ padding: '5rem 2rem', textAlign: 'center', background: '#fafafa', borderRadius: '0 0 20px 20px' }}>
+                <div style={{ background: '#f8fafc', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid #e2e8f0' }}>
+                  <Tag size={40} strokeWidth={1.5} color="#94a3b8" />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                  You haven't listed any vehicles for sale yet
+                </h3>
+                <p style={{ color: 'var(--text-tertiary)', marginBottom: '2rem', maxWidth: '300px', margin: '0 auto 2rem' }}>
+                  Start earning today by selling your vehicle on the Rentify platform.
+                </p>
+                {activeSales.length === 0 && (
+                  (isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
+                    <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '12px 32px', background: '#10b981', borderColor: '#10b981' }}>
+                      <AntTag color="transparent" style={{ border: 'none', margin: 0, padding: 0 }}><Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /></AntTag> List Your First Vehicle for Sale
+                    </button>
+                  ) : (
+                    <Link to="/verify?type=sales" className="btn btn-secondary" style={{ padding: '12px 32px', background: '#e2e8f0', color: '#475569', border: 'none' }}>
+                      <Lock size={18} style={{ marginRight: '8px' }} /> Verify to List for Sale
+                    </Link>
+                  )
+                )}
+              </div>
+            ) : (
+              <div className="dashboard-grid">
+                {activeSales.map(v => (
+                  <div key={v._id} className="dash-vehicle-card" style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div className="dash-vehicle-card-img">
+                      {v.photos?.[0] ? (
+                        <img src={getImageUrl(v.photos[0])} alt={v.title} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
+                          <Car size={32} color="#cbd5e1" />
+                        </div>
+                      )}
+                      <div className="dash-vehicle-card-status">
+                        <AntTag color={v.status === 'Available' ? 'green' : v.status === 'New' ? 'cyan' : 'red'}>{v.status}</AntTag>
+                      </div>
+                    </div>
+                    <div className="dash-vehicle-card-body">
+                      <div style={{ textTransform: 'uppercase', fontSize: isMobile ? '0.575rem' : '0.7rem', fontWeight: 800, color: '#10b981', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                        Vehicle Sale
+                      </div>
+                      <h4 className="dash-vehicle-card-title">{v.title}</h4>
+                      <div className="dash-vehicle-card-meta">{v.make} {v.model} ({v.year})</div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                        <div className="dash-vehicle-card-price">LKR {v.askingPrice?.toLocaleString()}</div>
+                      </div>
+                      <div style={{ marginTop: '1rem', display: 'flex', gap: '8px' }}>
+                        <Button onClick={() => { setEditingVehicleSale(v); setIsAddVehicleModalOpen(true); }} style={{ flex: 1, borderRadius: '8px' }}>
+                          Edit Listing
+                        </Button>
                       </div>
                     </div>
                   </div>

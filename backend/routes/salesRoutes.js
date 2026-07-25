@@ -223,30 +223,26 @@ router.get("/vehicles", async (req, res) => {
       }
     }
     
-    if (search || location) {
-      const searchTerms = [];
-      if (search) {
-        const searchRegex = new RegExp(search, 'i');
-        searchTerms.push(
-          { title: searchRegex },
-          { make: searchRegex },
-          { model: searchRegex }
-        );
-      }
-      
-      if (location) {
-        const locationRegex = new RegExp(location, 'i');
-        searchTerms.push(
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query.$or = [
+        { title: searchRegex },
+        { make: searchRegex },
+        { model: searchRegex },
+        { description: searchRegex }
+      ];
+    }
+    
+    if (location) {
+      const locationRegex = new RegExp(location, 'i');
+      if (query.$or) {
+        query.$and = [
+          { $or: query.$or },
           { 'location.address': locationRegex }
-        );
-        // Also allow search by title/desc if location is in text
-        if (!search) { // If no global search, use location to search text too just in case
-          searchTerms.push({ title: locationRegex }, { description: locationRegex });
-        }
-      }
-      
-      if (searchTerms.length > 0) {
-        query.$or = searchTerms;
+        ];
+        delete query.$or;
+      } else {
+        query['location.address'] = locationRegex;
       }
     }
 

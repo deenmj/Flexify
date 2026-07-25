@@ -58,6 +58,10 @@ export const approveUserKyc = async (req, res) => {
         user.verificationStatus = "approved"; // Clear legacy
         user.kycVerifiedAt = new Date();
 
+        if (req.body.grantSalesAccess) {
+            user.hasSalesAccess = true;
+        }
+
         // If user is an owner, promote to VERIFIED owner
         if (user.role === "owner" && user.ownerType === "UNVERIFIED") {
             user.ownerType = "VERIFIED";
@@ -352,6 +356,23 @@ export const deleteModel = async (req, res) => {
     try {
         await VehicleModel.findByIdAndDelete(req.params.id);
         res.json({ message: "Model deleted" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+/**
+ * Toggle sales access for an owner
+ */
+export const toggleSalesAccess = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        user.hasSalesAccess = !user.hasSalesAccess;
+        await user.save();
+
+        res.json({ message: `Sales access ${user.hasSalesAccess ? 'enabled' : 'disabled'}`, user });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

@@ -296,9 +296,9 @@ export default function Explore() {
                 ) },
                 { type: 'divider' },
                 { key: 'sale', label: (
-                  <Link to={(user?.salesVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? "/staff?tab=manage-sales&openAdd=true" : "/verify?type=sales"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                  <Link to={user?.hasSalesAccess === true || isAdminRole ? "/dashboard?tab=sales&openAdd=true" : "/verify?type=sales"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
-                      {(user?.salesVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? <Tag size={18} /> : <Lock size={18} />}
+                      {user?.hasSalesAccess === true || isAdminRole ? <Tag size={18} /> : <Lock size={18} />}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>

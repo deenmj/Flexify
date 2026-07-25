@@ -43,7 +43,7 @@ export default function StaffDashboard() {
 
   const currentRole = (user?.role || '').toLowerCase();
   const isStaffRole = currentRole === 'staff' || currentRole === 'subadmin' || currentRole === 'admin' || currentRole === 'superadmin';
-  const isSalesApprovedUser = (currentRole === 'user' || currentRole === 'owner') && (user?.salesVerificationStatus === 'approved' || user?.verificationStatus === 'approved');
+  const isSalesApprovedUser = (currentRole === 'user' || currentRole === 'owner') && user?.hasSalesAccess === true;
 
   useEffect(() => {
     if (!isStaffRole && tab !== 'manage-sales') {
@@ -62,6 +62,7 @@ export default function StaffDashboard() {
   const [feedbacksLoading, setFeedbacksLoading] = useState(false);
   const [editModal, setEditModal] = useState<{visible: boolean, id: string, type: 'Make' | 'Model', name: string}>({visible: false, id: '', type: 'Make', name: ''});
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false]);
+  const [grantSalesAccess, setGrantSalesAccess] = useState(false);
   const [rejectionModal, setRejectionModal] = useState<{
     visible: boolean;
     type: 'KYC' | 'Vehicle' | 'Review';
@@ -82,6 +83,7 @@ export default function StaffDashboard() {
 
   useEffect(() => {
     setCheckedItems([false, false, false, false]);
+    setGrantSalesAccess(false);
   }, [selectedUser]);
 
   useEffect(() => {
@@ -178,7 +180,7 @@ export default function StaffDashboard() {
   const handleApproveUser = async (userId: string) => {
     setActionLoading(userId);
     try {
-      await subadminApi.approveUser(userId, 'rent');
+      await subadminApi.approveUser(userId, 'rent', grantSalesAccess);
       message.success('Rent verification approved successfully!');
       setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
       setShowModal(false);
@@ -1193,6 +1195,38 @@ export default function StaffDashboard() {
                       </div>
                     ))}
                   </Space>
+                  
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #ffe4e6' }}>
+                    <div
+                      onClick={() => setGrantSalesAccess(!grantSalesAccess)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        cursor: 'pointer',
+                        padding: '6px',
+                        borderRadius: '6px',
+                        background: grantSalesAccess ? '#eff6ff' : 'transparent',
+                        color: grantSalesAccess ? '#1d4ed8' : '#1f2937',
+                        fontSize: '13px',
+                        fontWeight: 600
+                      }}
+                    >
+                      <div style={{
+                        width: 18,
+                        height: 18,
+                        border: `2px solid ${grantSalesAccess ? '#3b82f6' : '#cbd5e1'}`,
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: grantSalesAccess ? '#3b82f6' : 'white'
+                      }}>
+                        {grantSalesAccess && <CheckCircle size={12} color="white" />}
+                      </div>
+                      Activate Sales Dashboard Access
+                    </div>
+                  </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: 12 }}>

@@ -15,7 +15,8 @@ import {
     approveMake,
     approveModel,
     deleteMake,
-    deleteModel
+    deleteModel,
+    toggleSalesAccess
 } from "../controllers/subadminController.js";
 import { getAllReviews, updateReviewStatus } from "../controllers/reviewController.js";
 
@@ -30,6 +31,7 @@ router.get("/pending-users", getPendingUsers);
 router.get("/user/:id", getUserKycDetails);
 router.patch("/approve-user/:id", approveUserKyc);
 router.patch("/reject-user/:id", rejectUserKyc);
+router.put("/user/:id/toggle-sales-access", toggleSalesAccess);
 
 router.get("/pending-vehicles", getPendingVehicles);
 router.patch("/approve-vehicle/:id", approveVehicle);
