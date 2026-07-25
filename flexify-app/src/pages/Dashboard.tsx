@@ -49,6 +49,16 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
 
+  const handleRequestSalesAccess = async () => {
+    try {
+      const res = await userApi.requestSalesAccess();
+      message.success(res.message);
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err: any) {
+      message.error(err.message || 'Failed to request access');
+    }
+  };
+
   const handleVehicleClick = (v: Vehicle) => {
     navigate(`/dashboard/vehicle/${v._id}`);
   };
@@ -495,14 +505,18 @@ export default function Dashboard() {
 
                 {/* Sales Section */}
                 {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
-                  <Link to="/staff?tab=manage-sales&openAdd=true" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
+                  <button onClick={() => { setTab('sales'); setIsAddVehicleModalOpen(true); }} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
                     <Tag size={18} style={{ marginRight: '8px' }} /> List for Sale
-                  </Link>
+                  </button>
+                ) : (user?.salesRequestStatus === 'pending' ? (
+                  <button disabled className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7, cursor: 'not-allowed' }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Request Pending
+                  </button>
                 ) : (
-                  <Link to="/verify?type=sales" className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7 }}>
-                    <Lock size={18} style={{ marginRight: '8px' }} /> Sales KYC
-                  </Link>
-                )}
+                  <button onClick={handleRequestSalesAccess} className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700 }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Request Sales Access
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -594,11 +608,15 @@ export default function Dashboard() {
                     <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '12px 32px', background: '#10b981', borderColor: '#10b981' }}>
                       <AntTag color="transparent" style={{ border: 'none', margin: 0, padding: 0 }}><Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /></AntTag> List Your First Vehicle for Sale
                     </button>
+                  ) : (user?.salesRequestStatus === 'pending' ? (
+                    <button disabled className="btn btn-secondary" style={{ padding: '12px 32px', background: '#e2e8f0', color: '#475569', border: 'none', opacity: 0.7, cursor: 'not-allowed' }}>
+                      <Lock size={18} style={{ marginRight: '8px' }} /> Request Pending
+                    </button>
                   ) : (
-                    <Link to="/verify?type=sales" className="btn btn-secondary" style={{ padding: '12px 32px', background: '#e2e8f0', color: '#475569', border: 'none' }}>
-                      <Lock size={18} style={{ marginRight: '8px' }} /> Verify to List for Sale
-                    </Link>
-                  )
+                    <button onClick={handleRequestSalesAccess} className="btn btn-secondary" style={{ padding: '12px 32px', background: '#e2e8f0', color: '#475569', border: 'none' }}>
+                      <Lock size={18} style={{ marginRight: '8px' }} /> Request Sales Access
+                    </button>
+                  ))
                 )}
               </div>
             ) : (

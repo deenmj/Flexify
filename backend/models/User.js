@@ -85,6 +85,7 @@ const userSchema = new mongoose.Schema(
       default: "not_submitted",
     },
     hasSalesAccess: { type: Boolean, default: false },
+    salesRequestStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
 
     rejectionReason: { type: String, default: null },
     rejectionComment: { type: String, default: null },

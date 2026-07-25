@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Compass, Home, CalendarCheck, Tag, Plus, Lock } from 'lucide-react';
 import { Badge, Tooltip, Modal, Dropdown } from 'antd';
 import { useSocket } from '../context/SocketContext';
-import { notificationApi, bookingApi } from '../api';
+import { notificationApi, bookingApi, userApi } from '../api';
 import './Navbar.css';
 import RentifyLogo from './RentifyLogo';
 
@@ -112,6 +112,19 @@ export default function Navbar() {
     });
   };
 
+  const handleRequestSalesAccess = async () => {
+    try {
+      const res = await userApi.requestSalesAccess();
+      Modal.success({
+        title: 'Request Sent',
+        content: res.message,
+        onOk: () => window.location.reload()
+      });
+    } catch (err: any) {
+      Modal.error({ title: 'Error', content: err.message || 'Failed to request access' });
+    }
+  };
+
   const badge = getRoleBadge();
   const isSuperAdmin = user?.role === 'superadmin';
   const isAdmin = user?.role === 'admin';
@@ -162,12 +175,22 @@ export default function Navbar() {
                       icon: (user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? Car : Lock, 
                       desc: 'Earn money by renting your vehicle' 
                     },
-                    { 
+                    (user?.hasSalesAccess === true || isAdminRole) ? { 
                       label: 'List for Sale', 
-                      href: user?.hasSalesAccess === true || isAdminRole ? '/dashboard?tab=sales&openAdd=true' : '/verify?type=sales', 
-                      icon: user?.hasSalesAccess === true || isAdminRole ? Tag : Lock, 
+                      href: '/dashboard?tab=sales&openAdd=true', 
+                      icon: Tag, 
                       desc: 'Sell your vehicle on Rentify' 
-                    },
+                    } : (user?.salesRequestStatus === 'pending' ? {
+                      label: 'Sales Request Pending',
+                      icon: Lock,
+                      desc: 'Awaiting staff review',
+                      onClick: (e: any) => { e.preventDefault(); /* do nothing */ }
+                    } : {
+                      label: 'Request Sales Access',
+                      icon: Lock,
+                      desc: 'Sell your vehicle on Rentify',
+                      onClick: (e: any) => { e.preventDefault(); handleRequestSalesAccess(); }
+                    })
                   ]}
                 />
               )}
@@ -207,17 +230,37 @@ export default function Navbar() {
                     },
                     { type: 'divider' },
                     {
-                      key: 'sale', label: (
-                        <Link to={user?.hasSalesAccess === true || isAdminRole ? "/dashboard?tab=sales&openAdd=true" : "/verify?type=sales"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                      key: 'sale', label: (user?.hasSalesAccess === true || isAdminRole) ? (
+                        <Link to="/dashboard?tab=sales&openAdd=true" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
-                            {user?.hasSalesAccess === true || isAdminRole ? <Tag size={18} /> : <Lock size={18} />}
+                            <Tag size={18} />
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>
                             <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
                           </div>
                         </Link>
-                      )
+                      ) : (user?.salesRequestStatus === 'pending' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px', opacity: 0.6, cursor: 'not-allowed' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f1f5f9', color: '#64748b', borderRadius: '10px' }}>
+                            <Lock size={18} />
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>Sales Request Pending</span>
+                            <span style={{ fontSize: '12px', color: '#64748b' }}>Awaiting staff review</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div onClick={handleRequestSalesAccess} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px', cursor: 'pointer' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f1f5f9', color: '#64748b', borderRadius: '10px' }}>
+                            <Lock size={18} />
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>Request Sales Access</span>
+                            <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
+                          </div>
+                        </div>
+                      ))
                     }
                   ]
                 }} trigger={['click']} placement="bottomRight" overlayStyle={{ minWidth: '220px', padding: '4px' }}>
@@ -364,7 +407,13 @@ export default function Navbar() {
               ) : (
                 <>
                   <Link to={(user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
-                  <Link to={user?.hasSalesAccess === true || isAdminRole ? "/dashboard?tab=sales&openAdd=true" : "/verify?type=sales"} className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
+                  {(user?.hasSalesAccess === true || isAdminRole) ? (
+                    <Link to="/dashboard?tab=sales&openAdd=true" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
+                  ) : (user?.salesRequestStatus === 'pending' ? (
+                    <div className="mobile-link" style={{ color: '#64748b', opacity: 0.7 }}><Lock size={18} /> Sales Request Pending</div>
+                  ) : (
+                    <div className="mobile-link" onClick={() => { handleRequestSalesAccess(); setMobileOpen(false); }} style={{ color: '#64748b', cursor: 'pointer' }}><Lock size={18} /> Request Sales Access</div>
+                  ))}
                 </>
               )}
 
@@ -408,7 +457,7 @@ export default function Navbar() {
   );
 }
 
-function NavDropdown({ label, items, icon: Icon }: { label: string; items: { label: string; href: string; icon?: any; desc?: string }[], icon?: any }) {
+function NavDropdown({ label, items, icon: Icon }: { label: string; items: { label: string; href?: string; icon?: any; desc?: string; onClick?: (e: React.MouseEvent) => void }[], icon?: any }) {
   return (
     <div className="nav-dropdown">
       <button className="nav-link nav-dropdown-trigger">
@@ -416,15 +465,29 @@ function NavDropdown({ label, items, icon: Icon }: { label: string; items: { lab
       </button>
       <div className="nav-dropdown-menu">
         <div className="nav-dropdown-grid">
-          {items.map((item) => (
-            <Link key={item.href} to={item.href} className="nav-dropdown-item">
-              {item.icon && <div className="item-icon"><item.icon size={16} /></div>}
-              <div className="item-content">
-                <span className="item-label">{item.label}</span>
-                {item.desc && <span className="item-desc">{item.desc}</span>}
-              </div>
-            </Link>
-          ))}
+          {items.map((item) => {
+            const content = (
+              <>
+                {item.icon && <div className="item-icon"><item.icon size={16} /></div>}
+                <div className="item-content">
+                  <span className="item-label">{item.label}</span>
+                  {item.desc && <span className="item-desc">{item.desc}</span>}
+                </div>
+              </>
+            );
+            if (item.href) {
+              return (
+                <Link key={item.label} to={item.href} className="nav-dropdown-item" onClick={item.onClick}>
+                  {content}
+                </Link>
+              );
+            }
+            return (
+              <button key={item.label} className="nav-dropdown-item" onClick={item.onClick} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}>
+                {content}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
