@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Compass, Home, CalendarCheck, Tag, Plus } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, User, LogOut, LayoutDashboard, Car, Search, Shield, Info, HelpCircle, Phone, Compass, Home, CalendarCheck, Tag, Plus, Lock } from 'lucide-react';
 import { Badge, Tooltip, Modal, Dropdown } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { notificationApi, bookingApi } from '../api';
@@ -151,8 +151,18 @@ export default function Navbar() {
                 label="List Vehicle"
                 icon={Car}
                 items={[
-                  { label: 'List for Rent', href: '/list-vehicle', icon: Car, desc: 'Earn money by renting your vehicle' },
-                  ...(isAdminRole ? [{ label: 'List for Sale', href: '/staff?tab=manage-sales&openAdd=true', icon: Tag, desc: 'Sell your vehicle on Rentify' }] : []),
+                  { 
+                    label: 'List for Rent', 
+                    href: user?.rentVerificationStatus === 'approved' || isAdminRole ? '/list-vehicle' : '/verify?type=rent', 
+                    icon: user?.rentVerificationStatus === 'approved' || isAdminRole ? Car : Lock, 
+                    desc: 'Earn money by renting your vehicle' 
+                  },
+                  { 
+                    label: 'List for Sale', 
+                    href: user?.salesVerificationStatus === 'approved' || isAdminRole ? '/staff?tab=manage-sales&openAdd=true' : '/verify?type=sales', 
+                    icon: user?.salesVerificationStatus === 'approved' || isAdminRole ? Tag : Lock, 
+                    desc: 'Sell your vehicle on Rentify' 
+                  },
                 ]}
               />
               <NavDropdown
@@ -169,14 +179,13 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="navbar-actions">
-            {isAdminRole ? (
               <Dropdown menu={{
                 items: [
                   {
                     key: 'rent', label: (
-                      <Link to="/list-vehicle" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                      <Link to={user?.rentVerificationStatus === 'approved' || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
-                          <Car size={18} />
+                          {user?.rentVerificationStatus === 'approved' || isAdminRole ? <Car size={18} /> : <Lock size={18} />}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
@@ -188,9 +197,9 @@ export default function Navbar() {
                   { type: 'divider' },
                   {
                     key: 'sale', label: (
-                      <Link to="/staff?tab=manage-sales&openAdd=true" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                      <Link to={user?.salesVerificationStatus === 'approved' || isAdminRole ? "/staff?tab=manage-sales&openAdd=true" : "/verify?type=sales"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
-                          <Tag size={18} />
+                          {user?.salesVerificationStatus === 'approved' || isAdminRole ? <Tag size={18} /> : <Lock size={18} />}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>
@@ -205,11 +214,6 @@ export default function Navbar() {
                   <Plus size={18} strokeWidth={2.5} />
                 </button>
               </Dropdown>
-            ) : (
-              <Link to="/list-vehicle" className="mobile-plus-btn" title="List Vehicle">
-                <Plus size={18} strokeWidth={2.5} />
-              </Link>
-            )}
             <Link to="/explore" className="nav-action-btn" title="Search">
               <Search size={20} />
             </Link>

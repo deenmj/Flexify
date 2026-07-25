@@ -13,7 +13,7 @@ import { sendRejectionEmail, sendApprovalEmail } from "../utils/notifier.js";
  */
 export const getPendingUsers = async (req, res) => {
     try {
-        const users = await User.find({ verificationStatus: "pending" })
+        const users = await User.find({ $or: [{ rentVerificationStatus: "pending" }, { salesVerificationStatus: "pending" }] })
             .select("-password")
             .sort({ kycVerifiedAt: -1, updatedAt: -1 });
         res.json(users);
@@ -44,7 +44,11 @@ export const approveUserKyc = async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         user.isKycVerified = true;
-        user.verificationStatus = "approved";
+        if (req.body.type === 'sales') {
+            user.salesVerificationStatus = "approved";
+        } else {
+            user.rentVerificationStatus = "approved";
+        }
         user.kycVerifiedAt = new Date();
 
         // If user is an owner, promote to VERIFIED owner
@@ -236,12 +240,14 @@ export const getSubadminStats = async (req, res) => {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
 
-        const pendingUsers = await User.countDocuments({ verificationStatus: "pending" });
+        const pendingUsers = await User.countDocuments({ 
+            $or: [{ rentVerificationStatus: "pending" }, { salesVerificationStatus: "pending" }] 
+        });
         const pendingVehicles = await Vehicle.countDocuments({ status: "pending" });
         const pendingMakes = await VehicleMake.countDocuments({ approved: false });
         const pendingModels = await VehicleModel.countDocuments({ approved: false });
         const approvedToday = await User.countDocuments({ 
-            verificationStatus: "approved",
+            $or: [{ rentVerificationStatus: "approved" }, { salesVerificationStatus: "approved" }],
             kycVerifiedAt: { $gte: todayStart }
         });
         const totalVehicles = await Vehicle.countDocuments({ status: "active" });

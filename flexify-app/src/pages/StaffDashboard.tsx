@@ -146,6 +146,12 @@ export default function StaffDashboard() {
 
   const allChecked = checkedItems.every(Boolean);
 
+  const handleCheck = (index: number) => {
+    const newChecked = [...checkedItems];
+    newChecked[index] = !newChecked[index];
+    setCheckedItems(newChecked);
+  };
+
   const handleApproveSalesUser = async (userId: string) => {
     setActionLoading(userId);
     try {
@@ -154,6 +160,20 @@ export default function StaffDashboard() {
       setPendingSalesUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
     } catch (err: any) {
       message.error(err.message || 'Error approving sales request');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleApproveUser = async (userId: string) => {
+    setActionLoading(userId);
+    try {
+      await subadminApi.approveUser(userId, 'rent');
+      message.success('Rent verification approved successfully!');
+      setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
+      setShowModal(false);
+    } catch (err: any) {
+      message.error(err.message || 'Error approving rent request');
     } finally {
       setActionLoading(null);
     }
