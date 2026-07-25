@@ -387,7 +387,12 @@ router.post("/request-sales", protect, async (req, res) => {
  */
 router.get("/pending-sales-requests", protect, requireStaff, async (req, res) => {
   try {
-    const users = await User.find({ salesRequestStatus: "pending" })
+    const users = await User.find({ 
+      $or: [
+        { salesRequestStatus: { $ne: "none" } },
+        { hasSalesAccess: true }
+      ]
+    })
       .select("-password")
       .sort({ updatedAt: -1 });
     res.json(users);

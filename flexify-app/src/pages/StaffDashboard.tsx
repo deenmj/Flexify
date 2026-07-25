@@ -169,7 +169,9 @@ export default function StaffDashboard() {
     try {
       await userApi.handleSalesRequest(userId, approve);
       message.success(approve ? 'Sales access approved!' : 'Sales access rejected!');
-      setPendingSalesUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
+      setPendingSalesUsers(prev => prev.map(u => 
+        (u.id || u._id) === userId ? { ...u, hasSalesAccess: approve, salesRequestStatus: approve ? 'approved' : 'rejected' } : u
+      ));
     } catch (err: any) {
       message.error(err.message || 'Error handling sales request');
     } finally {
@@ -681,29 +683,52 @@ export default function StaffDashboard() {
                       },
                       { title: 'Phone Number', render: (_, u) => u.documents?.phone || u.phone || <Text type="danger">Not provided</Text> },
                       { title: 'Request Date', dataIndex: 'createdAt', render: d => d ? new Date(d).toLocaleDateString() : 'Recent' },
-                      { title: 'Status', render: (_, u) => <Tag color="warning">PENDING SALES</Tag> },
+                      { 
+                        title: 'Status', 
+                        render: (_, u) => {
+                          if (u.hasSalesAccess) return <Tag color="success">APPROVED (ACTIVE)</Tag>;
+                          if (u.salesRequestStatus === 'rejected') return <Tag color="error">REJECTED</Tag>;
+                          if (u.salesRequestStatus === 'pending') return <Tag color="warning">PENDING</Tag>;
+                          return <Tag color="default">NO ACCESS</Tag>;
+                        }
+                      },
                       {
                         title: 'Action',
                         render: (_, u) => (
                           <Space>
-                            <Button
-                              type="primary"
-                              style={{ background: '#16a34a' }}
-                              icon={<CheckCircle size={14} />}
-                              loading={actionLoading === (u.id || u._id)}
-                              onClick={() => handleSalesRequestAction(u.id || u._id, true)}
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              type="primary"
-                              danger
-                              icon={<XCircle size={14} />}
-                              loading={actionLoading === (u.id || u._id)}
-                              onClick={() => handleSalesRequestAction(u.id || u._id, false)}
-                            >
-                              Reject
-                            </Button>
+                            {!u.hasSalesAccess && (
+                              <Button
+                                type="primary"
+                                style={{ background: '#16a34a' }}
+                                icon={<CheckCircle size={14} />}
+                                loading={actionLoading === (u.id || u._id)}
+                                onClick={() => handleSalesRequestAction(u.id || u._id, true)}
+                              >
+                                Approve
+                              </Button>
+                            )}
+                            {u.hasSalesAccess && (
+                              <Button
+                                type="primary"
+                                danger
+                                icon={<XCircle size={14} />}
+                                loading={actionLoading === (u.id || u._id)}
+                                onClick={() => handleSalesRequestAction(u.id || u._id, false)}
+                              >
+                                Disable Access
+                              </Button>
+                            )}
+                            {!u.hasSalesAccess && u.salesRequestStatus === 'pending' && (
+                              <Button
+                                type="primary"
+                                danger
+                                icon={<XCircle size={14} />}
+                                loading={actionLoading === (u.id || u._id)}
+                                onClick={() => handleSalesRequestAction(u.id || u._id, false)}
+                              >
+                                Reject
+                              </Button>
+                            )}
                           </Space>
                         )
                       }
