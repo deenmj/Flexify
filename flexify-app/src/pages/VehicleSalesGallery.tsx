@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Typography, Badge, Spin, Result, Button, message, Input } from 'antd';
+import { Row, Col, Typography, Badge, Spin, Result, Button, message, Input, Select, Drawer } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { salesApi, userApi, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { Heart, Share2, Activity, Settings, Calendar, Fuel } from 'lucide-react';
+import { Heart, Share2, Activity, Settings, Calendar, Fuel, Filter } from 'lucide-react';
 
 const { Title, Text } = Typography;
 
@@ -13,6 +13,7 @@ export default function VehicleSalesGallery() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
   const { user, setUser } = useAuth();
@@ -149,13 +150,58 @@ export default function VehicleSalesGallery() {
         flexDirection: 'column',
         gap: '16px'
       }}>
-        <Input 
-          size="large"
-          placeholder="Search for a vehicle by make, model, or title..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ width: '100%', maxWidth: '600px', margin: '0 auto', borderRadius: '12px' }}
-        />
+        <div style={{ display: 'flex', gap: '12px', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+          <Input 
+            size="large"
+            placeholder="Search for a vehicle by make, model, or title..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ flex: 1, borderRadius: '12px' }}
+          />
+          <Button 
+            size="large" 
+            type="primary" 
+            icon={<Filter size={18} />} 
+            onClick={() => setFilterDrawerOpen(true)}
+            style={{ borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            Filters
+          </Button>
+        </div>
+      </div>
+
+      <Drawer
+        title="Filter Vehicles"
+        placement="right"
+        onClose={() => setFilterDrawerOpen(false)}
+        open={filterDrawerOpen}
+        width={320}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div>
+            <Text strong style={{ display: 'block', marginBottom: '8px' }}>Category</Text>
+            <Select
+              mode="multiple"
+              size="large"
+              placeholder="Select Categories"
+              style={{ width: '100%' }}
+              value={selectedCategory && selectedCategory !== 'All' ? selectedCategory.split(',') : []}
+              onChange={(values: string[]) => setSelectedCategory(values.length > 0 ? values.join(',') : 'All')}
+              options={[
+                { value: 'Car', label: 'Car' },
+                { value: 'Van', label: 'Van' },
+                { value: 'Bus', label: 'Bus' },
+                { value: 'Lorry', label: 'Lorry' },
+                { value: 'SUV', label: 'SUV' },
+                { value: 'Bike', label: 'Bike' },
+                { value: 'Three Wheeler', label: 'Three Wheeler' },
+                { value: 'Other', label: 'Other' },
+              ]}
+            />
+          </div>
+          {/* Add more filters (Price, Date, Distance) here as requested by user in future phases */}
+        </div>
+      </Drawer>
       </div>
 
       {sales.length === 0 ? (

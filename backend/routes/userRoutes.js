@@ -60,15 +60,11 @@ router.post(
         kycConsentGiven: req.body.kycConsentGiven === "true" || req.body.kycConsentGiven === true,
       };
 
-      // Auto-verify immediately for booking access
-      user.isKycVerified = true;
-      user.kycVerifiedAt = new Date();
       // Set to pending so staff can review them in the dashboard
-      user.verificationStatus = "pending";
-
-      // If user is an owner, promote to VERIFIED owner
-      if (user.role === "owner" && user.ownerType === "UNVERIFIED") {
-        user.ownerType = "VERIFIED";
+      if (req.body.type === "sales") {
+        user.salesVerificationStatus = "pending";
+      } else {
+        user.rentVerificationStatus = "pending";
       }
 
       // Update profile info
@@ -156,7 +152,11 @@ router.put(
       if (req.body.address) user.documents.address = req.body.address;
 
       // Mark for re-review by staff
-      user.verificationStatus = "pending";
+      if (req.body.type === "sales") {
+        user.salesVerificationStatus = "pending";
+      } else {
+        user.rentVerificationStatus = "pending";
+      }
 
       await user.save();
 

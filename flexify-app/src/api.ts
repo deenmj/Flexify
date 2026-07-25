@@ -589,9 +589,10 @@ export const subadminApi = {
 
   getUserKycDetails: (userId: string) => apiFetch<User>(`/subadmin/user/${userId}`),
 
-  approveUser: (userId: string) =>
+  approveUser: (userId: string, type: string = 'rent') =>
     apiFetch<{ message: string; user: User }>(`/subadmin/approve-user/${userId}`, {
       method: 'PATCH',
+      body: JSON.stringify({ type }),
     }),
 
   rejectUser: (userId: string, reason: string, comment?: string) =>

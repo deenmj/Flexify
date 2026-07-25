@@ -100,7 +100,7 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
 
     // Moderation Override Logic
     const isOwner = sale.listedBy.toString() === req.user._id.toString();
-    const isMasterAdmin = ["admin", "superadmin", "subadmin"].includes(req.user.role);
+    const isMasterAdmin = ["admin", "superadmin"].includes(req.user.role);
 
     if (!isOwner && !isMasterAdmin) {
       return res.status(403).json({ message: "Forbidden: You do not have permission to edit this listing. Staff cannot edit other's listings." });
@@ -185,7 +185,7 @@ router.get("/vehicles", async (req, res) => {
     let query = { status: { $in: ["Available", "New", "Sold Out"] } };
     
     if (category && category !== 'All') {
-      query.category = category;
+      query.category = { $in: category.split(',') };
     }
     
     if (search) {
