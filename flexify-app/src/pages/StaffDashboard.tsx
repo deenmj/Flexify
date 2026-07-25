@@ -36,12 +36,22 @@ export default function StaffDashboard() {
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get('tab') as any) || 'users';
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'list-sale' | 'sales-requests'>(initialTab);
+  const initialTab = (searchParams.get('tab') as any) || (
+    user && !['staff', 'subadmin', 'admin', 'superadmin'].includes(user.role.toLowerCase()) ? 'manage-sales' : 'users'
+  );
+  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'manage-sales' | 'sales-requests'>(initialTab);
+
+  const currentRole = (user?.role || '').toLowerCase();
+  const isStaffRole = currentRole === 'staff' || currentRole === 'subadmin' || currentRole === 'admin' || currentRole === 'superadmin';
+  const isSalesApprovedUser = (currentRole === 'user' || currentRole === 'owner') && user?.salesVerificationStatus === 'approved';
 
   useEffect(() => {
-    setSearchParams({ tab });
-  }, [tab, setSearchParams]);
+    if (!isStaffRole && tab !== 'manage-sales') {
+      setTab('manage-sales');
+    } else {
+      setSearchParams({ tab });
+    }
+  }, [tab, setSearchParams, isStaffRole]);
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewSearchQuery, setReviewSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -392,17 +402,30 @@ export default function StaffDashboard() {
     r.comment.toLowerCase().includes(reviewSearchQuery.toLowerCase())
   );
 
-  const currentRole = (user?.role || '').toLowerCase();
-  if (!user || (currentRole !== 'staff' && currentRole !== 'subadmin' && currentRole !== 'admin' && currentRole !== 'superadmin')) {
+  if (!user || (!isStaffRole && !isSalesApprovedUser)) {
     return (
       <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
         <Shield size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
-        <h2>Staff Access Required</h2>
-        <p>You do not have permission to access this page.</p>
+        <h2>Access Restricted</h2>
+        <p>You do not have permission to access this dashboard.</p>
         <Button onClick={() => navigate('/')}>Back to Home</Button>
       </div>
     );
   }
+
+  // Define tabs based on role
+  const menuItems = isStaffRole ? [
+    { key: 'users', icon: <Shield size={18} />, label: `KYC Reviews (${pendingUsers.length})` },
+    { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
+    { key: 'sales-requests', icon: <CheckCircle size={18} />, label: `Sales Requests (${pendingSalesUsers.length})` },
+    { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
+    { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
+    { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
+    { key: 'settings', icon: <Settings size={18} />, label: 'My Settings' },
+    { key: 'feedback', icon: <MessageSquare size={18} />, label: `User Feedback` },
+  ] : [
+    { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
+  ];
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
@@ -432,16 +455,7 @@ export default function StaffDashboard() {
             mode="inline"
             selectedKeys={[tab]}
             onClick={({ key }) => setTab(key as any)}
-            items={[
-              { key: 'users', icon: <Shield size={18} />, label: `KYC Reviews (${pendingUsers.length})` },
-              { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
-              { key: 'sales-requests', icon: <CheckCircle size={18} />, label: `Sales Requests (${pendingSalesUsers.length})` },
-              { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
-              { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
-              { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions (${pendingMakes.length + pendingModels.length})` },
-              { key: 'settings', icon: <Settings size={18} />, label: 'My Settings' },
-              { key: 'feedback', icon: <MessageSquare size={18} />, label: `User Feedback` },
-            ]}
+            items={menuItems}
           />
         </Sider>
       ) : (
@@ -465,16 +479,7 @@ export default function StaffDashboard() {
               setTab(key as any);
               setMobileMenuOpen(false);
             }}
-            items={[
-              { key: 'users', icon: <Shield size={18} />, label: `KYC (${pendingUsers.length})` },
-              { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${pendingVehicles.length})` },
-              { key: 'sales-requests', icon: <CheckCircle size={18} />, label: `Sales Requests (${pendingSalesUsers.length})` },
-              { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
-              { key: 'reviews', icon: <MessageSquare size={18} />, label: `Reviews (${reviews.length})` },
-              { key: 'moderation', icon: <Clock size={18} />, label: `Suggestions` },
-              { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
-              { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
-            ]}
+            items={menuItems}
           />
         </Drawer>
       )}

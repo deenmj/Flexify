@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { Row, Col, DatePicker, Dropdown, Select } from 'antd';
 const { RangePicker } = DatePicker;
-import { Search, SlidersHorizontal, Locate, ChevronDown, X, Plus, Car, Tag } from 'lucide-react';
+import { Search, SlidersHorizontal, Locate, ChevronDown, X, Plus, Car, Tag, Lock } from 'lucide-react';
 import { vehicleApi, type Vehicle } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -277,12 +277,16 @@ export default function Explore() {
         <div className="container" style={{ position: 'relative' }}>
           <div className="explore-title-container">
             <h1 className="explore-title">Explore Vehicles for Rent in Sri Lanka</h1>
-            {isAdminRole ? (
+            {!user ? (
+              <button onClick={() => navigate('/auth')} className="explore-list-btn d-none-mobile" style={{ border: 'none', cursor: 'pointer' }}>
+                <Plus size={18} /> <span>List Vehicle</span>
+              </button>
+            ) : (
               <Dropdown menu={{ items: [
                 { key: 'rent', label: (
-                  <Link to="/list-vehicle" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                  <Link to={user?.rentVerificationStatus === 'approved' || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
-                      <Car size={18} />
+                      {user?.rentVerificationStatus === 'approved' || isAdminRole ? <Car size={18} /> : <Lock size={18} />}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
@@ -292,9 +296,9 @@ export default function Explore() {
                 ) },
                 { type: 'divider' },
                 { key: 'sale', label: (
-                  <Link to="/staff?tab=manage-sales&openAdd=true" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                  <Link to={user?.salesVerificationStatus === 'approved' || isAdminRole ? "/staff?tab=manage-sales&openAdd=true" : "/verify?type=sales"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
-                      <Tag size={18} />
+                      {user?.salesVerificationStatus === 'approved' || isAdminRole ? <Tag size={18} /> : <Lock size={18} />}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>
@@ -307,10 +311,6 @@ export default function Explore() {
                   <Plus size={18} /> <span>List Vehicle</span>
                 </button>
               </Dropdown>
-            ) : (
-              <Link to="/list-vehicle" className="explore-list-btn d-none-mobile">
-                <Plus size={18} /> <span>List Vehicle</span>
-              </Link>
             )}
           </div>
           <p className="explore-subtitle">Find the perfect vehicle for your journey</p>

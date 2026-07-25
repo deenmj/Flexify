@@ -176,7 +176,7 @@ export default function App() {
               {/* Admin dashboards */}
               <Route path="/ceo-master-portal" element={<NoNavbarLayout><ProtectedRoute roles={['superadmin']} requireCeo={true}><SuperAdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
               <Route path="/admin" element={<NoNavbarLayout><ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute></NoNavbarLayout>} />
-              <Route path="/staff" element={<NoNavbarLayout><ProtectedRoute roles={['staff', 'subadmin', 'admin', 'superadmin']}><StaffDashboard /></ProtectedRoute></NoNavbarLayout>} />
+              <Route path="/staff" element={<NoNavbarLayout><ProtectedRoute roles={['owner', 'user', 'staff', 'subadmin', 'admin', 'superadmin']}><StaffDashboard /></ProtectedRoute></NoNavbarLayout>} />
               <Route path="/subadmin" element={<NoNavbarLayout><ProtectedRoute roles={['staff', 'subadmin', 'admin', 'superadmin']}><StaffDashboard /></ProtectedRoute></NoNavbarLayout>} />
               
               {/* Route Aliases */}

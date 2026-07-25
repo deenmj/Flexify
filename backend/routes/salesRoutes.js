@@ -163,9 +163,12 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
  * @desc    Get all active vehicle sales with full details for staff
  * @access  Private (Staff/Admin/Superadmin only)
  */
-router.get("/staff/vehicles", protect, requireStaff, async (req, res) => {
+router.get("/staff/vehicles", protect, async (req, res) => {
   try {
-    const sales = await VehicleSale.find()
+    const isStaff = ['staff', 'admin', 'superadmin', 'subadmin'].includes(req.user.role);
+    const query = isStaff ? {} : { 'seller': req.user._id };
+    
+    const sales = await VehicleSale.find(query)
     .sort("-createdAt");
     res.json(sales);
   } catch (error) {
@@ -180,7 +183,16 @@ router.get("/staff/vehicles", protect, requireStaff, async (req, res) => {
  */
 router.get("/vehicles", async (req, res) => {
   try {
-    const { search, category } = req.query;
+    const { 
+      search, 
+      category, 
+      minPrice, 
+      maxPrice, 
+      location, 
+      condition, 
+      transmission, 
+      datePublished 
+    } = req.query;
     
     let query = { status: { $in: ["Available", "New", "Sold Out"] } };
     
@@ -188,14 +200,54 @@ router.get("/vehicles", async (req, res) => {
       query.category = { $in: category.split(',') };
     }
     
-    if (search) {
-      // Create regex for title, make, and model
-      const searchRegex = new RegExp(search, 'i');
-      query.$or = [
-        { title: searchRegex },
-        { make: searchRegex },
-        { model: searchRegex }
-      ];
+    if (minPrice || maxPrice) {
+      query.askingPrice = {};
+      if (minPrice) query.askingPrice.$gte = Number(minPrice);
+      if (maxPrice) query.askingPrice.$lte = Number(maxPrice);
+    }
+
+    if (condition) {
+      query.condition = condition;
+    }
+
+    if (transmission) {
+      query.transmission = transmission;
+    }
+
+    if (datePublished) {
+      const days = parseInt(datePublished, 10);
+      if (!isNaN(days) && days > 0) {
+        const dateLimit = new Date();
+        dateLimit.setDate(dateLimit.getDate() - days);
+        query.createdAt = { $gte: dateLimit };
+      }
+    }
+    
+    if (search || location) {
+      const searchTerms = [];
+      if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        searchTerms.push(
+          { title: searchRegex },
+          { make: searchRegex },
+          { model: searchRegex }
+        );
+      }
+      
+      if (location) {
+        const locationRegex = new RegExp(location, 'i');
+        searchTerms.push(
+          { 'location.address': locationRegex }
+        );
+        // Also allow search by title/desc if location is in text
+        if (!search) { // If no global search, use location to search text too just in case
+          searchTerms.push({ title: locationRegex }, { description: locationRegex });
+        }
+      }
+      
+      if (searchTerms.length > 0) {
+        query.$or = searchTerms;
+      }
     }
 
     const sales = await VehicleSale.find(query)
