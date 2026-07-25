@@ -595,10 +595,15 @@ export const subadminApi = {
 
   getUserKycDetails: (userId: string) => apiFetch<User>(`/subadmin/user/${userId}`),
 
-  approveUser: (userId: string, type: string = 'rent') =>
+  approveUser: (userId: string, type: string = 'rent', grantSalesAccess: boolean = false) =>
     apiFetch<{ message: string; user: User }>(`/subadmin/approve-user/${userId}`, {
       method: 'PATCH',
-      body: JSON.stringify({ type }),
+      body: JSON.stringify({ type, grantSalesAccess }),
+    }),
+
+  toggleSalesAccess: (userId: string) =>
+    apiFetch<{ message: string; user: User }>(`/subadmin/user/${userId}/toggle-sales-access`, {
+      method: 'PUT',
     }),
 
   rejectUser: (userId: string, reason: string, comment?: string) =>
