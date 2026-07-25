@@ -13,7 +13,13 @@ import { sendRejectionEmail, sendApprovalEmail } from "../utils/notifier.js";
  */
 export const getPendingUsers = async (req, res) => {
     try {
-        const users = await User.find({ $or: [{ rentVerificationStatus: "pending" }, { salesVerificationStatus: "pending" }] })
+        const users = await User.find({ 
+            $or: [
+                { rentVerificationStatus: "pending" }, 
+                { salesVerificationStatus: "pending" },
+                { verificationStatus: "pending" }
+            ] 
+        })
             .select("-password")
             .sort({ kycVerifiedAt: -1, updatedAt: -1 });
         res.json(users);
@@ -49,6 +55,7 @@ export const approveUserKyc = async (req, res) => {
         } else {
             user.rentVerificationStatus = "approved";
         }
+        user.verificationStatus = "approved"; // Clear legacy
         user.kycVerifiedAt = new Date();
 
         // If user is an owner, promote to VERIFIED owner
@@ -241,7 +248,11 @@ export const getSubadminStats = async (req, res) => {
         todayStart.setHours(0, 0, 0, 0);
 
         const pendingUsers = await User.countDocuments({ 
-            $or: [{ rentVerificationStatus: "pending" }, { salesVerificationStatus: "pending" }] 
+            $or: [
+                { rentVerificationStatus: "pending" }, 
+                { salesVerificationStatus: "pending" },
+                { verificationStatus: "pending" }
+            ] 
         });
         const pendingVehicles = await Vehicle.countDocuments({ status: "pending" });
         const pendingMakes = await VehicleMake.countDocuments({ approved: false });

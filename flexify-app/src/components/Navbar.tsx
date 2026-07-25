@@ -158,14 +158,14 @@ export default function Navbar() {
                   items={[
                     { 
                       label: 'List for Rent', 
-                      href: user?.rentVerificationStatus === 'approved' || isAdminRole ? '/list-vehicle' : '/verify?type=rent', 
-                      icon: user?.rentVerificationStatus === 'approved' || isAdminRole ? Car : Lock, 
+                      href: (user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? '/list-vehicle' : '/verify?type=rent', 
+                      icon: (user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? Car : Lock, 
                       desc: 'Earn money by renting your vehicle' 
                     },
                     { 
                       label: 'List for Sale', 
-                      href: user?.salesVerificationStatus === 'approved' || isAdminRole ? '/staff?tab=manage-sales&openAdd=true' : '/verify?type=sales', 
-                      icon: user?.salesVerificationStatus === 'approved' || isAdminRole ? Tag : Lock, 
+                      href: (user?.salesVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? '/staff?tab=manage-sales&openAdd=true' : '/verify?type=sales', 
+                      icon: (user?.salesVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? Tag : Lock, 
                       desc: 'Sell your vehicle on Rentify' 
                     },
                   ]}
@@ -194,9 +194,9 @@ export default function Navbar() {
                   items: [
                     {
                       key: 'rent', label: (
-                        <Link to={user?.rentVerificationStatus === 'approved' || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                        <Link to={(user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
-                            {user?.rentVerificationStatus === 'approved' || isAdminRole ? <Car size={18} /> : <Lock size={18} />}
+                            {(user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? <Car size={18} /> : <Lock size={18} />}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
@@ -208,9 +208,9 @@ export default function Navbar() {
                     { type: 'divider' },
                     {
                       key: 'sale', label: (
-                        <Link to={user?.salesVerificationStatus === 'approved' || isAdminRole ? "/staff?tab=manage-sales&openAdd=true" : "/verify?type=sales"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                        <Link to={(user?.salesVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? "/staff?tab=manage-sales&openAdd=true" : "/verify?type=sales"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
-                            {user?.salesVerificationStatus === 'approved' || isAdminRole ? <Tag size={18} /> : <Lock size={18} />}
+                            {(user?.salesVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? <Tag size={18} /> : <Lock size={18} />}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>

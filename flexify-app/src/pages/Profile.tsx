@@ -43,6 +43,8 @@ export default function Profile() {
     );
   }
 
+  const [docType, setDocType] = useState<'rent' | 'sales'>('rent');
+
   const handleEditClick = () => {
     setForm({
       name: user.name,
@@ -141,6 +143,7 @@ export default function Profile() {
     if (docFiles.license) formData.append('license', docFiles.license);
     if (docFiles.selfie) formData.append('selfie', docFiles.selfie);
     if (hasAddressChange) formData.append('address', docAddress.trim());
+    formData.append('type', docType);
 
     try {
       await userApi.updateDocuments(formData);
@@ -378,7 +381,15 @@ export default function Profile() {
                       <Edit2 size={14} /> Edit Documents
                     </button>
                   ) : (
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <select 
+                        value={docType} 
+                        onChange={(e) => setDocType(e.target.value as 'rent' | 'sales')}
+                        style={{ padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                      >
+                        <option value="rent">For Renting</option>
+                        <option value="sales">For Selling</option>
+                      </select>
                       <button className="btn btn-ghost btn-sm" onClick={handleDocCancel} disabled={docLoading}>
                         <X size={14} /> Cancel
                       </button>

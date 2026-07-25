@@ -43,7 +43,7 @@ export default function StaffDashboard() {
 
   const currentRole = (user?.role || '').toLowerCase();
   const isStaffRole = currentRole === 'staff' || currentRole === 'subadmin' || currentRole === 'admin' || currentRole === 'superadmin';
-  const isSalesApprovedUser = (currentRole === 'user' || currentRole === 'owner') && user?.salesVerificationStatus === 'approved';
+  const isSalesApprovedUser = (currentRole === 'user' || currentRole === 'owner') && (user?.salesVerificationStatus === 'approved' || user?.verificationStatus === 'approved');
 
   useEffect(() => {
     if (!isStaffRole && tab !== 'manage-sales') {
