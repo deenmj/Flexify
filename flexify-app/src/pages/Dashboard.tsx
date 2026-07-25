@@ -606,7 +606,7 @@ export default function Dashboard() {
                 {activeSales.length === 0 && (
                   (isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
                     <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '12px 32px', background: '#10b981', borderColor: '#10b981' }}>
-                      <AntTag color="transparent" style={{ border: 'none', margin: 0, padding: 0 }}><Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /></AntTag> List Your First Vehicle for Sale
+                      <Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List Your First Vehicle for Sale
                     </button>
                   ) : (user?.salesRequestStatus === 'pending' ? (
                     <button disabled className="btn btn-secondary" style={{ padding: '12px 32px', background: '#e2e8f0', color: '#475569', border: 'none', opacity: 0.7, cursor: 'not-allowed' }}>
@@ -1365,6 +1365,20 @@ export default function Dashboard() {
           )}
         </div>
       </Modal>
+
+      <AddVehicleSale
+        isOpen={isAddVehicleModalOpen}
+        onClose={() => {
+          setIsAddVehicleModalOpen(false);
+          setEditingVehicleSale(null);
+        }}
+        onSuccess={() => {
+          setIsAddVehicleModalOpen(false);
+          setEditingVehicleSale(null);
+          handleRefreshData();
+        }}
+        initialData={editingVehicleSale}
+      />
     </div>
   );
 }
