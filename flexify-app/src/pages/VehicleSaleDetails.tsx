@@ -50,7 +50,7 @@ export default function VehicleSaleDetails() {
     e.stopPropagation();
     if (!user) {
       message.info('Please log in to save this vehicle.');
-      navigate('/login');
+      navigate('/auth');
       return;
     }
     try {

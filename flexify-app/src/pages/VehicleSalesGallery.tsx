@@ -13,6 +13,14 @@ export default function VehicleSalesGallery() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [filters, setFilters] = useState({
+    minPrice: undefined as number | undefined,
+    maxPrice: undefined as number | undefined,
+    location: '',
+    condition: '',
+    transmission: '',
+    datePublished: ''
+  });
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -22,7 +30,16 @@ export default function VehicleSalesGallery() {
     const fetchSales = async () => {
       setLoading(true);
       try {
-        const data = await salesApi.getActiveSales(searchTerm, selectedCategory === 'All' ? undefined : selectedCategory);
+        const data = await salesApi.getActiveSales({
+          search: searchTerm,
+          category: selectedCategory === 'All' ? undefined : selectedCategory,
+          minPrice: filters.minPrice,
+          maxPrice: filters.maxPrice,
+          location: filters.location || undefined,
+          condition: filters.condition || undefined,
+          transmission: filters.transmission || undefined,
+          datePublished: filters.datePublished || undefined
+        });
         setSales(data);
       } catch (err: any) {
         setError(err.message || 'Failed to load vehicle sales');
@@ -36,7 +53,7 @@ export default function VehicleSalesGallery() {
     }, 500); // Debounce search
     
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, filters]);
 
   const isVehicleSaved = (vehicleId: string) => {
     return user?.saleWishlist?.some((item: any) => 
@@ -49,7 +66,7 @@ export default function VehicleSalesGallery() {
     e.stopPropagation();
     if (!user) {
       message.info('Please log in to save vehicles to your wishlist.');
-      navigate('/login');
+      navigate('/auth');
       return;
     }
     try {
@@ -199,10 +216,104 @@ export default function VehicleSalesGallery() {
               ]}
             />
           </div>
-          {/* Add more filters (Price, Date, Distance) here as requested by user in future phases */}
+
+          <div>
+            <Text strong style={{ display: 'block', marginBottom: '8px' }}>Price Range (Rs.)</Text>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Input 
+                type="number" 
+                placeholder="Min" 
+                value={filters.minPrice || ''}
+                onChange={(e) => setFilters(f => ({ ...f, minPrice: e.target.value ? Number(e.target.value) : undefined }))}
+              />
+              <Input 
+                type="number" 
+                placeholder="Max" 
+                value={filters.maxPrice || ''}
+                onChange={(e) => setFilters(f => ({ ...f, maxPrice: e.target.value ? Number(e.target.value) : undefined }))}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Text strong style={{ display: 'block', marginBottom: '8px' }}>Location</Text>
+            <Input 
+              placeholder="e.g. Colombo, Kandy" 
+              value={filters.location}
+              onChange={(e) => setFilters(f => ({ ...f, location: e.target.value }))}
+            />
+          </div>
+
+          <div>
+            <Text strong style={{ display: 'block', marginBottom: '8px' }}>Condition</Text>
+            <Select
+              size="large"
+              placeholder="Any Condition"
+              style={{ width: '100%' }}
+              allowClear
+              value={filters.condition || undefined}
+              onChange={(val) => setFilters(f => ({ ...f, condition: val || '' }))}
+              options={[
+                { value: 'New', label: 'Brand New' },
+                { value: 'Used', label: 'Used' },
+                { value: 'Reconditioned', label: 'Reconditioned' },
+              ]}
+            />
+          </div>
+
+          <div>
+            <Text strong style={{ display: 'block', marginBottom: '8px' }}>Transmission</Text>
+            <Select
+              size="large"
+              placeholder="Any Transmission"
+              style={{ width: '100%' }}
+              allowClear
+              value={filters.transmission || undefined}
+              onChange={(val) => setFilters(f => ({ ...f, transmission: val || '' }))}
+              options={[
+                { value: 'Automatic', label: 'Automatic' },
+                { value: 'Manual', label: 'Manual' },
+                { value: 'Tiptronic', label: 'Tiptronic' },
+              ]}
+            />
+          </div>
+
+          <div>
+            <Text strong style={{ display: 'block', marginBottom: '8px' }}>Date Published</Text>
+            <Select
+              size="large"
+              placeholder="Any Time"
+              style={{ width: '100%' }}
+              allowClear
+              value={filters.datePublished || undefined}
+              onChange={(val) => setFilters(f => ({ ...f, datePublished: val || '' }))}
+              options={[
+                { value: '1', label: 'Last 24 Hours' },
+                { value: '7', label: 'Last 7 Days' },
+                { value: '30', label: 'Last 30 Days' },
+              ]}
+            />
+          </div>
+
+          <Button 
+            type="default" 
+            block 
+            onClick={() => {
+              setSelectedCategory('All');
+              setFilters({
+                minPrice: undefined,
+                maxPrice: undefined,
+                location: '',
+                condition: '',
+                transmission: '',
+                datePublished: ''
+              });
+            }}
+          >
+            Clear All Filters
+          </Button>
         </div>
       </Drawer>
-      </div>
 
       {sales.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px' }}>

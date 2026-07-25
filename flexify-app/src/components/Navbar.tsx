@@ -147,24 +147,30 @@ export default function Navbar() {
                 <Tag size={18} /> Buy Vehicles
               </Link>
 
-              <NavDropdown
-                label="List Vehicle"
-                icon={Car}
-                items={[
-                  { 
-                    label: 'List for Rent', 
-                    href: user?.rentVerificationStatus === 'approved' || isAdminRole ? '/list-vehicle' : '/verify?type=rent', 
-                    icon: user?.rentVerificationStatus === 'approved' || isAdminRole ? Car : Lock, 
-                    desc: 'Earn money by renting your vehicle' 
-                  },
-                  { 
-                    label: 'List for Sale', 
-                    href: user?.salesVerificationStatus === 'approved' || isAdminRole ? '/staff?tab=manage-sales&openAdd=true' : '/verify?type=sales', 
-                    icon: user?.salesVerificationStatus === 'approved' || isAdminRole ? Tag : Lock, 
-                    desc: 'Sell your vehicle on Rentify' 
-                  },
-                ]}
-              />
+              {!user ? (
+                <Link to="/auth" className="nav-link">
+                  <Car size={18} /> List Vehicle
+                </Link>
+              ) : (
+                <NavDropdown
+                  label="List Vehicle"
+                  icon={Car}
+                  items={[
+                    { 
+                      label: 'List for Rent', 
+                      href: user?.rentVerificationStatus === 'approved' || isAdminRole ? '/list-vehicle' : '/verify?type=rent', 
+                      icon: user?.rentVerificationStatus === 'approved' || isAdminRole ? Car : Lock, 
+                      desc: 'Earn money by renting your vehicle' 
+                    },
+                    { 
+                      label: 'List for Sale', 
+                      href: user?.salesVerificationStatus === 'approved' || isAdminRole ? '/staff?tab=manage-sales&openAdd=true' : '/verify?type=sales', 
+                      icon: user?.salesVerificationStatus === 'approved' || isAdminRole ? Tag : Lock, 
+                      desc: 'Sell your vehicle on Rentify' 
+                    },
+                  ]}
+                />
+              )}
               <NavDropdown
                 label="Company"
                 items={[
@@ -179,41 +185,47 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="navbar-actions">
-              <Dropdown menu={{
-                items: [
-                  {
-                    key: 'rent', label: (
-                      <Link to={user?.rentVerificationStatus === 'approved' || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
-                          {user?.rentVerificationStatus === 'approved' || isAdminRole ? <Car size={18} /> : <Lock size={18} />}
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
-                          <span style={{ fontSize: '12px', color: '#64748b' }}>Earn money by renting</span>
-                        </div>
-                      </Link>
-                    )
-                  },
-                  { type: 'divider' },
-                  {
-                    key: 'sale', label: (
-                      <Link to={user?.salesVerificationStatus === 'approved' || isAdminRole ? "/staff?tab=manage-sales&openAdd=true" : "/verify?type=sales"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
-                          {user?.salesVerificationStatus === 'approved' || isAdminRole ? <Tag size={18} /> : <Lock size={18} />}
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>
-                          <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
-                        </div>
-                      </Link>
-                    )
-                  }
-                ]
-              }} trigger={['click']} placement="bottomRight" overlayStyle={{ minWidth: '220px', padding: '4px' }}>
-                <button className="mobile-plus-btn" title="List Vehicle" style={{ border: 'none', cursor: 'pointer' }}>
+              {!user ? (
+                <button className="mobile-plus-btn" title="List Vehicle" onClick={() => navigate('/auth')} style={{ border: 'none', cursor: 'pointer' }}>
                   <Plus size={18} strokeWidth={2.5} />
                 </button>
-              </Dropdown>
+              ) : (
+                <Dropdown menu={{
+                  items: [
+                    {
+                      key: 'rent', label: (
+                        <Link to={user?.rentVerificationStatus === 'approved' || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
+                            {user?.rentVerificationStatus === 'approved' || isAdminRole ? <Car size={18} /> : <Lock size={18} />}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
+                            <span style={{ fontSize: '12px', color: '#64748b' }}>Earn money by renting</span>
+                          </div>
+                        </Link>
+                      )
+                    },
+                    { type: 'divider' },
+                    {
+                      key: 'sale', label: (
+                        <Link to={user?.salesVerificationStatus === 'approved' || isAdminRole ? "/staff?tab=manage-sales&openAdd=true" : "/verify?type=sales"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
+                            {user?.salesVerificationStatus === 'approved' || isAdminRole ? <Tag size={18} /> : <Lock size={18} />}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Sale</span>
+                            <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
+                          </div>
+                        </Link>
+                      )
+                    }
+                  ]
+                }} trigger={['click']} placement="bottomRight" overlayStyle={{ minWidth: '220px', padding: '4px' }}>
+                  <button className="mobile-plus-btn" title="List Vehicle" style={{ border: 'none', cursor: 'pointer' }}>
+                    <Plus size={18} strokeWidth={2.5} />
+                  </button>
+                </Dropdown>
+              )}
             <Link to="/explore" className="nav-action-btn" title="Search">
               <Search size={20} />
             </Link>

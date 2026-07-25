@@ -566,10 +566,16 @@ export const salesApi = {
     method: 'PUT',
     body: data instanceof FormData ? data : JSON.stringify(data)
   }),
-  getActiveSales: (search?: string, category?: string) => {
+  getActiveSales: (filters?: { search?: string, category?: string, minPrice?: number, maxPrice?: number, location?: string, condition?: string, transmission?: string, datePublished?: string }) => {
     const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (category) params.append('category', category);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.category) params.append('category', filters.category);
+    if (filters?.minPrice) params.append('minPrice', filters.minPrice.toString());
+    if (filters?.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
+    if (filters?.location) params.append('location', filters.location);
+    if (filters?.condition) params.append('condition', filters.condition);
+    if (filters?.transmission) params.append('transmission', filters.transmission);
+    if (filters?.datePublished) params.append('datePublished', filters.datePublished);
     const qs = params.toString();
     return apiFetch<any[]>(`/sales/vehicles${qs ? `?${qs}` : ''}`);
   },
