@@ -34,11 +34,22 @@ router.post("/vehicles", protect, requireSalesVerified, upload.array("images", 1
       status,
     } = req.body;
 
+    const isStaff = ["admin", "superadmin", "staff"].includes(req.user.role);
+
     let originalOwnerDetails;
-    try {
-      originalOwnerDetails = ownerDetailsStr ? JSON.parse(ownerDetailsStr) : null;
-    } catch (e) {
-      return res.status(400).json({ message: "Invalid owner details format" });
+    if (!isStaff) {
+      // Auto-fill for regular verified owners
+      originalOwnerDetails = {
+        name: req.user.name,
+        phone: req.user.phone,
+        email: req.user.email,
+      };
+    } else {
+      try {
+        originalOwnerDetails = ownerDetailsStr ? JSON.parse(ownerDetailsStr) : null;
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid owner details format" });
+      }
     }
 
     // Process uploaded images from Cloudinary
@@ -61,20 +72,20 @@ router.post("/vehicles", protect, requireSalesVerified, upload.array("images", 1
       condition,
       category: category ? (Array.isArray(category) ? category : JSON.parse(category)) : [],
       askingPrice,
-      commissionRate: commissionRate || 0,
+      commissionRate: isStaff ? (commissionRate || 0) : 0,
       isNegotiable: isNegotiable || false,
       title,
       description,
       seoTags: seoTags ? (Array.isArray(seoTags) ? seoTags : JSON.parse(seoTags)) : [],
       contactNumber,
       images: images || [],
-      listedBy: req.user._id, // Bind the staff member creating it
-      assignedStaff: {
+      listedBy: req.user._id, // Owner or Staff creating it
+      assignedStaff: isStaff ? {
         id: req.user._id,
         name: req.user.name,
         email: req.user.email,
         phone: req.user.phone,
-      },
+      } : null,
       originalOwnerDetails,
       status: status || "Available",
     });

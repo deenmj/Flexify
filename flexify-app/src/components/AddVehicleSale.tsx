@@ -3,6 +3,7 @@ import { Form, Input, InputNumber, Select, Button, Card, Typography, Row, Col, D
 import { Car, DollarSign, FileText, User, UploadCloud } from 'lucide-react';
 import { salesApi, getImageUrl } from '../api';
 import imageCompression from 'browser-image-compression';
+import { useAuth } from '../context/AuthContext';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -18,6 +19,8 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [fileList, setFileList] = useState<any[]>([]);
+  const { user } = useAuth();
+  const isStaff = ['admin', 'superadmin', 'staff'].includes(user?.role || '');
 
   useEffect(() => {
     if (initialData) {
@@ -228,12 +231,14 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
               />
             </Form.Item>
           </Col>
-          <Col span={8} xs={24} md={8}>
-            <Form.Item name="commissionRate" label="Commission (%) (Optional)">
-              <InputNumber style={{ width: '100%' }} min={0} max={100} />
-            </Form.Item>
-          </Col>
-          <Col span={8} xs={24} md={8}>
+          {isStaff && (
+            <Col span={8} xs={24} md={8}>
+              <Form.Item name="commissionRate" label="Commission (%) (Optional)">
+                <InputNumber style={{ width: '100%' }} min={0} max={100} />
+              </Form.Item>
+            </Col>
+          )}
+          <Col span={isStaff ? 8 : 16} xs={24} md={isStaff ? 8 : 16}>
             <Form.Item name="isNegotiable" label="Negotiable?">
               <Select defaultValue={false}>
                 <Option value={true}>Yes</Option>
@@ -243,27 +248,31 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
           </Col>
         </Row>
 
-        <Divider orientation="left">
-          <User size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/> 
-          Seller / Owner Details <Text type="secondary" style={{ fontSize: '0.8rem', marginLeft: '12px' }}>(Internal Use Only - This will be hidden from the public)</Text>
-        </Divider>
-        <Row gutter={16}>
-          <Col span={8} xs={24} md={8}>
-            <Form.Item name="ownerName" label="Owner Name" rules={[{ required: true, message: 'Required' }]}>
-              <Input placeholder="Full Name" />
-            </Form.Item>
-          </Col>
-          <Col span={8} xs={24} md={8}>
-            <Form.Item name="ownerPhone" label="Owner Phone" rules={[{ required: true, message: 'Required' }]}>
-              <Input placeholder="+94..." />
-            </Form.Item>
-          </Col>
-          <Col span={8} xs={24} md={8}>
-            <Form.Item name="ownerEmail" label="Owner Email (Optional)">
-              <Input type="email" placeholder="email@example.com" />
-            </Form.Item>
-          </Col>
-        </Row>
+        {isStaff && (
+          <>
+            <Divider orientation="left">
+              <User size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/> 
+              Seller / Owner Details <Text type="secondary" style={{ fontSize: '0.8rem', marginLeft: '12px' }}>(Internal Use Only - This will be hidden from the public)</Text>
+            </Divider>
+            <Row gutter={16}>
+              <Col span={8} xs={24} md={8}>
+                <Form.Item name="ownerName" label="Owner Name" rules={[{ required: isStaff, message: 'Required' }]}>
+                  <Input placeholder="Full Name" />
+                </Form.Item>
+              </Col>
+              <Col span={8} xs={24} md={8}>
+                <Form.Item name="ownerPhone" label="Owner Phone" rules={[{ required: isStaff, message: 'Required' }]}>
+                  <Input placeholder="+94..." />
+                </Form.Item>
+              </Col>
+              <Col span={8} xs={24} md={8}>
+                <Form.Item name="ownerEmail" label="Owner Email (Optional)">
+                  <Input type="email" placeholder="email@example.com" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </>
+        )}
 
         <Divider orientation="left"><FileText size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/> Listing Content</Divider>
         <Form.Item name="title" label="Listing Title" rules={[{ required: true, message: 'Title is required' }]}>
@@ -275,22 +284,24 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         </Form.Item>
 
         <Row gutter={16}>
-          <Col span={12} xs={24} md={12}>
+          <Col span={isStaff ? 12 : 24} xs={24} md={isStaff ? 12 : 24}>
             <Form.Item name="contactNumber" label="Sales Contact Number" rules={[{ required: true, message: 'Contact Number is required' }]}>
               <Input placeholder="+94..." />
             </Form.Item>
           </Col>
-          <Col span={12} xs={24} md={12}>
-            <Form.Item name="seoTags" label="SEO Keywords (Max 5)">
-              <Select 
-                mode="tags" 
-                style={{ width: '100%' }} 
-                placeholder="Type and press enter (e.g. SUV, Hybrid)"
-                tokenSeparators={[',']}
-                maxTagCount={5}
-              />
-            </Form.Item>
-          </Col>
+          {isStaff && (
+            <Col span={12} xs={24} md={12}>
+              <Form.Item name="seoTags" label="SEO Keywords (Max 5)">
+                <Select 
+                  mode="tags" 
+                  style={{ width: '100%' }} 
+                  placeholder="Type and press enter (e.g. SUV, Hybrid)"
+                  tokenSeparators={[',']}
+                  maxTagCount={5}
+                />
+              </Form.Item>
+            </Col>
+          )}
         </Row>
 
         <Form.Item label="Vehicle Images">
