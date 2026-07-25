@@ -224,7 +224,7 @@ export const updateVehicle = async (req, res) => {
 
     // Moderation Override Logic
     const isOwner = vehicle.owner.toString() === req.user._id.toString();
-    const isMasterAdmin = ["admin", "superadmin", "subadmin"].includes(req.user.role);
+    const isMasterAdmin = ["admin", "superadmin"].includes(req.user.role);
 
     if (!isOwner && !isMasterAdmin) {
       return res.status(403).json({ message: "Forbidden: You do not have permission to edit this listing. Staff cannot edit other's listings." });

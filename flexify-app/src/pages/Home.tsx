@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car, Truck, Bike, Bus, Compass } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car, Truck, Bike, Bus, Compass, Lock } from 'lucide-react';
 import { Row, Col } from 'antd';
 import { vehicleApi, type Vehicle, type User, type PublicStats } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -322,8 +322,8 @@ export default function Home() {
           <div className="cta-card">
             <h2>Ready to List Your Vehicle?</h2>
             <p>Earn money by renting out your car. Quick setup, full control.</p>
-            <Link to="/list-vehicle" className="btn btn-primary btn-lg">
-              Get Started <ArrowRight size={18} />
+            <Link to={user?.rentVerificationStatus === 'approved' || user?.role === 'admin' || user?.role === 'superadmin' ? "/list-vehicle" : "/verify?type=rent"} className="btn btn-primary btn-lg">
+              {user?.rentVerificationStatus === 'approved' || user?.role === 'admin' || user?.role === 'superadmin' ? 'Get Started' : <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Lock size={18} /> Verify to List</span>} <ArrowRight size={18} />
             </Link>
           </div>
         </div>
