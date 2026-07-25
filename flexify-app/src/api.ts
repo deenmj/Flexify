@@ -727,11 +727,17 @@ export const userApi = {
   getWishlistRent: () =>
     apiFetch<Vehicle[]>('/users/wishlist/rent'),
 
-  getPendingSalesRequests: () => apiFetch<User[]>('/users/pending-sales'),
+  requestSalesAccess: () =>
+    apiFetch<{ message: string; user: User }>('/users/request-sales', {
+      method: 'POST',
+    }),
 
-  approveSalesRequest: (userId: string) =>
-    apiFetch<{ message: string; user: User }>(`/users/${userId}/approve-sales`, {
+  getPendingSalesRequests: () => apiFetch<User[]>('/users/pending-sales-requests'),
+
+  handleSalesRequest: (userId: string, approve: boolean) =>
+    apiFetch<{ message: string; user: User }>(`/users/${userId}/handle-sales-request`, {
       method: 'PUT',
+      body: JSON.stringify({ approve }),
     }),
 };
 

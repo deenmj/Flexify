@@ -365,6 +365,61 @@ router.put("/:id/approve-sales", protect, requireStaff, async (req, res) => {
   }
 });
 
+/**
+ * User requests sales access manually
+ */
+router.post("/request-sales", protect, async (req, res) => {
+  try {
+    let user = await Staff.findById(req.user._id);
+    if (!user) user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.salesRequestStatus = "pending";
+    await user.save();
+    res.json({ message: "Sales access request sent to staff.", user });
+  } catch (err) {
+    res.status(500).json({ message: "Error requesting sales access", error: err.message });
+  }
+});
+
+/**
+ * Admin fetch pending sales access requests
+ */
+router.get("/pending-sales-requests", protect, requireStaff, async (req, res) => {
+  try {
+    const users = await User.find({ salesRequestStatus: "pending" })
+      .select("-password")
+      .sort({ updatedAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching pending sales requests", error: err.message });
+  }
+});
+
+/**
+ * Admin approve or reject sales access request
+ */
+router.put("/:id/handle-sales-request", protect, requireStaff, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { approve } = req.body;
+    if (approve === true) {
+      user.hasSalesAccess = true;
+      user.salesRequestStatus = "approved";
+    } else {
+      user.hasSalesAccess = false;
+      user.salesRequestStatus = "rejected";
+    }
+
+    await user.save();
+    res.json({ message: approve ? "Sales access approved" : "Sales access rejected", user });
+  } catch (err) {
+    res.status(500).json({ message: "Error handling sales request", error: err.message });
+  }
+});
+
 export default router;
 
 

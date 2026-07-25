@@ -164,14 +164,14 @@ export default function StaffDashboard() {
     setCheckedItems(newChecked);
   };
 
-  const handleApproveSalesUser = async (userId: string) => {
+  const handleSalesRequestAction = async (userId: string, approve: boolean) => {
     setActionLoading(userId);
     try {
-      await userApi.approveSalesRequest(userId);
-      message.success('Sales verification approved successfully!');
+      await userApi.handleSalesRequest(userId, approve);
+      message.success(approve ? 'Sales access approved!' : 'Sales access rejected!');
       setPendingSalesUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
     } catch (err: any) {
-      message.error(err.message || 'Error approving sales request');
+      message.error(err.message || 'Error handling sales request');
     } finally {
       setActionLoading(null);
     }
@@ -685,15 +685,26 @@ export default function StaffDashboard() {
                       {
                         title: 'Action',
                         render: (_, u) => (
-                          <Button
-                            type="primary"
-                            style={{ background: '#16a34a' }}
-                            icon={<CheckCircle size={14} />}
-                            loading={actionLoading === (u.id || u._id)}
-                            onClick={() => handleApproveSalesUser(u.id || u._id)}
-                          >
-                            Approve
-                          </Button>
+                          <Space>
+                            <Button
+                              type="primary"
+                              style={{ background: '#16a34a' }}
+                              icon={<CheckCircle size={14} />}
+                              loading={actionLoading === (u.id || u._id)}
+                              onClick={() => handleSalesRequestAction(u.id || u._id, true)}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              type="primary"
+                              danger
+                              icon={<XCircle size={14} />}
+                              loading={actionLoading === (u.id || u._id)}
+                              onClick={() => handleSalesRequestAction(u.id || u._id, false)}
+                            >
+                              Reject
+                            </Button>
+                          </Space>
                         )
                       }
                     ]}
