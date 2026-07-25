@@ -582,7 +582,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
                   <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
-                    <AntTag color="transparent" style={{ border: 'none', margin: 0, padding: 0 }}><Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /></AntTag> List for Sale
+                    <Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List for Sale
                   </button>
                 ) : (
                   <Link to="/verify?type=sales" className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7 }}>
@@ -1366,19 +1366,23 @@ export default function Dashboard() {
         </div>
       </Modal>
 
-      <AddVehicleSale
-        isOpen={isAddVehicleModalOpen}
-        onClose={() => {
-          setIsAddVehicleModalOpen(false);
-          setEditingVehicleSale(null);
-        }}
-        onSuccess={() => {
-          setIsAddVehicleModalOpen(false);
-          setEditingVehicleSale(null);
-          handleRefreshData();
-        }}
-        initialData={editingVehicleSale}
-      />
+      <Modal
+        title={editingVehicleSale ? "Edit Vehicle Listing" : "Add New Vehicle Listing"}
+        open={isAddVehicleModalOpen}
+        onCancel={() => { setIsAddVehicleModalOpen(false); setEditingVehicleSale(null); }}
+        footer={null}
+        width={768}
+        destroyOnClose
+      >
+        <AddVehicleSale
+          initialData={editingVehicleSale}
+          onSuccess={() => {
+            setIsAddVehicleModalOpen(false);
+            setEditingVehicleSale(null);
+            handleRefreshData();
+          }}
+        />
+      </Modal>
     </div>
   );
 }
