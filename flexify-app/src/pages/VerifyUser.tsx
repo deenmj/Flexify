@@ -16,6 +16,7 @@ export default function VerifyUser() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
+  const typeParam = searchParams.get('type') || 'rent';
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -217,6 +218,7 @@ export default function VerifyUser() {
       formData.append('fullName', form.fullName);
       formData.append('phone', form.phone);
       formData.append('kycConsentGiven', 'true');
+      formData.append('type', typeParam);
 
       await userApi.submitKyc(formData);
       await refreshUser();
@@ -352,9 +354,13 @@ export default function VerifyUser() {
           <div style={{ background: 'linear-gradient(135deg, #1890ff, #096dd9)', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: 'white' }}>
             <Shield size={32} />
           </div>
-          <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: '0.5rem', color: '#1e293b' }}>One-Time Verification</h1>
+          <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: '0.5rem', color: '#1e293b' }}>
+            {typeParam === 'sales' ? 'Sell Vehicles on Flexify' : 'One-Time Verification'}
+          </h1>
           <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto', fontSize: isMobile ? '0.9rem' : '1rem' }}>
-            Provide your ID details and address to start booking vehicles. This is a one-time process — it only takes a minute!
+            {typeParam === 'sales' 
+              ? 'Submit your ID details to become a verified seller and start listing vehicles for sale.' 
+              : 'Provide your ID details and address to start booking vehicles. This is a one-time process — it only takes a minute!'}
           </p>
         </div>
 
