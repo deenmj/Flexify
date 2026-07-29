@@ -33,6 +33,8 @@ export default function Profile() {
   const [docPreviews, setDocPreviews] = useState<{ license?: string; selfie?: string }>({});
   const [docAddress, setDocAddress] = useState(user?.documents?.address || '');
 
+  const [docType, setDocType] = useState<'rent' | 'sales'>('rent');
+
   if (!user) {
     return (
       <div className="profile-page">
@@ -42,8 +44,6 @@ export default function Profile() {
       </div>
     );
   }
-
-  const [docType, setDocType] = useState<'rent' | 'sales'>('rent');
 
   const handleEditClick = () => {
     setForm({

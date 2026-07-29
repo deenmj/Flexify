@@ -1,18 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import dayjs, { type Dayjs } from 'dayjs';
-import isBetween from 'dayjs/plugin/isBetween';
-import { Row, Col, Calendar, DatePicker, Tooltip, Modal, message, List, Rate, Avatar, Card, Badge, Tag, Input, Button } from 'antd';
-import { vehicleApi, bookingApi, reviewApi, feedbackApi, type Vehicle, type BookedRange, type BlackoutRange, type Review, getImageUrl, getVehicleSlug } from '../api';
-import { Users, CheckCircle, Star, Calendar as CalIcon, ArrowRight, Phone, Shield, MessageSquare, MessageCircle, AlertTriangle, Zap, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X } from 'lucide-react';
+import { Row, Col, Modal, message, Avatar, Card, Badge, Tag, Input, Button } from 'antd';
+import { vehicleApi, feedbackApi, type Vehicle, getImageUrl, getVehicleSlug } from '../api';
+import { Users, CheckCircle, Phone, Shield, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
 import './VehicleDetail.css';
 
+// WhatsApp SVG logo component
+const WhatsAppIcon = ({ size = 20 }: { size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="white">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+);
 
-dayjs.extend(isBetween);
-const { RangePicker } = DatePicker;
 
 export default function VehicleDetail() {
   const { id: slugOrId } = useParams<{ id: string }>();
@@ -329,15 +331,7 @@ export default function VehicleDetail() {
                     <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: 0 }}>
                       {vehicle.title}
                     </h1>
-                    <div
-                      className="detail-rating"
-                      onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
-                      style={{ cursor: 'pointer', margin: 0 }}
-                    >
-                      <Star size={16} fill="#f59e0b" color="#f59e0b" />
-                      <span className="rating-score">{vehicle.averageRating || 'New'}</span>
-                      <span className="rating-count">({vehicle.reviewCount || 0})</span>
-                    </div>
+
                   </div>
                   <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
                     <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
@@ -643,20 +637,30 @@ export default function VehicleDetail() {
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-                    <button
-                      className="btn btn-full"
-                      onClick={() => handleContactClick('call')}
-                      style={{ height: '54px', fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '10px' }}
-                    >
-                      <Phone size={20} /> Contact by Call
-                    </button>
-                    <button
-                      className="btn btn-full"
-                      onClick={() => handleContactClick('whatsapp')}
-                      style={{ height: '54px', fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#25D366', color: 'white', border: 'none', borderRadius: '10px' }}
-                    >
-                      <MessageSquare size={20} /> Contact on WhatsApp
-                    </button>
+                    {/* Show Call button only if contactMethod is 'call' or 'both' */}
+                    {(!vehicle.contactMethod || vehicle.contactMethod === 'call' || vehicle.contactMethod === 'both') && (
+                      <button
+                        className="btn btn-full"
+                        onClick={() => handleContactClick('call')}
+                        style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: '0 4px 14px rgba(37,99,235,0.35)', transition: 'all 0.2s' }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,99,235,0.45)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35)'; }}
+                      >
+                        <Phone size={20} /> Call Owner
+                      </button>
+                    )}
+                    {/* Show WhatsApp button only if contactMethod is 'whatsapp' or 'both' */}
+                    {(!vehicle.contactMethod || vehicle.contactMethod === 'whatsapp' || vehicle.contactMethod === 'both') && (
+                      <button
+                        className="btn btn-full"
+                        onClick={() => handleContactClick('whatsapp')}
+                        style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #128C7E, #25D366)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: '0 4px 14px rgba(37,211,102,0.35)', transition: 'all 0.2s' }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,211,102,0.45)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,211,102,0.35)'; }}
+                      >
+                        <WhatsAppIcon size={22} /> WhatsApp Owner
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -709,20 +713,28 @@ export default function VehicleDetail() {
             <span className="bar-unit">/ Day</span>
           </div>
           <div style={{ flex: 1, display: 'flex', gap: '0.5rem' }}>
-            <button
-              className="btn btn-full"
-              onClick={() => handleContactClick('whatsapp')}
-              style={{ flex: 1, height: '44px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#25D366', color: 'white', border: 'none', borderRadius: '10px' }}
-            >
-              <MessageSquare size={20} />
-            </button>
-            <button
-              className="btn btn-full"
-              onClick={() => handleContactClick('call')}
-              style={{ flex: 1, height: '44px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#2563eb', color: 'white', border: 'none', borderRadius: '10px' }}
-            >
-              <Phone size={20} />
-            </button>
+            {(!vehicle.contactMethod || vehicle.contactMethod === 'whatsapp' || vehicle.contactMethod === 'both') && (
+              <button
+                className="btn btn-full"
+                onClick={() => handleContactClick('whatsapp')}
+                style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'linear-gradient(135deg, #128C7E, #25D366)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
+              >
+                <WhatsAppIcon size={18} />
+                {(!vehicle.contactMethod || vehicle.contactMethod === 'both') && <span>WhatsApp</span>}
+                {vehicle.contactMethod === 'whatsapp' && <span>WhatsApp</span>}
+              </button>
+            )}
+            {(!vehicle.contactMethod || vehicle.contactMethod === 'call' || vehicle.contactMethod === 'both') && (
+              <button
+                className="btn btn-full"
+                onClick={() => handleContactClick('call')}
+                style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
+              >
+                <Phone size={18} />
+                {(!vehicle.contactMethod || vehicle.contactMethod === 'both') && <span>Call</span>}
+                {vehicle.contactMethod === 'call' && <span>Call Now</span>}
+              </button>
+            )}
           </div>
         </div>
       )}
