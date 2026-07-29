@@ -637,32 +637,33 @@ export const getVehicleById = async (req, res) => {
       }
     }
 
-    let canViewPhone = false;
-    if (req.user && vehicle.owner) {
-      if (req.user._id.toString() === vehicle.owner._id.toString()) {
-        canViewPhone = true;
-      } else if (req.user.role === 'subadmin' || req.user.role === 'superadmin') {
-        canViewPhone = true;
-      } else {
-        // Check for confirmed booking
-        const booking = await Booking.findOne({
-          vehicle: vehicle._id,
-          user: req.user._id,
-          status: 'CONFIRMED'
-        });
-        if (booking) canViewPhone = true;
-      }
-    }
-
+    // Mobile number is now always exposed for the contact flow
     const vehicleObj = vehicle.toObject();
-    if (!canViewPhone) {
-      delete vehicleObj.mobileNumber;
-      if (vehicleObj.owner) {
-        delete vehicleObj.owner.phone;
-      }
-    }
 
     res.json(vehicleObj);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Public: Track contact button clicks (call or whatsapp)
+ */
+export const trackContactClick = async (req, res) => {
+  try {
+    const { type } = req.body;
+    if (!["call", "whatsapp"].includes(type)) {
+      return res.status(400).json({ message: "Invalid contact type" });
+    }
+
+    const field = type === "call" ? "callClicks" : "whatsappClicks";
+    
+    // Atomic increment
+    await Vehicle.findByIdAndUpdate(req.params.id, {
+      $inc: { [field]: 1 }
+    });
+
+    res.json({ message: "Click tracked successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
