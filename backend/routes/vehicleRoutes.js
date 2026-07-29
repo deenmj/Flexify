@@ -14,6 +14,7 @@ import {
   getMakes,
   getModels,
   getPublicStats,
+  trackContactClick,
 } from "../controllers/vehicleController.js";
 
 const router = express.Router();
@@ -25,6 +26,7 @@ router.get("/makes", getMakes);
 router.get("/models/:makeId", getModels);
 router.get("/my", protect, getMyVehicles);
 router.get("/:id/availability", getVehicleAvailability);
+router.post("/:id/contact-click", trackContactClick);
 router.get("/:id", protectOptional, getVehicleById);
 
 // Owner CRUD

@@ -10,7 +10,6 @@ import {
   Clock, Eye, Phone, Shield, AlertTriangle,
   MessageSquare, Info, User, Users, FileText, Compass, Heart, Lock
 } from 'lucide-react';
-import { notification } from 'antd';
 import { useSocket } from '../context/SocketContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -25,27 +24,19 @@ export default function Dashboard() {
   const { socket } = useSocket();
   const isMobile = useIsMobile();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [wishlistSubTab, setWishlistSubTab] = useState<'rent' | 'buy'>('rent');
   const [searchParams] = useSearchParams();
   const [activeSales, setActiveSales] = useState<any[]>([]);
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
   const [editingVehicleSale, setEditingVehicleSale] = useState<any>(null);
-  const [tab, setTab] = useState<'vehicles' | 'bookings' | 'calendar' | 'reviews' | 'wishlist' | 'sales'>(() => {
+  const [tab, setTab] = useState<'vehicles' | 'wishlist' | 'sales'>(() => {
     const urlTab = searchParams.get('tab');
-    if (urlTab === 'bookings') return 'bookings';
     if (urlTab === 'wishlist') return 'wishlist';
     if (urlTab === 'sales') return 'sales';
-    return user?.role === 'user' ? 'bookings' : 'vehicles';
+    return user?.role === 'user' ? 'wishlist' : 'vehicles';
   });
   const selectedCategory = 'All';
-  const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'confirmed' | 'past'>('all');
-  const [bookingType, setBookingType] = useState<'received' | 'trips'>(() => {
-    const urlType = searchParams.get('type');
-    if (urlType === 'trips') return 'trips';
-    return 'received';
-  });
 
   const navigate = useNavigate();
 
@@ -63,68 +54,11 @@ export default function Dashboard() {
     navigate(`/dashboard/vehicle/${v._id}`);
   };
 
-  // Review state
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewForm] = Form.useForm();
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
-
-  // Trip Detail Modal state
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-
-  // Review Renter Modal state
-  const [showRenterModal, setShowRenterModal] = useState(false);
-  const [selectedRenter, setSelectedRenter] = useState<any>(null);
-  const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
-
-  // New Booking Success Modal
-  const location = useLocation();
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successContact, setSuccessContact] = useState<any>(null);
-
-  useEffect(() => {
-    if (searchParams.get('newBooking') === '1' && location.state?.bookingSuccessData) {
-      const resp = location.state.bookingSuccessData;
-      if (resp.owner) {
-        setSuccessContact(resp.owner);
-        setShowSuccessModal(true);
-      }
-      // Clean up URL and state to prevent it showing again on refresh
-      window.history.replaceState({}, document.title, window.location.pathname + '?tab=bookings');
-    }
-  }, [searchParams, location.state]);
-
-
-  const handleViewDetail = (booking: Booking) => {
-    setSelectedBooking(booking);
-    setShowDetailModal(true);
-  };
-
-  const handleReviewRenter = async (bookingId: string, initialUser: any) => {
-    // Show modal immediately with partial data (name/email)
-    setSelectedRenter(initialUser);
-    setActiveBookingId(bookingId);
-    setShowRenterModal(true);
-
-    // Explicitly fetch full user details directly from the User collection
-    // This bypasses any population issues in the main booking list
-    try {
-      const fullUser = await bookingApi.getRenterDetails(bookingId);
-      setSelectedRenter(fullUser);
-    } catch (err: any) {
-      console.error("Failed to fetch renter details:", err);
-    }
-  };
-
   // Highlight logic from URL
   useEffect(() => {
-    const highlightId = searchParams.get('highlight');
     const targetTab = searchParams.get('tab');
 
-    if (targetTab === 'bookings') {
-      setTab('bookings');
-    } else if (targetTab === 'wishlist') {
+    if (targetTab === 'wishlist') {
       setTab('wishlist');
     } else if (targetTab === 'vehicles' && (vehicles.length > 0 || user?.role === 'admin')) {
       setTab('vehicles');
@@ -134,36 +68,14 @@ export default function Dashboard() {
         setIsAddVehicleModalOpen(true);
       }
     }
-
-    if (highlightId && bookings.length > 0) {
-      // Automatic Modal Opening for Notifications (Owner view of pending request)
-      const targetBooking = bookings.find(b => b._id === highlightId);
-      if (targetBooking && targetBooking.status === 'PENDING' && user?.role === 'owner' && !showRenterModal) {
-        const renter = typeof targetBooking.user === 'object' ? targetBooking.user : null;
-        handleReviewRenter(targetBooking._id, renter);
-      }
-
-      setTimeout(() => {
-        const element = document.getElementById(`booking-${highlightId}`);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          element.classList.add('highlight-row');
-          setTimeout(() => element.classList.remove('highlight-row'), 3000);
-        }
-      }, 500);
-    }
-  }, [searchParams, bookings.length, user?.role, showRenterModal]);
+  }, [searchParams, user?.role]);
 
   const handleRefreshData = async () => {
     try {
       const v = await vehicleApi.getMy().catch(() => []);
-      const b = await bookingApi.getMy().catch(() => []);
       const s = user?.role === 'owner' ? await salesApi.getStaffActiveSales().catch(() => []) : [];
       setVehicles(v as Vehicle[]);
-      setBookings(b as Booking[]);
       setActiveSales(s);
-
-
     } catch (err) {
       console.error("Failed to refresh dashboard data", err);
     } finally {
@@ -174,142 +86,6 @@ export default function Dashboard() {
   useEffect(() => {
     handleRefreshData();
   }, [user]);
-
-  // Handle Real-time Sockets
-  useEffect(() => {
-    if (!socket) return;
-
-    // Listen for new bookings (Owners only)
-    if (user?.role === 'owner') {
-      socket.on('newBookingRequest', (data: any) => {
-        notification.success({
-          message: '🔔 New Booking Request!',
-          description: `${data.renterName} wants to rent your ${data.vehicleTitle}.`,
-          duration: 10,
-          placement: 'topRight',
-          onClick: () => { setTab('bookings'); setBookingType('received'); }
-        });
-        // Add to local state
-        handleRefreshData();
-      });
-    }
-
-    // Listen for status updates (Renters only)
-    if (user?.role === 'user') {
-      socket.on('bookingStatusUpdate', (data: any) => {
-        notification.info({
-          message: '📅 Booking Update',
-          description: data.message,
-          duration: 7,
-          placement: 'topRight'
-        });
-        // Refresh local bookings
-        handleRefreshData();
-      });
-    }
-
-    return () => {
-      socket.off('newBookingRequest');
-      socket.off('bookingStatusUpdate');
-    };
-  }, [socket, user]);
-
-
-
-  const handleAcceptBooking = async (id: string) => {
-    const previousBookings = [...bookings];
-
-    // 1. Instant Optimistic UI Update
-    setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CONFIRMED' } : bk));
-    message.success('Booking confirmed!');
-
-    // 2. Short delay for "feel" then API call
-    setTimeout(async () => {
-      try {
-        await bookingApi.accept(id);
-        // Refresh to get full populated data (like owner phone etc)
-        const updated = await bookingApi.getMy();
-        setBookings(updated);
-      } catch (err: any) {
-        // Rollback on failure
-        setBookings(previousBookings);
-        message.error(err.message || 'Failed to confirm booking');
-      }
-    }, 300);
-  };
-
-  const handleRejectBooking = async (id: string) => {
-    let reason = '';
-    Modal.confirm({
-      title: 'Reject Booking',
-      content: (
-        <div style={{ marginTop: '16px' }}>
-          <p style={{ marginBottom: '12px' }}>Are you sure you want to reject this booking request?</p>
-          <Input.TextArea
-            placeholder="Tell the renter why you are rejecting (e.g., Vehicle needs maintenance)"
-            onChange={(e) => { reason = e.target.value; }}
-            rows={3}
-          />
-        </div>
-      ),
-      okText: 'Reject',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
-        try {
-          await bookingApi.reject(id, reason);
-          setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'REJECTED' } : bk));
-          message.success('Booking rejected');
-        } catch (err: any) { message.error(err.message || 'Failed to reject booking'); }
-      },
-    });
-  };
-
-  const handleCancelBooking = async (id: string) => {
-    let reason = '';
-    Modal.confirm({
-      title: 'Cancel Booking',
-      content: (
-        <div style={{ marginTop: '16px' }}>
-          <p style={{ marginBottom: '12px' }}>Are you sure you want to cancel this booking?</p>
-          <Input.TextArea
-            placeholder="Reason for cancellation (e.g., Change of plans)"
-            onChange={(e) => { reason = e.target.value; }}
-            rows={3}
-          />
-        </div>
-      ),
-      okText: 'Cancel Booking',
-      okType: 'danger',
-      cancelText: 'Go Back',
-      onOk: async () => {
-        try {
-          await bookingApi.cancel(id, reason);
-          setBookings(prev => prev.map(bk => bk._id === id ? { ...bk, status: 'CANCELLED' } : bk));
-          message.success('Booking cancelled');
-        } catch (err: any) { message.error(err.message || 'Failed to cancel booking'); }
-      },
-    });
-  };
-
-  const handleReviewSubmit = async (values: any) => {
-    if (!selectedBookingId) return;
-    setSubmittingReview(true);
-    try {
-      await reviewApi.create(selectedBookingId, values.rating, values.comment);
-      message.success('Review submitted successfully!');
-
-      // Update local state to hide review button
-      setBookings((prev: any[]) => prev.map(b => b._id === selectedBookingId ? { ...b, isReviewed: true } : b));
-
-      setShowReviewModal(false);
-      reviewForm.resetFields();
-    } catch (err: any) {
-      message.error(err.message || 'Failed to submit review');
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
 
 
 
@@ -327,50 +103,7 @@ export default function Dashboard() {
     return <Tag color="success">Active</Tag>;
   };
 
-  const bookingStatusBadge = (status: string, startDate?: any) => {
-    const isExpired = status === 'PENDING' && startDate && dayjs(startDate).isBefore(dayjs(), 'day');
 
-    if (isExpired) {
-      return <Tag color="error" icon={<Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}>Expired</Tag>;
-    }
-
-    switch (status) {
-      case 'PENDING': return <Tag color="warning">Pending</Tag>;
-      case 'CONFIRMED': return <Tag color="success">Confirmed</Tag>;
-      case 'CANCELLED': return <Tag color="error">Cancelled</Tag>;
-      case 'COMPLETED': return <Tag color="processing">Completed</Tag>;
-      case 'REJECTED': return <Tag color="error">Rejected</Tag>;
-      default: return <Tag>{status}</Tag>;
-    }
-  };
-
-  const filteredVehicles = selectedCategory === 'All'
-    ? vehicles
-    : vehicles.filter(v => v.serviceType && v.serviceType.includes(selectedCategory));
-
-  const filteredBookings = bookings.filter(b => {
-    // 1. First filter by Type (Received Requests vs My Trips) if not a normal user
-    if (user.role !== 'user') {
-      const bOwnerId = String(typeof b.owner === 'object' ? (b.owner as any)?._id || (b.owner as any)?.id : b.owner);
-      const bRenterId = String(typeof b.user === 'object' ? (b.user as any)?._id || (b.user as any)?.id : b.user);
-      const myId = String(user._id || user.id);
-
-      const isMyVehicle = myId === bOwnerId;
-      const amIRenter = myId === bRenterId;
-
-      if (bookingType === 'received' && !isMyVehicle) return false;
-      if (bookingType === 'trips' && !amIRenter) return false;
-    }
-
-    // 2. Then filter by Status (All, Pending, Confirmed, Past)
-    const isPast = dayjs(b.endDate).isBefore(dayjs(), 'day');
-
-    if (bookingFilter === 'all') return true;
-    if (bookingFilter === 'pending') return b.status === 'PENDING';
-    if (bookingFilter === 'confirmed') return b.status === 'CONFIRMED' && !isPast;
-    if (bookingFilter === 'past') return isPast || b.status === 'COMPLETED' || b.status === 'CANCELLED' || b.status === 'REJECTED';
-    return true;
-  });
 
   const handleRemoveRentWishlist = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -433,12 +166,6 @@ export default function Dashboard() {
           {user.role === 'user' && vehicles.length === 0 ? (
             <>
               <button
-                className={`nav-item ${tab === 'bookings' || tab === 'vehicles' ? 'active' : ''}`}
-                onClick={() => { setTab('bookings'); setBookingType('trips'); }}
-              >
-                <CalIcon size={16} /> My Trip History
-              </button>
-              <button
                 className={`nav-item ${tab === 'wishlist' ? 'active' : ''}`}
                 onClick={() => setTab('wishlist')}
               >
@@ -460,18 +187,6 @@ export default function Dashboard() {
                   </Link>
                 </>
               )}
-              <button
-                className={`nav-item ${tab === 'bookings' && bookingType === 'received' ? 'active' : ''}`}
-                onClick={() => { setTab('bookings'); setBookingType('received'); }}
-              >
-                <CalIcon size={16} /> Manage Bookings
-              </button>
-              <button
-                className={`nav-item ${tab === 'bookings' && bookingType === 'trips' ? 'active' : ''}`}
-                onClick={() => { setTab('bookings'); setBookingType('trips'); }}
-              >
-                <Compass size={16} /> My Trips
-              </button>
               <button
                 className={`nav-item ${tab === 'wishlist' ? 'active' : ''}`}
                 onClick={() => setTab('wishlist')}
@@ -568,6 +283,14 @@ export default function Dashboard() {
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                         <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: isMobile ? '0.6rem' : '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
+                      </div>
+                      <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#166534', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                          <Phone size={12} /> {v.callClicks || 0} Calls
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#166534', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                          <MessageSquare size={12} /> {v.whatsappClicks || 0} WhatsApp
+                        </div>
                       </div>
                     </div>
                   </div>

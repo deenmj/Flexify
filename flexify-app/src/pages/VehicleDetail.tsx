@@ -47,25 +47,9 @@ export default function VehicleDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Availability & Blackouts
-  const [bookedRanges, setBookedRanges] = useState<BookedRange[]>([]);
-  const [blackoutRanges, setBlackoutRanges] = useState<BlackoutRange[]>([]);
-  const [calendarDate, setCalendarDate] = useState<Dayjs>(() => dayjs());
-
-  // Booking modal
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
-  const [bookingLoading, setBookingLoading] = useState(false);
-  const [createdBooking, setCreatedBooking] = useState<any>(null);
-  const [withDriver, setWithDriver] = useState(false);
-
   // active carousel image
   const [activeImage, setActiveImage] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
-
-  // Reviews
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   // Reporting
   const [showReportModal, setShowReportModal] = useState(false);
@@ -87,223 +71,38 @@ export default function VehicleDetail() {
     fetchVehicle();
   }, [id]);
 
-  // Fetch availability & reviews
-  useEffect(() => {
-    if (!id) return;
-    setReviewsLoading(true);
-
-    Promise.all([
-      vehicleApi.getAvailability(id),
-      reviewApi.getForVehicle(id)
-    ])
-      .then(([availData, reviewData]) => {
-        setBookedRanges(availData.bookedRanges);
-        setBlackoutRanges(availData.blackoutRanges);
-        setReviews(reviewData);
-      })
-      .catch(() => { /* silently fail */ })
-      .finally(() => {
-        setReviewsLoading(false);
-      });
-  }, [id]);
+  // Remove availability & reviews fetch
 
   // Auto-complete pending booking moved to Auth.tsx and VerifyUser.tsx
 
-  // Helper: is a date within a booked range?
-  const isDateBooked = useCallback((date: Dayjs, statusFilter?: string) => {
-    return bookedRanges.some((r) => {
-      if (statusFilter && r.status !== statusFilter) return false;
-      const start = dayjs(r.start).startOf('day');
-      const end = dayjs(r.end).endOf('day');
-      return date.isBetween(start, end, 'day', '[]');
-    });
-  }, [bookedRanges]);
-
-  // Helper: is a date within a blackout range?
-  const isDateBlackedOut = useCallback((date: Dayjs) => {
-    return blackoutRanges.some((r) => {
-      const start = dayjs(r.start).startOf('day');
-      const end = dayjs(r.end).endOf('day');
-      return date.isBetween(start, end, 'day', '[]');
-    });
-  }, [blackoutRanges]);
-
-  // Disable dates in the RangePicker (past, confirmed ranges, and blackouts)
-  const disabledDate = useCallback((current: Dayjs) => {
-    if (current && current.isBefore(dayjs(), 'day')) return true;
-    return isDateBooked(current, 'CONFIRMED') || isDateBlackedOut(current);
-  }, [isDateBooked, isDateBlackedOut]);
-
-  // Tooltip & Styling for RangePicker cells
-  const pickerCellRender = useCallback((current: Dayjs | any) => {
-    const date = dayjs(current);
-    const confirmed = isDateBooked(date, 'CONFIRMED');
-    const pending = isDateBooked(date, 'PENDING');
-    const blackedOut = isDateBlackedOut(date);
-
-    // Determine the status and label
-    let statusClass = '';
-    let label = '';
-    let tooltip = '';
-
-    if (confirmed) {
-      statusClass = 'confirmed';
-      label = 'Booked';
-      tooltip = 'Already booked';
-    } else if (pending) {
-      statusClass = 'pending';
-      label = 'Pending';
-      tooltip = 'Booking Pending';
-    } else if (blackedOut) {
-      statusClass = 'blackout';
-      label = 'Unavailable';
-      tooltip = 'Owner unavailable (blackout)';
-    } else if (date.isSame(dayjs(), 'day') || date.isAfter(dayjs(), 'day')) {
-      statusClass = 'available';
-      label = 'Available';
-    }
-
-    if (statusClass) {
-      const content = (
-        <div className="avail-status-container">
-          <div className={`status-indicator ${statusClass}`}>
-            <span className="status-text">{label}</span>
-          </div>
-        </div>
-      );
-      return tooltip ? (
-        <Tooltip title={tooltip}>
-          <div className="ant-picker-cell-inner">{date.date()}{content}</div>
-        </Tooltip>
-      ) : <div className="ant-picker-cell-inner">{date.date()}{content}</div>;
-    }
-
-    return <div className="ant-picker-cell-inner">{date.date()}</div>;
-  }, [isDateBooked, isDateBlackedOut]);
-
-  // Calendar cell renderer for the availability calendar
-  const fullCellRender = useCallback((date: Dayjs) => {
-    const isPast = date.isBefore(dayjs(), 'day');
-    const confirmed = isDateBooked(date, 'CONFIRMED');
-    const pending = isDateBooked(date, 'PENDING');
-    const blackedOut = isDateBlackedOut(date);
-
-    const isCurrentMonth = date.month() === calendarDate.month() && date.year() === calendarDate.year();
-
-    if (!isCurrentMonth) {
-      return (
-        <div className="calendar-custom-cell cell-past" style={{ opacity: 0.3 }}>
-          <span className="cell-date-num">{date.date()}</span>
-        </div>
-      );
-    }
-
-    let status = 'available';
-    let tooltip = '';
-
-    if (isPast) {
-      status = 'past';
-    } else if (confirmed) {
-      status = 'confirmed';
-      tooltip = 'Booked (Confirmed)';
-    } else if (pending) {
-      status = 'pending';
-      tooltip = 'Booking Pending';
-    } else if (blackedOut) {
-      status = 'blackout';
-      tooltip = 'Owner Unavailable';
-    }
-
-    const content = (
-      <div className={`calendar-custom-cell cell-${status}`}>
-        <span className="cell-date-num">{date.date()}</span>
-      </div>
-    );
-
-    return tooltip ? <Tooltip title={tooltip}>{content}</Tooltip> : content;
-  }, [isDateBooked, isDateBlackedOut, calendarDate]);
-
-  const handleBookNow = async () => {
-    if (!dateRange || !dateRange[0] || !dateRange[1]) {
-      message.error('Please select both pickup and return dates');
-      return;
-    }
-
-    const startStr = dateRange[0].toISOString();
-    const endStr = dateRange[1].toISOString();
-
+  const handleContactClick = async (type: 'call' | 'whatsapp') => {
     if (!user) {
-      // Save intent before auth
-      localStorage.setItem('pendingBooking', JSON.stringify({
-        vehicleId: id,
-        startDate: startStr,
-        endDate: endStr,
-        withDriver,
-      }));
       navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
       return;
     }
-
-    const hasKycFields = Boolean(
-      user.documents?.idNumber?.trim() &&
-      user.documents?.address?.trim() &&
-      (user.documents?.phone?.trim() || user.phone?.trim())
-    );
-
-    // If user hasn't submitted KYC or missing mandatory fields, save pending booking and redirect to KYC
-    if (!hasKycFields) {
-      localStorage.setItem('pendingBooking', JSON.stringify({
-        vehicleId: id,
-        startDate: startStr,
-        endDate: endStr,
-        withDriver,
-      }));
-      message.info('Quick verification needed before booking — it only takes a minute!');
-      navigate(`/verify?returnTo=${encodeURIComponent(`/vehicles/${id}`)}&pendingBooking=true`);
-      return;
-    }
-
-    // User is verified (has fields filled) — proceed with booking
-    setBookingLoading(true);
+    
+    // Track click asynchronously
     try {
-      const resp = await bookingApi.create(id!, startStr, endStr, withDriver);
-      setCreatedBooking(resp);
-      message.success('Booking request submitted!');
-
-      // Background refresh
-      vehicleApi.getAvailability(id!)
-        .then((data) => {
-          setBookedRanges(data.bookedRanges);
-          setBlackoutRanges(data.blackoutRanges);
-        })
-        .catch(err => console.error('Silent refresh failed:', err));
-
-    } catch (err: any) {
-      console.error('Booking failed:', err);
-      message.error(err.message || 'Failed to create booking');
-    } finally {
-      setBookingLoading(false);
+      await vehicleApi.trackContactClick(id!, type);
+    } catch (err) {
+      console.error('Failed to track contact click', err);
     }
-  };
-
-  // Determine button text based on verification status
-  const getBookingButtonText = () => {
-    if (!user) return 'Sign In to Book';
-    const hasKycFields = Boolean(
-      user.documents?.idNumber?.trim() &&
-      user.documents?.address?.trim() &&
-      (user.documents?.phone?.trim() || user.phone?.trim())
-    );
-    return hasKycFields ? 'Book Now' : 'Verify and Book';
-  };
-
-  const handleBookingTrigger = () => {
-    if (!user) {
-      navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
+    
+    // Proceed with action
+    const ownerObj = typeof vehicle?.owner === 'object' ? vehicle?.owner as any : null;
+    const phone = vehicle?.mobileNumber || ownerObj?.phone || '';
+    if (!phone) {
+      message.error('Contact number not available');
       return;
     }
-    // Allow all logged-in users to open the booking modal regardless of KYC status
-    setShowBookingModal(true);
+
+    if (type === 'call') {
+      window.location.href = `tel:${phone}`;
+    } else {
+      const cleanPhone = phone.replace(/[^0-9]/g, '').replace(/^0/, '94');
+      const text = encodeURIComponent(`Hi, I'm interested in your ${vehicle?.make} ${vehicle?.model} listed on Rentify.`);
+      window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
+    }
   };
 
   const handleReportSubmit = async () => {
@@ -407,32 +206,7 @@ export default function VehicleDetail() {
   const owner = typeof vehicle.owner === 'object' ? vehicle.owner : null;
   const isBike = vehicle.serviceType?.[0]?.toLowerCase() === 'bike' || vehicle.serviceType?.[0]?.toLowerCase() === 'scooter';
 
-  // Calculate days & total from RangePicker
-  const days = dateRange && dateRange[0] && dateRange[1]
-    ? dateRange[1].diff(dateRange[0], 'day') || 1
-    : 0;
 
-  let totalAmount = 0;
-  if (days > 0 && vehicle) {
-    if (days >= 30 && vehicle.pricePerMonth) {
-      // Calculate by months + remaining days
-      const months = Math.floor(days / 30);
-      const remainingDays = days % 30;
-      totalAmount = (months * vehicle.pricePerMonth) + (remainingDays * vehicle.pricePerDay);
-    } else if (days >= 7 && vehicle.pricePerWeek) {
-      // Calculate by weeks + remaining days
-      const weeks = Math.floor(days / 7);
-      const remainingDays = days % 7;
-      totalAmount = (weeks * vehicle.pricePerWeek) + (remainingDays * vehicle.pricePerDay);
-    } else {
-      totalAmount = days * vehicle.pricePerDay;
-    }
-
-    // Add driver cost if applicable
-    if (vehicle.driverOption === 'with-driver' || (vehicle.driverOption === 'both' && withDriver)) {
-      totalAmount += days * (vehicle.driverPricePerDay || 0);
-    }
-  }
 
   return (
     <div className="vehicle-detail-page">
@@ -776,111 +550,7 @@ export default function VehicleDetail() {
               })()}
             </div>
 
-            {/* AVAILABILITY CALENDAR */}
-            <div className="detail-availability card" style={{ marginTop: '1.5rem', padding: '1.5rem 2rem' }}>
-              <h3 style={{ marginBottom: '0.5rem', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CalIcon size={20} /> Availability Calendar
-              </h3>
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                View available dates for this vehicle. High demand usually affects pickup times.
-              </p>
 
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={18}>
-                  <Calendar
-                    fullscreen={false}
-                    value={calendarDate}
-                    onChange={setCalendarDate}
-                    fullCellRender={(date) => fullCellRender(date as Dayjs)}
-                    headerRender={({ value, onChange }) => {
-                      return (
-                        <div style={{ padding: '8px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>
-                              {value.format('MMMM YYYY')}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '4px' }}>
-                            <Button
-                              size="small"
-                              icon={<ChevronLeft size={16} />}
-                              onClick={() => {
-                                const now = value.clone().subtract(1, 'month');
-                                onChange(now);
-                              }}
-                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            />
-                            <Button
-                              size="small"
-                              onClick={() => {
-                                onChange(dayjs());
-                              }}
-                              style={{ fontSize: '0.75rem', fontWeight: 600 }}
-                            >
-                              Today
-                            </Button>
-                            <Button
-                              size="small"
-                              icon={<ChevronRight size={16} />}
-                              onClick={() => {
-                                const now = value.clone().add(1, 'month');
-                                onChange(now);
-                              }}
-                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    }}
-                  />
-                </Col>
-                <Col xs={24} md={6}>
-                  <div className="avail-legend-vertical" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
-                      <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fee2e2', border: '1px solid #fca5a5' }}></span>
-                      Booked
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
-                      <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fef3c7', border: '1px solid #fcd34d' }}></span>
-                      Pending
-                    </span>
-                  </div>
-                </Col>
-              </Row>
-            </div>
-
-            {/* REVIEWS SECTION */}
-            <div id="reviews-section" className="detail-reviews card" style={{ marginTop: '1.5rem', padding: '2rem' }}>
-              <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MessageSquare size={20} /> Guest Reviews ({reviews.length})
-              </h3>
-
-              <List
-                loading={reviewsLoading}
-                itemLayout="horizontal"
-                dataSource={reviews}
-                renderItem={(review: Review) => (
-                  <List.Item style={{ padding: '1.5rem 0' }}>
-                    <List.Item.Meta
-                      avatar={<Avatar src={getImageUrl(review.reviewer.profilePic)} alt={review.reviewer.name} size={48} />}
-                      title={
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 600 }}>{review.reviewer.name}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{dayjs(review.createdAt).format('MMM D, YYYY')}</span>
-                        </div>
-                      }
-                      description={
-                        <div style={{ marginTop: '0.35rem' }}>
-                          <Rate disabled defaultValue={review.rating} style={{ fontSize: '12px', marginBottom: '0.5rem' }} />
-                          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>{review.comment}</p>
-                        </div>
-                      }
-                    />
-                  </List.Item>
-                )}
-                locale={{ emptyText: <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-tertiary)' }}>No reviews yet for this vehicle. Be the first to book!</div> }}
-              />
-            </div>
           </Col>
 
           {/* RIGHT COLUMN: Sidebar (Booking & Owner) */}
@@ -963,16 +633,6 @@ export default function VehicleDetail() {
                   </div>
                 )}
 
-                {(bookedRanges.length > 0 || blackoutRanges.length > 0) && (
-                  <Tag
-                    color="orange"
-                    icon={<AlertTriangle size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
-                    style={{ marginTop: '1rem', borderRadius: '4px', padding: '2px 8px', width: '100%', textAlign: 'center' }}
-                  >
-                    High Demand Listing
-                  </Tag>
-                )}
-
                 {user && user._id === (owner?._id || vehicle.owner) ? (
                   <div className="box-highlight" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
                     <p style={{ fontWeight: 600, color: '#0f172a', margin: 0, fontSize: '1rem' }}>You own this vehicle</p>
@@ -982,25 +642,23 @@ export default function VehicleDetail() {
                     </Link>
                   </div>
                 ) : (
-                  <button
-                    className="btn btn-primary btn-lg btn-full"
-                    onClick={handleBookingTrigger}
-                    style={{ marginTop: '1.5rem', height: '54px', fontSize: '1.1rem', fontWeight: 700 }}
-                  >
-                    {getBookingButtonText()}
-                  </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
+                    <button
+                      className="btn btn-full"
+                      onClick={() => handleContactClick('call')}
+                      style={{ height: '54px', fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '10px' }}
+                    >
+                      <Phone size={20} /> Contact by Call
+                    </button>
+                    <button
+                      className="btn btn-full"
+                      onClick={() => handleContactClick('whatsapp')}
+                      style={{ height: '54px', fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#25D366', color: 'white', border: 'none', borderRadius: '10px' }}
+                    >
+                      <MessageSquare size={20} /> Contact on WhatsApp
+                    </button>
+                  </div>
                 )}
-
-                <div className="booking-perks">
-                  <div className="perk">
-                    <CheckCircle size={14} color="#10b981" />
-                    <span>Free cancellation (up to 24h)</span>
-                  </div>
-                  <div className="perk">
-                    <CheckCircle size={14} color="#10b981" />
-                    <span>Instant support & Host approval</span>
-                  </div>
-                </div>
               </div>
 
               <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.25rem' }} style={{ marginTop: '1rem', borderRadius: '12px', border: '1px solid var(--border-color-light)' }}>
@@ -1043,239 +701,31 @@ export default function VehicleDetail() {
         <div ref={sentinelRef} style={{ height: '1px', marginTop: isMobile ? '0.5rem' : '2rem' }}></div>
       </div>
 
-      {/* MOBILE STICKY BOOKING BAR */}
-      {isMobile && !showBookingModal && !createdBooking && (!user || user._id !== (owner?._id || vehicle.owner)) && (
-        <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`}>
-          <div className="mobile-bar-price">
-            <span className="bar-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
+      {/* MOBILE STICKY CONTACT BAR */}
+      {isMobile && (!user || user._id !== (owner?._id || vehicle.owner)) && (
+        <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`} style={{ padding: '0.75rem 1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="mobile-bar-price" style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
+            <span className="bar-amount" style={{ fontSize: '1.1rem' }}>LKR {vehicle.pricePerDay.toLocaleString()}</span>
             <span className="bar-unit">/ Day</span>
           </div>
-          <button className="btn btn-primary" onClick={handleBookingTrigger} style={{ height: '44px', fontWeight: 700, borderRadius: '10px', fontSize: '0.85rem', padding: '0 16px', letterSpacing: '0.01em', flexShrink: 0 }}>
-            {getBookingButtonText()}
-          </button>
-        </div>
-      )}
-
-      {/* BOOKING MODAL */}
-      <Modal
-        open={showBookingModal}
-        onCancel={() => { setShowBookingModal(false); setCreatedBooking(null); setDateRange(null); setWithDriver(false); }}
-        footer={null}
-        centered
-        width={isMobile ? '95%' : 520}
-        destroyOnClose
-        className="booking-modal"
-      >
-        {createdBooking ? (
-          <div className="booking-success-view animate-fade-in" style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <div style={{ background: '#f0fdf4', color: '#16a34a', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-              <CheckCircle size={32} />
-            </div>
-            <h2 style={{ marginBottom: '1rem' }}>Booking Requested!</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-              Your request has been sent to the owner. You can contact them directly to speed up the process.
-            </p>
-
-            <div className="owner-contact-card box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <img
-                  src={typeof createdBooking.owner === 'object' ? getImageUrl(createdBooking.owner.profilePic) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(createdBooking.owner.name) : ''}
-                  alt=""
-                  style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                />
-                <div>
-                  <div style={{ fontWeight: '600' }}>{typeof createdBooking.owner === 'object' ? createdBooking.owner.name : 'Owner'}</div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '2px' }}>
-                    {typeof createdBooking.owner === 'object' ? createdBooking.owner.phone || 'No phone provided' : ''}
-                  </div>
-                </div>
-              </div>
-
-              {typeof createdBooking.owner === 'object' && createdBooking.owner.phone && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem', marginTop: '0.5rem', ...( (!vehicle?.contactMethod || vehicle.contactMethod === 'both') ? { gridTemplateColumns: '1fr 1fr' } : {} ) }}>
-                  {(!vehicle?.contactMethod || vehicle.contactMethod === 'call' || vehicle.contactMethod === 'both') && (
-                    <a
-                      href={`tel:${createdBooking.owner.phone}`}
-                      className="btn btn-outline"
-                      style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0' }}
-                    >
-                      <Phone size={16} /> Call
-                    </a>
-                  )}
-                  {(!vehicle?.contactMethod || vehicle.contactMethod === 'whatsapp' || vehicle.contactMethod === 'both') && (
-                    <a
-                      href={`https://wa.me/${createdBooking.owner.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${createdBooking.owner.name},\n\nI just requested to book your ${vehicle?.title} on Rentify from ${dayjs(createdBooking.startDate).format('MMM D')} to ${dayjs(createdBooking.endDate).format('MMM D')}.\n\nPlease let me know if it's available!`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn"
-                      style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0', background: '#25D366', color: 'white', border: 'none' }}
-                    >
-                      <MessageCircle size={16} /> WhatsApp
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <button className="btn btn-primary btn-full" onClick={() => navigate('/dashboard')}>
-              Go to My Dashboard <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+          <div style={{ flex: 1, display: 'flex', gap: '0.5rem' }}>
+            <button
+              className="btn btn-full"
+              onClick={() => handleContactClick('whatsapp')}
+              style={{ flex: 1, height: '44px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#25D366', color: 'white', border: 'none', borderRadius: '10px' }}
+            >
+              <MessageSquare size={20} />
+            </button>
+            <button
+              className="btn btn-full"
+              onClick={() => handleContactClick('call')}
+              style={{ flex: 1, height: '44px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#2563eb', color: 'white', border: 'none', borderRadius: '10px' }}
+            >
+              <Phone size={20} />
             </button>
           </div>
-        ) : (
-          <>
-            <h2 style={{ marginBottom: '0.5rem' }}>Complete Your Booking</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-              {vehicle.title} • LKR {vehicle.pricePerDay.toLocaleString()}/day
-            </p>
-
-            <div className="booking-form-content">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div className="input-group">
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                    <CalIcon size={16} /> Select Dates
-                  </label>
-                  {isMobile ? (
-                    <div style={{ display: 'flex', gap: '0.75rem', flexDirection: 'column' }}>
-                      <div className="input-group">
-                        <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Pickup Date</label>
-                        <input
-                          type="date"
-                          className="input-field"
-                          value={dateRange && dateRange[0] ? dateRange[0].format('YYYY-MM-DD') : ''}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            const newStart = val ? dayjs(val) : null;
-                            const currentEnd = dateRange?.[1] || null;
-                            if (newStart && (!currentEnd || currentEnd.isBefore(newStart, 'day'))) {
-                              setDateRange([newStart, newStart]);
-                            } else {
-                              setDateRange([newStart, currentEnd]);
-                            }
-                          }}
-                          min={dayjs().format('YYYY-MM-DD')}
-                          style={{ width: '100%', height: '44px' }}
-                        />
-                      </div>
-                      <div className="input-group">
-                        <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Return Date</label>
-                        <input
-                          type="date"
-                          className="input-field"
-                          value={dateRange && dateRange[1] ? dateRange[1].format('YYYY-MM-DD') : ''}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setDateRange([dateRange?.[0] || null, val ? dayjs(val) : null]);
-                          }}
-                          min={dateRange && dateRange[0] ? dateRange[0].format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD')}
-                          style={{ width: '100%', height: '44px' }}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <RangePicker
-                      value={dateRange}
-                      onChange={(dates) => setDateRange(dates)}
-                      disabledDate={disabledDate}
-                      cellRender={pickerCellRender}
-                      format="YYYY-MM-DD"
-                      style={{ width: '100%', height: '44px' }}
-                      placeholder={['Pickup Date', 'Return Date']}
-                      size="large"
-                    />
-                  )}
-                </div>
-
-                {vehicle.driverOption === 'both' && (
-                  <div className="input-group" style={{ marginBottom: '0.5rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: '#faf5ff', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e9d5ff' }}>
-                      <input
-                        type="checkbox"
-                        checked={withDriver}
-                        onChange={(e) => setWithDriver(e.target.checked)}
-                        style={{ width: '18px', height: '18px', accentColor: '#8b5cf6' }}
-                      />
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: 600, color: '#6b21a8' }}>Add a Driver (Optional)</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>+ LKR {vehicle.driverPricePerDay?.toLocaleString() || 0} / day</span>
-                      </div>
-                    </label>
-                  </div>
-                )}
-
-                <div className="avail-legend modal-legend" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '-0.5rem' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                    <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#f5f5f5', border: '1px solid #d9d9d9' }}></span>
-                    Booked / Blackout
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                    <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'transparent', border: '1px solid var(--primary-color)' }}></span>
-                    Your selection
-                  </span>
-                </div>
-
-                {days > 0 && (
-                  <div className="booking-summary box-highlight" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginTop: '0.5rem' }}>
-                    <div className="summary-details" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      {days >= 30 && vehicle.pricePerMonth ? (
-                        <>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Monthly Rate x {Math.floor(days / 30)}</span>
-                            <span>LKR {(Math.floor(days / 30) * vehicle.pricePerMonth).toLocaleString()}</span>
-                          </div>
-                          {days % 30 > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <span>Daily Rate x {days % 30} days</span>
-                              <span>LKR {((days % 30) * vehicle.pricePerDay).toLocaleString()}</span>
-                            </div>
-                          )}
-                        </>
-                      ) : days >= 7 && vehicle.pricePerWeek ? (
-                        <>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Weekly Rate x {Math.floor(days / 7)}</span>
-                            <span>LKR {(Math.floor(days / 7) * vehicle.pricePerWeek).toLocaleString()}</span>
-                          </div>
-                          {days % 7 > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <span>Daily Rate x {days % 7} days</span>
-                              <span>LKR {((days % 7) * vehicle.pricePerDay).toLocaleString()}</span>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span>LKR {vehicle.pricePerDay.toLocaleString()} x {days} days</span>
-                          <span>LKR {(vehicle.pricePerDay * days).toLocaleString()}</span>
-                        </div>
-                      )}
-
-                      {(vehicle.driverOption === 'with-driver' || (vehicle.driverOption === 'both' && withDriver)) && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b21a8', marginTop: '4px' }}>
-                          <span>Driver fee ({vehicle.driverPricePerDay?.toLocaleString()} x {days} days)</span>
-                          <span>LKR {((vehicle.driverPricePerDay || 0) * days).toLocaleString()}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="summary-total" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 800, marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color-light)' }}>
-                      <span>Total</span>
-                      <span>LKR {totalAmount.toLocaleString()}</span>
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  className="btn btn-primary btn-lg btn-full"
-                  onClick={handleBookNow}
-                  disabled={bookingLoading}
-                  style={{ marginTop: '0.5rem' }}
-                >
-                  {bookingLoading ? <span className="spinner"></span> : 'Submit Booking Request'}
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </Modal>
+        </div>
+      )}
 
       {/* REPORT MODAL */}
       <Modal

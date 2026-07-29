@@ -139,6 +139,8 @@ export interface Vehicle {
   city?: string;
   district?: string;
   createdAt?: string;
+  callClicks?: number;
+  whatsappClicks?: number;
 }
 
 export interface Review {
@@ -439,6 +441,12 @@ export const vehicleApi = {
   getMakes: () => apiFetch<VehicleMake[]>('/vehicles/makes'),
 
   getModels: (makeId: string) => apiFetch<VehicleModel[]>(`/vehicles/models/${makeId}`),
+
+  trackContactClick: (id: string, type: 'call' | 'whatsapp') =>
+    apiFetch<{ message: string }>(`/vehicles/${id}/contact-click`, {
+      method: 'POST',
+      body: JSON.stringify({ type }),
+    }),
 };
 
 // =================== BOOKINGS ===================
