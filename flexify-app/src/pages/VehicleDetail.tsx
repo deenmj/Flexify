@@ -331,15 +331,7 @@ export default function VehicleDetail() {
                     <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: 0 }}>
                       {vehicle.title}
                     </h1>
-                    <div
-                      className="detail-rating"
-                      onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
-                      style={{ cursor: 'pointer', margin: 0 }}
-                    >
-                      <Star size={16} fill="#f59e0b" color="#f59e0b" />
-                      <span className="rating-score">{vehicle.averageRating || 'New'}</span>
-                      <span className="rating-count">({vehicle.reviewCount || 0})</span>
-                    </div>
+
                   </div>
                   <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
                     <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
