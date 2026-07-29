@@ -1,27 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import dayjs from 'dayjs';
-import isBetween from 'dayjs/plugin/isBetween';
-import { Modal, message, Tag, Button, Form, Input, Rate, Image, Avatar, Spin } from 'antd';
-import { vehicleApi, bookingApi, userApi, reviewApi, salesApi, type Vehicle, type Booking, getImageUrl, getVehicleSlug } from '../api';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Modal, message, Tag, Button, Image, Spin } from 'antd';
+import { vehicleApi, userApi, salesApi, type Vehicle, getImageUrl, getVehicleSlug } from '../api';
 import {
-  Car, Calendar as CalIcon, CheckCircle, XCircle,
-  Clock, Eye, Phone, Shield, AlertTriangle,
-  MessageSquare, Info, User, Users, FileText, Compass, Heart, Lock
+  Car, Clock, XCircle, Phone, Shield,
+  MessageSquare, Tag as TagIcon, Heart, Lock
 } from 'lucide-react';
-import { useSocket } from '../context/SocketContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
 import AddVehicleSale from '../components/AddVehicleSale';
 import { Tag as AntTag } from 'antd';
 import './Dashboard.css';
 
-dayjs.extend(isBetween);
 
 export default function Dashboard() {
   const { user, setUser } = useAuth();
-  const { socket } = useSocket();
   const isMobile = useIsMobile();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,6 +89,7 @@ export default function Dashboard() {
   // Staff (subadmin) behaves like a verified owner in the dashboard
   const isStaff = user.role === 'subadmin';
   const isOwner = user.role === 'owner' || isStaff;
+  const filteredVehicles = vehicles; // All vehicles (no category filter)
 
   const vehicleStatusBadge = (status: string, isActive: boolean) => {
     if (status === 'pending') return <Tag color="warning" icon={<Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}>Pending</Tag>;
@@ -133,13 +128,13 @@ export default function Dashboard() {
     }
   };
 
-  console.log('Wishlist Data:', user?.rentWishlist, user?.saleWishlist);
+  // Removed debug log
 
   return (
     <div className="dashboard-page page-wrapper" style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
       <SEO
-        title="My Dashboard — Manage Vehicles & Bookings | Rentify"
-        description="Manage your vehicle listings, bookings, and earnings on Rentify.lk."
+        title="My Dashboard — My Vehicles & Wishlist | Rentify"
+        description="Manage your vehicle listings and saved vehicles on Rentify.lk."
         noindex={true}
       />
 
@@ -154,7 +149,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               <Shield size={18} color="#d97706" />
               <p style={{ color: '#92400e', fontSize: '0.875rem', margin: 0 }}>
-                <strong>Tip:</strong> Complete one-time verification to book vehicles. You can still browse and manage everything here.
+                <strong>Tip:</strong> Complete one-time verification to get verified status on your listings and build trust with vehicle owners.
               </p>
             </div>
             <Link to="/verify" className="btn btn-sm" style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '6px 16px', borderRadius: '8px', fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Verify Now</Link>
@@ -183,7 +178,7 @@ export default function Dashboard() {
                     <Car size={16} /> My Vehicles
                   </button>
                   <Link to="/staff?tab=manage-sales" className="nav-item" style={{ color: 'inherit', textDecoration: 'none' }}>
-                    <Tag size={16} /> My Sales
+                    <TagIcon size={16} /> My Sales
                   </Link>
                 </>
               )}
@@ -221,7 +216,7 @@ export default function Dashboard() {
                 {/* Sales Section */}
                 {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
                   <button onClick={() => { setTab('sales'); setIsAddVehicleModalOpen(true); }} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
-                    <Tag size={18} style={{ marginRight: '8px' }} /> List for Sale
+                    <TagIcon size={18} style={{ marginRight: '8px' }} /> List for Sale
                   </button>
                 ) : (user?.salesRequestStatus === 'pending' ? (
                   <button disabled className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7, cursor: 'not-allowed' }}>
@@ -284,14 +279,14 @@ export default function Dashboard() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                         <div className="dash-vehicle-card-price">LKR {v.pricePerDay.toLocaleString()}<span style={{ fontSize: isMobile ? '0.6rem' : '0.75rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/day</span></div>
                       </div>
-                      <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#166534', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
-                          <Phone size={12} /> {v.callClicks || 0} Calls
+                        <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#166534', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                            <Phone size={12} /> {v.callClicks || 0} Calls
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#166534', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                            <MessageSquare size={12} /> {v.whatsappClicks || 0} WhatsApp
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#166534', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
-                          <MessageSquare size={12} /> {v.whatsappClicks || 0} WhatsApp
-                        </div>
-                      </div>
                     </div>
                   </div>
                 ))}
@@ -305,7 +300,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
                   <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
-                    <Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List for Sale
+                    <TagIcon size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List for Sale
                   </button>
                 ) : (
                   <Link to="/verify?type=sales" className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7 }}>
@@ -329,7 +324,7 @@ export default function Dashboard() {
                 {activeSales.length === 0 && (
                   (isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
                     <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '12px 32px', background: '#10b981', borderColor: '#10b981' }}>
-                      <Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List Your First Vehicle for Sale
+                      <TagIcon size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List Your First Vehicle for Sale
                     </button>
                   ) : (user?.salesRequestStatus === 'pending' ? (
                     <button disabled className="btn btn-secondary" style={{ padding: '12px 32px', background: '#e2e8f0', color: '#475569', border: 'none', opacity: 0.7, cursor: 'not-allowed' }}>
