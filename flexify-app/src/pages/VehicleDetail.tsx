@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Modal, message, Avatar, Card, Badge, Tag, Input, Button } from 'antd';
 import { vehicleApi, feedbackApi, type Vehicle, getImageUrl, getVehicleSlug } from '../api';
-import { Users, CheckCircle, Phone, Shield, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X } from 'lucide-react';
+import { Users, CheckCircle, Phone, Shield, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
