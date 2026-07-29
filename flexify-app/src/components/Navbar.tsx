@@ -171,26 +171,16 @@ export default function Navbar() {
                   items={[
                     { 
                       label: 'List for Rent', 
-                      href: (user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? '/list-vehicle' : '/verify?type=rent', 
-                      icon: (user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? Car : Lock, 
+                      href: '/list-vehicle', 
+                      icon: Car, 
                       desc: 'Earn money by renting your vehicle' 
                     },
-                    (user?.hasSalesAccess === true || isAdminRole) ? { 
+                    { 
                       label: 'List for Sale', 
                       href: '/dashboard?tab=sales&openAdd=true', 
                       icon: Tag, 
                       desc: 'Sell your vehicle on Rentify' 
-                    } : (user?.salesRequestStatus === 'pending' ? {
-                      label: 'Sales Request Pending',
-                      icon: Lock,
-                      desc: 'Awaiting staff review',
-                      onClick: (e: any) => { e.preventDefault(); /* do nothing */ }
-                    } : {
-                      label: 'Request Sales Access',
-                      icon: Lock,
-                      desc: 'Sell your vehicle on Rentify',
-                      onClick: (e: any) => { e.preventDefault(); handleRequestSalesAccess(); }
-                    })
+                    }
                   ]}
                 />
               )}
@@ -217,9 +207,9 @@ export default function Navbar() {
                   items: [
                     {
                       key: 'rent', label: (
-                        <Link to={(user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                        <Link to="/list-vehicle" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
-                            {(user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? <Car size={18} /> : <Lock size={18} />}
+                            <Car size={18} />
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
@@ -230,7 +220,7 @@ export default function Navbar() {
                     },
                     { type: 'divider' },
                     {
-                      key: 'sale', label: (user?.hasSalesAccess === true || isAdminRole) ? (
+                      key: 'sale', label: (
                         <Link to="/dashboard?tab=sales&openAdd=true" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#eff6ff', color: '#2563eb', borderRadius: '10px' }}>
                             <Tag size={18} />
@@ -240,27 +230,7 @@ export default function Navbar() {
                             <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
                           </div>
                         </Link>
-                      ) : (user?.salesRequestStatus === 'pending' ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px', opacity: 0.6, cursor: 'not-allowed' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f1f5f9', color: '#64748b', borderRadius: '10px' }}>
-                            <Lock size={18} />
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>Sales Request Pending</span>
-                            <span style={{ fontSize: '12px', color: '#64748b' }}>Awaiting staff review</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div onClick={handleRequestSalesAccess} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px', cursor: 'pointer' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f1f5f9', color: '#64748b', borderRadius: '10px' }}>
-                            <Lock size={18} />
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>Request Sales Access</span>
-                            <span style={{ fontSize: '12px', color: '#64748b' }}>Sell on the marketplace</span>
-                          </div>
-                        </div>
-                      ))
+                      )
                     }
                   ]
                 }} trigger={['click']} placement="bottomRight" overlayStyle={{ minWidth: '220px', padding: '4px' }}>
@@ -346,11 +316,7 @@ export default function Navbar() {
                     </Link>
                   )}
 
-                  {user && user.verificationStatus === 'not_submitted' && !isAdminRole && (
-                    <Link to="/verify" className="dropdown-item" onClick={() => setProfileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                      <Shield size={16} /> One-Time Verification
-                    </Link>
-                  )}
+
                   <button className="dropdown-item dropdown-item-danger" onClick={handleLogout}>
                     <LogOut size={16} /> Logout
                   </button>
@@ -406,14 +372,8 @@ export default function Navbar() {
                 <Link to="/auth" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List Vehicle</Link>
               ) : (
                 <>
-                  <Link to={(user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
-                  {(user?.hasSalesAccess === true || isAdminRole) ? (
-                    <Link to="/dashboard?tab=sales&openAdd=true" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
-                  ) : (user?.salesRequestStatus === 'pending' ? (
-                    <div className="mobile-link" style={{ color: '#64748b', opacity: 0.7 }}><Lock size={18} /> Sales Request Pending</div>
-                  ) : (
-                    <div className="mobile-link" onClick={() => { handleRequestSalesAccess(); setMobileOpen(false); }} style={{ color: '#64748b', cursor: 'pointer' }}><Lock size={18} /> Request Sales Access</div>
-                  ))}
+                  <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
+                  <Link to="/dashboard?tab=sales&openAdd=true" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
                 </>
               )}
 
@@ -427,11 +387,7 @@ export default function Navbar() {
                     <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> My Vehicles & Bookings</Link>
                   )}
 
-                  {user.verificationStatus === 'not_submitted' && !isAdminRole && (
-                    <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                      <Shield size={18} /> One-Time Verification
-                    </Link>
-                  )}
+
                 </>
               )}
 
