@@ -171,8 +171,8 @@ export default function Navbar() {
                   items={[
                     { 
                       label: 'List for Rent', 
-                      href: (user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? '/list-vehicle' : '/verify?type=rent', 
-                      icon: (user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? Car : Lock, 
+                      href: '/list-vehicle', 
+                      icon: Car, 
                       desc: 'Earn money by renting your vehicle' 
                     },
                     (user?.hasSalesAccess === true || isAdminRole) ? { 
@@ -217,9 +217,9 @@ export default function Navbar() {
                   items: [
                     {
                       key: 'rent', label: (
-                        <Link to={(user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
+                        <Link to="/list-vehicle" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 4px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: '#f0fdf4', color: '#16a34a', borderRadius: '10px' }}>
-                            {(user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? <Car size={18} /> : <Lock size={18} />}
+                            <Car size={18} />
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', lineHeight: 1.2 }}>List for Rent</span>
@@ -346,11 +346,7 @@ export default function Navbar() {
                     </Link>
                   )}
 
-                  {user && user.verificationStatus === 'not_submitted' && !isAdminRole && (
-                    <Link to="/verify" className="dropdown-item" onClick={() => setProfileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                      <Shield size={16} /> One-Time Verification
-                    </Link>
-                  )}
+
                   <button className="dropdown-item dropdown-item-danger" onClick={handleLogout}>
                     <LogOut size={16} /> Logout
                   </button>
@@ -406,7 +402,7 @@ export default function Navbar() {
                 <Link to="/auth" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List Vehicle</Link>
               ) : (
                 <>
-                  <Link to={(user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved') || isAdminRole ? "/list-vehicle" : "/verify?type=rent"} className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
+                  <Link to="/list-vehicle" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> List for Rent</Link>
                   {(user?.hasSalesAccess === true || isAdminRole) ? (
                     <Link to="/dashboard?tab=sales&openAdd=true" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#10b981' }}><Tag size={18} /> List for Sale</Link>
                   ) : (user?.salesRequestStatus === 'pending' ? (
@@ -427,11 +423,7 @@ export default function Navbar() {
                     <Link to="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}><Car size={18} /> My Vehicles & Bookings</Link>
                   )}
 
-                  {user.verificationStatus === 'not_submitted' && !isAdminRole && (
-                    <Link to="/verify" className="mobile-link" onClick={() => setMobileOpen(false)} style={{ color: '#1890ff', fontWeight: 600 }}>
-                      <Shield size={18} /> One-Time Verification
-                    </Link>
-                  )}
+
                 </>
               )}
 

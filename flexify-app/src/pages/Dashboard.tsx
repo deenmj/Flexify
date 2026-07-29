@@ -142,20 +142,7 @@ export default function Dashboard() {
 
 
 
-        {/* Verification reminder — only for renters who haven't uploaded docs. 
-             This is just a HINT, NOT a blocker — dashboard is fully accessible without KYC */}
-        {user.verificationStatus === 'not_submitted' && !isStaff && user.role === 'user' && (
-          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem', borderRadius: '12px' }}>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <Shield size={18} color="#d97706" />
-              <p style={{ color: '#92400e', fontSize: '0.875rem', margin: 0 }}>
-                <strong>Tip:</strong> Complete one-time verification to get verified status on your listings and build trust with vehicle owners.
-              </p>
-            </div>
-            <Link to="/verify" className="btn btn-sm" style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '6px 16px', borderRadius: '8px', fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Verify Now</Link>
-          </div>
-        )}
-
+        {/* Verification tip removed for smooth flow */}
         {/* Tabs - Navigation */}
         <div className="dashboard-nav">
           {user.role === 'user' && vehicles.length === 0 ? (
@@ -203,15 +190,9 @@ export default function Dashboard() {
               <h3 className="dashboard-box-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>My Vehicles</h3>
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 {/* Rent Section */}
-                {(isStaff || user.role === 'admin' || user.role === 'superadmin' || (user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved')) ? (
-                  <Link to="/list-vehicle" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700 }}>
-                    <Car size={18} style={{ marginRight: '8px' }} /> List for Rent
-                  </Link>
-                ) : (
-                  <Link to="/verify?type=rent" className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7 }}>
-                    <Lock size={18} style={{ marginRight: '8px' }} /> Rent KYC
-                  </Link>
-                )}
+                <Link to="/list-vehicle" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700 }}>
+                  <Car size={18} style={{ marginRight: '8px' }} /> List for Rent
+                </Link>
 
                 {/* Sales Section */}
                 {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
@@ -242,15 +223,9 @@ export default function Dashboard() {
                   Start earning today by sharing your vehicle with the Rentify community.
                 </p>
                 {vehicles.length === 0 && (
-                  (isStaff || user.role === 'admin' || user.role === 'superadmin' || (user?.rentVerificationStatus === 'approved' || user?.verificationStatus === 'approved')) ? (
-                    <Link to="/list-vehicle" className="btn btn-primary" style={{ padding: '12px 32px' }}>
-                      <Car size={18} style={{ marginRight: '8px' }} /> List Your First Vehicle
-                    </Link>
-                  ) : (
-                    <Link to="/verify?type=rent" className="btn btn-secondary" style={{ padding: '12px 32px', background: '#e2e8f0', color: '#475569', border: 'none' }}>
-                      <Lock size={18} style={{ marginRight: '8px' }} /> Verify to List Vehicle
-                    </Link>
-                  )
+                  <Link to="/list-vehicle" className="btn btn-primary" style={{ padding: '12px 32px' }}>
+                    <Car size={18} style={{ marginRight: '8px' }} /> List Your First Vehicle
+                  </Link>
                 )}
               </div>
             ) : (
@@ -302,11 +277,15 @@ export default function Dashboard() {
                   <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
                     <TagIcon size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List for Sale
                   </button>
+                ) : (user?.salesRequestStatus === 'pending' ? (
+                  <button disabled className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7, cursor: 'not-allowed' }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Request Pending
+                  </button>
                 ) : (
-                  <Link to="/verify?type=sales" className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7 }}>
-                    <Lock size={18} style={{ marginRight: '8px' }} /> Sales KYC
-                  </Link>
-                )}
+                  <button onClick={handleRequestSalesAccess} className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700 }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Request Sales Access
+                  </button>
+                ))}
               </div>
             </div>
 
