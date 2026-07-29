@@ -195,9 +195,19 @@ export default function Dashboard() {
                 </Link>
 
                 {/* Sales Section */}
-                <button onClick={() => { setTab('sales'); setIsAddVehicleModalOpen(true); }} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
-                  <TagIcon size={18} style={{ marginRight: '8px' }} /> List for Sale
-                </button>
+                {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
+                  <button onClick={() => { setTab('sales'); setIsAddVehicleModalOpen(true); }} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
+                    <TagIcon size={18} style={{ marginRight: '8px' }} /> List for Sale
+                  </button>
+                ) : (user?.salesRequestStatus === 'pending' ? (
+                  <button disabled className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7, cursor: 'not-allowed' }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Request Pending
+                  </button>
+                ) : (
+                  <button onClick={handleRequestSalesAccess} className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700 }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Request Sales Access
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -263,9 +273,19 @@ export default function Dashboard() {
             <div className="dashboard-box-header" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <h3 className="dashboard-box-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>My Sales</h3>
               <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
-                  <TagIcon size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List for Sale
-                </button>
+                {(isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
+                  <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981' }}>
+                    <TagIcon size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List for Sale
+                  </button>
+                ) : (user?.salesRequestStatus === 'pending' ? (
+                  <button disabled className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700, opacity: 0.7, cursor: 'not-allowed' }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Request Pending
+                  </button>
+                ) : (
+                  <button onClick={handleRequestSalesAccess} className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', borderRadius: '12px', fontWeight: 700 }}>
+                    <Lock size={18} style={{ marginRight: '8px' }} /> Request Sales Access
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -281,9 +301,19 @@ export default function Dashboard() {
                   Start earning today by selling your vehicle on the Rentify platform.
                 </p>
                 {activeSales.length === 0 && (
-                  <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '12px 32px', background: '#10b981', borderColor: '#10b981' }}>
-                    <TagIcon size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List Your First Vehicle for Sale
-                  </button>
+                  (isStaff || user.role === 'admin' || user.role === 'superadmin' || user?.hasSalesAccess === true) ? (
+                    <button onClick={() => setIsAddVehicleModalOpen(true)} className="btn btn-primary" style={{ padding: '12px 32px', background: '#10b981', borderColor: '#10b981' }}>
+                      <TagIcon size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> List Your First Vehicle for Sale
+                    </button>
+                  ) : (user?.salesRequestStatus === 'pending' ? (
+                    <button disabled className="btn btn-secondary" style={{ padding: '12px 32px', background: '#e2e8f0', color: '#475569', border: 'none', opacity: 0.7, cursor: 'not-allowed' }}>
+                      <Lock size={18} style={{ marginRight: '8px' }} /> Request Pending
+                    </button>
+                  ) : (
+                    <button onClick={handleRequestSalesAccess} className="btn btn-secondary" style={{ padding: '12px 32px', background: '#e2e8f0', color: '#475569', border: 'none' }}>
+                      <Lock size={18} style={{ marginRight: '8px' }} /> Request Sales Access
+                    </button>
+                  ))
                 )}
               </div>
             ) : (
