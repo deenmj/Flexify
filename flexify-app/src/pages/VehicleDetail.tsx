@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Row, Col, Modal, message, Avatar, Card, Badge, Tag, Input, Button } from 'antd';
+import { Row, Col, Modal, message, Avatar, Card, Badge, Tag, Input, Button, Typography } from 'antd';
 import { vehicleApi, feedbackApi, type Vehicle, getImageUrl, getVehicleSlug } from '../api';
-import { Users, CheckCircle, Phone, Shield, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X, Zap } from 'lucide-react';
+import { Users, CheckCircle, Phone, Shield, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X, Zap, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -57,6 +57,7 @@ export default function VehicleDetail() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportLoading, setReportLoading] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -637,30 +638,15 @@ export default function VehicleDetail() {
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-                    {/* Show Call button only if contactMethod is 'call' or 'both' */}
-                    {(!vehicle.contactMethod || vehicle.contactMethod === 'call' || vehicle.contactMethod === 'both') && (
-                      <button
-                        className="btn btn-full"
-                        onClick={() => handleContactClick('call')}
-                        style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: '0 4px 14px rgba(37,99,235,0.35)', transition: 'all 0.2s' }}
-                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,99,235,0.45)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35)'; }}
-                      >
-                        <Phone size={20} /> Call Owner
-                      </button>
-                    )}
-                    {/* Show WhatsApp button only if contactMethod is 'whatsapp' or 'both' */}
-                    {(!vehicle.contactMethod || vehicle.contactMethod === 'whatsapp' || vehicle.contactMethod === 'both') && (
-                      <button
-                        className="btn btn-full"
-                        onClick={() => handleContactClick('whatsapp')}
-                        style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #128C7E, #25D366)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: '0 4px 14px rgba(37,211,102,0.35)', transition: 'all 0.2s' }}
-                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,211,102,0.45)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,211,102,0.35)'; }}
-                      >
-                        <WhatsAppIcon size={22} /> WhatsApp Owner
-                      </button>
-                    )}
+                    <button
+                      className="btn btn-full"
+                      onClick={() => setIsContactModalOpen(true)}
+                      style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', transition: 'all 0.2s' }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.45)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.35)'; }}
+                    >
+                      <MessageCircle size={20} /> Contact Owner
+                    </button>
                   </div>
                 )}
               </div>
@@ -713,31 +699,74 @@ export default function VehicleDetail() {
             <span className="bar-unit">/ Day</span>
           </div>
           <div style={{ flex: 1, display: 'flex', gap: '0.5rem' }}>
-            {(!vehicle.contactMethod || vehicle.contactMethod === 'whatsapp' || vehicle.contactMethod === 'both') && (
-              <button
-                className="btn btn-full"
-                onClick={() => handleContactClick('whatsapp')}
-                style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'linear-gradient(135deg, #128C7E, #25D366)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
-              >
-                <WhatsAppIcon size={18} />
-                {(!vehicle.contactMethod || vehicle.contactMethod === 'both') && <span>WhatsApp</span>}
-                {vehicle.contactMethod === 'whatsapp' && <span>WhatsApp</span>}
-              </button>
-            )}
-            {(!vehicle.contactMethod || vehicle.contactMethod === 'call' || vehicle.contactMethod === 'both') && (
-              <button
-                className="btn btn-full"
-                onClick={() => handleContactClick('call')}
-                style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'linear-gradient(135deg, #1d4ed8, #2563eb)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
-              >
-                <Phone size={18} />
-                {(!vehicle.contactMethod || vehicle.contactMethod === 'both') && <span>Call</span>}
-                {vehicle.contactMethod === 'call' && <span>Call Now</span>}
-              </button>
-            )}
+            <button
+              className="btn btn-full"
+              onClick={() => setIsContactModalOpen(true)}
+              style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
+            >
+              <MessageCircle size={18} />
+              <span>Contact Owner</span>
+            </button>
           </div>
         </div>
       )}
+
+      {/* CONTACT MODAL */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MessageCircle size={20} color="#10b981" />
+            <span style={{ fontWeight: 'bold' }}>Contact Owner</span>
+          </div>
+        }
+        open={isContactModalOpen}
+        onCancel={() => setIsContactModalOpen(false)}
+        footer={null}
+        centered
+        bodyStyle={{ padding: '32px 24px' }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <Typography.Title level={4} style={{ marginBottom: '8px', fontWeight: 900 }}>Interested in this {vehicle.make}?</Typography.Title>
+          <Typography.Text type="secondary" style={{ display: 'block', marginBottom: '32px' }}>
+            Get in touch with the owner to learn more or schedule a booking.
+          </Typography.Text>
+
+          <div style={{ background: 'var(--bg-secondary)', padding: '24px', borderRadius: '16px', marginBottom: '32px', border: '1px solid var(--border-color-light)' }}>
+            <Typography.Text type="secondary" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Direct Owner Line</Typography.Text>
+            <Typography.Text style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '0.5px' }}>
+              {vehicle?.mobileNumber || (typeof vehicle?.owner === 'object' ? (vehicle.owner as any).phone : '') || 'Not Available'}
+            </Typography.Text>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {(!vehicle.contactMethod || vehicle.contactMethod === 'call' || vehicle.contactMethod === 'both') && (
+              <Button
+                type="primary"
+                size="large"
+                block
+                icon={<Phone size={18} />}
+                onClick={() => handleContactClick('call')}
+                style={{ height: '56px', fontSize: '1.1rem', fontWeight: 700, backgroundColor: 'var(--bg-dark)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                Call Now
+              </Button>
+            )}
+            
+            {(!vehicle.contactMethod || vehicle.contactMethod === 'whatsapp' || vehicle.contactMethod === 'both') && (
+              <Button
+                type="primary"
+                size="large"
+                block
+                icon={<WhatsAppIcon size={18} />}
+                onClick={() => handleContactClick('whatsapp')}
+                style={{ height: '56px', fontSize: '1.1rem', fontWeight: 700, backgroundColor: '#25D366', borderColor: '#25D366', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                WhatsApp Owner
+              </Button>
+            )}
+          </div>
+        </div>
+      </Modal>
 
       {/* REPORT MODAL */}
       <Modal
