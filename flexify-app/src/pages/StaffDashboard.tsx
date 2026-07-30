@@ -27,7 +27,7 @@ export default function StaffDashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [stats, setStats] = useState<SubadminStats | null>(null);
-  const [pendingUsers, setPendingUsers] = useState<User[]>([]);
+  const [setPendingUsers] = useState<User[]>([]);
   const [pendingVehicles, setPendingVehicles] = useState<Vehicle[]>([]);
   const [pendingSalesUsers, setPendingSalesUsers] = useState<User[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -65,10 +65,10 @@ export default function StaffDashboard() {
   const [grantSalesAccess, setGrantSalesAccess] = useState(false);
   const [rejectionModal, setRejectionModal] = useState<{
     visible: boolean;
-    type: 'KYC' | 'Vehicle' | 'Review';
+    type: 'Vehicle' | 'Review';
     id: string;
     targetName: string;
-  }>({ visible: false, type: 'KYC', id: '', targetName: '' });
+  }>({ visible: false, type: 'Vehicle', id: '', targetName: '' });
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
   const [editingVehicleSale, setEditingVehicleSale] = useState<any>(null);
@@ -106,10 +106,10 @@ export default function StaffDashboard() {
   }, [socket]);
 
   useEffect(() => {
-    if (stats && (stats.pendingUsers > 0 || stats.pendingVehicles > 0)) {
+    if (stats && stats.pendingVehicles > 0) {
       notification.info({
         message: 'Items Need Review',
-        description: `You have ${stats.pendingUsers} KYC submissions and ${stats.pendingVehicles} vehicles to review.`,
+        description: `You have ${stats.pendingVehicles} vehicles to review.`,
         placement: 'topRight',
         duration: 5,
       });
@@ -131,7 +131,6 @@ export default function StaffDashboard() {
     try {
       const [s, u, v, r, m, mo, p, sales, pendingSales] = await Promise.all([
         subadminApi.getStats().catch(() => null),
-        subadminApi.getPendingUsers().catch(() => []),
         subadminApi.getPendingVehicles().catch(() => []),
         subadminApi.getAllReviews().catch(() => []),
         subadminApi.getPendingMakes().catch(() => []),
@@ -141,7 +140,6 @@ export default function StaffDashboard() {
         userApi.getPendingSalesRequests().catch(() => []),
       ]);
       if (s) setStats(s);
-      setPendingUsers(u);
       setPendingVehicles(v);
       setReviews(r);
       setPendingMakes(m);
@@ -179,39 +177,12 @@ export default function StaffDashboard() {
     }
   };
 
-  const handleApproveUser = async (userId: string) => {
-    setActionLoading(userId);
-    try {
-      await subadminApi.approveUser(userId, 'rent', grantSalesAccess);
-      message.success('Rent verification approved successfully!');
-      setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== userId));
-      setShowModal(false);
-    } catch (err: any) {
-      message.error(err.message || 'Error approving rent request');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleRejectUser = (userId: string) => {
-    const user = pendingUsers.find(u => (u.id || u._id) === userId);
-    setRejectionModal({
-      visible: true,
-      type: 'KYC',
-      id: userId,
-      targetName: user?.name || 'User'
-    });
-  };
 
   const submitRejection = async (values: { reason: string; comment?: string }) => {
     const { type, id } = rejectionModal;
     setActionLoading(id);
     try {
-      if (type === 'KYC') {
-        await subadminApi.rejectUser(id, values.reason, values.comment);
-        setPendingUsers(prev => prev.filter(u => (u.id || u._id) !== id));
-        setShowModal(false);
-      } else if (type === 'Vehicle') {
+      if (type === 'Vehicle') {
         await subadminApi.rejectVehicle(id, values.reason, values.comment);
         setPendingVehicles(prev => prev.filter(v => v._id !== id));
       } else if (type === 'Review') {
@@ -394,11 +365,6 @@ export default function StaffDashboard() {
     navigate('/');
   };
 
-  const filteredUsers = pendingUsers.filter(u =>
-    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const filteredReviews = reviews.filter(r => 
     r.reviewer.name.toLowerCase().includes(reviewSearchQuery.toLowerCase()) ||
     r.reviewer.email.toLowerCase().includes(reviewSearchQuery.toLowerCase()) ||
@@ -419,7 +385,6 @@ export default function StaffDashboard() {
 
   // Define tabs based on role
   const menuItems = isStaffRole ? [
-    { key: 'users', icon: <Shield size={18} />, label: `KYC Reviews (${pendingUsers.length})` },
     { key: 'vehicles', icon: <Car size={18} />, label: `Vehicle Approvals (${pendingVehicles.length})` },
     { key: 'sales-requests', icon: <CheckCircle size={18} />, label: `Sales Requests (${pendingSalesUsers.length})` },
     { key: 'manage-sales', icon: <DollarSign size={18} />, label: 'Manage Sales' },
@@ -586,7 +551,7 @@ export default function StaffDashboard() {
                   paddingBottom: isMobile ? '0.5rem' : '0' 
                 }} className="hide-scroll">
                   <Card size="small" style={{ borderRadius: '12px', background: '#fff7ed', border: '1px solid #ffedd5', flex: isMobile ? '0 0 auto' : '1 1 200px', minWidth: isMobile ? '135px' : '200px' }} bordered={false}>
-                    <Statistic title="Action Required" value={pendingUsers.length + pendingVehicles.length} valueStyle={{ fontSize: isMobile ? '1.25rem' : '1.5rem' }} prefix={<AlertTriangle size={isMobile ? 16 : 20} style={{ color: '#ea580c', marginRight: 8 }} />} />
+                    <Statistic title="Action Required" value={pendingVehicles.length} valueStyle={{ fontSize: isMobile ? '1.25rem' : '1.5rem' }} prefix={<AlertTriangle size={isMobile ? 16 : 20} style={{ color: '#ea580c', marginRight: 8 }} />} />
                   </Card>
                   <Card size="small" style={{ borderRadius: '12px', background: '#f0fdf4', border: '1px solid #dcfce7', flex: isMobile ? '0 0 auto' : '1 1 200px', minWidth: isMobile ? '135px' : '200px' }} bordered={false}>
                     <Statistic title="Approved Today" value={stats.approvedToday} valueStyle={{ fontSize: isMobile ? '1.25rem' : '1.5rem' }} prefix={<CheckCircle size={isMobile ? 16 : 20} style={{ color: '#16a34a', marginRight: 8 }} />} />
@@ -597,61 +562,7 @@ export default function StaffDashboard() {
                 </div>
               )}
 
-              {tab === 'users' && (
-                <div className="animate-fade-in">
-                  <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center' }}>
-                    <Title level={5} style={{ margin: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>KYC Document Reviews</Title>
-                    <div style={{ display: 'flex', width: isMobile ? '100%' : 'auto', gap: '8px' }}>
-                      <Input
-                        prefix={<Search size={16} />}
-                        placeholder="Search name or email..."
-                        style={{ flex: 1, minWidth: isMobile ? 0 : 300, borderRadius: '8px' }}
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                      />
-                      <Button type="primary" onClick={fetchData}>Refresh</Button>
-                    </div>
-                  </div>
-
-                  <Table
-                    scroll={{ x: true }}
-                    dataSource={filteredUsers}
-                    rowKey={u => (u.id || u._id || Math.random()).toString()}
-                    pagination={{ pageSize: 12 }}
-                    style={{ border: '1px solid #f1f5f9', borderRadius: '8px' }}
-                    columns={[
-                      {
-                        title: 'User Profile',
-                        render: (_, u) => (
-                          <Space size="middle">
-                            <Avatar style={{ background: 'linear-gradient(45deg, #0d9488, #2dd4bf)' }}>{u.name.charAt(0)}</Avatar>
-                            <div>
-                              <Text strong>{u.name}</Text><br />
-                              <Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text>
-                            </div>
-                          </Space>
-                        )
-                      },
-                      { title: 'Phone Number', render: (_, u) => u.documents?.phone || u.phone || <Text type="danger">Not provided</Text> },
-                      { title: 'Submission Date', dataIndex: 'updatedAt', render: d => d ? new Date(d).toLocaleDateString() : 'Recent' },
-                      { title: 'Status', render: (_, u) => u.isKycVerified ? <Tag color="success">VERIFIED</Tag> : <Tag color="warning">NEEDS REVIEW</Tag> },
-                      {
-                        title: 'Action',
-                        render: (_, u) => (
-                          <Button
-                            type="primary"
-                            style={{ background: '#1e293b' }}
-                            icon={<Shield size={14} />}
-                            onClick={() => { setSelectedUser(u); setShowModal(true); }}
-                          >
-                            Review KYC
-                          </Button>
-                        )
-                      }
-                    ]}
-                  />
-                </div>
-              )}
+              
 
               {tab === 'sales-requests' && (
                 <div className="animate-fade-in">
@@ -1548,3 +1459,4 @@ export default function StaffDashboard() {
     </Layout>
   );
 }
+

@@ -37,7 +37,6 @@ const About = lazy(() => import('./pages/About'));
 const FAQ = lazy(() => import('./pages/FAQ'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Help = lazy(() => import('./pages/Help'));
-const VerifyUser = lazy(() => import('./pages/VerifyUser'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const EditVehicle = lazy(() => import('./pages/EditVehicle'));
@@ -166,7 +165,6 @@ export default function App() {
 
               {/* Protected pages */}
               <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />
-              <Route path="/verify" element={<AppLayout><ProtectedRoute><VerifyUser /></ProtectedRoute></AppLayout>} />
               <Route path="/list-vehicle" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'staff', 'admin']}><ListVehicle /></ProtectedRoute></AppLayout>} />
               <Route path="/dashboard" element={<AppLayout><ProtectedRoute roles={['owner', 'user', 'staff', 'admin']}><Dashboard /></ProtectedRoute></AppLayout>} />
               <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
