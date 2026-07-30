@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { notification, Modal, Form, Select, Input, InputNumber, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image, Tabs, Row, Col } from 'antd';
 import Table from '../components/ResponsiveTable';
@@ -27,7 +27,7 @@ export default function StaffDashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [stats, setStats] = useState<SubadminStats | null>(null);
-  const [setPendingUsers] = useState<User[]>([]);
+
   const [pendingVehicles, setPendingVehicles] = useState<Vehicle[]>([]);
   const [pendingSalesUsers, setPendingSalesUsers] = useState<User[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -37,9 +37,9 @@ export default function StaffDashboard() {
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || (
-    user && !['staff', 'subadmin', 'admin', 'superadmin'].includes(user.role.toLowerCase()) ? 'manage-sales' : 'users'
+    user && !['staff', 'subadmin', 'admin', 'superadmin'].includes(user.role.toLowerCase()) ? 'manage-sales' : 'vehicles'
   );
-  const [tab, setTab] = useState<'users' | 'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'manage-sales' | 'sales-requests'>(initialTab);
+  const [tab, setTab] = useState<'vehicles' | 'reviews' | 'moderation' | 'payments' | 'settings' | 'feedback' | 'manage-sales' | 'sales-requests'>(initialTab === 'users' ? 'vehicles' : initialTab);
 
   const currentRole = (user?.role || '').toLowerCase();
   const isStaffRole = currentRole === 'staff' || currentRole === 'subadmin' || currentRole === 'admin' || currentRole === 'superadmin';
@@ -129,7 +129,7 @@ export default function StaffDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [s, u, v, r, m, mo, p, sales, pendingSales] = await Promise.all([
+      const [s, v, r, m, mo, p, sales, pendingSales] = await Promise.all([
         subadminApi.getStats().catch(() => null),
         subadminApi.getPendingVehicles().catch(() => []),
         subadminApi.getAllReviews().catch(() => []),
