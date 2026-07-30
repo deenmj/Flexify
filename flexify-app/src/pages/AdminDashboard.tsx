@@ -73,8 +73,8 @@ export default function AdminDashboard() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
-  const [kycUser, setKycUser] = useState<User | null>(null);
-  const [isKycModalOpen, setIsKycModalOpen] = useState(false);
+  
+  
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [editForm] = Form.useForm();
   const [roleForm] = Form.useForm();
@@ -214,48 +214,12 @@ export default function AdminDashboard() {
 
 
 
-  const handleViewKyc = async (user: User) => {
-    const id = (user.id || user._id)!;
-    try {
-      setActionLoadingId(id);
-      const data = await adminApi.getUserKyc(id);
-      setKycUser(data);
-      setIsKycModalOpen(true);
-    } catch (err: any) {
-      message.error(err.message || 'Failed to fetch KYC data');
-    } finally {
+   finally {
       setActionLoadingId(null);
     }
   };
 
-  const handleDeleteKyc = async (u: User) => {
-    const id = (u.id || u._id)!;
-    let reason = '';
-    Modal.confirm({
-      title: 'Delete User KYC Data',
-      content: (
-        <div style={{ marginTop: '16px' }}>
-          <p style={{ marginBottom: '12px' }}>Are you sure you want to permanently delete KYC documents for {u.name}? This will reset their verification status.</p>
-          <Input.TextArea 
-            placeholder="Reason for deletion (e.g., Fraudulent documents, expired ID)"
-            onChange={(e) => { reason = e.target.value; }}
-            rows={3}
-          />
-        </div>
-      ),
-      okText: 'Delete KYC',
-      okType: 'danger',
-      onOk: async () => {
-        try {
-          setActionLoadingId(id);
-          await adminApi.deleteUserKyc(id, reason);
-          setAllUsers((prev: User[]) => prev.map(usr => (usr.id || usr._id) === id ? { ...usr, verificationStatus: 'not_submitted', isKycVerified: false, documents: undefined } : usr));
-          setKycUser(null);
-          setIsKycModalOpen(false);
-          message.success('User KYC data deleted successfully');
-        } catch (err: any) {
-          message.error(err.message || 'Failed to delete KYC data');
-        } finally {
+   finally {
           setActionLoadingId(null);
         }
       }
@@ -724,7 +688,7 @@ export default function AdminDashboard() {
                           <Statistic title="Confirmed Bookings" value={stats.bookings.confirmed} />
                         </Card>
                         <Card size="small" bordered={false} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
-                          <Statistic title="Pending KYC" value={stats.pendingKyc} valueStyle={{ color: '#d97706' }} />
+                          
                         </Card>
                         <Card size="small" bordered={false} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
                           <Statistic title="Active Vehicles" value={stats.activeVehicles} />
@@ -812,7 +776,7 @@ export default function AdminDashboard() {
                     columns={[
                       { title: 'User', render: (_, u) => <Space><Avatar size="small" src={getImageUrl(u.profilePic)} style={{ backgroundColor: '#7c3aed' }}>{u.name.charAt(0)}</Avatar><div><strong>{u.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text></div></Space> },
                       { title: 'Role', render: (_, u) => roleBadge(u) },
-                      { title: 'KYC', render: (_, u) => u.isKycVerified ? <Tag icon={<CheckCircle size={12} />} color="success">Verified</Tag> : <Tag color={u.verificationStatus === 'pending' ? 'processing' : 'warning'}>{u.verificationStatus || 'Not submitted'}</Tag> },
+                      
                       { 
                         title: 'Status', 
                         render: (_, u) => (
@@ -859,9 +823,7 @@ export default function AdminDashboard() {
                                   <Tooltip title={u.status === 'blocked' ? "Restore User" : "Ban User"}>
                                     <Button size="small" type="text" danger={u.status !== 'blocked'} onClick={() => handleToggleStatus(u)} icon={<Ban size={14} />} />
                                   </Tooltip>
-                                  <Tooltip title="View KYC Documents">
-                                    <Button size="small" type="text" onClick={() => handleViewKyc(u)} loading={actionLoadingId === id} icon={<FileText size={14} />} />
-                                  </Tooltip>
+                                  
                                 </>
                               ) : (
                                 <Text type="secondary" style={{ fontSize: '12px' }}>Read Only</Text>
@@ -1227,77 +1189,7 @@ export default function AdminDashboard() {
         </Form>
       </Modal>
 
-      {/* View KYC Modal */}
-      <Modal
-        title={kycUser ? `KYC Documents: ${kycUser.name || 'User'}` : "KYC Verification Documents"}
-        open={isKycModalOpen}
-        onCancel={() => setIsKycModalOpen(false)}
-        width={900}
-        footer={[
-          kycUser && (
-            <Button key="delete" danger onClick={() => handleDeleteKyc(kycUser)} style={{ float: 'left' }}>
-              Delete Entire KYC Data
-            </Button>
-          ),
-          <Button key="close" onClick={() => setIsKycModalOpen(false)}>Close</Button>
-        ]}
-      >
-        {kycUser ? (
-          <div style={{ padding: '1rem' }}>
-            <Row gutter={[16, 24]}>
-              <Col span={12}>
-                <Card size="small" title="Driving License">
-                  {kycUser.documents?.license ? <Image src={getImageUrl(kycUser.documents.license)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#94a3b8', fontSize: '0.9rem' }}>No document provided</div>}
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card size="small" title="Profile Photo">
-                  {kycUser.documents?.selfie ? <Image src={getImageUrl(kycUser.documents.selfie)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#94a3b8', fontSize: '0.9rem' }}>No document provided</div>}
-                </Card>
-              </Col>
-            </Row>
-            <Divider />
-            <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
-              <div style={{ marginBottom: '1rem' }}>
-                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>ID / License Number</Text>
-                <Text style={{ color: '#64748b' }}>{(kycUser.documents as any)?.idNumber || 'Not provided'}</Text>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Phone Number</Text>
-                <Text style={{ color: '#64748b' }}>{(kycUser.documents as any)?.phone || kycUser.phone || 'Not provided'}</Text>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Residential Address</Text>
-                <Text style={{ color: '#64748b' }}>{kycUser.documents?.address || 'Not provided'}</Text>
-              </div>
-              <div>
-                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Verification Status</Text>
-                <Tag color={kycUser.isKycVerified ? 'success' : 'warning'}>{kycUser.verificationStatus?.toUpperCase()}</Tag>
-              </div>
-            </div>
-
-            {(kycUser as any).vehicles && (kycUser as any).vehicles.length > 0 && (
-              <div style={{ marginTop: '1.5rem' }}>
-                <Divider />
-                <Title level={5}>Owned Vehicles</Title>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-                  {(kycUser as any).vehicles.map((v: any) => (
-                    <Card key={v._id} size="small" style={{ borderRadius: '8px' }}>
-                      <Text strong>{v.title}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: '12px' }}>{v.make} {v.model}</Text>
-                      <br />
-                      <Tag color={v.status === 'active' ? 'success' : v.status === 'pending' ? 'processing' : 'error'} style={{ marginTop: '4px' }}>
-                        {v.status?.toUpperCase()}
-                      </Tag>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : <Spin />}
-      </Modal>
+      
 
       {/* ADMIN VEHICLE DETAIL MODAL */}
       <Modal
@@ -1514,3 +1406,4 @@ export default function AdminDashboard() {
     </Layout>
   );
 }
+

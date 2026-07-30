@@ -373,17 +373,12 @@ export const listVehicles = async (req, res) => {
     const useGeo = lat && lng && radius;
 
     if (q) {
-      if (useGeo) {
-        // Fallback to regex because $text cannot be used inside $geoNear query
-        filter.$or = [
-          { title: { $regex: q, $options: "i" } },
-          { make: { $regex: q, $options: "i" } },
-          { model: { $regex: q, $options: "i" } },
-          { description: { $regex: q, $options: "i" } }
-        ];
-      } else {
-        filter.$text = { $search: q };
-      }
+      filter.$or = [
+        { title: { $regex: q, $options: "i" } },
+        { make: { $regex: q, $options: "i" } },
+        { model: { $regex: q, $options: "i" } },
+        { description: { $regex: q, $options: "i" } }
+      ];
     }
 
     if (transmission) filter.transmission = transmission;
