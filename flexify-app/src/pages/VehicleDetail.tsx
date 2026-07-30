@@ -628,27 +628,17 @@ export default function VehicleDetail() {
                   </div>
                 )}
 
-                {user && user._id === (owner?._id || vehicle.owner) ? (
-                  <div className="box-highlight" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
-                    <p style={{ fontWeight: 600, color: '#0f172a', margin: 0, fontSize: '1rem' }}>You own this vehicle</p>
-                    <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px', marginBottom: '12px' }}>This is how your vehicle appears to the public.</p>
-                    <Link to={`/dashboard/vehicle/${id}`} className="btn btn-primary btn-sm btn-full" style={{ height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      Go to Manage Vehicle
-                    </Link>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-                    <button
-                      className="btn btn-full"
-                      onClick={() => setIsContactModalOpen(true)}
-                      style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', transition: 'all 0.2s' }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.45)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.35)'; }}
-                    >
-                      <MessageCircle size={20} /> Contact Owner
-                    </button>
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
+                  <button
+                    className="btn btn-full"
+                    onClick={() => setIsContactModalOpen(true)}
+                    style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.45)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.35)'; }}
+                  >
+                    <MessageCircle size={20} /> Contact Owner
+                  </button>
+                </div>
               </div>
 
               <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.25rem' }} style={{ marginTop: '1rem', borderRadius: '12px', border: '1px solid var(--border-color-light)' }}>
