@@ -213,19 +213,6 @@ export default function AdminDashboard() {
   };
 
 
-
-   finally {
-      setActionLoadingId(null);
-    }
-  };
-
-   finally {
-          setActionLoadingId(null);
-        }
-      }
-    });
-  };
-
   const handleDeleteVehicle = async (vehicle: Vehicle) => {
     const id = vehicle._id!;
     Modal.confirm({
@@ -751,7 +738,7 @@ export default function AdminDashboard() {
                           title: 'Details', dataIndex: 'details', render: (d: any) => (
                             <Tooltip title={JSON.stringify(d, null, 2)}>
                               <span style={{ fontSize: '12px', color: '#64748b', cursor: 'help' }}>
-                                {d.oldRole ? `Role: ${d.oldRole} → ${d.newRole}` : d.reason || 'View details'}
+                                {d.oldRole ? `Role: ${d.oldRole} â†’ ${d.newRole}` : d.reason || 'View details'}
                               </span>
                             </Tooltip>
                           )
@@ -883,7 +870,7 @@ export default function AdminDashboard() {
                     columns={[
                       { title: 'Renter', render: (_, b) => { const r = typeof b.user === 'object' ? b.user : null; return r ? (r as User).name : 'User'; } },
                       { title: 'Vehicle', render: (_, b) => { const v = typeof b.vehicle === 'object' ? b.vehicle : null; return v ? (v as Vehicle).title : 'Vehicle'; } },
-                      { title: 'Dates', render: (_, b) => <Text style={{ fontSize: '13px' }}>{b.startDate ? new Date(b.startDate).toLocaleDateString() : 'N/A'} — {b.endDate ? new Date(b.endDate).toLocaleDateString() : 'N/A'}</Text> },
+                      { title: 'Dates', render: (_, b) => <Text style={{ fontSize: '13px' }}>{b.startDate ? new Date(b.startDate).toLocaleDateString() : 'N/A'} â€” {b.endDate ? new Date(b.endDate).toLocaleDateString() : 'N/A'}</Text> },
                       { title: 'Amount', dataIndex: 'totalAmount', render: a => `LKR ${(a || 0).toLocaleString()}` },
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> },
                       {
