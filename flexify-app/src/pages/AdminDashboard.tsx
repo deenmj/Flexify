@@ -110,7 +110,6 @@ export default function AdminDashboard() {
     }
   };
 
-  };
 
   const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
     'Western': ['Colombo', 'Gampaha', 'Kalutara'],
