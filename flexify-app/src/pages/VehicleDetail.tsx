@@ -641,7 +641,7 @@ export default function VehicleDetail() {
                   {user && ((user._id || user.id) === (owner?._id || owner?.id) || (user._id || user.id) === vehicle.owner) && (
                     <button
                       className="btn btn-full"
-                      onClick={() => navigate(`/manage-vehicle/${vehicle._id}`)}
+                      onClick={() => navigate(`/dashboard/vehicle/${vehicle._id}`)}
                       style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#f8fafc', color: '#334155', border: '2px solid #e2e8f0', borderRadius: '12px', transition: 'all 0.2s' }}
                       onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
                       onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
@@ -711,7 +711,7 @@ export default function VehicleDetail() {
             {user && ((user._id || user.id) === (owner?._id || owner?.id) || (user._id || user.id) === vehicle.owner) && (
               <button
                 className="btn btn-full"
-                onClick={() => navigate(`/manage-vehicle/${vehicle._id}`)}
+                onClick={() => navigate(`/dashboard/vehicle/${vehicle._id}`)}
                 style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#f8fafc', color: '#334155', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
               >
                 <Settings size={18} />
