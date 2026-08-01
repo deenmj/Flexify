@@ -799,25 +799,3 @@ export const getPublicStats = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
-/**
- * Track call/whatsapp clicks on a vehicle
- */
-export const trackContactClick = async (req, res) => {
-  try {
-    const { type } = req.body;
-    const vehicle = await Vehicle.findById(req.params.id);
-    if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
-
-    if (type === 'call') {
-      vehicle.callClicks = (vehicle.callClicks || 0) + 1;
-    } else if (type === 'whatsapp') {
-      vehicle.whatsappClicks = (vehicle.whatsappClicks || 0) + 1;
-    }
-    
-    await vehicle.save();
-    res.json({ message: "Click tracked successfully", callClicks: vehicle.callClicks, whatsappClicks: vehicle.whatsappClicks });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
