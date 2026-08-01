@@ -93,22 +93,7 @@ export default function AdminDashboard() {
     return acc;
   }, {});
 
-  // Load makes on mount
-  useEffect(() => {
-    vehicleApi.getMakes().then(setMakes).catch(() => {});
-  }, []);
 
-  // Load models when make selection changes
-  useEffect(() => {
-    if (!selectedAddMake || selectedAddMake === '__other__') {
-      setVehicleModels([]);
-      return;
-    }
-    const makeObj = makes.find(m => m.name === selectedAddMake);
-    if (makeObj) {
-      vehicleApi.getModels(makeObj._id).then(setVehicleModels).catch(() => {});
-    }
-  }, [selectedAddMake, makes]);
 
   const handleOpenUserVehicles = async (u: User) => {
     setUserVehiclesUser(u);
