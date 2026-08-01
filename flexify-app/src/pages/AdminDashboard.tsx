@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, vehicleApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, subadminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder, type VehicleMake, type VehicleModel } from '../api';
 import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon } from 'lucide-react';
@@ -87,11 +87,16 @@ export default function AdminDashboard() {
   const [userVehiclesLoading, setUserVehiclesLoading] = useState(false);
 
   // Vehicle count lookup: userId -> count
-  const vehicleCountByUser = allVehicles.reduce((acc: Record<string, number>, v) => {
-    const ownerId = typeof v.owner === 'object' ? (v.owner as any)._id || (v.owner as any).id : v.owner;
-    if (ownerId) acc[ownerId] = (acc[ownerId] || 0) + 1;
-    return acc;
-  }, {});
+  const vehicleCountByUser = useMemo(() => {
+    return allVehicles.reduce((acc: Record<string, number>, v) => {
+      const ownerId = typeof v.owner === 'object' ? (v.owner as any)._id || (v.owner as any).id : v.owner;
+      if (ownerId) {
+        const strId = ownerId.toString();
+        acc[strId] = (acc[strId] || 0) + 1;
+      }
+      return acc;
+    }, {});
+  }, [allVehicles]);
 
 
 
@@ -836,7 +841,7 @@ export default function AdminDashboard() {
                         )
                       },
                       { title: 'Vehicles', render: (_, u) => {
-                          const uid = u._id || u.id;
+                          const uid = (u._id || u.id)?.toString();
                           const count = uid ? (vehicleCountByUser[uid] || 0) : 0;
                           return (
                             <Button
@@ -1248,7 +1253,7 @@ export default function AdminDashboard() {
         onCancel={() => setAdminVehicleModalOpen(false)}
         footer={selectedAdminVehicle ? [
           <Button key="close" onClick={() => setAdminVehicleModalOpen(false)}>Close</Button>,
-          ...(user?.role === 'superadmin' ? [
+          ...((user?.role === 'superadmin' || user?.role === 'admin') ? [
             <Button key="delete" danger icon={<Trash2 size={14} />} onClick={() => {
               handleDeleteVehicle(selectedAdminVehicle);
               setAdminVehicleModalOpen(false);

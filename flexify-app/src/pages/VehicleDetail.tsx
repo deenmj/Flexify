@@ -79,12 +79,7 @@ export default function VehicleDetail() {
   // Auto-complete pending booking moved to Auth.tsx and VerifyUser.tsx
 
   const handleContactClick = async (type: 'call' | 'whatsapp') => {
-    if (!user) {
-      navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
-      return;
-    }
-    
-    // Track click asynchronously
+    // Track click asynchronously (no login required)
     try {
       await vehicleApi.trackContactClick(id!, type);
     } catch (err) {
