@@ -556,7 +556,23 @@ export const adminApi = {
       method: 'POST',
       body: JSON.stringify({ paymentId, status, rejectionReason }),
     }),
+
+  // User vehicle management
+  getUserVehicles: (userId: string) =>
+    apiFetch<Vehicle[]>(`/admin/users/${userId}/vehicles`),
+
+  createVehicleForUser: (userId: string, formData: FormData) =>
+    fetch(`${API_BASE_URL}/admin/users/${userId}/vehicles`, {
+      method: 'POST',
+      headers: authHeadersOnly(),
+      body: formData,
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to create vehicle');
+      return data as Vehicle;
+    }),
 };
+
 
 export const superAdminApi = {
   getFinancials: () => apiFetch('/superadmin/financials'),

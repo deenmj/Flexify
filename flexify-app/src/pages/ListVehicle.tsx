@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { vehicleApi, type VehicleMake, type VehicleModel } from '../api';
+import { vehicleApi, adminApi, type VehicleMake, type VehicleModel } from '../api';
 import { Select as AntSelect, message } from 'antd';
 import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -62,6 +62,8 @@ export default function ListVehicle() {
   const [success, setSuccess] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const forUserId = searchParams.get('forUser');
 
   const [form, setForm] = useState({
     title: '',
@@ -345,14 +347,23 @@ export default function ListVehicle() {
         formData.append('photos', photo);
       });
 
-      await vehicleApi.createWithPhotos(formData);
+      if (forUserId && (user.role === 'admin' || user.role === 'superadmin')) {
+        await adminApi.createVehicleForUser(forUserId, formData);
+      } else {
+        await vehicleApi.createWithPhotos(formData);
+      }
+
       // Refresh user in background (non-blocking) so UI responds instantly
       refreshUser();
-      message.success('Vehicle listed successfully! Redirecting to your vehicles...');
+      message.success(forUserId ? 'Vehicle listed successfully for user!' : 'Vehicle listed successfully! Redirecting to your vehicles...');
 
       // Redirect to dashboard vehicles tab after a brief delay
       setTimeout(() => {
-        navigate('/dashboard?tab=vehicles');
+        if (forUserId) {
+          navigate('/admin?tab=users');
+        } else {
+          navigate('/dashboard?tab=vehicles');
+        }
       }, 1500);
 
     } catch (err: any) {
@@ -384,6 +395,14 @@ export default function ListVehicle() {
           }
         }}
       />
+      
+      {/* Banner indicating admin is listing for a user */}
+      {forUserId && (user?.role === 'admin' || user?.role === 'superadmin') && (
+        <div style={{ backgroundColor: '#fee2e2', color: '#ef4444', padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>
+          ⚠️ You are currently listing this vehicle on behalf of a user account (ID: {forUserId}).
+        </div>
+      )}
+
       <section className="static-hero">
         <div className="container" style={{ position: 'relative' }}>
           <h1>List Your Vehicle for Rent in Sri Lanka</h1>

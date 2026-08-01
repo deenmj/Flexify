@@ -16,8 +16,11 @@ import {
   verifyPayment,
   deleteVehicle,
   cancelBooking,
+  getUserVehicles,
+  createVehicleForUser,
 } from "../controllers/adminController.js";
 import { protect, requireAdmin, requireStaff } from "../middleware/authMiddleware.js";
+import { upload } from "../utils/upload.js";
 
 const router = express.Router();
 
@@ -30,6 +33,11 @@ router.patch("/users/:id/status", protect, requireAdmin, updateUserStatus);
 router.get("/users/:id/kyc", protect, requireAdmin, getUserKyc);
 router.delete("/users/:id/kyc", protect, requireAdmin, deleteUserKyc);
 router.patch("/users/:id/subscription", protect, requireAdmin, updateUserSubscription);
+
+// User vehicle management (admin)
+router.get("/users/:id/vehicles", protect, requireAdmin, getUserVehicles);
+router.post("/users/:id/vehicles", protect, requireAdmin, upload.array("photos", 10), createVehicleForUser);
+
 router.get("/vehicles", protect, requireAdmin, getAllVehicles);
 router.delete("/vehicles/:id", protect, requireAdmin, deleteVehicle);
 router.get("/bookings", protect, requireAdmin, getAllBookings);

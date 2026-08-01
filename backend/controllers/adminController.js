@@ -1,13 +1,18 @@
 // backend/controllers/adminController.js
 // SUPERADMIN controller — full platform management
+import mongoose from "mongoose";
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/booking.js";
 import User from "../models/User.js";
 import Staff from "../models/Staff.js";
 import AuditLog from "../models/AuditLog.js";
 import Payment from "../models/Payment.js";
+import VehicleMake from "../models/VehicleMake.js";
+import VehicleModel from "../models/VehicleModel.js";
+import cloudinary from "../utils/cloudinary.js";
 import { logAdminAction } from "../utils/auditLogger.js";
 import { sendKycResetEmail } from "../utils/notifier.js";
+
 
 
 /**
@@ -602,3 +607,135 @@ export const verifyPayment = async (req, res) => {
 };
 
 
+/**
+ * Get all vehicles belonging to a specific user (admin)
+ */
+export const getUserVehicles = async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find({ owner: req.params.id })
+      .sort({ createdAt: -1 })
+      .lean();
+    res.json(vehicles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Admin: Create a vehicle on behalf of a specific user account
+ * Bypasses all subscription limits, vehicle is immediately active.
+ */
+export const createVehicleForUser = async (req, res) => {
+  try {
+    const targetUserId = req.params.id;
+
+    // Verify target user exists
+    let targetUser = await User.findById(targetUserId);
+    if (!targetUser) targetUser = await Staff.findById(targetUserId);
+    if (!targetUser) return res.status(404).json({ message: "Target user not found" });
+
+    const {
+      title, make, model, year, pricePerDay, transmission, fuelType,
+      seats, description, lat, lng, address, serviceType,
+      engineCapacity, fuelConsumption, features, province, district, city,
+      pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
+      driverOption, driverPricePerDay, mobileNumber, contactMethod, weddingHiresSpecial
+    } = req.body;
+
+    if (!title || !make || !model || !pricePerDay || !mobileNumber) {
+      return res.status(400).json({ message: "Missing required fields: Title, Make, Model, Price Per Day, and Mobile Number." });
+    }
+
+    // If the target is a plain user, promote to owner role automatically
+    if (targetUser.role === "user") {
+      await User.findByIdAndUpdate(targetUserId, {
+        role: "owner",
+        ownerType: "UNVERIFIED",
+        subscription: { tier: 'FREE', status: 'free', startDate: new Date(), endDate: null }
+      });
+    }
+
+    const photos = [];
+    if (req.files) {
+      req.files.forEach((f) => photos.push({ url: f.path, public_id: f.filename }));
+    }
+
+    // Resolve Make (find or create)
+    const isObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+    let finalMakeName = make;
+    let resolvedMakeObj = null;
+    if (!isObjectId(make)) {
+      const normalized = make.charAt(0).toUpperCase() + make.slice(1).toLowerCase();
+      let m = await VehicleMake.findOne({ name: new RegExp(`^${make}$`, "i") });
+      if (!m) m = await VehicleMake.create({ name: normalized, approved: true, createdBy: req.user._id });
+      resolvedMakeObj = m;
+      finalMakeName = m.name;
+    } else {
+      const m = await VehicleMake.findById(make);
+      if (m) { finalMakeName = m.name; resolvedMakeObj = m; }
+    }
+
+    // Resolve Model (find or create)
+    let finalModelName = model;
+    if (!isObjectId(model) && resolvedMakeObj) {
+      const normalized = model.charAt(0).toUpperCase() + model.slice(1).toLowerCase();
+      let m = await VehicleModel.findOne({ make: resolvedMakeObj._id, name: new RegExp(`^${model}$`, "i") });
+      if (!m) m = await VehicleModel.create({ make: resolvedMakeObj._id, name: normalized, approved: true, createdBy: req.user._id });
+      finalModelName = m.name;
+    } else if (isObjectId(model)) {
+      const m = await VehicleModel.findById(model);
+      if (m) finalModelName = m.name;
+    }
+
+    const staffRoles = ["superadmin", "admin", "staff", "manager", "supervisor"];
+    const isTargetStaff = staffRoles.includes(targetUser.role);
+
+    const vehicle = await Vehicle.create({
+      owner: targetUserId,
+      ownerModel: isTargetStaff ? "Staff" : "User",
+      title,
+      make: finalMakeName,
+      model: finalModelName,
+      year: parseInt(year),
+      photos,
+      location: {
+        type: "Point",
+        coordinates: [parseFloat(lng) || 80.7718, parseFloat(lat) || 7.8731],
+        address: address || "",
+      },
+      pricePerDay: parseFloat(pricePerDay),
+      pricePerWeek: pricePerWeek ? parseFloat(pricePerWeek) : null,
+      pricePerMonth: pricePerMonth ? parseFloat(pricePerMonth) : null,
+      kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null,
+      extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null,
+      transmission: transmission || "Automatic",
+      fuelType: fuelType || "Petrol",
+      seats: parseInt(seats) || 4,
+      description,
+      serviceType: serviceType ? (Array.isArray(serviceType) ? serviceType : [serviceType]) : [],
+      status: "active", // Admin-created vehicles are always immediately active
+      isActive: true,
+      engineCapacity,
+      fuelConsumption,
+      features: features ? (typeof features === 'string' ? JSON.parse(features) : features) : [],
+      province,
+      district,
+      city,
+      driverOption: driverOption || "self-drive",
+      driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
+      mobileNumber: mobileNumber || null,
+      contactMethod: contactMethod || "both",
+      weddingHiresSpecial: weddingHiresSpecial === "true" || weddingHiresSpecial === true,
+    });
+
+    logAdminAction(req, "vehicle_create_for_user", targetUserId, {
+      vehicleId: vehicle._id,
+      vehicleTitle: vehicle.title,
+      createdFor: targetUser.email,
+    });
+
+    res.status(201).json(vehicle);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

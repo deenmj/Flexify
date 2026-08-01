@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, subadminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
+import { adminApi, vehicleApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, subadminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder, type VehicleMake, type VehicleModel } from '../api';
 import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert, Switch } from 'antd';
 import Table from '../components/ResponsiveTable';
@@ -79,6 +79,65 @@ export default function AdminDashboard() {
   const [editForm] = Form.useForm();
   const [roleForm] = Form.useForm();
   const [maintenanceForm] = Form.useForm();
+
+  // User Vehicles Modal state
+  const [userVehiclesModalOpen, setUserVehiclesModalOpen] = useState(false);
+  const [userVehiclesUser, setUserVehiclesUser] = useState<User | null>(null);
+  const [userVehicles, setUserVehicles] = useState<Vehicle[]>([]);
+  const [userVehiclesLoading, setUserVehiclesLoading] = useState(false);
+
+  // Vehicle count lookup: userId -> count
+  const vehicleCountByUser = allVehicles.reduce((acc: Record<string, number>, v) => {
+    const ownerId = typeof v.owner === 'object' ? (v.owner as any)._id || (v.owner as any).id : v.owner;
+    if (ownerId) acc[ownerId] = (acc[ownerId] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Load makes on mount
+  useEffect(() => {
+    vehicleApi.getMakes().then(setMakes).catch(() => {});
+  }, []);
+
+  // Load models when make selection changes
+  useEffect(() => {
+    if (!selectedAddMake || selectedAddMake === '__other__') {
+      setVehicleModels([]);
+      return;
+    }
+    const makeObj = makes.find(m => m.name === selectedAddMake);
+    if (makeObj) {
+      vehicleApi.getModels(makeObj._id).then(setVehicleModels).catch(() => {});
+    }
+  }, [selectedAddMake, makes]);
+
+  const handleOpenUserVehicles = async (u: User) => {
+    setUserVehiclesUser(u);
+    setUserVehiclesModalOpen(true);
+    setUserVehiclesLoading(true);
+    try {
+      const userId = u._id || u.id!;
+      const vehicles = await adminApi.getUserVehicles(userId);
+      setUserVehicles(vehicles);
+    } catch (err: any) {
+      message.error(err.message || 'Failed to load vehicles');
+    } finally {
+      setUserVehiclesLoading(false);
+    }
+  };
+
+  };
+
+  const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
+    'Western': ['Colombo', 'Gampaha', 'Kalutara'],
+    'Central': ['Kandy', 'Matale', 'Nuwara Eliya'],
+    'Southern': ['Galle', 'Matara', 'Hambantota'],
+    'Northern': ['Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu'],
+    'Eastern': ['Trincomalee', 'Batticaloa', 'Ampara'],
+    'North Western': ['Kurunegala', 'Puttalam'],
+    'North Central': ['Anuradhapura', 'Polonnaruwa'],
+    'Uva': ['Badulla', 'Moneragala'],
+    'Sabaragamuwa': ['Ratnapura', 'Kegalle']
+  };
 
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
@@ -792,6 +851,21 @@ export default function AdminDashboard() {
                           />
                         )
                       },
+                      { title: 'Vehicles', render: (_, u) => {
+                          const uid = u._id || u.id;
+                          const count = uid ? (vehicleCountByUser[uid] || 0) : 0;
+                          return (
+                            <Button
+                              size="small"
+                              type="link"
+                              icon={<Car size={13} />}
+                              onClick={() => handleOpenUserVehicles(u)}
+                              style={{ padding: '0 4px', fontSize: '13px' }}
+                            >
+                              {count} {count === 1 ? 'vehicle' : 'vehicles'}
+                            </Button>
+                          );
+                        }},
                       {
                         title: 'Actions', 
                         render: (_, u) => {
@@ -810,7 +884,12 @@ export default function AdminDashboard() {
                                   <Tooltip title={u.status === 'blocked' ? "Restore User" : "Ban User"}>
                                     <Button size="small" type="text" danger={u.status !== 'blocked'} onClick={() => handleToggleStatus(u)} icon={<Ban size={14} />} />
                                   </Tooltip>
-                                  
+                                  <Tooltip title="View Vehicles">
+                                    <Button size="small" type="text" style={{ color: '#0ea5e9' }} onClick={() => handleOpenUserVehicles(u)} icon={<Car size={14} />} />
+                                  </Tooltip>
+                                  <Tooltip title="List Vehicle for User">
+                                    <Button size="small" type="text" style={{ color: '#7c3aed' }} onClick={() => navigate(`/list-vehicle?forUser=${uid}`)} icon={<Plus size={14} />} />
+                                  </Tooltip>
                                 </>
                               ) : (
                                 <Text type="secondary" style={{ fontSize: '12px' }}>Read Only</Text>
@@ -1388,6 +1467,55 @@ export default function AdminDashboard() {
             </div>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* USER VEHICLES MODAL */}
+      <Modal
+        title={`Vehicles for ${userVehiclesUser?.name}`}
+        open={userVehiclesModalOpen}
+        onCancel={() => setUserVehiclesModalOpen(false)}
+        footer={[
+          <Button key="close" onClick={() => setUserVehiclesModalOpen(false)}>Close</Button>,
+          <Button key="list-new" type="primary" icon={<Plus size={14} />} onClick={() => {
+            setUserVehiclesModalOpen(false);
+            if (userVehiclesUser) navigate(`/list-vehicle?forUser=${userVehiclesUser._id || userVehiclesUser.id}`);
+          }}>
+            List New Vehicle
+          </Button>
+        ]}
+        width={700}
+        destroyOnClose
+      >
+        <div style={{ padding: '10px 0' }}>
+          {userVehiclesLoading ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}><Spin size="large" /></div>
+          ) : userVehicles.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <Text type="secondary">This user has no vehicles listed.</Text>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {userVehicles.map(v => (
+                <div key={v._id} style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <Image src={getImageUrl(v.photos?.[0])} width={80} height={80} style={{ borderRadius: '6px', objectFit: 'cover' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Text strong>{v.title}</Text>
+                      <Tag color={v.status === 'active' ? 'green' : v.status === 'pending' ? 'orange' : 'red'}>{v.status.toUpperCase()}</Tag>
+                    </div>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
+                    <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text strong style={{ color: '#1890ff' }}>LKR {v.pricePerDay?.toLocaleString()}/day</Text>
+                      <Space>
+                        <Button size="small" onClick={() => window.open(`/vehicles/${v._id}`, '_blank')}>View Public</Button>
+                      </Space>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </Modal>
 
     </Layout>
