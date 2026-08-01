@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Modal, message, Avatar, Card, Badge, Tag, Input, Button, Typography } from 'antd';
 import { vehicleApi, feedbackApi, type Vehicle, getImageUrl, getVehicleSlug } from '../api';
-import { Users, CheckCircle, Phone, Shield, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X, Zap, MessageCircle, MessageSquare } from 'lucide-react';
+import { Users, CheckCircle, Phone, Shield, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X, Zap, MessageCircle, MessageSquare, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -637,6 +637,18 @@ export default function VehicleDetail() {
                   >
                     <MessageCircle size={20} /> Contact Owner
                   </button>
+
+                  {user && ((user._id || user.id) === (owner?._id || owner?.id) || (user._id || user.id) === vehicle.owner) && (
+                    <button
+                      className="btn btn-full"
+                      onClick={() => navigate(`/manage-vehicle/${vehicle._id}`)}
+                      style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#f8fafc', color: '#334155', border: '2px solid #e2e8f0', borderRadius: '12px', transition: 'all 0.2s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                    >
+                      <Settings size={20} /> Manage Vehicle
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -681,7 +693,7 @@ export default function VehicleDetail() {
       </div>
 
       {/* MOBILE STICKY CONTACT BAR */}
-      {isMobile && (!user || user._id !== (owner?._id || vehicle.owner)) && (
+      {isMobile && (
         <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`} style={{ padding: '0.75rem 1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <div className="mobile-bar-price" style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
             <span className="bar-amount" style={{ fontSize: '1.1rem' }}>LKR {vehicle.pricePerDay.toLocaleString()}</span>
@@ -694,8 +706,18 @@ export default function VehicleDetail() {
               style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
             >
               <MessageCircle size={18} />
-              <span>Contact Owner</span>
+              <span>Contact</span>
             </button>
+            {user && ((user._id || user.id) === (owner?._id || owner?.id) || (user._id || user.id) === vehicle.owner) && (
+              <button
+                className="btn btn-full"
+                onClick={() => navigate(`/manage-vehicle/${vehicle._id}`)}
+                style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#f8fafc', color: '#334155', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
+              >
+                <Settings size={18} />
+                <span>Manage</span>
+              </button>
+            )}
           </div>
         </div>
       )}
