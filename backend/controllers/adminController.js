@@ -100,6 +100,9 @@ export const getAdminStats = async (req, res) => {
     // 4. General Stats (always unfiltered for context)
     const totalUsers = await User.countDocuments();
     const pendingKyc = await User.countDocuments({ verificationStatus: "pending" });
+    const totalVehicles = await Vehicle.countDocuments(district && district !== "All Sri Lanka" ? { district } : {});
+    const activeVehicles = await Vehicle.countDocuments(district && district !== "All Sri Lanka" ? { district, status: "active" } : { status: "active" });
+    const pendingVehicles = await Vehicle.countDocuments(district && district !== "All Sri Lanka" ? { district, status: "pending" } : { status: "pending" });
 
     // 5. Platform Revenue from Subscriptions
     const paymentMatch = { status: "approved", ...timeMatch };
@@ -130,9 +133,9 @@ export const getAdminStats = async (req, res) => {
     res.json({
       totalUsers,
       pendingKyc,
-      totalVehicles: vehicleInfo.counts.reduce((acc, curr) => acc + curr.count, 0),
-      activeVehicles: vehicleInfo.counts.find(c => c._id === "active")?.count || 0,
-      pendingVehicles: vehicleInfo.counts.find(c => c._id === "pending")?.count || 0,
+      totalVehicles: totalVehicles,
+      activeVehicles: activeVehicles,
+      pendingVehicles: pendingVehicles,
       totalEarnings: totalPlatformRevenue,
       bookings: {
         total: totalBookingsCount,

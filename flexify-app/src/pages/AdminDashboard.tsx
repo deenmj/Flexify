@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminApi, vehicleApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, subadminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder, type VehicleMake, type VehicleModel } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon } from 'lucide-react';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon, Phone } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert, Switch } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -1493,6 +1493,10 @@ export default function AdminDashboard() {
                       <Tag color={v.status === 'active' ? 'green' : v.status === 'pending' ? 'orange' : 'red'}>{v.status.toUpperCase()}</Tag>
                     </div>
                     <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
+                    <div style={{ marginTop: '4px', display: 'flex', gap: '8px' }}>
+                      <Tag color="green" icon={<Phone size={12} style={{marginRight: 4}} />}>{v.callClicks || 0} Calls</Tag>
+                      <Tag color="green" icon={<MessageSquare size={12} style={{marginRight: 4}} />}>{v.whatsappClicks || 0} WhatsApp</Tag>
+                    </div>
                     <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Text strong style={{ color: '#1890ff' }}>LKR {v.pricePerDay?.toLocaleString()}/day</Text>
                       <Space>
