@@ -62,68 +62,6 @@ export const updateContactDetails = async (req, res) => {
   }
 };
 
-// =================== SOCIAL LINKS ===================
-
-// @desc    Get website social media links
-// @route   GET /api/settings/social
-// @access  Public
-export const getSocialLinks = async (req, res) => {
-  try {
-    let settings = await Settings.findOne({ key: 'social_links' });
-    
-    if (!settings) {
-      settings = {
-        value: {
-          facebook: '#',
-          instagram: '#',
-          twitter: '#',
-          linkedin: '#'
-        }
-      };
-    }
-
-    res.json(settings.value);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
-
-// @desc    Update website social media links
-// @route   PUT /api/settings/social
-// @access  Private/SuperAdmin
-export const updateSocialLinks = async (req, res) => {
-  try {
-    const { facebook, instagram, twitter, linkedin } = req.body;
-    
-    if (req.user.role !== 'superadmin') {
-      return res.status(403).json({ message: 'Only superadmin can update social links' });
-    }
-
-    let settings = await Settings.findOne({ key: 'social_links' });
-    
-    const newValues = {
-      facebook: facebook || '#',
-      instagram: instagram || '#',
-      twitter: twitter || '#',
-      linkedin: linkedin || '#'
-    };
-
-    if (settings) {
-      settings.value = newValues;
-      await settings.save();
-    } else {
-      settings = await Settings.create({
-        key: 'social_links',
-        value: newValues
-      });
-    }
-
-    res.json(settings.value);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
-
 // =================== FOUNDERS ===================
 
 // @desc    Get founders list

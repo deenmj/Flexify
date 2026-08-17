@@ -1,38 +1,42 @@
-import { Facebook, Instagram, Youtube, Twitter, Linkedin } from 'lucide-react';
+import { Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Collapse } from 'antd';
-import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // Assuming Link is from react-router-dom
 import RentifyLogo from './RentifyLogo';
-import { settingsApi } from '../api';
 import './Footer.css';
 
 export default function Footer() {
   const isMobile = useIsMobile();
-  const [socialLinks, setSocialLinks] = useState({
-    facebook: '#',
-    instagram: '#',
-    twitter: '#',
-    linkedin: '#'
-  });
-
-  useEffect(() => {
-    settingsApi.getSocialLinks().then(data => {
-      if (data) setSocialLinks(data);
-    }).catch(console.error);
-  }, []);
 
   const sections = [
     {
-      title: "Information",
+      title: "Quick Links",
       content: (
         <ul className="footer-links">
-          <li><Link to="/about">About Rentify</Link></li>
-          <li><Link to="/how-it-works">How It Works</Link></li>
-          <li><Link to="/guides">Rentify Guides</Link></li>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/explore">Explore</Link></li>
+          <li><Link to="/list-vehicle">List your Vehicle</Link></li>
+          <li><Link to="/about">About Us</Link></li>
+        </ul>
+      )
+    },
+    {
+      title: "Support",
+      content: (
+        <ul className="footer-links">
+          <li><Link to="/help">Help Center</Link></li>
+          <li><Link to="/faq">FAQ</Link></li>
           <li><Link to="/contact">Contact Us</Link></li>
+        </ul>
+      )
+    },
+    {
+      title: "Legal",
+      content: (
+        <ul className="footer-links">
           <li><Link to="/privacy">Privacy Policy</Link></li>
-          <li><Link to="/terms-and-conditions">Terms & Conditions</Link></li>
+          <li><Link to="#">Terms of Service</Link></li>
+          <li><Link to="#">Cookie Policy</Link></li>
         </ul>
       )
     }
@@ -45,13 +49,13 @@ export default function Footer() {
           <div className="footer-brand">
             <h2 className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><RentifyLogo style={{ height: "48px" }} /> Rentify</h2>
             <p className="footer-desc">
-              Sri Lanka's free peer-to-peer vehicle rental marketplace. Connect directly with owners to find your perfect vehicle.
+              Your trusted platform for renting, selling, and discovering vehicles worldwide. Premium car rental experience.
             </p>
             <div className="footer-socials">
-              <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="social-icon"><Facebook size={16} /></a>
-              <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="social-icon"><Instagram size={16} /></a>
-              <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="social-icon"><Twitter size={16} /></a>
-              <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="social-icon"><Linkedin size={16} /></a>
+              <a href="#" aria-label="Facebook" className="social-icon"><Facebook size={16} /></a>
+              <a href="#" aria-label="Instagram" className="social-icon"><Instagram size={16} /></a>
+              <a href="#" aria-label="YouTube" className="social-icon"><Youtube size={16} /></a>
+              <a href="#" aria-label="Twitter" className="social-icon"><Twitter size={16} /></a>
             </div>
           </div>
 

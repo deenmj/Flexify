@@ -16,21 +16,21 @@ export default function About() {
   return (
     <div className="static-page">
       <SEO 
-        title="About Rentify — Sri Lanka's Vehicle Rental Marketplace"
-        description="Rentify connects vehicle owners with renters across Sri Lanka. Browse vehicles island-wide, list your own for free, and experience hassle-free peer-to-peer rentals."
-        keywords="about Rentify, vehicle rental Sri Lanka, peer to peer car rental, trusted vehicle platform, Rentify Sri Lanka"
+        title="About Rentify — Sri Lanka's Trusted Vehicle Rental Platform"
+        description="Rentify connects vehicle owners with renters across Sri Lanka. Verified owners, secure bookings, island-wide coverage in all 25 districts. Learn about our mission to redefine mobility."
+        keywords="about Rentify, vehicle rental Sri Lanka, peer to peer car rental, trusted vehicle platform, Rentify Sri Lanka mission"
         canonical="/about"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "AboutPage",
           "name": "About Rentify",
-          "description": "Learn about Rentify, a Sri Lankan peer-to-peer vehicle rental marketplace",
+          "description": "Learn about Rentify, Sri Lanka's leading peer-to-peer vehicle rental marketplace",
           "url": "https://rentify.lk/about",
           "mainEntity": {
             "@type": "Organization",
             "name": "Rentify",
             "url": "https://rentify.lk",
-            "description": "Sri Lanka's free peer-to-peer vehicle rental marketplace",
+            "description": "Sri Lanka's premier peer-to-peer vehicle sharing marketplace with verified owners and island-wide coverage.",
             "foundingDate": "2025",
             "areaServed": "Sri Lanka"
           }
@@ -59,9 +59,9 @@ export default function About() {
             Redefining Mobility
           </h1>
           <p className="about-hero-subtitle">
-            Rentify is Sri Lanka's leading free peer-to-peer vehicle sharing marketplace. 
-            We empower individuals to monetize their vehicles directly, while providing renters 
-            with island-wide access to a diverse fleet of cars, vans, and specialty vehicles.
+            Rentify is the world's premier peer-to-peer vehicle sharing marketplace. 
+            We empower individuals to monetize their vehicles while providing renters 
+            with unprecedented access to a diverse fleet of cars, trucks, and specialty vehicles.
           </p>
         </div>
       </section>
@@ -98,7 +98,8 @@ export default function About() {
             </p>
             <p style={{ fontSize: '1.1rem', color: '#475569' }}>
               Whether you need an SUV for a weekend family trip, an exotic car for a special event, or a commercial 
-              truck for heavy lifting, Rentify provides the trusted platform to connect you with the right vehicle owners seamlessly.
+              truck for heavy lifting, Rentify provides the platform, the trust, and the insurance infrastructure 
+              to make it happen seamlessly.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -153,28 +154,28 @@ export default function About() {
           </div>
         )}
 
-        {/* Platform Standards */}
-        <h2 style={{ fontSize: '2rem', color: '#0f172a', textAlign: 'center', marginBottom: '3rem', justifyContent: 'center' }}>Platform Standards</h2>
+        {/* Global Standards */}
+        <h2 style={{ fontSize: '2rem', color: '#0f172a', textAlign: 'center', marginBottom: '3rem', justifyContent: 'center' }}>Enterprise Standards</h2>
         <div className="about-values" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
           <div className="about-value-card">
             <Shield size={32} className="about-value-icon" style={{ color: '#6366f1' }} />
-            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Secure Platform</h3>
-            <p>We prioritize the security of our platform to ensure a safe environment for connecting owners and renters.</p>
+            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Bank-Grade Security</h3>
+            <p>Every digital transaction and personal record is encrypted using AES-256 standards, ensuring total privacy.</p>
           </div>
           <div className="about-value-card">
             <Award size={32} className="about-value-icon" style={{ color: '#eab308' }} />
-            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Verified Quality</h3>
-            <p>Our team manually reviews vehicle listings to ensure high standards and accurate representations.</p>
+            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Identity Verification</h3>
+            <p>Multi-layered identity verification algorithms prevent fraud and keep the community secure.</p>
           </div>
           <div className="about-value-card">
             <Zap size={32} className="about-value-icon" style={{ color: '#f97316' }} />
-            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Direct Connection</h3>
-            <p>Skip the middlemen. We connect you directly with vehicle owners for faster and more transparent rentals.</p>
+            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Instant Bookings</h3>
+            <p>Skip the rental counter. Approved renters can book and unlock vehicles instantly on-demand.</p>
           </div>
           <div className="about-value-card">
             <Clock size={32} className="about-value-icon" style={{ color: '#06b6d4' }} />
-            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Dedicated Support</h3>
-            <p>Our support team is available during business hours to assist you with any platform-related inquiries.</p>
+            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>24/7 Support Operations</h3>
+            <p>Our dedicated command center monitors activity and assists users worldwide around the clock.</p>
           </div>
         </div>
 

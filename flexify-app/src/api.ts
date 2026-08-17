@@ -690,7 +690,19 @@ export const reviewApi = {
     }),
 };
 
-export const userApi = {  updateProfile: (formData: FormData) =>
+export const userApi = {
+  submitKyc: (formData: FormData) =>
+    fetch(`${API_BASE_URL}/users/verify`, {
+      method: 'POST',
+      headers: authHeadersOnly(),
+      body: formData,
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'KYC submission failed');
+      return data;
+    }),
+
+  updateProfile: (formData: FormData) =>
     fetch(`${API_BASE_URL}/users/update-profile`, {
       method: 'PUT',
       headers: authHeadersOnly(),
@@ -769,6 +781,12 @@ export const ownerApi = {
       return data;
     }),
 
+  getPayHereParams: (tier: string, duration: string, amount: number) =>
+    apiFetch<any>('/owner/payhere-params', {
+      method: 'POST',
+      body: JSON.stringify({ tier, duration, amount })
+    }),
+
   getStats: () => apiFetch<any>('/owner/stats')
 };
 
@@ -814,13 +832,6 @@ export const settingsApi = {
   getContactDetails: () => apiFetch<{ email: string; phone: string; address: string; workingHours: string; }>('/settings/contact'),
   updateContactDetails: (data: { email: string; phone: string; address: string; workingHours: string; }) => 
     apiFetch<any>('/settings/contact', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    }),
-
-  getSocialLinks: () => apiFetch<{ facebook: string; instagram: string; twitter: string; linkedin: string; }>('/settings/social'),
-  updateSocialLinks: (data: { facebook: string; instagram: string; twitter: string; linkedin: string; }) => 
-    apiFetch<any>('/settings/social', {
       method: 'PUT',
       body: JSON.stringify(data),
     }),

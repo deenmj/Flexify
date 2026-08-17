@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { protect } from '../middleware/authMiddleware.js';
-import { getContactDetails, updateContactDetails, getFounders, updateFounders, deleteFounder, getMaintenanceMode, toggleMaintenanceMode, getSocialLinks, updateSocialLinks } from '../controllers/settingsController.js';
+import { getContactDetails, updateContactDetails, getFounders, updateFounders, deleteFounder, getMaintenanceMode, toggleMaintenanceMode } from '../controllers/settingsController.js';
 
 const router = express.Router();
 
@@ -9,11 +9,6 @@ const router = express.Router();
 router.route('/contact')
   .get(getContactDetails)
   .put(protect, updateContactDetails);
-
-// Social links
-router.route('/social')
-  .get(getSocialLinks)
-  .put(protect, updateSocialLinks);
 
 // Founders — use memory storage so Cloudinary upload happens in the controller
 // This prevents route-module-load failures if Cloudinary env vars are missing

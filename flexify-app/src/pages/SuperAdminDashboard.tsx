@@ -485,12 +485,14 @@ export default function SuperAdminDashboard() {
             style={{ backgroundColor: '#0f172a' }}
             items={[
               { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
+              { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: tab === 'financials' ? {} : { color: '#b8860b' } },
               { key: 'staff-management', icon: <Users size={18} />, label: 'Staff Management', style: tab === 'staff-management' ? {} : { color: '#b8860b' } },
               { key: 'users', icon: <Users size={18} />, label: `Users (${allUsers.length})` },
               { key: 'vehicles', icon: <Car size={18} />, label: `Vehicles (${allVehicles.length})` },
               { key: 'bookings', icon: <Calendar size={18} />, label: `Bookings (${allBookings.length})` },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: `Bank Settings` },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: `Site Settings` },
+              { key: 'platform-settings', icon: <Edit2 size={18} />, label: 'Platform Settings', style: tab === 'platform-settings' ? {} : { color: '#b8860b' } },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: `Feedback` },
             ]}
           />
@@ -521,12 +523,14 @@ export default function SuperAdminDashboard() {
             style={{ backgroundColor: '#0f172a' }}
             items={[
               { key: 'overview', icon: <Eye size={18} />, label: 'Overview' },
+              { key: 'financials', icon: <DollarSign size={18} />, label: 'Revenue & Commission', style: tab === 'financials' ? {} : { color: '#b8860b' } },
               { key: 'staff-management', icon: <Users size={18} />, label: 'Staff Management', style: tab === 'staff-management' ? {} : { color: '#b8860b' } },
               { key: 'users', icon: <Users size={18} />, label: 'Users' },
               { key: 'vehicles', icon: <Car size={18} />, label: 'Vehicles' },
               { key: 'bookings', icon: <Calendar size={18} />, label: 'Bookings' },
               { key: 'bank-settings', icon: <Landmark size={18} />, label: 'Bank Settings' },
               { key: 'site-settings', icon: <Edit2 size={18} />, label: 'Site Settings' },
+              { key: 'platform-settings', icon: <Edit2 size={18} />, label: 'Platform Settings', style: tab === 'platform-settings' ? {} : { color: '#b8860b' } },
               { key: 'feedback', icon: <MessageSquare size={18} />, label: 'Feedback' },
             ]}
           />
@@ -767,7 +771,41 @@ export default function SuperAdminDashboard() {
                 </div>
               )}
 
-
+              {tab === 'financials' && (
+                <div className="animate-fade-in">
+                  <Title level={5} style={{ marginBottom: '1.5rem', color: '#b8860b' }}>Global Revenue & Commission</Title>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+                    <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #fef3c7, #fffbeb)' }} bordered={false}>
+                      <Statistic
+                        title="Commissions Invoiced"
+                        value={financials?.commissionsInvoiced || 0}
+                        prefix={<span style={{ fontWeight: 'bold', color: '#d97706', marginRight: 8 }}>LKR</span>}
+                      />
+                    </Card>
+                    <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #dcfce7, #f0fdf4)' }} bordered={false}>
+                      <Statistic
+                        title="Commissions Paid"
+                        value={financials?.commissionsPaid || 0}
+                        prefix={<span style={{ fontWeight: 'bold', color: '#16a34a', marginRight: 8 }}>LKR</span>}
+                      />
+                    </Card>
+                    <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #e0e7ff, #eef2ff)' }} bordered={false}>
+                      <Statistic
+                        title="Rental Fees"
+                        value={financials?.rentalFees || 0}
+                        prefix={<span style={{ fontWeight: 'bold', color: '#4f46e5', marginRight: 8 }}>LKR</span>}
+                      />
+                    </Card>
+                    <Card size="small" style={{ borderRadius: '12px', background: 'linear-gradient(to right, #fce7f3, #fdf2f8)' }} bordered={false}>
+                      <Statistic
+                        title="Global Profit"
+                        value={financials?.globalProfit || 0}
+                        prefix={<span style={{ fontWeight: 'bold', color: '#db2777', marginRight: 8 }}>LKR</span>}
+                      />
+                    </Card>
+                  </div>
+                </div>
+              )}
 
               {tab === 'staff-management' && (
                 <div className="animate-fade-in">
@@ -850,6 +888,20 @@ export default function SuperAdminDashboard() {
                           {isMaintenanceMode ? 'Disable Maintenance Mode' : 'Activate Maintenance Mode'}
                         </Button>
                       </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid #f1f5f9' }}>
+                      <div>
+                        <h4 style={{ margin: 0 }}>Global Sales Commission</h4>
+                        <Text type="secondary">Set the base commission % for all rentals.</Text>
+                      </div>
+                      <Button type="primary" style={{ background: '#b8860b' }}>Configure (15%)</Button>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0' }}>
+                      <div>
+                        <h4 style={{ margin: 0 }}>Corporate Partners</h4>
+                        <Text type="secondary">Manage enterprise rental partnerships.</Text>
+                      </div>
+                      <Button type="primary" style={{ background: '#b8860b' }}>Manage Partners</Button>
                     </div>
                   </Card>
                 </div>

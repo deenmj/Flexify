@@ -9,27 +9,20 @@ import './StaticPages.css';
 
 export default function Contact() {
   const { user } = useAuth();
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
   
   // Dynamic Settings
   const [contactDetails, setContactDetails] = useState({
     email: 'support@rentify.lk',
-    phone: '',
+    phone: '+1 (555) 123-4567',
     address: 'Colombo, Sri Lanka',
     workingHours: 'Mon-Sat: 9:00 AM - 6:00 PM'
-  });
-  const [socialLinks, setSocialLinks] = useState({
-    facebook: '#',
-    instagram: '#',
-    twitter: '#',
-    linkedin: '#'
   });
   const [loading, setLoading] = useState(true);
   
   // Admin Edit Modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({ ...contactDetails });
-  const [editSocialForm, setEditSocialForm] = useState({ ...socialLinks });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -43,11 +36,6 @@ export default function Contact() {
         setContactDetails(data);
         setEditForm(data);
       }
-      const socialData = await settingsApi.getSocialLinks();
-      if (socialData) {
-        setSocialLinks(socialData);
-        setEditSocialForm(socialData);
-      }
     } catch (err) {
       console.error("Failed to fetch contact details", err);
     } finally {
@@ -58,7 +46,7 @@ export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     message.success('Message sent! We will get back to you soon.');
-    setForm({ name: '', email: '', subject: '', message: '' });
+    setForm({ name: '', email: '', message: '' });
   };
 
   const handleAdminSave = async () => {
@@ -66,10 +54,8 @@ export default function Contact() {
       setSaving(true);
       const updated = await settingsApi.updateContactDetails(editForm);
       setContactDetails(updated);
-      const updatedSocial = await settingsApi.updateSocialLinks(editSocialForm);
-      setSocialLinks(updatedSocial);
       setIsEditModalOpen(false);
-      message.success("Contact and social details updated successfully");
+      message.success("Contact details updated successfully");
     } catch (err: any) {
       message.error(err.message || 'Failed to update contact details');
     } finally {
@@ -182,10 +168,6 @@ export default function Contact() {
               <input type="email" className="input-field" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
             </div>
             <div className="input-group">
-              <label>Subject</label>
-              <input type="text" className="input-field" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} required />
-            </div>
-            <div className="input-group">
               <label>Message</label>
               <textarea className="input-field" rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required />
             </div>
@@ -241,44 +223,6 @@ export default function Contact() {
               className="input-field" 
               value={editForm.workingHours} 
               onChange={(e) => setEditForm({...editForm, workingHours: e.target.value})} 
-            />
-          </div>
-          
-          <h4 style={{ margin: '1rem 0 0.5rem' }}>Social Media Links</h4>
-          <div className="input-group">
-            <label>Facebook URL</label>
-            <input 
-              type="text" 
-              className="input-field" 
-              value={editSocialForm.facebook} 
-              onChange={(e) => setEditSocialForm({...editSocialForm, facebook: e.target.value})} 
-            />
-          </div>
-          <div className="input-group">
-            <label>Instagram URL</label>
-            <input 
-              type="text" 
-              className="input-field" 
-              value={editSocialForm.instagram} 
-              onChange={(e) => setEditSocialForm({...editSocialForm, instagram: e.target.value})} 
-            />
-          </div>
-          <div className="input-group">
-            <label>Twitter/X URL</label>
-            <input 
-              type="text" 
-              className="input-field" 
-              value={editSocialForm.twitter} 
-              onChange={(e) => setEditSocialForm({...editSocialForm, twitter: e.target.value})} 
-            />
-          </div>
-          <div className="input-group">
-            <label>LinkedIn URL</label>
-            <input 
-              type="text" 
-              className="input-field" 
-              value={editSocialForm.linkedin} 
-              onChange={(e) => setEditSocialForm({...editSocialForm, linkedin: e.target.value})} 
             />
           </div>
         </div>

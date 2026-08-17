@@ -730,10 +730,13 @@ export default function StaffDashboard() {
                             )
                           },
                           {
-                            title: 'Price',
+                            title: 'Price & Comm.',
                             render: (_, v) => (
                               <div>
                                 <Text strong style={{ fontSize: '15px' }}>Rs. {v.askingPrice?.toLocaleString()}</Text><br />
+                                <Text type="success" style={{ fontSize: '13px', fontWeight: 500 }}>
+                                  Exp. Comm: Rs. {((v.askingPrice * (v.commissionRate || 0)) / 100).toLocaleString()} ({v.commissionRate || 0}%)
+                                </Text>
                               </div>
                             )
                           },
@@ -1417,8 +1420,8 @@ export default function StaffDashboard() {
                 headStyle={{ borderBottom: '1px solid #dcfce7' }}
               >
                 <div style={{ marginBottom: '20px' }}>
-                  <Text type="secondary" style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>Sale Status</Text>
-                  <Text strong style={{ fontSize: '16px' }}>Ready to finalize</Text>
+                  <Text type="secondary" style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>Commission Rate</Text>
+                  <Text strong style={{ fontSize: '16px' }}>{selectedSaleVehicle.commissionRate || 0}%</Text>
                 </div>
 
                 <Form form={finalizeSaleForm} layout="vertical" onFinish={handleFinalizeSale}>

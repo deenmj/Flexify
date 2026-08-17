@@ -41,10 +41,6 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const EditVehicle = lazy(() => import('./pages/EditVehicle'));
 const ManageVehicle = lazy(() => import('./pages/ManageVehicle'));
-const HowItWorks = lazy(() => import('./pages/HowItWorks'));
-const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
-const Guides = lazy(() => import('./pages/Guides'));
-const GuideArticle = lazy(() => import('./pages/GuideArticle'));
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -166,11 +162,6 @@ export default function App() {
               <Route path="/contact" element={<AppLayout><Contact /></AppLayout>} />
               <Route path="/help" element={<AppLayout><Help /></AppLayout>} />
               <Route path="/privacy" element={<AppLayout><PrivacyPolicy /></AppLayout>} />
-              <Route path="/how-it-works" element={<AppLayout><HowItWorks /></AppLayout>} />
-              <Route path="/terms-and-conditions" element={<AppLayout><TermsAndConditions /></AppLayout>} />
-              <Route path="/guides" element={<AppLayout><Guides /></AppLayout>} />
-              <Route path="/guides/:slug" element={<AppLayout><GuideArticle /></AppLayout>} />
-              <Route path="/notifications" element={<AppLayout><ProtectedRoute><Notifications /></ProtectedRoute></AppLayout>} />
 
               {/* Protected pages */}
               <Route path="/profile" element={<AppLayout><ProtectedRoute><Profile /></ProtectedRoute></AppLayout>} />

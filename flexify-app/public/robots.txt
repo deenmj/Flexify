@@ -4,6 +4,7 @@ Disallow: /dashboard
 Disallow: /admin
 Disallow: /subadmin
 Disallow: /profile
+Disallow: /verify
 Disallow: /notifications
 
 Sitemap: https://rentify.lk/sitemap.xml
