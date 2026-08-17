@@ -59,9 +59,9 @@ export default function About() {
             Redefining Mobility
           </h1>
           <p className="about-hero-subtitle">
-            Rentify is the world's premier peer-to-peer vehicle sharing marketplace. 
-            We empower individuals to monetize their vehicles while providing renters 
-            with unprecedented access to a diverse fleet of cars, trucks, and specialty vehicles.
+            Rentify is Sri Lanka's leading free peer-to-peer vehicle sharing marketplace. 
+            We empower individuals to monetize their vehicles directly, while providing renters 
+            with island-wide access to a diverse fleet of cars, vans, and specialty vehicles.
           </p>
         </div>
       </section>
@@ -98,8 +98,7 @@ export default function About() {
             </p>
             <p style={{ fontSize: '1.1rem', color: '#475569' }}>
               Whether you need an SUV for a weekend family trip, an exotic car for a special event, or a commercial 
-              truck for heavy lifting, Rentify provides the platform, the trust, and the insurance infrastructure 
-              to make it happen seamlessly.
+              truck for heavy lifting, Rentify provides the trusted platform to connect you with the right vehicle owners seamlessly.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -154,28 +153,28 @@ export default function About() {
           </div>
         )}
 
-        {/* Global Standards */}
-        <h2 style={{ fontSize: '2rem', color: '#0f172a', textAlign: 'center', marginBottom: '3rem', justifyContent: 'center' }}>Enterprise Standards</h2>
+        {/* Platform Standards */}
+        <h2 style={{ fontSize: '2rem', color: '#0f172a', textAlign: 'center', marginBottom: '3rem', justifyContent: 'center' }}>Platform Standards</h2>
         <div className="about-values" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
           <div className="about-value-card">
             <Shield size={32} className="about-value-icon" style={{ color: '#6366f1' }} />
-            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Bank-Grade Security</h3>
-            <p>Every digital transaction and personal record is encrypted using AES-256 standards, ensuring total privacy.</p>
+            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Secure Platform</h3>
+            <p>We prioritize the security of our platform to ensure a safe environment for connecting owners and renters.</p>
           </div>
           <div className="about-value-card">
             <Award size={32} className="about-value-icon" style={{ color: '#eab308' }} />
-            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Identity Verification</h3>
-            <p>Multi-layered identity verification algorithms prevent fraud and keep the community secure.</p>
+            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Verified Quality</h3>
+            <p>Our team manually reviews vehicle listings to ensure high standards and accurate representations.</p>
           </div>
           <div className="about-value-card">
             <Zap size={32} className="about-value-icon" style={{ color: '#f97316' }} />
-            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Instant Bookings</h3>
-            <p>Skip the rental counter. Approved renters can book and unlock vehicles instantly on-demand.</p>
+            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Direct Connection</h3>
+            <p>Skip the middlemen. We connect you directly with vehicle owners for faster and more transparent rentals.</p>
           </div>
           <div className="about-value-card">
             <Clock size={32} className="about-value-icon" style={{ color: '#06b6d4' }} />
-            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>24/7 Support Operations</h3>
-            <p>Our dedicated command center monitors activity and assists users worldwide around the clock.</p>
+            <h3 style={{ fontSize: '1.25rem', marginTop: '1rem' }}>Dedicated Support</h3>
+            <p>Our support team is available during business hours to assist you with any platform-related inquiries.</p>
           </div>
         </div>
 

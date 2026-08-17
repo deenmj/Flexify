@@ -5,13 +5,13 @@ import SEO from '../components/SEO';
 import './StaticPages.css';
 
 const faqs = [
-  { q: 'How do I rent a vehicle?', a: 'Simply browse our explore page, select a vehicle, choose your dates, and submit a booking request. The owner will approve your request, and you can proceed with payment.' },
-  { q: 'How do I become a vehicle owner?', a: 'Sign up for an account, then submit a verification request through the "List your Vehicle" page. Our admin team will review your documents and approve your account.' },
-  { q: 'Is it safe to rent through Rentify?', a: 'Absolutely! All vehicle owners go through a verification process. We also support verified business accounts for commercial rental providers.' },
-  { q: 'What payment methods are supported?', a: 'We currently support online payment simulations. In the future, we plan to integrate Stripe and other payment gateways.' },
-  { q: 'Can I cancel a booking?', a: 'Yes, both renters and owners can cancel bookings. Please check the cancellation policy for details on refunds.' },
-  { q: 'How do owner commissions work?', a: 'Rentify takes a 5% commission on each completed booking. The remaining 95% goes directly to the vehicle owner.' },
-  { q: 'What if I have issues with a vehicle?', a: 'Contact our support team immediately through the Help Center. We\'ll assist you in resolving any issues.' },
+  { q: 'How do I rent a vehicle?', a: 'Browse our explore page, select a vehicle, choose your dates, and submit a booking request. Once the owner approves, you will be connected directly with them to finalize the rental and pickup details.' },
+  { q: 'How do I list my vehicle?', a: 'Sign up for a free account, go to "List your Vehicle", and submit your vehicle details along with clear photos. Our team will quickly review the listing to ensure quality before it goes live.' },
+  { q: 'Is Rentify free to use?', a: 'Yes! Rentify is a completely free platform. We do not charge commissions on your rentals, and we do not process rental payments. You keep 100% of what you earn.' },
+  { q: 'How are payments handled?', a: 'Payments are handled directly between the renter and the vehicle owner. Rentify connects you, but you arrange the payment method (cash, bank transfer) directly when you meet or agree on the terms.' },
+  { q: 'Can I cancel a booking request?', a: 'Yes, you can cancel a booking request through your dashboard. We recommend communicating directly with the owner or renter if you need to cancel a confirmed arrangement.' },
+  { q: 'What if I have issues with a vehicle?', a: 'You should inspect the vehicle thoroughly before accepting it. If you have any major disputes, please try to resolve them with the owner directly. For platform issues, contact our support team.' },
+  { q: 'Do I need insurance?', a: 'Yes, it is highly recommended. Rentify does not provide insurance. Vehicle owners should ensure their vehicle has the appropriate commercial or rental insurance coverage before handing over the keys.' },
 ];
 
 export default function FAQ() {

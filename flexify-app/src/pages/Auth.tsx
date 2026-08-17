@@ -56,30 +56,20 @@ export default function Auth() {
         const pendingBookingStr = localStorage.getItem('pendingBooking');
         if (pendingBookingStr) {
           const pending = JSON.parse(pendingBookingStr);
-          const hasKycFields = Boolean(
-            user.documents?.idNumber?.trim() && 
-            user.documents?.address?.trim() && 
-            (user.documents?.phone?.trim() || user.phone?.trim())
-          );
           
-          if (hasKycFields) {
-            localStorage.removeItem('pendingBooking');
-            try {
-              const resp = await bookingApi.create(
-                pending.vehicleId,
-                pending.startDate,
-                pending.endDate,
-                pending.withDriver
-              );
-              navigate('/dashboard?tab=bookings&newBooking=1', { state: { bookingSuccessData: resp } });
-              return;
-            } catch (err: any) {
-              console.error('Auto-booking failed post-login:', err);
-              // Fallback to explore if auto-book fails, letting the user try manually again later
-            }
-          } else {
-            navigate(`/verify?pendingBooking=true`);
+          localStorage.removeItem('pendingBooking');
+          try {
+            const resp = await bookingApi.create(
+              pending.vehicleId,
+              pending.startDate,
+              pending.endDate,
+              pending.withDriver
+            );
+            navigate('/dashboard?tab=bookings&newBooking=1', { state: { bookingSuccessData: resp } });
             return;
+          } catch (err: any) {
+            console.error('Auto-booking failed post-login:', err);
+            // Fallback to explore if auto-book fails, letting the user try manually again later
           }
         }
 

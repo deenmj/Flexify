@@ -6,85 +6,14 @@ import Vehicle from "../models/Vehicle.js";
 import VehicleSale from "../models/VehicleSale.js";
 import { protect, requireStaff } from "../middleware/authMiddleware.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
-import { kycStorage, profileStorage } from "../utils/cloudinary.js";
+import { profileStorage } from "../utils/cloudinary.js";
 
 const router = express.Router();
-
-const kycUpload = multer({
-  storage: kycStorage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-});
 
 const profileUpload = multer({
   storage: profileStorage,
   limits: { fileSize: 5 * 1024 * 1024 },
 });
-
-/**
- * KYC verification submission
- * Required: idNumber, phone, address
- * Optional: license image, selfie/profile image
- */
-router.post(
-  "/verify",
-  protect,
-  kycUpload.fields([
-    { name: "license", maxCount: 1 },
-    { name: "selfie", maxCount: 1 },
-  ]),
-  async (req, res) => {
-    try {
-      let user = await Staff.findById(req.user._id);
-      if (!user) user = await User.findById(req.user._id);
-      if (!user) return res.status(404).json({ message: "User not found" });
-
-      // Validate mandatory fields
-      if (!req.body.idNumber || !req.body.idNumber.trim()) {
-        return res.status(400).json({ message: "ID / License Number is required" });
-      }
-      if (!req.body.address || !req.body.address.trim()) {
-        return res.status(400).json({ message: "Full address is required" });
-      }
-      if (!req.body.phone || !req.body.phone.trim()) {
-        return res.status(400).json({ message: "Phone number is required" });
-      }
-
-      const files = req.files || {};
-
-      user.documents = {
-        idNumber: req.body.idNumber.trim(),
-        phone: req.body.phone.trim(),
-        license: files.license ? files.license[0].path : user.documents?.license || "",
-        selfie: files.selfie ? files.selfie[0].path : user.documents?.selfie || "",
-        address: req.body.address.trim(),
-        kycConsentGiven: req.body.kycConsentGiven === "true" || req.body.kycConsentGiven === true,
-      };
-
-      // Set to pending so staff can review them in the dashboard
-      if (req.body.type === "sales") {
-        user.salesVerificationStatus = "pending";
-      } else {
-        user.rentVerificationStatus = "pending";
-      }
-
-      // Update profile info
-      if (req.body.fullName) user.name = req.body.fullName;
-      if (req.body.phone) user.phone = req.body.phone;
-
-      // NOTE: Do NOT set profilePic from KYC selfie — profile pic is separate
-
-      await user.save();
-
-      res.json({
-        message: "KYC documents submitted successfully! You can now book vehicles.",
-        user,
-      });
-    } catch (err) {
-      console.error("KYC submission error:", err);
-      res.status(500).json({ message: "Error submitting verification" });
-    }
-  }
-);
 
 /**
  * Profile update
@@ -101,7 +30,7 @@ router.put(
 
       const files = req.files || {};
 
-      if (req.body.name && !user.isKycVerified) user.name = req.body.name;
+      if (req.body.name) user.name = req.body.name;
       if (req.body.phone) user.phone = req.body.phone;
       if (req.body.address) user.address = req.body.address;
 
@@ -114,59 +43,6 @@ router.put(
     } catch (err) {
       console.error("Profile update error:", err);
       res.status(500).json({ message: "Error updating profile" });
-    }
-  }
-);
-
-/**
- * Update verification documents from Profile page
- * Users can re-upload individual documents + update address
- */
-router.put(
-  "/update-documents",
-  protect,
-  kycUpload.fields([
-    { name: "license", maxCount: 1 },
-    { name: "selfie", maxCount: 1 },
-  ]),
-  async (req, res) => {
-    try {
-      let user = await Staff.findById(req.user._id);
-      if (!user) user = await User.findById(req.user._id);
-      if (!user) return res.status(404).json({ message: "User not found" });
-
-      // Only allow updates if documents have been submitted at least once
-      if (user.verificationStatus === "not_submitted") {
-        return res.status(400).json({ message: "Please complete the initial verification first." });
-      }
-
-      const files = req.files || {};
-
-      // Update only the fields that were provided
-      if (!user.documents) user.documents = {};
-
-      if (req.body.idNumber) user.documents.idNumber = req.body.idNumber.trim();
-      if (req.body.phone) user.documents.phone = req.body.phone.trim();
-      if (files.license) user.documents.license = files.license[0].path;
-      if (files.selfie) user.documents.selfie = files.selfie[0].path;
-      if (req.body.address) user.documents.address = req.body.address;
-
-      // Mark for re-review by staff
-      if (req.body.type === "sales") {
-        user.salesVerificationStatus = "pending";
-      } else {
-        user.rentVerificationStatus = "pending";
-      }
-
-      await user.save();
-
-      res.json({
-        message: "Documents updated successfully! Our team will review the changes.",
-        user,
-      });
-    } catch (err) {
-      console.error("Document update error:", err);
-      res.status(500).json({ message: "Error updating documents" });
     }
   }
 );

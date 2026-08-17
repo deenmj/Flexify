@@ -28,7 +28,7 @@ const paymentSchema = new mongoose.Schema(
     },
     method: {
       type: String,
-      enum: ["MANUAL", "PAYHERE"],
+      enum: ["MANUAL"],
       default: "MANUAL",
     },
     transactionId: {

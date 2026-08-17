@@ -200,19 +200,12 @@ export default function Profile() {
             <div className="hero-text-content">
               <h1 className="profile-hero-name" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {user.name}
-                {user.isKycVerified && (
-                  <div className="pro-badge animate-pulse" title="Verified User">
-                    <CheckCircle size={20} fill="#7c3aed" color="white" />
-                    <span>VERIFIED</span>
-                  </div>
-                )}
               </h1>
               <p className="profile-hero-email">{user.email}</p>
               <div className="profile-badges">
                 <span className={`badge ${user.role === 'superadmin' ? 'badge-error' : user.role === 'owner' && user.ownerType === 'VERIFIED' ? 'badge-success' : 'badge-primary'}`}>
                   {user.role === 'owner' ? (user.ownerType === 'VERIFIED' ? 'Verified Owner' : 'Owner') : user.role === 'subadmin' ? 'Sub Admin' : user.role === 'superadmin' ? 'Super Admin' : 'User'}
                 </span>
-                {user.isKycVerified && <span className="badge badge-success" style={{ background: 'linear-gradient(45deg, #059669, #10b981)', color: 'white', border: 'none' }}>Verified ✓</span>}
               </div>
             </div>
 
@@ -250,12 +243,11 @@ export default function Profile() {
                 <User size={18} className="profile-info-icon" />
                 <div style={{ flex: 1 }}>
                   <span className="profile-info-label">Full Name</span>
-                  {editing && !user.isKycVerified ? (
+                  {editing ? (
                     <input className="input-field" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
                   ) : (
                     <span className="profile-info-value">{user.name}</span>
                   )}
-                  {editing && user.isKycVerified && <span style={{ fontSize: '10px', color: '#991b1b', marginTop: '2px', display: 'block' }}>Verified names cannot be changed</span>}
                 </div>
               </div>
 

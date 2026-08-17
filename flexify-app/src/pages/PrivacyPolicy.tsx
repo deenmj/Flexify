@@ -29,51 +29,52 @@ export default function PrivacyPolicy() {
           <div className="icon-wrapper">
             <Shield size={32} />
           </div>
-          <h1>Legal Center</h1>
-          <p>Last Updated: March 2026</p>
+          <h1>Privacy Policy</h1>
+          <p>Last Updated: August 17, 2026</p>
         </header>
 
-        <div className="static-content card">
+        <div className="static-content card" style={{ padding: '3rem' }}>
           <section>
-            <h2><Lock size={20} /> Privacy Policy</h2>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Lock size={24} style={{ color: 'var(--color-primary)' }}/> Privacy Policy</h2>
             <p>
-              At Rentify, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your personal information.
+              At Rentify, we are committed to protecting your privacy and ensuring the security of your personal data. This Privacy Policy outlines how we collect, use, and safeguard your information when you use our platform in Sri Lanka.
             </p>
-            <h3>1. Information We Collect</h3>
-            <ul>
-              <li><strong>Account Data:</strong> Name, email, phone number, and password when you register.</li>
-              <li><strong>Verification Data:</strong> NIC, driving license, and selfies for identity verification (KYC).</li>
-              <li><strong>Usage Data:</strong> Information about how you interact with our platform, including search queries and bookings.</li>
+            
+            <h3 style={{ marginTop: '2rem' }}>1. Information We Collect</h3>
+            <ul style={{ paddingLeft: '1.5rem', lineHeight: '1.8' }}>
+              <li><strong>Account Information:</strong> When you register on Rentify, we collect your name, email address, phone number, and password.</li>
+              <li><strong>Profile Data:</strong> If you choose to provide it, we store your profile picture and address.</li>
+              <li><strong>Vehicle Information:</strong> If you list a vehicle, we collect details about your vehicle including make, model, registration number, location, and photos.</li>
+              <li><strong>Usage Data:</strong> We automatically collect information about how you interact with our platform, such as IP addresses, browser types, search queries, and pages visited.</li>
             </ul>
-            <h3>2. How We Use Data</h3>
-            <p>
-              We use your data to provide vehicle rental services, process payments via PayHere, and maintain platform security. For KYC verification, we strictly follow the Sri Lanka Personal Data Protection Act.
-            </p>
-          </section>
 
-          <hr />
+            <h3 style={{ marginTop: '2rem' }}>2. How We Use Your Data</h3>
+            <p>We use the collected information for the following purposes:</p>
+            <ul style={{ paddingLeft: '1.5rem', lineHeight: '1.8' }}>
+              <li>To provide, maintain, and improve our vehicle rental marketplace.</li>
+              <li>To facilitate communication between vehicle owners and renters.</li>
+              <li>To send you important notifications regarding your account, bookings, and platform updates.</li>
+              <li>To detect and prevent fraudulent activities, unauthorized access, and policy violations.</li>
+            </ul>
 
-          <section>
-            <h2><FileText size={20} /> Terms of Service</h2>
+            <h3 style={{ marginTop: '2rem' }}>3. Data Sharing and Disclosure</h3>
             <p>
-              By using Rentify, you agree to comply with our platform rules and local laws of Sri Lanka.
+              Rentify acts as a connector between vehicle owners and renters. When a booking is requested and approved, necessary contact information (such as phone numbers and names) is shared between the involved parties to facilitate the rental. We do not sell your personal data to third-party advertisers. We may share information with law enforcement agencies if required by Sri Lankan law.
             </p>
-            <h3>1. User Eligibility</h3>
-            <p>
-              You must be at least 18 years old and possess a valid driving license to rent vehicles on Rentify. Owners must provide accurate vehicle descriptions and maintain insurance.
-            </p>
-            <h3>2. Bookings & Payments</h3>
-            <p>
-              All payments are processed securely. Owners are responsible for maintaining accurate blackout dates for their vehicles.
-            </p>
-          </section>
 
-          <hr />
-
-          <section>
-            <h2><Info size={20} /> Cookie Policy</h2>
+            <h3 style={{ marginTop: '2rem' }}>4. Data Security</h3>
             <p>
-              We use essential cookies to keep you logged in and functional cookies to improve your experience. We do not use intrusive tracking cookies.
+              We implement industry-standard security measures to protect your personal data from unauthorized access, alteration, disclosure, or destruction. However, no internet transmission is entirely secure, and we cannot guarantee absolute security.
+            </p>
+
+            <h3 style={{ marginTop: '2rem' }}>5. Third-Party Services</h3>
+            <p>
+              We use third-party services such as Google (for OAuth authentication) and Cloudinary (for image hosting). These services have their own privacy policies regarding the data they collect and process.
+            </p>
+
+            <h3 style={{ marginTop: '2rem' }}>6. Your Rights</h3>
+            <p>
+              You have the right to access, update, or delete your personal information stored on our platform. You can manage your profile through your account dashboard or contact our support team for assistance.
             </p>
           </section>
         </div>
