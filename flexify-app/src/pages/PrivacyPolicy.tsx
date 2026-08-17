@@ -9,15 +9,15 @@ export default function PrivacyPolicy() {
   return (
     <div className="static-page">
       <SEO 
-        title="Privacy Policy & Terms of Service | Rentify Sri Lanka"
-        description="Read the privacy policy, terms of service, and cookie policy for Rentify. Learn how we protect your data and secure vehicle rentals in Sri Lanka."
-        keywords="Rentify privacy policy, terms of service Sri Lanka, Rentify terms, data protection vehicle rental, cookie policy"
+        title="Privacy Policy | Rentify Sri Lanka"
+        description="Read the privacy policy for Rentify. Learn how we collect, use, and protect your personal data on our Sri Lankan vehicle rental marketplace."
+        keywords="Rentify privacy policy, data protection vehicle rental Sri Lanka, Rentify user data"
         canonical="/privacy"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "Privacy Policy & Terms of Service",
-          "description": "Privacy policy and terms of service for Rentify Sri Lanka"
+          "name": "Privacy Policy",
+          "description": "Privacy policy for Rentify Sri Lanka"
         }}
       />
       <div className="container" style={{ maxWidth: '900px', padding: '4rem 1rem' }}>
@@ -72,7 +72,17 @@ export default function PrivacyPolicy() {
               We use third-party services such as Google (for OAuth authentication) and Cloudinary (for image hosting). These services have their own privacy policies regarding the data they collect and process.
             </p>
 
-            <h3 style={{ marginTop: '2rem' }}>6. Your Rights</h3>
+            <h3 style={{ marginTop: '2rem' }}>6. Cookies and Local Storage</h3>
+            <p>
+              We use browser local storage to maintain your login session and user preferences. We do not currently use tracking cookies or third-party advertising cookies. If we introduce analytics cookies in the future, we will update this policy accordingly.
+            </p>
+
+            <h3 style={{ marginTop: '2rem' }}>7. Analytics</h3>
+            <p>
+              We do not currently use third-party analytics services such as Google Analytics on this platform. Server-side access logs may be retained for security and debugging purposes.
+            </p>
+
+            <h3 style={{ marginTop: '2rem' }}>8. Your Rights</h3>
             <p>
               You have the right to access, update, or delete your personal information stored on our platform. You can manage your profile through your account dashboard or contact our support team for assistance.
             </p>

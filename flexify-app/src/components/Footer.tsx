@@ -45,7 +45,7 @@ export default function Footer() {
           <div className="footer-brand">
             <h2 className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><RentifyLogo style={{ height: "48px" }} /> Rentify</h2>
             <p className="footer-desc">
-              Your trusted platform for renting, selling, and discovering vehicles worldwide. Premium car rental experience.
+              Sri Lanka's free peer-to-peer vehicle rental marketplace. Connect directly with owners to find your perfect vehicle.
             </p>
             <div className="footer-socials">
               <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="social-icon"><Facebook size={16} /></a>

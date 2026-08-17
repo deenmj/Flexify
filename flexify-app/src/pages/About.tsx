@@ -16,21 +16,21 @@ export default function About() {
   return (
     <div className="static-page">
       <SEO 
-        title="About Rentify — Sri Lanka's Trusted Vehicle Rental Platform"
-        description="Rentify connects vehicle owners with renters across Sri Lanka. Verified owners, secure bookings, island-wide coverage in all 25 districts. Learn about our mission to redefine mobility."
-        keywords="about Rentify, vehicle rental Sri Lanka, peer to peer car rental, trusted vehicle platform, Rentify Sri Lanka mission"
+        title="About Rentify — Sri Lanka's Vehicle Rental Marketplace"
+        description="Rentify connects vehicle owners with renters across Sri Lanka. Browse vehicles island-wide, list your own for free, and experience hassle-free peer-to-peer rentals."
+        keywords="about Rentify, vehicle rental Sri Lanka, peer to peer car rental, trusted vehicle platform, Rentify Sri Lanka"
         canonical="/about"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "AboutPage",
           "name": "About Rentify",
-          "description": "Learn about Rentify, Sri Lanka's leading peer-to-peer vehicle rental marketplace",
+          "description": "Learn about Rentify, a Sri Lankan peer-to-peer vehicle rental marketplace",
           "url": "https://rentify.lk/about",
           "mainEntity": {
             "@type": "Organization",
             "name": "Rentify",
             "url": "https://rentify.lk",
-            "description": "Sri Lanka's premier peer-to-peer vehicle sharing marketplace with verified owners and island-wide coverage.",
+            "description": "Sri Lanka's free peer-to-peer vehicle rental marketplace",
             "foundingDate": "2025",
             "areaServed": "Sri Lanka"
           }

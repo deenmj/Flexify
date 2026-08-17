@@ -77,7 +77,7 @@ router.post("/become-owner", protect, async (req, res) => {
 
     await user.save();
 
-    res.json({ message: "You are now registered as an owner! Free plan activated (2 vehicle listings). Submit KYC to get verified.", user });
+    res.json({ message: "You are now registered as an owner! You can now list your vehicles on Rentify.", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

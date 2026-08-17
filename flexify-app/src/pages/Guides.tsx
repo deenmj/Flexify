@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ArrowLeft, BookOpen, Clock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Clock, ChevronRight } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import SEO from '../components/SEO';
-import { guidesData, Guide } from '../data/guidesData';
+import { guidesData } from '../data/guidesData';
+import type { Guide } from '../data/guidesData';
 import './StaticPages.css';
 
 export default function Guides() {

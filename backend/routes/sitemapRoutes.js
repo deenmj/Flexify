@@ -26,11 +26,17 @@ router.get('/sitemap.xml', async (req, res) => {
     const baseUrls = [
       { url: 'https://rentify.lk/', priority: 1.0, changefreq: 'daily' },
       { url: 'https://rentify.lk/explore', priority: 0.9, changefreq: 'always' },
+      { url: 'https://rentify.lk/how-it-works', priority: 0.8, changefreq: 'monthly' },
+      { url: 'https://rentify.lk/guides', priority: 0.8, changefreq: 'weekly' },
+      { url: 'https://rentify.lk/guides/how-to-choose-the-right-vehicle', priority: 0.7, changefreq: 'monthly' },
+      { url: 'https://rentify.lk/guides/tips-for-first-time-renters', priority: 0.7, changefreq: 'monthly' },
+      { url: 'https://rentify.lk/guides/maximizing-your-earnings-as-an-owner', priority: 0.7, changefreq: 'monthly' },
       { url: 'https://rentify.lk/about', priority: 0.7, changefreq: 'monthly' },
+      { url: 'https://rentify.lk/faq', priority: 0.7, changefreq: 'monthly' },
       { url: 'https://rentify.lk/contact', priority: 0.6, changefreq: 'monthly' },
-      { url: 'https://rentify.lk/faq', priority: 0.6, changefreq: 'monthly' },
       { url: 'https://rentify.lk/list-vehicle', priority: 0.8, changefreq: 'weekly' },
-      { url: 'https://rentify.lk/privacy', priority: 0.3, changefreq: 'yearly' },
+      { url: 'https://rentify.lk/privacy', priority: 0.4, changefreq: 'yearly' },
+      { url: 'https://rentify.lk/terms-and-conditions', priority: 0.4, changefreq: 'yearly' },
       { url: 'https://rentify.lk/auth', priority: 0.5, changefreq: 'yearly' }
     ];
 
