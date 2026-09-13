@@ -85,13 +85,7 @@ export const createVehicle = async (req, res) => {
         }
       }
 
-      // Vehicle limits per tier: FREE=2, STANDARD=8, PRO=unlimited
-      const vehicleCount = await Vehicle.countDocuments({ owner: owner._id });
-      if (sub.tier === 'FREE' && vehicleCount >= 2) {
-        return res.status(403).json({ message: "Free plan limit reached (2 vehicles). Upgrade to Standard for up to 8 listings." });
-      } else if (sub.tier === 'STANDARD' && vehicleCount >= 8) {
-        return res.status(403).json({ message: "Standard plan limit reached (8 vehicles). Upgrade to Pro for unlimited listings." });
-      }
+      // No vehicle listing limits — all owners can list unlimited vehicles
     }
     // Subadmins and superadmins skip all subscription checks — free unlimited access
 
@@ -373,17 +367,12 @@ export const listVehicles = async (req, res) => {
     const useGeo = lat && lng && radius;
 
     if (q) {
-      if (useGeo) {
-        // Fallback to regex because $text cannot be used inside $geoNear query
-        filter.$or = [
-          { title: { $regex: q, $options: "i" } },
-          { make: { $regex: q, $options: "i" } },
-          { model: { $regex: q, $options: "i" } },
-          { description: { $regex: q, $options: "i" } }
-        ];
-      } else {
-        filter.$text = { $search: q };
-      }
+      filter.$or = [
+        { title: { $regex: q, $options: "i" } },
+        { make: { $regex: q, $options: "i" } },
+        { model: { $regex: q, $options: "i" } },
+        { description: { $regex: q, $options: "i" } }
+      ];
     }
 
     if (transmission) filter.transmission = transmission;

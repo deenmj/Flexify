@@ -92,7 +92,7 @@ export default function Navbar() {
     if (user.role === 'admin') return { text: 'ADMIN', color: '#7c3aed' };
     if (user.role === 'staff' || user.role === 'subadmin') return { text: 'STAFF', color: '#0d9488' };
     if (user.role === 'owner' && user.ownerType === 'VERIFIED') return { text: 'PRO', color: '#1890ff' };
-    if (user.isKycVerified) return { text: '✓', color: '#16a34a' };
+
     return null;
   };
 

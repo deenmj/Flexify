@@ -83,7 +83,10 @@ const vehicleSchema = new mongoose.Schema(
     // Contact click analytics (public trust signal)
     callClicks: { type: Number, default: 0 },
     whatsappClicks: { type: Number, default: 0 },
+    isFeatured: { type: Boolean, default: false },
   },
+
+
   { timestamps: true }
 );
 

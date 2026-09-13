@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Modal, message, Avatar, Card, Badge, Tag, Input, Button, Typography } from 'antd';
 import { vehicleApi, feedbackApi, type Vehicle, getImageUrl, getVehicleSlug } from '../api';
-import { Users, CheckCircle, Phone, Shield, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X, Zap, MessageCircle } from 'lucide-react';
+import { Users, CheckCircle, Phone, Shield, Gauge, MapPin, Flag, ChevronLeft, ChevronRight, Share2, X, Zap, MessageCircle, MessageSquare, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -79,12 +79,7 @@ export default function VehicleDetail() {
   // Auto-complete pending booking moved to Auth.tsx and VerifyUser.tsx
 
   const handleContactClick = async (type: 'call' | 'whatsapp') => {
-    if (!user) {
-      navigate('/auth', { state: { returnTo: `/vehicles/${id}` } });
-      return;
-    }
-    
-    // Track click asynchronously
+    // Track click asynchronously (no login required)
     try {
       await vehicleApi.trackContactClick(id!, type);
     } catch (err) {
@@ -336,6 +331,10 @@ export default function VehicleDetail() {
                   </div>
                   <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
                     <span>{vehicle.make} {vehicle.model} {vehicle.year && `· ${vehicle.year}`}</span>
+                    <span style={{ display: 'flex', gap: '8px', marginLeft: isMobile ? 0 : '12px', flexWrap: 'wrap' }}>
+                      <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={10} /> {vehicle.callClicks || 0} Calls</span>
+                      <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}><MessageSquare size={10} /> {vehicle.whatsappClicks || 0} WhatsApp</span>
+                    </span>
                   </p>
                 </div>
               </div>
@@ -628,27 +627,29 @@ export default function VehicleDetail() {
                   </div>
                 )}
 
-                {user && user._id === (owner?._id || vehicle.owner) ? (
-                  <div className="box-highlight" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '12px', marginTop: '1.5rem', textAlign: 'center' }}>
-                    <p style={{ fontWeight: 600, color: '#0f172a', margin: 0, fontSize: '1rem' }}>You own this vehicle</p>
-                    <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px', marginBottom: '12px' }}>This is how your vehicle appears to the public.</p>
-                    <Link to={`/dashboard/vehicle/${id}`} className="btn btn-primary btn-sm btn-full" style={{ height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      Go to Manage Vehicle
-                    </Link>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
+                  <button
+                    className="btn btn-full"
+                    onClick={() => setIsContactModalOpen(true)}
+                    style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.45)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.35)'; }}
+                  >
+                    <MessageCircle size={20} /> Contact Owner
+                  </button>
+
+                  {user && ((user._id || user.id) === (owner?._id || owner?.id) || (user._id || user.id) === vehicle.owner) && (
                     <button
                       className="btn btn-full"
-                      onClick={() => setIsContactModalOpen(true)}
-                      style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: '0 4px 14px rgba(16,185,129,0.35)', transition: 'all 0.2s' }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.45)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.35)'; }}
+                      onClick={() => navigate(`/dashboard/vehicle/${vehicle._id}`)}
+                      style={{ height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: '#f8fafc', color: '#334155', border: '2px solid #e2e8f0', borderRadius: '12px', transition: 'all 0.2s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
                     >
-                      <MessageCircle size={20} /> Contact Owner
+                      <Settings size={20} /> Manage Vehicle
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.25rem' }} style={{ marginTop: '1rem', borderRadius: '12px', border: '1px solid var(--border-color-light)' }}>
@@ -692,7 +693,7 @@ export default function VehicleDetail() {
       </div>
 
       {/* MOBILE STICKY CONTACT BAR */}
-      {isMobile && (!user || user._id !== (owner?._id || vehicle.owner)) && (
+      {isMobile && (
         <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`} style={{ padding: '0.75rem 1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <div className="mobile-bar-price" style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
             <span className="bar-amount" style={{ fontSize: '1.1rem' }}>LKR {vehicle.pricePerDay.toLocaleString()}</span>
@@ -705,8 +706,18 @@ export default function VehicleDetail() {
               style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
             >
               <MessageCircle size={18} />
-              <span>Contact Owner</span>
+              <span>Contact</span>
             </button>
+            {user && ((user._id || user.id) === (owner?._id || owner?.id) || (user._id || user.id) === vehicle.owner) && (
+              <button
+                className="btn btn-full"
+                onClick={() => navigate(`/dashboard/vehicle/${vehicle._id}`)}
+                style={{ flex: 1, height: '44px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#f8fafc', color: '#334155', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
+              >
+                <Settings size={18} />
+                <span>Manage</span>
+              </button>
+            )}
           </div>
         </div>
       )}

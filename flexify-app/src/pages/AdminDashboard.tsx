@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, subadminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder } from '../api';
-import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon } from 'lucide-react';
+import { adminApi, vehicleApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, subadminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder, type VehicleMake, type VehicleModel } from '../api';
+import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon, Phone } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert, Switch } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -73,12 +73,60 @@ export default function AdminDashboard() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
-  const [kycUser, setKycUser] = useState<User | null>(null);
-  const [isKycModalOpen, setIsKycModalOpen] = useState(false);
+  
+  
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [editForm] = Form.useForm();
   const [roleForm] = Form.useForm();
   const [maintenanceForm] = Form.useForm();
+
+  // User Vehicles Modal state
+  const [userVehiclesModalOpen, setUserVehiclesModalOpen] = useState(false);
+  const [userVehiclesUser, setUserVehiclesUser] = useState<User | null>(null);
+  const [userVehicles, setUserVehicles] = useState<Vehicle[]>([]);
+  const [userVehiclesLoading, setUserVehiclesLoading] = useState(false);
+
+  // Vehicle count lookup: userId -> count
+  const vehicleCountByUser = useMemo(() => {
+    return allVehicles.reduce((acc: Record<string, number>, v) => {
+      const ownerId = typeof v.owner === 'object' ? (v.owner as any)._id || (v.owner as any).id : v.owner;
+      if (ownerId) {
+        const strId = ownerId.toString();
+        acc[strId] = (acc[strId] || 0) + 1;
+      }
+      return acc;
+    }, {});
+  }, [allVehicles]);
+
+
+
+  const handleOpenUserVehicles = async (u: User) => {
+    setUserVehiclesUser(u);
+    setUserVehiclesModalOpen(true);
+    setUserVehiclesLoading(true);
+    try {
+      const userId = u._id || u.id!;
+      const vehicles = await adminApi.getUserVehicles(userId);
+      setUserVehicles(vehicles);
+    } catch (err: any) {
+      message.error(err.message || 'Failed to load vehicles');
+    } finally {
+      setUserVehiclesLoading(false);
+    }
+  };
+
+
+  const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
+    'Western': ['Colombo', 'Gampaha', 'Kalutara'],
+    'Central': ['Kandy', 'Matale', 'Nuwara Eliya'],
+    'Southern': ['Galle', 'Matara', 'Hambantota'],
+    'Northern': ['Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu'],
+    'Eastern': ['Trincomalee', 'Batticaloa', 'Ampara'],
+    'North Western': ['Kurunegala', 'Puttalam'],
+    'North Central': ['Anuradhapura', 'Polonnaruwa'],
+    'Uva': ['Badulla', 'Moneragala'],
+    'Sabaragamuwa': ['Ratnapura', 'Kegalle']
+  };
 
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
@@ -212,55 +260,6 @@ export default function AdminDashboard() {
     });
   };
 
-
-
-  const handleViewKyc = async (user: User) => {
-    const id = (user.id || user._id)!;
-    try {
-      setActionLoadingId(id);
-      const data = await adminApi.getUserKyc(id);
-      setKycUser(data);
-      setIsKycModalOpen(true);
-    } catch (err: any) {
-      message.error(err.message || 'Failed to fetch KYC data');
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const handleDeleteKyc = async (u: User) => {
-    const id = (u.id || u._id)!;
-    let reason = '';
-    Modal.confirm({
-      title: 'Delete User KYC Data',
-      content: (
-        <div style={{ marginTop: '16px' }}>
-          <p style={{ marginBottom: '12px' }}>Are you sure you want to permanently delete KYC documents for {u.name}? This will reset their verification status.</p>
-          <Input.TextArea 
-            placeholder="Reason for deletion (e.g., Fraudulent documents, expired ID)"
-            onChange={(e) => { reason = e.target.value; }}
-            rows={3}
-          />
-        </div>
-      ),
-      okText: 'Delete KYC',
-      okType: 'danger',
-      onOk: async () => {
-        try {
-          setActionLoadingId(id);
-          await adminApi.deleteUserKyc(id, reason);
-          setAllUsers((prev: User[]) => prev.map(usr => (usr.id || usr._id) === id ? { ...usr, verificationStatus: 'not_submitted', isKycVerified: false, documents: undefined } : usr));
-          setKycUser(null);
-          setIsKycModalOpen(false);
-          message.success('User KYC data deleted successfully');
-        } catch (err: any) {
-          message.error(err.message || 'Failed to delete KYC data');
-        } finally {
-          setActionLoadingId(null);
-        }
-      }
-    });
-  };
 
   const handleDeleteVehicle = async (vehicle: Vehicle) => {
     const id = vehicle._id!;
@@ -724,7 +723,7 @@ export default function AdminDashboard() {
                           <Statistic title="Confirmed Bookings" value={stats.bookings.confirmed} />
                         </Card>
                         <Card size="small" bordered={false} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
-                          <Statistic title="Pending KYC" value={stats.pendingKyc} valueStyle={{ color: '#d97706' }} />
+                          
                         </Card>
                         <Card size="small" bordered={false} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
                           <Statistic title="Active Vehicles" value={stats.activeVehicles} />
@@ -787,7 +786,7 @@ export default function AdminDashboard() {
                           title: 'Details', dataIndex: 'details', render: (d: any) => (
                             <Tooltip title={JSON.stringify(d, null, 2)}>
                               <span style={{ fontSize: '12px', color: '#64748b', cursor: 'help' }}>
-                                {d.oldRole ? `Role: ${d.oldRole} → ${d.newRole}` : d.reason || 'View details'}
+                                {d.oldRole ? `Role: ${d.oldRole} â†’ ${d.newRole}` : d.reason || 'View details'}
                               </span>
                             </Tooltip>
                           )
@@ -812,7 +811,7 @@ export default function AdminDashboard() {
                     columns={[
                       { title: 'User', render: (_, u) => <Space><Avatar size="small" src={getImageUrl(u.profilePic)} style={{ backgroundColor: '#7c3aed' }}>{u.name.charAt(0)}</Avatar><div><strong>{u.name}</strong><br /><Text type="secondary" style={{ fontSize: '13px' }}>{u.email}</Text></div></Space> },
                       { title: 'Role', render: (_, u) => roleBadge(u) },
-                      { title: 'KYC', render: (_, u) => u.isKycVerified ? <Tag icon={<CheckCircle size={12} />} color="success">Verified</Tag> : <Tag color={u.verificationStatus === 'pending' ? 'processing' : 'warning'}>{u.verificationStatus || 'Not submitted'}</Tag> },
+                      
                       { 
                         title: 'Status', 
                         render: (_, u) => (
@@ -841,6 +840,21 @@ export default function AdminDashboard() {
                           />
                         )
                       },
+                      { title: 'Vehicles', render: (_, u) => {
+                          const uid = (u._id || u.id)?.toString();
+                          const count = uid ? (vehicleCountByUser[uid] || 0) : 0;
+                          return (
+                            <Button
+                              size="small"
+                              type="link"
+                              icon={<Car size={13} />}
+                              onClick={() => handleOpenUserVehicles(u)}
+                              style={{ padding: '0 4px', fontSize: '13px' }}
+                            >
+                              {count} {count === 1 ? 'vehicle' : 'vehicles'}
+                            </Button>
+                          );
+                        }},
                       {
                         title: 'Actions', 
                         render: (_, u) => {
@@ -859,8 +873,11 @@ export default function AdminDashboard() {
                                   <Tooltip title={u.status === 'blocked' ? "Restore User" : "Ban User"}>
                                     <Button size="small" type="text" danger={u.status !== 'blocked'} onClick={() => handleToggleStatus(u)} icon={<Ban size={14} />} />
                                   </Tooltip>
-                                  <Tooltip title="View KYC Documents">
-                                    <Button size="small" type="text" onClick={() => handleViewKyc(u)} loading={actionLoadingId === id} icon={<FileText size={14} />} />
+                                  <Tooltip title="View Vehicles">
+                                    <Button size="small" type="text" style={{ color: '#0ea5e9' }} onClick={() => handleOpenUserVehicles(u)} icon={<Car size={14} />} />
+                                  </Tooltip>
+                                  <Tooltip title="List Vehicle for User">
+                                    <Button size="small" type="text" style={{ color: '#7c3aed' }} onClick={() => navigate(`/list-vehicle?forUser=${uid}`)} icon={<Plus size={14} />} />
                                   </Tooltip>
                                 </>
                               ) : (
@@ -921,7 +938,7 @@ export default function AdminDashboard() {
                     columns={[
                       { title: 'Renter', render: (_, b) => { const r = typeof b.user === 'object' ? b.user : null; return r ? (r as User).name : 'User'; } },
                       { title: 'Vehicle', render: (_, b) => { const v = typeof b.vehicle === 'object' ? b.vehicle : null; return v ? (v as Vehicle).title : 'Vehicle'; } },
-                      { title: 'Dates', render: (_, b) => <Text style={{ fontSize: '13px' }}>{b.startDate ? new Date(b.startDate).toLocaleDateString() : 'N/A'} — {b.endDate ? new Date(b.endDate).toLocaleDateString() : 'N/A'}</Text> },
+                      { title: 'Dates', render: (_, b) => <Text style={{ fontSize: '13px' }}>{b.startDate ? new Date(b.startDate).toLocaleDateString() : 'N/A'} â€” {b.endDate ? new Date(b.endDate).toLocaleDateString() : 'N/A'}</Text> },
                       { title: 'Amount', dataIndex: 'totalAmount', render: a => `LKR ${(a || 0).toLocaleString()}` },
                       { title: 'Status', dataIndex: 'status', render: s => <Tag color={s === 'CONFIRMED' ? 'green' : s === 'CANCELLED' || s === 'REJECTED' ? 'red' : 'orange'}>{s}</Tag> },
                       {
@@ -1227,77 +1244,7 @@ export default function AdminDashboard() {
         </Form>
       </Modal>
 
-      {/* View KYC Modal */}
-      <Modal
-        title={kycUser ? `KYC Documents: ${kycUser.name || 'User'}` : "KYC Verification Documents"}
-        open={isKycModalOpen}
-        onCancel={() => setIsKycModalOpen(false)}
-        width={900}
-        footer={[
-          kycUser && (
-            <Button key="delete" danger onClick={() => handleDeleteKyc(kycUser)} style={{ float: 'left' }}>
-              Delete Entire KYC Data
-            </Button>
-          ),
-          <Button key="close" onClick={() => setIsKycModalOpen(false)}>Close</Button>
-        ]}
-      >
-        {kycUser ? (
-          <div style={{ padding: '1rem' }}>
-            <Row gutter={[16, 24]}>
-              <Col span={12}>
-                <Card size="small" title="Driving License">
-                  {kycUser.documents?.license ? <Image src={getImageUrl(kycUser.documents.license)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#94a3b8', fontSize: '0.9rem' }}>No document provided</div>}
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card size="small" title="Profile Photo">
-                  {kycUser.documents?.selfie ? <Image src={getImageUrl(kycUser.documents.selfie)} style={{ width: '100%', height: '200px', objectFit: 'contain' }} /> : <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#94a3b8', fontSize: '0.9rem' }}>No document provided</div>}
-                </Card>
-              </Col>
-            </Row>
-            <Divider />
-            <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
-              <div style={{ marginBottom: '1rem' }}>
-                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>ID / License Number</Text>
-                <Text style={{ color: '#64748b' }}>{(kycUser.documents as any)?.idNumber || 'Not provided'}</Text>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Phone Number</Text>
-                <Text style={{ color: '#64748b' }}>{(kycUser.documents as any)?.phone || kycUser.phone || 'Not provided'}</Text>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Residential Address</Text>
-                <Text style={{ color: '#64748b' }}>{kycUser.documents?.address || 'Not provided'}</Text>
-              </div>
-              <div>
-                <Text strong style={{ display: 'block', marginBottom: '0.5rem', color: '#334155' }}>Verification Status</Text>
-                <Tag color={kycUser.isKycVerified ? 'success' : 'warning'}>{kycUser.verificationStatus?.toUpperCase()}</Tag>
-              </div>
-            </div>
-
-            {(kycUser as any).vehicles && (kycUser as any).vehicles.length > 0 && (
-              <div style={{ marginTop: '1.5rem' }}>
-                <Divider />
-                <Title level={5}>Owned Vehicles</Title>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-                  {(kycUser as any).vehicles.map((v: any) => (
-                    <Card key={v._id} size="small" style={{ borderRadius: '8px' }}>
-                      <Text strong>{v.title}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: '12px' }}>{v.make} {v.model}</Text>
-                      <br />
-                      <Tag color={v.status === 'active' ? 'success' : v.status === 'pending' ? 'processing' : 'error'} style={{ marginTop: '4px' }}>
-                        {v.status?.toUpperCase()}
-                      </Tag>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : <Spin />}
-      </Modal>
+      
 
       {/* ADMIN VEHICLE DETAIL MODAL */}
       <Modal
@@ -1306,7 +1253,7 @@ export default function AdminDashboard() {
         onCancel={() => setAdminVehicleModalOpen(false)}
         footer={selectedAdminVehicle ? [
           <Button key="close" onClick={() => setAdminVehicleModalOpen(false)}>Close</Button>,
-          ...(user?.role === 'superadmin' ? [
+          ...((user?.role === 'superadmin' || user?.role === 'admin') ? [
             <Button key="delete" danger icon={<Trash2 size={14} />} onClick={() => {
               handleDeleteVehicle(selectedAdminVehicle);
               setAdminVehicleModalOpen(false);
@@ -1511,6 +1458,60 @@ export default function AdminDashboard() {
         </Form>
       </Modal>
 
+      {/* USER VEHICLES MODAL */}
+      <Modal
+        title={`Vehicles for ${userVehiclesUser?.name}`}
+        open={userVehiclesModalOpen}
+        onCancel={() => setUserVehiclesModalOpen(false)}
+        footer={[
+          <Button key="close" onClick={() => setUserVehiclesModalOpen(false)}>Close</Button>,
+          <Button key="list-new" type="primary" icon={<Plus size={14} />} onClick={() => {
+            setUserVehiclesModalOpen(false);
+            if (userVehiclesUser) navigate(`/list-vehicle?forUser=${userVehiclesUser._id || userVehiclesUser.id}`);
+          }}>
+            List New Vehicle
+          </Button>
+        ]}
+        width={700}
+        destroyOnClose
+      >
+        <div style={{ padding: '10px 0' }}>
+          {userVehiclesLoading ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}><Spin size="large" /></div>
+          ) : userVehicles.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <Text type="secondary">This user has no vehicles listed.</Text>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {userVehicles.map(v => (
+                <div key={v._id} style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <Image src={getImageUrl(v.photos?.[0])} width={80} height={80} style={{ borderRadius: '6px', objectFit: 'cover' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Text strong>{v.title}</Text>
+                      <Tag color={v.status === 'active' ? 'green' : v.status === 'pending' ? 'orange' : 'red'}>{v.status.toUpperCase()}</Tag>
+                    </div>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>{v.make} {v.model} ({v.year})</Text>
+                    <div style={{ marginTop: '4px', display: 'flex', gap: '8px' }}>
+                      <Tag color="green" icon={<Phone size={12} style={{marginRight: 4}} />}>{v.callClicks || 0} Calls</Tag>
+                      <Tag color="green" icon={<MessageSquare size={12} style={{marginRight: 4}} />}>{v.whatsappClicks || 0} WhatsApp</Tag>
+                    </div>
+                    <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text strong style={{ color: '#1890ff' }}>LKR {v.pricePerDay?.toLocaleString()}/day</Text>
+                      <Space>
+                        <Button size="small" onClick={() => window.open(`/vehicles/${v._id}`, '_blank')}>View Public</Button>
+                      </Space>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Modal>
+
     </Layout>
   );
 }
+
