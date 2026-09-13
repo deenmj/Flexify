@@ -16,10 +16,8 @@ const vehicleSaleSchema = new mongoose.Schema(
 
     // Financials
     askingPrice: { type: Number, required: true },
-    commissionRate: { type: Number, default: 0 },
     isNegotiable: { type: Boolean, default: false },
     finalNegotiatedPrice: { type: Number },
-    profitEarned: { type: Number },
 
     // Content
     title: { type: String, required: true },

@@ -10,7 +10,7 @@ const router = express.Router();
  * @desc    Create a new vehicle listing for sale
  * @access  Private (Staff/Admin/Superadmin only)
  */
-router.post("/vehicles", protect, requireSalesVerified, upload.array("images", 10), async (req, res) => {
+router.post("/vehicles", protect, upload.array("images", 10), async (req, res) => {
   try {
     const {
       make,
@@ -24,7 +24,7 @@ router.post("/vehicles", protect, requireSalesVerified, upload.array("images", 1
       condition,
       category,
       askingPrice,
-      commissionRate,
+      
       isNegotiable,
       title,
       description,
@@ -72,13 +72,17 @@ router.post("/vehicles", protect, requireSalesVerified, upload.array("images", 1
       condition,
       category: category ? (Array.isArray(category) ? category : JSON.parse(category)) : [],
       askingPrice,
-      commissionRate: isStaff ? (commissionRate || 0) : 0,
       isNegotiable: isNegotiable || false,
       title,
       description,
       seoTags: seoTags ? (Array.isArray(seoTags) ? seoTags : JSON.parse(seoTags)) : [],
       contactNumber,
       images: images || [],
+      location: {
+        type: "Point",
+        coordinates: [79.8612, 6.9271],
+        address: "Sri Lanka"
+      },
       listedBy: req.user._id, // Owner or Staff creating it
       assignedStaff: isStaff ? {
         id: req.user._id,
@@ -93,8 +97,25 @@ router.post("/vehicles", protect, requireSalesVerified, upload.array("images", 1
     const savedSale = await newSale.save();
     res.status(201).json(savedSale);
   } catch (error) {
-    console.error("Error creating vehicle sale:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error(`[POST /api/sales/vehicles] Error creating vehicle sale by user ${req.user?._id}:`, {
+      message: error.message,
+      name: error.name,
+      validationErrors: error.errors ? Object.keys(error.errors) : null,
+    });
+    
+    // Send a useful HTTP response
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: "Validation Error", 
+        error: error.message,
+        fields: Object.keys(error.errors || {})
+      });
+    }
+
+    res.status(500).json({ 
+      message: "Internal Server Error during vehicle creation", 
+      error: error.message 
+    });
   }
 });
 
@@ -119,7 +140,7 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
 
     const {
       make, model, year, registrationNumber, vin, mileage, fuelType, transmission,
-      condition, category, askingPrice, commissionRate, isNegotiable, title, description,
+      condition, category, askingPrice,  isNegotiable, title, description,
       seoTags, contactNumber, originalOwnerDetails: ownerDetailsStr, status,
       existingImages: existingImagesStr
     } = req.body;
@@ -153,7 +174,6 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
     if (condition) sale.condition = condition;
     if (category) sale.category = Array.isArray(category) ? category : JSON.parse(category);
     if (askingPrice) sale.askingPrice = askingPrice;
-    if (commissionRate !== undefined) sale.commissionRate = commissionRate;
     if (isNegotiable !== undefined) sale.isNegotiable = isNegotiable;
     if (title) sale.title = title;
     if (description) sale.description = description;
@@ -164,8 +184,24 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
     const savedSale = await sale.save();
     res.json(savedSale);
   } catch (error) {
-    console.error("Error updating vehicle sale:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error(`[PUT /api/sales/vehicles/:id] Error updating vehicle sale ${req.params.id} by user ${req.user?._id}:`, {
+      message: error.message,
+      name: error.name,
+      validationErrors: error.errors ? Object.keys(error.errors) : null,
+    });
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: "Validation Error", 
+        error: error.message,
+        fields: Object.keys(error.errors || {})
+      });
+    }
+
+    res.status(500).json({ 
+      message: "Internal Server Error during vehicle update", 
+      error: error.message 
+    });
   }
 });
 

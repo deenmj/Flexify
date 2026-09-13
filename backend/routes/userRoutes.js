@@ -6,7 +6,7 @@ import Vehicle from "../models/Vehicle.js";
 import VehicleSale from "../models/VehicleSale.js";
 import { protect, requireStaff } from "../middleware/authMiddleware.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
-import { kycStorage, profileStorage } from "../utils/cloudinary.js";
+import { profileStorage } from "../utils/cloudinary.js";
 
 const router = express.Router();
 
@@ -101,7 +101,7 @@ router.put(
 
       const files = req.files || {};
 
-      if (req.body.name && !user.isKycVerified) user.name = req.body.name;
+      if (req.body.name) user.name = req.body.name;
       if (req.body.phone) user.phone = req.body.phone;
       if (req.body.address) user.address = req.body.address;
 
@@ -201,7 +201,7 @@ router.post("/become-owner", protect, async (req, res) => {
 
     await user.save();
 
-    res.json({ message: "You are now registered as an owner! Free plan activated (2 vehicle listings). Submit KYC to get verified.", user });
+    res.json({ message: "You are now registered as an owner! You can now list vehicles.", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

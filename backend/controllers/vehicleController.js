@@ -513,22 +513,7 @@ export const listVehicles = async (req, res) => {
       },
       { $unwind: "$ownerInfoArr" },
       { $addFields: { ownerInfo: "$ownerInfoArr" } },
-      {
-        $addFields: {
-          tierBoost: {
-            $switch: {
-              branches: [
-                { case: { $eq: ["$ownerInfo.subscription.tier", "PRO"] }, then: 100 },
-                { case: { $eq: ["$ownerInfo.subscription.tier", "STANDARD"] }, then: 50 },
-                { case: { $eq: ["$ownerInfo.subscription.tier", "FREE"] }, then: 5 },
-                { case: { $eq: ["$ownerInfo.subscription.status", "free"] }, then: 5 }
-              ],
-              default: 0
-            }
-          }
-        }
-      },
-      { $sort: { tierBoost: -1, ...sortCondition } },
+      { $sort: sortCondition },
       { $skip: skip },
       { $limit: limitNum },
       {
@@ -540,7 +525,7 @@ export const listVehicles = async (req, res) => {
             email: "$ownerInfo.email",
             profilePic: "$ownerInfo.profilePic",
             ownerType: "$ownerInfo.ownerType",
-            subscription: "$ownerInfo.subscription"
+            
           },
           title: 1,
           make: 1,
