@@ -12,8 +12,6 @@ import {
   getAllBookings,
   getAuditLogs,
   updateUserSubscription,
-  getPendingPayments,
-  verifyPayment,
   deleteVehicle,
   cancelBooking,
   getUserVehicles,

@@ -6,7 +6,6 @@ import Booking from "../models/booking.js";
 import User from "../models/User.js";
 import Staff from "../models/Staff.js";
 import AuditLog from "../models/AuditLog.js";
-import Payment from "../models/Payment.js";
 import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
 import cloudinary from "../utils/cloudinary.js";
@@ -525,79 +524,6 @@ export const updateUserSubscription = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-};
-
-/**
- * Superadmin: Get all pending subscription payments
- */
-export const getPendingPayments = async (req, res) => {
-    try {
-        const payments = await Payment.find({ status: "pending" })
-            .populate("user", "name email")
-            .sort({ createdAt: -1 });
-        res.json(payments);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-};
-
-/**
- * Superadmin: Approve or Reject a payment
- */
-export const verifyPayment = async (req, res) => {
-    try {
-        const { paymentId, status, rejectionReason } = req.body;
-        if (!['approved', 'rejected'].includes(status)) {
-            return res.status(400).json({ message: "Invalid status" });
-        }
-
-        const payment = await Payment.findById(paymentId).populate("user");
-        if (!payment) return res.status(404).json({ message: "Payment not found" });
-
-        if (payment.status !== "pending") {
-            return res.status(400).json({ message: "Payment already processed" });
-        }
-
-        payment.status = status;
-        if (rejectionReason) payment.rejectionReason = rejectionReason;
-        await payment.save();
-
-        if (status === "approved") {
-            const user = payment.user;
-            const now = new Date();
-            
-            // Calculate new end date
-            let currentEndDate = user.subscription.endDate && user.subscription.endDate > now 
-                ? new Date(user.subscription.endDate) 
-                : now;
-            
-            if (payment.duration === "MONTHLY") {
-                currentEndDate.setMonth(currentEndDate.getMonth() + 1);
-            } else if (payment.duration === "BI_ANNUAL") {
-                currentEndDate.setMonth(currentEndDate.getMonth() + 6);
-            }
-
-            user.subscription.tier = payment.tier;
-            user.subscription.status = "active";
-            user.subscription.endDate = currentEndDate;
-            
-            // Set grace period (5 days after end date)
-            const graceDate = new Date(currentEndDate);
-            graceDate.setDate(graceDate.getDate() + 5);
-            user.subscription.gracePeriodEnd = graceDate;
-
-            await user.save();
-
-            // Notify user (Optional: implementation in notifier.js)
-            // sendPaymentConfirmationEmail(user, payment);
-        }
-
-        logAdminAction(req, "payment_verification", payment._id, { status, tier: payment.tier });
-
-        res.json({ message: `Payment ${status} successfully`, payment });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
 };
 
 
