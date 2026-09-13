@@ -66,41 +66,6 @@ const userSchema = new mongoose.Schema(
     // Email verified (set true after email link click)
     verified: { type: Boolean, default: false },
 
-    // KYC verification for renters / owners
-    isKycVerified: { type: Boolean, default: false },
-    // Deprecated: Splitting into rent/sales specific statuses
-    verificationStatus: {
-      type: String,
-      enum: ["not_submitted", "pending", "approved", "rejected"],
-      default: "not_submitted",
-    },
-    rentVerificationStatus: {
-      type: String,
-      enum: ["not_submitted", "pending", "approved", "rejected"],
-      default: "not_submitted",
-    },
-    salesVerificationStatus: {
-      type: String,
-      enum: ["not_submitted", "pending", "approved", "rejected"],
-      default: "not_submitted",
-    },
-    hasSalesAccess: { type: Boolean, default: false },
-    salesRequestStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
-
-    rejectionReason: { type: String, default: null },
-    rejectionComment: { type: String, default: null },
-    rejectedAt: { type: Date, default: null },
-    kycVerifiedAt: { type: Date, default: null },
-
-    // KYC documents (file paths)
-    documents: { type: documentsSchema, default: () => ({}) },
-
-    // Subscription status (for owners)
-    subscription: { 
-      type: subscriptionSchema, 
-      default: null
-    },
-
     // Email verification
     emailVerificationToken: { type: String },
     emailVerifiedAt: { type: Date },

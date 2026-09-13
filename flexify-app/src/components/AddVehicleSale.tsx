@@ -57,6 +57,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
   }, [initialData, form]);
 
   const onFinish = async (values: any) => {
+    if (loading) return;
     try {
       setLoading(true);
       
@@ -233,9 +234,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
           </Col>
           {isStaff && (
             <Col span={8} xs={24} md={8}>
-              <Form.Item name="commissionRate" label="Commission (%) (Optional)">
-                <InputNumber style={{ width: '100%' }} min={0} max={100} />
-              </Form.Item>
+              
             </Col>
           )}
           <Col span={isStaff ? 8 : 16} xs={24} md={isStaff ? 8 : 16}>

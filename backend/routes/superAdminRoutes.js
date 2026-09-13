@@ -35,9 +35,9 @@ router.get("/staff", protect, isMasterCEO, async (req, res) => {
 // Update global settings (Placeholder)
 router.patch("/settings", protect, isMasterCEO, async (req, res) => {
   try {
-    const { maintenanceMode, globalCommission } = req.body;
+    const { maintenanceMode } = req.body;
     // In a real implementation, save to a Settings model
-    res.json({ message: "Global settings updated successfully", settings: { maintenanceMode, globalCommission } });
+    res.json({ message: "Global settings updated successfully", settings: { maintenanceMode } });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

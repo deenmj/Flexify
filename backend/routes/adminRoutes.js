@@ -43,8 +43,6 @@ router.delete("/vehicles/:id", protect, requireAdmin, deleteVehicle);
 router.get("/bookings", protect, requireAdmin, getAllBookings);
 router.patch("/bookings/:id/cancel", protect, requireAdmin, cancelBooking);
 router.get("/audit-logs", protect, requireAdmin, getAuditLogs);
-router.get("/payments/pending", protect, requireStaff, getPendingPayments);
-router.post("/payments/verify", protect, requireStaff, verifyPayment);
 
 export default router;
 
