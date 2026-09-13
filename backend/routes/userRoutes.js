@@ -6,7 +6,7 @@ import Vehicle from "../models/Vehicle.js";
 import VehicleSale from "../models/VehicleSale.js";
 import { protect, requireStaff } from "../middleware/authMiddleware.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
-import { profileStorage } from "../utils/cloudinary.js";
+import { profileStorage, kycStorage } from "../utils/cloudinary.js";
 
 const router = express.Router();
 
