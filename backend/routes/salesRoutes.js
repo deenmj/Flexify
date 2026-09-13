@@ -357,6 +357,25 @@ router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
   }
 });
 
+/**
+ * @route   DELETE /api/sales/vehicles/:id
+ * @desc    Delete a vehicle sale listing
+ * @access  Private (Staff/Admin/Superadmin only)
+ */
+router.delete("/vehicles/:id", protect, requireStaff, async (req, res) => {
+  try {
+    const sale = await VehicleSale.findById(req.params.id);
+    if (!sale) {
+      return res.status(404).json({ message: "Sale listing not found" });
+    }
+
+    await VehicleSale.findByIdAndDelete(req.params.id);
+    res.json({ message: "Sale listing deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 export default router;
 
 

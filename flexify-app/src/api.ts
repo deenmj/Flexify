@@ -609,6 +609,9 @@ export const salesApi = {
     method: 'PUT',
     body: JSON.stringify({ status, finalNegotiatedPrice })
   }),
+  deleteVehicleSale: (id: string) => apiFetch<{ message: string }>(`/sales/vehicles/${id}`, {
+    method: 'DELETE'
+  }),
 };
 
 // =================== SUBADMIN ===================

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { notification, Modal, Form, Select, Input, InputNumber, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image, Tabs, Row, Col } from 'antd';
+import { notification, Modal, Form, Select, Input, InputNumber, message, Rate, Layout, Menu, Button, Avatar, Space, Typography, Card, Statistic, Tag, Dropdown, Spin, Switch, Drawer, Grid, Image, Tabs, Row, Col, Popconfirm } from 'antd';
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import AddVehicleSale from '../components/AddVehicleSale';
@@ -222,6 +222,19 @@ export default function StaffDashboard() {
       fetchData();
     } catch (err: any) {
       message.error(err.message || 'Failed to finalize sale');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteVehicleSale = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await salesApi.deleteVehicleSale(id);
+      message.success('Vehicle sale listing deleted successfully');
+      fetchData();
+    } catch (err: any) {
+      message.error(err.message || 'Failed to delete listing');
     } finally {
       setActionLoading(null);
     }
@@ -755,6 +768,15 @@ export default function StaffDashboard() {
                                 <Button type="primary" onClick={() => { setSelectedSaleVehicle(v); setIsFinalizeSaleModalOpen(true); }} style={{ background: '#0f172a', borderRadius: '6px', fontWeight: 500 }}>
                                   View / Sell
                                 </Button>
+                                <Popconfirm
+                                  title="Delete listing?"
+                                  description="Are you sure you want to delete this vehicle sale?"
+                                  onConfirm={() => handleDeleteVehicleSale(v._id)}
+                                  okText="Yes"
+                                  cancelText="No"
+                                >
+                                  <Button danger type="text" icon={<Trash2 size={16} />} loading={actionLoading === v._id} />
+                                </Popconfirm>
                               </Space>
                             )
                           }
@@ -798,6 +820,20 @@ export default function StaffDashboard() {
                             title: 'Status',
                             dataIndex: 'status',
                             render: () => <Tag color="red">Sold Out</Tag>
+                          },
+                          {
+                            title: 'Action',
+                            render: (_, v) => (
+                              <Popconfirm
+                                title="Delete this sold listing?"
+                                description="This will remove the listing and the profit from the total calculation."
+                                onConfirm={() => handleDeleteVehicleSale(v._id)}
+                                okText="Yes"
+                                cancelText="No"
+                              >
+                                <Button danger type="text" icon={<Trash2 size={16} />} loading={actionLoading === v._id} />
+                              </Popconfirm>
+                            )
                           }
                         ]}
                       />
