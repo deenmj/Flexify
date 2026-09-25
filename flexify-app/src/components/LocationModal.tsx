@@ -34,14 +34,24 @@ interface SearchResult {
   lat: string;
   lon: string;
   display_name: string;
+  name?: string;
+  address?: any;
 }
 
 /**
  * Given a Nominatim address object, extract province and district
  * by matching against the known Sri Lanka location map.
+ * Priority for city/town: city > town > municipality > city_district > village > suburb
  */
 function extractProvinceDistrict(address: any): { province: string; district: string; city: string } {
-  const city = address.city || address.town || address.village || address.suburb || '';
+  const city =
+    address.city ||
+    address.town ||
+    address.municipality ||
+    address.city_district ||
+    address.village ||
+    address.suburb ||
+    '';
   const rawDistrict = address.state_district || address.county || '';
   const state = address.state || '';
 
@@ -98,9 +108,9 @@ export default function LocationModal({ isOpen, onClose, onSelect, title }: Loca
     setIsSearching(true);
     setError('');
     try {
-      // Limit to Sri Lanka to prevent accidental global selections
+      // Limit to Sri Lanka; include addressdetails=1 to get structured address in search results
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=lk&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=lk&limit=5&addressdetails=1`
       );
       const data = await response.json();
       setResults(data || []);
@@ -144,9 +154,9 @@ export default function LocationModal({ isOpen, onClose, onSelect, title }: Loca
         const lng = pos.coords.longitude.toString();
         
         try {
-          // Reverse geocode to get a nice name and structured address
+          // Reverse geocode with zoom=14 to get broader town/city instead of micro-suburb
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`
           );
           const data = await response.json();
           let placeName = 'My Location';
@@ -181,35 +191,28 @@ export default function LocationModal({ isOpen, onClose, onSelect, title }: Loca
     );
   };
 
-  const handleSelectResult = async (result: SearchResult) => {
-    // Simplify the display name (Nominatim results are very long)
-    const parts = result.display_name.split(', ');
-    const shortName = parts.length > 0 ? parts[0] : 'Selected Location';
+  const handleSelectResult = (result: SearchResult) => {
+    // Use the search result's own name as the primary location name.
+    // This avoids the bug where a redundant reverse geocode at zoom=18
+    // would overwrite the user's selected place (e.g. "Akurana") with
+    // a hyper-local sub-area (e.g. "Konakalagala").
+    const primaryName = result.name || result.display_name.split(', ')[0] || 'Selected Location';
 
-    // Reverse geocode the selected result to get structured address details
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${result.lat}&lon=${result.lon}&zoom=18&addressdetails=1`
-      );
-      const data = await response.json();
-
-      if (data && data.address) {
-        const { province, district, city } = extractProvinceDistrict(data.address);
-        const addressDetails: LocationAddressDetails = {
-          province,
-          district,
-          city: city || shortName,
-          fullAddress: result.display_name
-        };
-        onSelect(result.lat, result.lon, shortName, addressDetails);
-        return;
-      }
-    } catch (err) {
-      console.error('Reverse geocoding error for selected result:', err);
+    if (result.address) {
+      // We already have structured address data from the search (addressdetails=1)
+      const { province, district, city } = extractProvinceDistrict(result.address);
+      const addressDetails: LocationAddressDetails = {
+        province,
+        district,
+        // Use the extracted city if available, otherwise fall back to the result's own name
+        city: city || primaryName,
+        fullAddress: result.display_name
+      };
+      onSelect(result.lat, result.lon, primaryName, addressDetails);
+    } else {
+      // Fallback: no address details available (shouldn't happen with addressdetails=1)
+      onSelect(result.lat, result.lon, primaryName);
     }
-
-    // Fallback without address details
-    onSelect(result.lat, result.lon, shortName);
   };
 
   if (!isOpen) return null;
@@ -275,3 +278,4 @@ export default function LocationModal({ isOpen, onClose, onSelect, title }: Loca
     </div>
   );
 }
+
