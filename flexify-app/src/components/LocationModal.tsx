@@ -42,9 +42,12 @@ interface SearchResult {
  * Given a Nominatim address object, extract province and district
  * by matching against the known Sri Lanka location map.
  * Priority for city/town: city > town > municipality > city_district > village > suburb
+ * Optional overrideName: when the user explicitly selected a search result, pass
+ * the result's `name` so it takes precedence over Nominatim's address hierarchy.
  */
-function extractProvinceDistrict(address: any): { province: string; district: string; city: string } {
-  const city =
+function extractProvinceDistrict(address: any, overrideName?: string): { province: string; district: string; city: string } {
+  // Standard Nominatim hierarchy extraction
+  const nominatimCity =
     address.city ||
     address.town ||
     address.municipality ||
@@ -52,6 +55,12 @@ function extractProvinceDistrict(address: any): { province: string; district: st
     address.village ||
     address.suburb ||
     '';
+
+  // If the caller provided an override name (the user's explicitly selected place),
+  // use it as the city. This prevents e.g. "Konakalagala" (village) overriding
+  // "Akurana" (suburb) when the user specifically searched for and clicked "Akurana".
+  const city = overrideName || nominatimCity;
+
   const rawDistrict = address.state_district || address.county || '';
   const state = address.state || '';
 
@@ -163,6 +172,7 @@ export default function LocationModal({ isOpen, onClose, onSelect, title }: Loca
           let addressDetails: LocationAddressDetails | undefined;
           
           if (data && data.address) {
+            // For GPS location, no override name — use best Nominatim extraction
             const { province, district, city } = extractProvinceDistrict(data.address);
             placeName = city || district || province || 'My Location';
             
@@ -193,19 +203,17 @@ export default function LocationModal({ isOpen, onClose, onSelect, title }: Loca
 
   const handleSelectResult = (result: SearchResult) => {
     // Use the search result's own name as the primary location name.
-    // This avoids the bug where a redundant reverse geocode at zoom=18
-    // would overwrite the user's selected place (e.g. "Akurana") with
-    // a hyper-local sub-area (e.g. "Konakalagala").
+    // This is the name the user explicitly searched for and clicked on.
     const primaryName = result.name || result.display_name.split(', ')[0] || 'Selected Location';
 
     if (result.address) {
-      // We already have structured address data from the search (addressdetails=1)
-      const { province, district, city } = extractProvinceDistrict(result.address);
+      // Pass primaryName as the override so that "Akurana" is used as the city
+      // instead of whatever Nominatim's address hierarchy picks (e.g. "Konakalagala")
+      const { province, district, city } = extractProvinceDistrict(result.address, primaryName);
       const addressDetails: LocationAddressDetails = {
         province,
         district,
-        // Use the extracted city if available, otherwise fall back to the result's own name
-        city: city || primaryName,
+        city,
         fullAddress: result.display_name
       };
       onSelect(result.lat, result.lon, primaryName, addressDetails);
