@@ -6,22 +6,10 @@ import { vehicleApi, type VehicleMake, type VehicleModel, type Vehicle, getImage
 import { Select as AntSelect, message, Row, Col, Modal, Tag } from 'antd';
 import { Car, MapPin, DollarSign, Settings, Image, ArrowRight, Locate, Save, Trash2, Users, FileText, Zap, Eye, EyeOff, ChevronLeft, ChevronRight, Menu as MenuIcon } from 'lucide-react';
 import { Spin } from 'antd';
+import LocationModal, { type LocationAddressDetails } from '../components/LocationModal';
 import './ListVehicle.css';
 import imageCompression from 'browser-image-compression';
-
 const { Option } = AntSelect;
-
-const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
-  'Western': ['Colombo', 'Gampaha', 'Kalutara'],
-  'Central': ['Kandy', 'Matale', 'Nuwara Eliya'],
-  'Southern': ['Galle', 'Matara', 'Hambantota'],
-  'Northern': ['Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu'],
-  'Eastern': ['Trincomalee', 'Batticaloa', 'Ampara'],
-  'North Western': ['Kurunegala', 'Puttalam'],
-  'North Central': ['Anuradhapura', 'Polonnaruwa'],
-  'Uva': ['Badulla', 'Moneragala'],
-  'Sabaragamuwa': ['Ratnapura', 'Kegalle']
-};
 
 const VEHICLE_FEATURES = [
   { id: 'ac', label: 'A/C', icon: '❄️' },
@@ -80,7 +68,10 @@ export default function EditVehicle() {
   const [customModel, setCustomModel] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<any[]>([]);
-  const [position, setPosition] = useState({ lat: 7.8731, lng: 80.7718 });
+
+  // Location modal state
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [locationDisplayName, setLocationDisplayName] = useState('');
 
   const [makes, setMakes] = useState<VehicleMake[]>([]);
   const [models, setModels] = useState<VehicleModel[]>([]);
@@ -167,7 +158,10 @@ export default function EditVehicle() {
 
         setExistingPhotos(vehicle.photos || []);
         if (vehicle.location?.coordinates) {
-          setPosition({ lat: vehicle.location.coordinates[1], lng: vehicle.location.coordinates[0] });
+          // Pre-populate location display name from existing vehicle data
+          const existingCity = vehicle.city || '';
+          const existingDistrict = vehicle.district || '';
+          setLocationDisplayName(existingCity || existingDistrict || vehicle.location?.address || '');
         }
 
       } catch (err: any) {
@@ -222,9 +216,23 @@ export default function EditVehicle() {
     setForm(prev => ({ ...prev, make: finalMake, model: finalModel }));
   }, [selectedMake, customMake, selectedModel, customModel]);
 
-  useEffect(() => {
-    setForm(prev => ({ ...prev, lat: position.lat.toString(), lng: position.lng.toString() }));
-  }, [position]);
+  // Handle location selection from the LocationModal
+  const handleLocationSelect = (lat: string, lng: string, addressName: string, addressDetails?: LocationAddressDetails) => {
+    const fullAddress = addressDetails?.fullAddress || [addressDetails?.city, addressDetails?.district, addressDetails?.province, 'Sri Lanka'].filter(Boolean).join(', ') || addressName;
+    
+    setForm(prev => ({
+      ...prev,
+      lat,
+      lng,
+      province: addressDetails?.province || prev.province,
+      district: addressDetails?.district || prev.district,
+      city: addressDetails?.city || addressName || prev.city,
+      address: fullAddress
+    }));
+    setLocationDisplayName(addressName);
+    setIsLocationModalOpen(false);
+    message.success({ content: `Location updated: ${addressName}`, duration: 3 });
+  };
 
   const handleFeatureToggle = (featureId: string) => {
     setForm(prev => ({
@@ -296,18 +304,6 @@ export default function EditVehicle() {
     });
   };
 
-  const handleGetLocation = () => {
-    if (navigator.geolocation) {
-      message.loading({ content: 'Getting your location...', key: 'locate', duration: 10 });
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setPosition({ lat: latitude, lng: longitude });
-        message.success({ content: 'Location updated on map', key: 'locate', duration: 2 });
-      }, () => {
-        message.error({ content: 'Failed to access your location', key: 'locate', duration: 3 });
-      });
-    }
-  };
 
   const handleToggleStatus = async () => {
     if (!id) return;
@@ -753,31 +749,36 @@ export default function EditVehicle() {
               <div className="form-card-header">
                 <MapPin size={20} />
                 <h3>Location Details</h3>
-                <button type="button" className="btn btn-ghost btn-sm locate-me-btn" onClick={handleGetLocation}>
-                  <Locate size={14} /> Use My Location
-                </button>
               </div>
               <div className="form-card-body">
-                <div className="form-grid-3">
-                  <div className="input-group">
-                    <label>Province</label>
-                    <select className="input-field" value={form.province} onChange={(e) => setForm({ ...form, province: e.target.value, district: '' })} required>
-                      <option value="">Select Province</option>
-                      {Object.keys(SRI_LANKA_LOCATIONS).map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
+                <button
+                  type="button"
+                  className="location-picker-trigger"
+                  onClick={() => setIsLocationModalOpen(true)}
+                >
+                  <Locate size={18} />
+                  <span>{locationDisplayName || form.city || form.district || 'Set Vehicle Location'}</span>
+                </button>
+
+                {(form.city || form.district || form.province) && (
+                  <div className="location-selected-summary">
+                    <div className="location-selected-details">
+                      {form.city && <span className="location-detail-tag">🏘️ {form.city}</span>}
+                      {form.district && <span className="location-detail-tag">📍 {form.district}</span>}
+                      {form.province && <span className="location-detail-tag">🗺️ {form.province}</span>}
+                    </div>
+                    {form.address && (
+                      <p className="address-preview">
+                        <strong>Full Address:</strong> {form.address}
+                      </p>
+                    )}
+                    {form.lat && form.lng && (
+                      <p className="coordinates-preview">
+                        📌 Coordinates: {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}
+                      </p>
+                    )}
                   </div>
-                  <div className="input-group">
-                    <label>District</label>
-                    <select className="input-field" value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} disabled={!form.province} required>
-                      <option value="">Select District</option>
-                      {form.province && SRI_LANKA_LOCATIONS[form.province].map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </div>
-                  <div className="input-group">
-                    <label>City</label>
-                    <input className="input-field" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required />
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -872,6 +873,13 @@ export default function EditVehicle() {
           </form>
         </div>
       </section>
+
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        onSelect={handleLocationSelect}
+        title="Update Vehicle Location"
+      />
     </div>
   );
 }

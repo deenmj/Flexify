@@ -4,36 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { vehicleApi, adminApi, type VehicleMake, type VehicleModel } from '../api';
 import { Select as AntSelect, message } from 'antd';
 import { Car, MapPin, DollarSign, Users, Settings, FileText, Image, ArrowRight, Locate, PenTool } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
 import SEO from '../components/SEO';
+import LocationModal, { type LocationAddressDetails } from '../components/LocationModal';
 import imageCompression from 'browser-image-compression';
 import './ListVehicle.css';
 
-// Fix Leaflet's default icon path issues with React
-L.Marker.prototype.options.icon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41]
-});
-
-// Local fallback if API fails, though we primarily use dynamic data now
-
-
 const { Option } = AntSelect;
-
-const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
-  'Western': ['Colombo', 'Gampaha', 'Kalutara'],
-  'Central': ['Kandy', 'Matale', 'Nuwara Eliya'],
-  'Southern': ['Galle', 'Matara', 'Hambantota'],
-  'Northern': ['Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu'],
-  'Eastern': ['Trincomalee', 'Batticaloa', 'Ampara'],
-  'North Western': ['Kurunegala', 'Puttalam'],
-  'North Central': ['Anuradhapura', 'Polonnaruwa'],
-  'Uva': ['Badulla', 'Moneragala'],
-  'Sabaragamuwa': ['Ratnapura', 'Kegalle']
-};
 
 const VEHICLE_FEATURES = [
   { id: 'ac', label: 'A/C', icon: '❄️' },
@@ -42,18 +18,6 @@ const VEHICLE_FEATURES = [
   { id: 'sparewheel', label: 'Spare Wheel', icon: '🛞' },
   { id: 'sunroof', label: 'Sunroof', icon: '☀️' }
 ];
-
-function LocationMarker({ position, setPosition }: any) {
-  useMapEvents({
-    click(e) {
-      setPosition({ lat: e.latlng.lat, lng: e.latlng.lng });
-    }
-  });
-
-  return position.lat === 0 && position.lng === 0 ? null : (
-    <Marker position={[position.lat, position.lng]}></Marker>
-  );
-}
 
 export default function ListVehicle() {
   const { user, refreshUser } = useAuth();
@@ -104,8 +68,9 @@ export default function ListVehicle() {
 
   const [photos, setPhotos] = useState<File[]>([]);
 
-  // Map State defaults to Sri Lanka center
-  const [position, setPosition] = useState({ lat: 7.8731, lng: 80.7718 });
+  // Location modal state
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [locationDisplayName, setLocationDisplayName] = useState('');
 
   // Dynamic Makes/Models
   const [makes, setMakes] = useState<VehicleMake[]>([]);
@@ -158,33 +123,6 @@ export default function ListVehicle() {
     setForm(prev => ({ ...prev, make: finalMake, model: finalModel }));
   }, [selectedMake, customMake, selectedModel, customModel]);
 
-  useEffect(() => {
-    const finalAddress = [form.city, form.district, form.province, 'Sri Lanka'].filter(Boolean).join(', ');
-    setForm(prev => ({ ...prev, address: finalAddress }));
-
-    // Forward geocode when address changes (debounced)
-    if (form.city || form.district) {
-      const timer = setTimeout(async () => {
-        try {
-          const searchQuery = encodeURIComponent(finalAddress);
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}&limit=1`);
-          const data = await res.json();
-          if (data && data.length > 0) {
-            setPosition({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
-          }
-        } catch (err) {
-          console.error('Forward geocoding error:', err);
-        }
-      }, 1000); // 1-second debounce
-      return () => clearTimeout(timer);
-    }
-  }, [form.province, form.district, form.city]);
-
-  // Sync position to lat/lng logically
-  useEffect(() => {
-    setForm(prev => ({ ...prev, lat: position.lat.toString(), lng: position.lng.toString() }));
-  }, [position]);
-
   // Pre-populate mobile number from user phone if available
   useEffect(() => {
     if (user && user.phone && !form.mobileNumber) {
@@ -192,61 +130,22 @@ export default function ListVehicle() {
     }
   }, [user]);
 
-  const handleGetLocation = () => {
-    if (navigator.geolocation) {
-      message.loading({ content: 'Getting your location...', key: 'locate', duration: 10 });
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setPosition({ lat: latitude, lng: longitude });
-        
-        try {
-          // Reverse Geocoding via Nominatim (Free OpenStreetMap API)
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
-          const data = await response.json();
-          
-          if (data && data.address) {
-            const addr = data.address;
-            const city = addr.city || addr.town || addr.village || addr.suburb || '';
-            const district = addr.state_district || addr.county || '';
-            const state = addr.state || ''; // Province in Sri Lanka
-
-            // Auto-fill logic
-            let matchedProvince = '';
-            let matchedDistrict = '';
-
-            // Clean up district name (Nominatim often adds "District" suffix)
-            const cleanDistrict = district.replace(' District', '').trim();
-
-            Object.entries(SRI_LANKA_LOCATIONS).forEach(([prov, dists]) => {
-              if (state.includes(prov) || dists.some(d => cleanDistrict.includes(d))) {
-                matchedProvince = prov;
-                if (dists.some(d => cleanDistrict.includes(d))) {
-                  matchedDistrict = dists.find(d => cleanDistrict.includes(d)) || '';
-                }
-              }
-            });
-
-            setForm(prev => ({
-              ...prev,
-              province: matchedProvince || prev.province,
-              district: matchedDistrict || prev.district,
-              city: city || prev.city
-            }));
-            
-            message.success({ content: `Location found: ${city || 'Your Area'}`, key: 'locate', duration: 3 });
-          } else {
-            message.success({ content: 'Location found!', key: 'locate', duration: 3 });
-          }
-        } catch (err) {
-          console.error("Geocoding error", err);
-          message.success({ content: 'Location found! (Could not determine address automatically)', key: 'locate', duration: 3 });
-        }
-      }, () => {
-        message.error({ content: 'Failed to access your location. Please check your browser permissions.', key: 'locate', duration: 5 });
-      });
-    } else {
-      message.error({ content: 'Geolocation is not supported by your browser.', key: 'locate', duration: 5 });
-    }
+  // Handle location selection from the LocationModal
+  const handleLocationSelect = (lat: string, lng: string, addressName: string, addressDetails?: LocationAddressDetails) => {
+    const fullAddress = addressDetails?.fullAddress || [addressDetails?.city, addressDetails?.district, addressDetails?.province, 'Sri Lanka'].filter(Boolean).join(', ') || addressName;
+    
+    setForm(prev => ({
+      ...prev,
+      lat,
+      lng,
+      province: addressDetails?.province || prev.province,
+      district: addressDetails?.district || prev.district,
+      city: addressDetails?.city || addressName || prev.city,
+      address: fullAddress
+    }));
+    setLocationDisplayName(addressName);
+    setIsLocationModalOpen(false);
+    message.success({ content: `Location set: ${addressName}`, duration: 3 });
   };
 
   const handleFeatureToggle = (featureId: string) => {
@@ -772,52 +671,35 @@ export default function ListVehicle() {
               <div className="form-card-header">
                 <MapPin size={20} />
                 <h3>Location Details</h3>
-                <button type="button" className="btn btn-ghost btn-sm locate-me-btn" onClick={handleGetLocation}>
-                  <Locate size={14} /> Use My Location
-                </button>
               </div>
               <div className="form-card-body">
-                <div className="form-grid-3">
-                  <div className="input-group">
-                    <label>Province</label>
-                    <select 
-                      className="input-field" 
-                      value={form.province} 
-                      onChange={(e) => setForm({ ...form, province: e.target.value, district: '' })} 
-                      required
-                    >
-                      <option value="">Select Province</option>
-                      {Object.keys(SRI_LANKA_LOCATIONS).map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
+                <button
+                  type="button"
+                  className="location-picker-trigger"
+                  onClick={() => setIsLocationModalOpen(true)}
+                >
+                  <Locate size={18} />
+                  <span>{locationDisplayName || form.city || form.district || 'Set Vehicle Location'}</span>
+                </button>
+
+                {(form.city || form.district || form.province) && (
+                  <div className="location-selected-summary">
+                    <div className="location-selected-details">
+                      {form.city && <span className="location-detail-tag">🏘️ {form.city}</span>}
+                      {form.district && <span className="location-detail-tag">📍 {form.district}</span>}
+                      {form.province && <span className="location-detail-tag">🗺️ {form.province}</span>}
+                    </div>
+                    {form.address && (
+                      <p className="address-preview">
+                        <strong>Full Address:</strong> {form.address}
+                      </p>
+                    )}
+                    {form.lat && form.lng && (
+                      <p className="coordinates-preview">
+                        📌 Coordinates: {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)}
+                      </p>
+                    )}
                   </div>
-                  <div className="input-group">
-                    <label>District</label>
-                    <select 
-                      className="input-field" 
-                      value={form.district} 
-                      onChange={(e) => setForm({ ...form, district: e.target.value })} 
-                      disabled={!form.province}
-                      required
-                    >
-                      <option value="">Select District</option>
-                      {form.province && SRI_LANKA_LOCATIONS[form.province].map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </div>
-                  <div className="input-group">
-                    <label>City / Town</label>
-                    <input 
-                      className="input-field" 
-                      placeholder="Enter City" 
-                      value={form.city} 
-                      onChange={(e) => setForm({ ...form, city: e.target.value })} 
-                      required 
-                    />
-                  </div>
-                </div>
-                {form.address && (
-                  <p className="address-preview">
-                    <strong>Full Address:</strong> {form.address}
-                  </p>
                 )}
               </div>
             </div>
@@ -894,6 +776,13 @@ export default function ListVehicle() {
           </form>
         </div>
       </section>
+
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        onSelect={handleLocationSelect}
+        title="Set Vehicle Location"
+      />
     </div>
   );
 }

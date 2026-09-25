@@ -2,10 +2,31 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Locate, Search, X, MapPin } from 'lucide-react';
 import './LocationModal.css';
 
+// Sri Lanka province/district mapping for reverse geocode matching
+const SRI_LANKA_LOCATIONS: Record<string, string[]> = {
+  'Western': ['Colombo', 'Gampaha', 'Kalutara'],
+  'Central': ['Kandy', 'Matale', 'Nuwara Eliya'],
+  'Southern': ['Galle', 'Matara', 'Hambantota'],
+  'Northern': ['Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu'],
+  'Eastern': ['Trincomalee', 'Batticaloa', 'Ampara'],
+  'North Western': ['Kurunegala', 'Puttalam'],
+  'North Central': ['Anuradhapura', 'Polonnaruwa'],
+  'Uva': ['Badulla', 'Moneragala'],
+  'Sabaragamuwa': ['Ratnapura', 'Kegalle']
+};
+
+export interface LocationAddressDetails {
+  province: string;
+  district: string;
+  city: string;
+  fullAddress: string;
+}
+
 interface LocationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (lat: string, lng: string, addressName: string) => void;
+  onSelect: (lat: string, lng: string, addressName: string, addressDetails?: LocationAddressDetails) => void;
+  title?: string;
 }
 
 interface SearchResult {
@@ -15,7 +36,32 @@ interface SearchResult {
   display_name: string;
 }
 
-export default function LocationModal({ isOpen, onClose, onSelect }: LocationModalProps) {
+/**
+ * Given a Nominatim address object, extract province and district
+ * by matching against the known Sri Lanka location map.
+ */
+function extractProvinceDistrict(address: any): { province: string; district: string; city: string } {
+  const city = address.city || address.town || address.village || address.suburb || '';
+  const rawDistrict = address.state_district || address.county || '';
+  const state = address.state || '';
+
+  const cleanDistrict = rawDistrict.replace(' District', '').trim();
+
+  let matchedProvince = '';
+  let matchedDistrict = '';
+
+  Object.entries(SRI_LANKA_LOCATIONS).forEach(([prov, dists]) => {
+    if (state.includes(prov) || dists.some(d => cleanDistrict.includes(d))) {
+      matchedProvince = prov;
+      const found = dists.find(d => cleanDistrict.includes(d));
+      if (found) matchedDistrict = found;
+    }
+  });
+
+  return { province: matchedProvince, district: matchedDistrict, city };
+}
+
+export default function LocationModal({ isOpen, onClose, onSelect, title }: LocationModalProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -98,19 +144,28 @@ export default function LocationModal({ isOpen, onClose, onSelect }: LocationMod
         const lng = pos.coords.longitude.toString();
         
         try {
-          // Reverse geocode to get a nice name for the UI
+          // Reverse geocode to get a nice name and structured address
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
           );
           const data = await response.json();
           let placeName = 'My Location';
+          let addressDetails: LocationAddressDetails | undefined;
           
           if (data && data.address) {
-            placeName = data.address.city || data.address.town || data.address.village || data.address.county || 'My Location';
+            const { province, district, city } = extractProvinceDistrict(data.address);
+            placeName = city || district || province || 'My Location';
+            
+            addressDetails = {
+              province,
+              district,
+              city,
+              fullAddress: data.display_name || [city, district, province, 'Sri Lanka'].filter(Boolean).join(', ')
+            };
           }
           
           setIsLocating(false);
-          onSelect(lat, lng, placeName);
+          onSelect(lat, lng, placeName, addressDetails);
         } catch (err) {
           // Fallback if reverse geocoding fails but we have coords
           setIsLocating(false);
@@ -126,11 +181,34 @@ export default function LocationModal({ isOpen, onClose, onSelect }: LocationMod
     );
   };
 
-  const handleSelectResult = (result: SearchResult) => {
+  const handleSelectResult = async (result: SearchResult) => {
     // Simplify the display name (Nominatim results are very long)
     const parts = result.display_name.split(', ');
     const shortName = parts.length > 0 ? parts[0] : 'Selected Location';
-    
+
+    // Reverse geocode the selected result to get structured address details
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${result.lat}&lon=${result.lon}&zoom=18&addressdetails=1`
+      );
+      const data = await response.json();
+
+      if (data && data.address) {
+        const { province, district, city } = extractProvinceDistrict(data.address);
+        const addressDetails: LocationAddressDetails = {
+          province,
+          district,
+          city: city || shortName,
+          fullAddress: result.display_name
+        };
+        onSelect(result.lat, result.lon, shortName, addressDetails);
+        return;
+      }
+    } catch (err) {
+      console.error('Reverse geocoding error for selected result:', err);
+    }
+
+    // Fallback without address details
     onSelect(result.lat, result.lon, shortName);
   };
 
@@ -140,7 +218,7 @@ export default function LocationModal({ isOpen, onClose, onSelect }: LocationMod
     <div className="location-modal-overlay" onClick={onClose}>
       <div className="location-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="location-modal-header">
-          <h3>Set Your Location</h3>
+          <h3>{title || 'Set Your Location'}</h3>
           <button className="location-modal-close" onClick={onClose} aria-label="Close">
             <X size={20} />
           </button>
