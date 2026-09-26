@@ -88,7 +88,7 @@ export default function VehicleSalesGallery() {
     e.preventDefault();
     e.stopPropagation();
 
-    const vehicle = vehicles.find(v => v._id === saleId);
+    const vehicle = sales.find(v => v._id === saleId);
     if (!vehicle) return;
 
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for Rs. ${vehicle.askingPrice?.toLocaleString()} on Rentify!`;
