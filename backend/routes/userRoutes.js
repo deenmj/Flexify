@@ -273,6 +273,7 @@ router.post("/wishlist/sale/:id", protect, async (req, res) => {
     }
 
     await user.save();
+    await user.populate("saleWishlist");
     res.json({ message: "Wishlist updated", saleWishlist: user.saleWishlist });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -314,6 +315,7 @@ router.post("/wishlist/rent/:id", protect, async (req, res) => {
     }
 
     await user.save();
+    await user.populate("rentWishlist");
     res.json({ message: "Wishlist updated", rentWishlist: user.rentWishlist });
   } catch (err) {
     res.status(500).json({ message: err.message });
