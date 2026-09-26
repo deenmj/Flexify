@@ -193,6 +193,18 @@ export default function Explore() {
     // eslint-disable-next-line
   }, [filters, query]);
 
+  useEffect(() => {
+    const urlType = searchParams.get('type') || searchParams.get('vehicleType') || '';
+    const urlQuery = searchParams.get('q') || '';
+    
+    // Handle case where user navigates to a new explore link while already on explore page
+    if (urlType !== filters.vehicleType || urlQuery !== query) {
+      setQuery(urlQuery);
+      setFilters(prev => ({ ...prev, vehicleType: urlType }));
+    }
+    // eslint-disable-next-line
+  }, [searchParams]);
+
   const prevRadiusRef = React.useRef(filters.radius);
   useEffect(() => {
     if (filters.lat && filters.lng && prevRadiusRef.current !== filters.radius) {
