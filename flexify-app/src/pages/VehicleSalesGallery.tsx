@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Typography, Badge, Spin, Result, Button, message, Input, Select, Drawer } from 'antd';
+import { Row, Col, Typography, Spin, Result, Button, message, Input, Select, Drawer } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { salesApi, userApi, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { Heart, Share2, Activity, Settings, Calendar, Fuel, Filter } from 'lucide-react';
+import { Heart, Share2, Activity, Settings, Calendar, Fuel, Filter, MapPin } from 'lucide-react';
+import '../components/VehicleCard.css';
+import './Explore.css';
 
 const { Title, Text } = Typography;
 
@@ -96,13 +98,11 @@ export default function VehicleSalesGallery() {
 
     try {
       if (vehicle.images?.[0]) {
-        // 1. Fetch the image and convert to a File object
         const imageUrl = getImageUrl(vehicle.images[0]);
         const response = await fetch(imageUrl);
         const blob = await response.blob();
         const file = new File([blob], 'vehicle-image.jpg', { type: blob.type });
 
-        // 2. Check if the device supports sharing files
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
@@ -114,7 +114,6 @@ export default function VehicleSalesGallery() {
         }
       }
       
-      // Fallback for devices that support share but not files, or if no image
       if (navigator.share) {
         await navigator.share({
           title: `${vehicle.make} ${vehicle.model}`,
@@ -122,7 +121,6 @@ export default function VehicleSalesGallery() {
           url: shareUrl,
         });
       } else {
-        // Fallback for desktop
         navigator.clipboard.writeText(shareUrl);
         message.success('Link copied to clipboard!');
       }
@@ -148,44 +146,35 @@ export default function VehicleSalesGallery() {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px 60px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <Title level={2} style={{ color: '#0f172a', fontWeight: 700, margin: 0 }}>Vehicle Sales Marketplace</Title>
-        <Text type="secondary" style={{ fontSize: '1.1rem' }}>Browse our exclusive selection of vehicles available for purchase.</Text>
-      </div>
+    <div className="explore-page">
+      <section className="explore-header section-padding">
+        <div className="container" style={{ position: 'relative' }}>
+          <div className="explore-title-container">
+            <h1 className="explore-title">Vehicle Sales Marketplace</h1>
+          </div>
+          <p className="explore-subtitle">Browse our exclusive selection of vehicles available for purchase.</p>
 
-      {/* NEW SEARCH & FILTER HEADER */}
-      <div style={{ 
-        position: 'sticky', 
-        top: 64, 
-        zIndex: 100, 
-        backgroundColor: '#fff', 
-        padding: '16px 0', 
-        marginBottom: '24px',
-        borderBottom: '1px solid #e2e8f0',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px'
-      }}>
-        <div style={{ display: 'flex', gap: '12px', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-          <Input 
-            size="large"
-            placeholder="Search for a vehicle by make, model, or title..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ flex: 1, borderRadius: '12px' }}
-          />
-          <Button 
-            size="large" 
-            type="primary" 
-            icon={<Filter size={18} />} 
-            onClick={() => setFilterDrawerOpen(true)}
-            style={{ borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            Filters
-          </Button>
+          <div className="explore-controls-container">
+            <div className="explore-search-row">
+              <div className="explore-search">
+                <div className="explore-search-inner">
+                  <Input 
+                    variant="borderless"
+                    placeholder="Search for a vehicle by make, model, or title..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ flex: 1, padding: 0 }}
+                  />
+                  <button type="button" className="filter-toggle-btn" onClick={() => setFilterDrawerOpen(true)}>
+                    <Filter size={14} />
+                    Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
       <Drawer
         title="Filter Vehicles"
@@ -315,147 +304,121 @@ export default function VehicleSalesGallery() {
         </div>
       </Drawer>
 
-      {sales.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          <Text type="secondary">No vehicles found matching your criteria. Try adjusting your filters.</Text>
+      <section className="explore-results section-padding">
+        <div className="container">
+          {sales.length === 0 ? (
+            <div className="explore-empty">
+              <h3>No vehicles found</h3>
+              <p>Try adjusting your filters</p>
+            </div>
+          ) : (
+            <>
+              <p className="results-count">{sales.length} vehicles found for sale</p>
+              <Row gutter={[16, 16]}>
+              {sales.map((vehicle) => {
+                const primaryImage = vehicle.images && vehicle.images.length > 0 ? getImageUrl(vehicle.images[0]) : getImageUrl();
+                
+                let badgeText = null;
+                let badgeColor = '';
+                if (vehicle.status === 'Sold Out') {
+                  badgeText = 'SOLD OUT';
+                  badgeColor = '#ef4444';
+                } else if (vehicle.status === 'New') {
+                  badgeText = 'NEW ARRIVAL';
+                  badgeColor = '#10b981';
+                }
+
+                return (
+                  <Col xs={12} sm={12} md={8} lg={6} key={vehicle._id}>
+                    <div className="shared-vehicle-card-link" onClick={() => navigate(`/buy/${vehicle._id}`)} style={{ cursor: 'pointer' }}>
+                      <div className="shared-vehicle-card card rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 relative">
+                        <div className="shared-vehicle-img-wrap">
+                          <img 
+                            src={primaryImage} 
+                            alt={`${vehicle.make} ${vehicle.model}`} 
+                            loading="lazy"
+                            className="shared-vehicle-img"
+                          />
+                          
+                          <button 
+                            onClick={(e) => handleToggleWishlist(e, vehicle._id)}
+                            style={{
+                              position: 'absolute', top: '12px', right: '12px',
+                              width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.9)', 
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', 
+                              cursor: 'pointer', zIndex: 10, boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                            }}
+                          >
+                            {isVehicleSaved(vehicle._id) ? (
+                              <Heart size={16} color="#ef4444" fill="#ef4444" />
+                            ) : (
+                              <Heart size={16} color="#475569" />
+                            )}
+                          </button>
+
+                          {badgeText && (
+                            <div 
+                              style={{ 
+                                position: 'absolute', top: '12px', left: '12px', color: '#fff', padding: '4px 10px', 
+                                borderRadius: '8px', fontWeight: 'bold', fontSize: '10px', letterSpacing: '0.5px', 
+                                boxShadow: '0 2px 5px rgba(0,0,0,0.2)', backgroundColor: badgeColor 
+                              }}
+                            >
+                              {badgeText}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="shared-vehicle-body">
+                          <div className="shared-vehicle-tags-row">
+                            {vehicle.condition && <span className="v-card-tag">{vehicle.condition}</span>}
+                            {vehicle.transmission && <span className="v-card-tag">{vehicle.transmission}</span>}
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
+                            <h3 className="shared-vehicle-title" title={`${vehicle.make} ${vehicle.model}`}>
+                              {vehicle.make} {vehicle.model}
+                            </h3>
+                          </div>
+
+                          <p className="shared-vehicle-model">{vehicle.year} {vehicle.serviceType?.[0] ? `· ${vehicle.serviceType[0]}` : ''}</p>
+
+                          <div className="shared-vehicle-specs">
+                            <span><Activity size={12} /> {vehicle.mileage?.toLocaleString()} km</span>
+                            <span><Fuel size={12} /> {vehicle.fuelType}</span>
+                          </div>
+
+                          {vehicle.location && (
+                            <div className="shared-vehicle-location" title={vehicle.location}>
+                              <MapPin size={12} />
+                              <span>{vehicle.location}</span>
+                            </div>
+                          )}
+
+                          <div className="shared-vehicle-footer">
+                            <div className="shared-vehicle-price-block">
+                              <div className="shared-vehicle-price">
+                                <span className="price-amount">LKR {vehicle.askingPrice?.toLocaleString()}</span>
+                              </div>
+                              <div className="driver-price-note">
+                                {vehicle.isNegotiable ? 'Negotiable' : 'Fixed Price'}
+                              </div>
+                            </div>
+                            <button className="share-btn" onClick={(e) => handleShare(e, vehicle._id)} aria-label="Share">
+                              <Share2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+                );
+              })}
+              </Row>
+            </>
+          )}
         </div>
-      ) : (
-        <>
-          <style>{`
-            .luxury-gallery-card {
-              background-color: var(--bg-card, #fff);
-              border-radius: var(--radius-xl, 16px);
-              border: 1px solid var(--border-color-light, #f1f5f9);
-              overflow: hidden;
-              box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
-              display: flex;
-              flex-direction: column;
-              height: 100%;
-              position: relative;
-              cursor: pointer;
-              transition: all var(--transition-base, 0.3s ease-out);
-            }
-            .luxury-gallery-card:hover {
-              box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0,0,0,0.1));
-              transform: translateY(-4px);
-            }
-            @media (max-width: 576px) {
-              .luxury-gallery-card .sale-card-info { padding: 8px !important; }
-              .luxury-gallery-card .sale-card-title { font-size: 12px !important; margin-bottom: 4px !important; }
-              .luxury-gallery-card .sale-card-specs { gap: 4px !important; margin-bottom: 6px !important; }
-              .luxury-gallery-card .sale-card-specs .ant-typography { font-size: 10px !important; }
-              .luxury-gallery-card .sale-card-price { font-size: 13px !important; }
-              .luxury-gallery-card .sale-action-btn { width: 28px !important; height: 28px !important; }
-              .luxury-gallery-card .sale-action-btn svg { width: 14px; height: 14px; }
-            }
-          `}</style>
-          <Row gutter={[16, 16]}>
-          {sales.map((vehicle) => {
-            const primaryImage = vehicle.images && vehicle.images.length > 0 ? getImageUrl(vehicle.images[0]) : getImageUrl();
-            
-            // Determine badge details
-            let badgeText = null;
-            let badgeColor = '';
-            if (vehicle.status === 'Sold Out') {
-              badgeText = 'SOLD OUT';
-              badgeColor = '#ef4444'; // Red
-            } else if (vehicle.status === 'New') {
-              badgeText = 'NEW ARRIVAL';
-              badgeColor = '#10b981'; // Green
-            }
-
-            return (
-              <Col xs={12} sm={12} md={8} lg={6} key={vehicle._id}>
-                <div 
-                  className="luxury-gallery-card"
-                  onClick={() => navigate(`/buy/${vehicle._id}`)}
-                >
-                  <div style={{ position: 'relative', width: '100%' }}>
-                    <img 
-                      src={primaryImage} 
-                      alt={`${vehicle.make} ${vehicle.model}`} 
-                      style={{ aspectRatio: '16/10', width: '100%', objectFit: 'cover', display: 'block' }}
-                    />
-                    
-                    {/* Action Buttons Overlay */}
-                    <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '8px', zIndex: 10 }}>
-                      <button 
-                        className="sale-action-btn"
-                        onClick={(e) => handleShare(e, vehicle._id)}
-                        style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
-                      >
-                        <Share2 size={18} color="var(--text-secondary)" />
-                      </button>
-                      <button 
-                        className="sale-action-btn"
-                        onClick={(e) => handleToggleWishlist(e, vehicle._id)}
-                        style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
-                      >
-                        {isVehicleSaved(vehicle._id) ? (
-                          <Heart size={18} color="#ef4444" fill="#ef4444" />
-                        ) : (
-                          <Heart size={18} color="var(--text-secondary)" />
-                        )}
-                      </button>
-                    </div>
-
-                    {badgeText && (
-                      <div 
-                        style={{ 
-                          position: 'absolute', top: '12px', left: '12px', color: '#fff', padding: '4px 12px', 
-                          borderRadius: '20px', fontWeight: 'bold', fontSize: '10px', letterSpacing: '1px', 
-                          boxShadow: 'var(--shadow-sm)', backgroundColor: badgeColor 
-                        }}
-                      >
-                        {badgeText}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="sale-card-info" style={{ padding: '12px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                    <Text type="secondary" style={{ fontSize: '12px', fontWeight: 700, marginBottom: '4px', display: 'block' }}>
-                      {vehicle.year}
-                    </Text>
-                    <Title className="sale-card-title" level={5} style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {vehicle.make} {vehicle.model}
-                    </Title>
-                    
-                    {/* Specs Grid */}
-                    <div className="sale-card-specs" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Activity size={14} color="var(--text-tertiary)" />
-                        <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>{vehicle.mileage.toLocaleString()} km</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Settings size={14} color="var(--text-tertiary)" />
-                        <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>{vehicle.transmission}</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Fuel size={14} color="var(--text-tertiary)" />
-                        <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>{vehicle.fuelType}</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Calendar size={14} color="var(--text-tertiary)" />
-                        <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>{vehicle.condition}</Text>
-                      </div>
-                    </div>
-                    
-                    <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color-light)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text className="sale-card-price" style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-primary)' }}>
-                        Rs. {vehicle.askingPrice.toLocaleString()}
-                      </Text>
-                      <Text type="secondary" style={{ fontSize: '11px', fontWeight: 600 }}>
-                        {vehicle.isNegotiable ? 'Negotiable' : 'Fixed'}
-                      </Text>
-                    </div>
-                  </div>
-                </div>
-              </Col>
-            );
-          })}
-          </Row>
-        </>
-      )}
+      </section>
     </div>
   );
 }

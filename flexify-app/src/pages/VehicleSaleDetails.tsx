@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Row, Col, Button, Spin, Divider, Result, Carousel, Tag, Card, Modal, message } from 'antd';
-import { ArrowLeft, MessageCircle, Calendar, Settings, Activity, Info, FileText, Phone, Heart, Share2 } from 'lucide-react';
+import { Row, Col, Button, Spin, Result, Tag, Card, Modal, message, Typography, Badge, Avatar } from 'antd';
+import { MessageCircle, Settings, Activity, FileText, Phone, Heart, Share2, MapPin, Gauge, Zap, CheckCircle, Flag } from 'lucide-react';
 import { salesApi, userApi, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
+import SEO from '../components/SEO';
+import './VehicleDetail.css';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -16,6 +19,26 @@ export default function VehicleSaleDetails() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const { user, setUser } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
+  const isMobile = useIsMobile();
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [barVisible, setBarVisible] = useState(true);
+  
+  const [activeImage, setActiveImage] = useState(0);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setBarVisible(!entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    if (sentinelRef.current) {
+      observer.observe(sentinelRef.current);
+    }
+    return () => observer.disconnect();
+  }, [isMobile]);
 
   useEffect(() => {
     if (vehicle) {
@@ -72,13 +95,11 @@ export default function VehicleSaleDetails() {
 
     try {
       if (vehicle?.images?.[0]) {
-        // 1. Fetch the image and convert to a File object
         const imageUrl = getImageUrl(vehicle.images[0]);
         const response = await fetch(imageUrl);
         const blob = await response.blob();
         const file = new File([blob], 'vehicle-image.jpg', { type: blob.type });
 
-        // 2. Check if the device supports sharing files
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
@@ -90,7 +111,6 @@ export default function VehicleSaleDetails() {
         }
       }
       
-      // Fallback for devices that support share but not files, or if no image
       if (navigator.share) {
         await navigator.share({
           title: `${vehicle?.make} ${vehicle?.model}`,
@@ -98,7 +118,6 @@ export default function VehicleSaleDetails() {
           url: shareUrl,
         });
       } else {
-        // Fallback for desktop
         navigator.clipboard.writeText(shareUrl);
         message.success("Link copied to clipboard!");
       }
@@ -109,250 +128,337 @@ export default function VehicleSaleDetails() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <Spin size="large" tip="Loading vehicle details..." />
+      <div className="vehicle-detail-page">
+        <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: isMobile ? '0.5rem' : '3rem' }}>
+          <Row gutter={[24, 24]}>
+            <Col xs={24} lg={16}>
+              <div className="detail-loading-skeleton-img skeleton" />
+              <div className="detail-loading-thumbs">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="detail-loading-thumb skeleton" />
+                ))}
+              </div>
+              <div className="card detail-loading-card">
+                <div className="detail-loading-title skeleton" />
+                <div className="detail-loading-subtitle skeleton" />
+                <div className="detail-loading-location skeleton" />
+                <div className="detail-loading-specs-grid">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="detail-loading-spec skeleton" />
+                  ))}
+                </div>
+              </div>
+            </Col>
+            <Col xs={24} lg={8}>
+              <div className="card detail-loading-card">
+                <div className="detail-loading-price skeleton" />
+                <div className="detail-loading-btn skeleton" />
+              </div>
+            </Col>
+          </Row>
+        </div>
       </div>
     );
   }
 
   if (error || !vehicle) {
     return (
-      <div style={{ minHeight: '60vh', padding: '60px 20px' }}>
-        <Result
-          status="404"
-          title="Vehicle Not Found"
-          subTitle={error || 'This vehicle might have been removed or sold.'}
-          extra={<Button type="primary" onClick={() => navigate('/buy')}>Back to Marketplace</Button>}
-        />
+      <div className="container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+        <h2>Vehicle not found</h2>
+        <p>{error || 'This vehicle might have been removed or sold.'}</p>
+        <button className="btn btn-primary" onClick={() => navigate('/buy')} style={{ marginTop: '1rem' }}>
+          Back to Marketplace
+        </button>
       </div>
     );
   }
 
+  const displayImages = (vehicle.images && vehicle.images.length > 0) ? vehicle.images : [null];
+
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 20px', backgroundColor: 'var(--bg-secondary)', minHeight: '100vh' }}>
+    <div className="vehicle-detail-page">
+      <SEO
+        title={`${vehicle.year} ${vehicle.make} ${vehicle.model} for Sale | Rentify`}
+        description={`Buy ${vehicle.make} ${vehicle.model} (${vehicle.year}). ${vehicle.condition} condition, ${vehicle.transmission}. Price: Rs. ${vehicle.askingPrice?.toLocaleString()}. Find your next vehicle on Rentify.`}
+        canonical={`/buy/${vehicle._id}`}
+      />
       
-      <style>{`
-        .details-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 32px;
-          margin-top: 24px;
-        }
-        .details-image { order: 1; }
-        .details-sidebar { order: 2; position: relative; }
-        .details-description { order: 3; }
+      <div className="container" style={{ position: 'relative', paddingTop: isMobile ? '0.75rem' : '1.5rem', paddingBottom: '3rem' }}>
         
-        @media (min-width: 1024px) {
-          .details-grid {
-            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-            align-items: start;
-          }
-          .details-image { grid-column: 1 / 2; grid-row: 1 / 2; order: unset; }
-          .details-sidebar { 
-            grid-column: 2 / 3; 
-            grid-row: 1 / 3; 
-            position: sticky; 
-            top: 100px; 
-            order: unset; 
-          }
-          .details-description { grid-column: 1 / 2; grid-row: 2 / 3; order: unset; }
-        }
+        {/* Back Button */}
+        <div style={{ marginBottom: '1rem' }}>
+           <Button
+             type="link"
+             onClick={() => navigate('/buy')}
+             style={{ color: 'var(--text-secondary)', fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center' }}
+           >
+             ← Back to Marketplace
+           </Button>
+        </div>
 
-        .luxury-box {
-          background-color: var(--bg-card);
-          border-radius: var(--radius-2xl, 24px);
-          box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
-          border: 1px solid var(--border-color-light, #f1f5f9);
-          padding: 32px;
-          transition: box-shadow var(--transition-base, 0.3s ease);
-        }
-        .luxury-box:hover {
-          box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1));
-        }
-        
-        .luxury-btn {
-          height: 56px;
-          border-radius: var(--radius-xl, 16px);
-          font-weight: 700;
-          font-size: 1.1rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.3s ease;
-        }
-        
-        .luxury-title {
-          margin: 8px 0 0 !important;
-          font-weight: 900 !important;
-          color: var(--text-primary) !important;
-          line-height: 1.1 !important;
-          font-size: 2rem !important; /* Mobile default */
-        }
-        
-        .luxury-price {
-          font-weight: 900;
-          color: var(--text-primary);
-          letter-spacing: -1px;
-          font-size: 1.75rem; /* Mobile default */
-        }
-        
-        @media (min-width: 768px) {
-          .luxury-title {
-            font-size: 2.5rem !important;
-          }
-          .luxury-price {
-            font-size: 2.5rem;
-          }
-        }
-      `}</style>
-
-      <Button
-        type="link"
-        icon={<ArrowLeft size={16} />}
-        onClick={() => navigate('/buy')}
-        style={{ color: 'var(--text-secondary)', fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center' }}
-      >
-        Back to Marketplace
-      </Button>
-
-      <div className="details-grid">
-        
-        {/* 1. IMAGE GALLERY */}
-        <div className="details-image luxury-box" style={{ padding: '8px', overflow: 'hidden' }}>
-          <div style={{ backgroundColor: 'var(--bg-tertiary)', borderRadius: 'var(--radius-xl, 16px)', overflow: 'hidden' }}>
-            {vehicle.images && vehicle.images.length > 0 ? (
-              <Carousel autoplay effect="fade">
-                {vehicle.images.map((img: string, index: number) => (
-                  <div key={index}>
-                    <img
-                      src={getImageUrl(img)}
-                      alt={`Vehicle view ${index + 1}`}
-                      style={{ width: '100%', height: '400px', objectFit: 'cover', borderRadius: 'var(--radius-xl, 16px)' }}
-                    />
-                  </div>
+        <Row gutter={[24, 24]}>
+          {/* LEFT COLUMN: Main Content */}
+          <Col xs={24} lg={16}>
+            <div className="detail-carousel-container">
+              <div
+                className="detail-main-gallery"
+                ref={scrollContainerRef}
+                onScroll={(e) => {
+                  const scrollLeft = e.currentTarget.scrollLeft;
+                  const width = e.currentTarget.clientWidth;
+                  const newIndex = Math.round(scrollLeft / width);
+                  if (newIndex !== activeImage && newIndex >= 0 && newIndex < displayImages.length) {
+                    setActiveImage(newIndex);
+                  }
+                }}
+              >
+                {displayImages.map((img: string, idx: number) => (
+                  <img
+                    key={idx}
+                    src={getImageUrl(img)}
+                    alt={`${vehicle.make} ${vehicle.model} - Image ${idx + 1}`}
+                    loading={idx === 0 ? "eager" : "lazy"}
+                    className="detail-main-img-item"
+                    onClick={() => setActiveImage(idx)}
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'; }}
+                  />
                 ))}
-              </Carousel>
-            ) : (
-              <div style={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
-                <Info size={48} />
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* 2. STICKY SIDEBAR */}
-        <div className="details-sidebar luxury-box" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
-          <div>
-            {vehicle.status === 'Sold Out' && (
-              <Tag color="#ef4444" style={{ padding: '4px 12px', fontWeight: 'bold', borderRadius: '6px', marginBottom: '16px' }}>SOLD OUT</Tag>
-            )}
-            {vehicle.status === 'New' && (
-              <Tag color="#10b981" style={{ padding: '4px 12px', fontWeight: 'bold', borderRadius: '6px', marginBottom: '16px' }}>NEW ARRIVAL</Tag>
-            )}
-          </div>
+              {/* Dots for Mobile */}
+              {displayImages.length > 1 && (
+                <div className="detail-gallery-dots mobile-only">
+                  {displayImages.map((_: any, idx: number) => (
+                    <div key={idx} className={`gallery-dot ${activeImage === idx ? 'active' : ''}`} />
+                  ))}
+                </div>
+              )}
 
-          <div>
-             <Text type="secondary" style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
-               {vehicle.year} • {vehicle.condition}
-             </Text>
-             <Title level={1} className="luxury-title text-2xl md:text-3xl font-bold">
-               {vehicle.make} {vehicle.model}
-             </Title>
-             <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginTop: '16px' }}>
-               <Text className="luxury-price text-2xl md:text-3xl font-bold">
-                 Rs. {vehicle.askingPrice.toLocaleString()}
-               </Text>
-               {vehicle.isNegotiable && <Text type="secondary" style={{ fontWeight: 700 }}>(Negotiable)</Text>}
-             </div>
-          </div>
+              {/* Thumbnails for Desktop */}
+              {displayImages.length > 1 && (
+                <div className="detail-thumbnails desktop-only">
+                  {displayImages.map((img: string, idx: number) => (
+                    <img
+                      key={idx}
+                      src={getImageUrl(img)}
+                      alt={`Thumbnail ${idx}`}
+                      className={`detail-thumb ${activeImage === idx ? 'active' : ''}`}
+                      onClick={() => {
+                        setActiveImage(idx);
+                        if (scrollContainerRef.current) {
+                          scrollContainerRef.current.scrollTo({ left: scrollContainerRef.current.clientWidth * idx, behavior: 'smooth' });
+                        }
+                      }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=200&q=60'; }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* Action Buttons: Share & Wishlist */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '8px' }}>
-             <Button
-               size="large"
-               icon={<Share2 size={18} />}
-               onClick={handleShare}
-               style={{ height: '48px', borderRadius: '12px', fontWeight: 700, color: 'var(--text-secondary)', borderColor: 'var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-             >
-               Share
-             </Button>
-             <Button
-               size="large"
-               icon={<Heart size={18} fill={isSaved ? '#ef4444' : 'transparent'} color={isSaved ? '#ef4444' : 'var(--text-secondary)'} />}
-               onClick={handleToggleWishlist}
-               style={{ height: '48px', borderRadius: '12px', fontWeight: 700, color: 'var(--text-secondary)', borderColor: 'var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-             >
-               {isSaved ? 'Saved' : 'Save'}
-             </Button>
-          </div>
+            <div className="detail-overview card" style={{ marginTop: '1.5rem', padding: isMobile ? '1.25rem' : '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: 0 }}>
+                      {vehicle.make} {vehicle.model}
+                    </h1>
+                    {/* Share Button inline with title */}
+                    <button
+                      onClick={handleShare}
+                      title="Share this listing"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        background: 'var(--bg-secondary, #f8fafc)', border: '1px solid var(--border-color-light, #e2e8f0)',
+                        borderRadius: '10px', padding: '6px 12px', cursor: 'pointer',
+                        fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)',
+                        transition: 'all 0.2s', flexShrink: 0,
+                      }}
+                    >
+                      <Share2 size={14} />
+                      <span className="d-none-mobile">Share</span>
+                    </button>
+                    {/* Save Button */}
+                    <button
+                      onClick={handleToggleWishlist}
+                      title="Save this listing"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        background: 'var(--bg-secondary, #f8fafc)', border: '1px solid var(--border-color-light, #e2e8f0)',
+                        borderRadius: '10px', padding: '6px 12px', cursor: 'pointer',
+                        fontSize: '0.8rem', fontWeight: 600, color: isSaved ? '#ef4444' : 'var(--text-secondary)',
+                        transition: 'all 0.2s', flexShrink: 0,
+                      }}
+                    >
+                      <Heart size={14} fill={isSaved ? '#ef4444' : 'transparent'} />
+                      <span className="d-none-mobile">{isSaved ? 'Saved' : 'Save'}</span>
+                    </button>
+                  </div>
+                  <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
+                    {vehicle.year} · {vehicle.condition}
+                  </p>
+                </div>
+              </div>
 
-          <Button
-            type="primary"
-            onClick={handleContactStaff}
-            disabled={vehicle.status === 'Sold Out'}
-            className="luxury-btn"
-            icon={<MessageCircle size={20} />}
-            style={{ 
-              backgroundColor: vehicle.status === 'Sold Out' ? 'var(--text-tertiary)' : '#10b981', 
-              boxShadow: 'var(--shadow-md)',
-              border: 'none',
-              marginTop: '8px'
-            }}
-          >
-            {vehicle.status === 'Sold Out' ? 'Vehicle Unavailable' : 'Contact to Buy'}
-          </Button>
+              {isMobile && (
+                <div className="mobile-inline-price">
+                  <div className="mobile-inline-price-main">
+                    <span className="mobile-inline-currency">LKR</span>
+                    <span className="mobile-inline-amount">{vehicle.askingPrice?.toLocaleString()}</span>
+                  </div>
+                  <div className="mobile-inline-price-tiers">
+                    <span className="mobile-inline-tier">{vehicle.isNegotiable ? 'Negotiable' : 'Fixed Price'}</span>
+                  </div>
+                </div>
+              )}
 
-          <div style={{ borderTop: '1px solid var(--border-color-light)', paddingTop: '24px', marginTop: '8px' }}>
-             <Title level={4} style={{ fontWeight: 900, marginBottom: '20px' }}>Specifications</Title>
-             
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-               <div style={{ display: 'flex', alignItems: 'center' }}>
-                 <FileText size={20} color="var(--text-tertiary)" style={{ marginRight: '16px', flexShrink: 0 }} />
-                 <div>
-                   <Text style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Registration</Text>
-                   <Text style={{ fontWeight: 900, color: 'var(--text-primary)', fontSize: '14px' }}>
-                     {vehicle.registrationNumber ? vehicle.registrationNumber : <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic', fontWeight: 600 }}>Unregistered</span>}
-                   </Text>
-                 </div>
-               </div>
+              {vehicle.status === 'Sold Out' && (
+                <div style={{ marginTop: '1rem' }}>
+                  <Tag color="#ef4444" style={{ padding: '4px 12px', fontWeight: 'bold', borderRadius: '6px' }}>SOLD OUT</Tag>
+                </div>
+              )}
+              {vehicle.status === 'New' && (
+                <div style={{ marginTop: '1rem' }}>
+                  <Tag color="#10b981" style={{ padding: '4px 12px', fontWeight: 'bold', borderRadius: '6px' }}>NEW ARRIVAL</Tag>
+                </div>
+              )}
 
-               <div style={{ display: 'flex', alignItems: 'center' }}>
-                 <Activity size={20} color="var(--text-tertiary)" style={{ marginRight: '16px', flexShrink: 0 }} />
-                 <div>
-                   <Text style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Mileage</Text>
-                   <Text style={{ fontWeight: 900, color: 'var(--text-primary)', fontSize: '14px' }}>{vehicle.mileage.toLocaleString()} km</Text>
-                 </div>
-               </div>
+              {vehicle.description && (
+                <>
+                  <h3 className="section-title-minor" style={{ marginTop: '2rem' }}>Vehicle Description</h3>
+                  <p className="detail-desc" style={{ marginTop: '0.75rem', fontSize: '1rem', lineHeight: '1.6', color: 'var(--text-secondary)' }}>
+                    {vehicle.description}
+                  </p>
+                </>
+              )}
 
-               <div style={{ display: 'flex', alignItems: 'center' }}>
-                 <Settings size={20} color="var(--text-tertiary)" style={{ marginRight: '16px', flexShrink: 0 }} />
-                 <div>
-                   <Text style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Transmission</Text>
-                   <Text style={{ fontWeight: 900, color: 'var(--text-primary)', fontSize: '14px' }}>{vehicle.transmission}</Text>
-                 </div>
-               </div>
+              <h3 className="section-title-minor" style={{ marginTop: '2.5rem', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', borderLeft: '4px solid var(--primary-color)', paddingLeft: '12px' }}>
+                Technical Specifications
+              </h3>
+              
+              <div className="detail-specs-grid" style={{ marginTop: '1.25rem' }}>
+                <div className="spec-item">
+                  <span className="spec-label">Transmission</span>
+                  <span className="spec-value">
+                    <Settings size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                    {vehicle.transmission}
+                  </span>
+                </div>
+                <div className="spec-item">
+                  <span className="spec-label">Fuel Type</span>
+                  <span className="spec-value">{vehicle.fuelType}</span>
+                </div>
+                <div className="spec-item">
+                  <span className="spec-label">Mileage</span>
+                  <span className="spec-value">
+                    <Activity size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                    {vehicle.mileage?.toLocaleString()} km
+                  </span>
+                </div>
+                <div className="spec-item">
+                  <span className="spec-label">Registration</span>
+                  <span className="spec-value">
+                    {vehicle.registrationNumber ? vehicle.registrationNumber : <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic', fontWeight: 600, fontSize: '0.9rem' }}>Unregistered</span>}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Col>
 
-               <div style={{ display: 'flex', alignItems: 'center' }}>
-                 <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid var(--text-tertiary)', marginRight: '16px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 900, color: 'var(--text-tertiary)' }}>F</div>
-                 <div>
-                   <Text style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Fuel Type</Text>
-                   <Text style={{ fontWeight: 900, color: 'var(--text-primary)', fontSize: '14px' }}>{vehicle.fuelType}</Text>
-                 </div>
-               </div>
-             </div>
-          </div>
-        </div>
+          {/* RIGHT COLUMN: Sidebar (Booking & Owner) */}
+          <Col xs={24} lg={8}>
+            <div className="detail-sidebar">
+              <div className="booking-panel card">
+                <div className="pricing-card">
+                  <div className="pricing-card-main" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+                    <div className="pricing-main-amount">
+                      <span className="pricing-currency">LKR</span>
+                      <span className="pricing-value">{vehicle.askingPrice?.toLocaleString()}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="pricing-tiers" style={{ marginTop: '1rem' }}>
+                    <div className="pricing-tier-item">
+                      <div className="pricing-tier-icon" style={{ background: vehicle.isNegotiable ? '#f0fdf4' : '#f8fafc', color: vehicle.isNegotiable ? '#16a34a' : '#64748b' }}>
+                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                      </div>
+                      <div className="pricing-tier-info">
+                        <span className="pricing-tier-amount">{vehicle.isNegotiable ? 'Negotiable' : 'Fixed Price'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-        {/* 3. BOTTOM DESCRIPTION */}
-        <div className="details-description luxury-box">
-           <Title level={3} style={{ fontWeight: 900, marginBottom: '24px' }}>Vehicle Description</Title>
-           <Paragraph style={{ whiteSpace: 'pre-wrap', fontSize: '1.05rem', lineHeight: 1.8, color: 'var(--text-secondary)', margin: 0 }}>
-             {vehicle.description}
-           </Paragraph>
-        </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
+                  <button
+                    className="btn btn-full"
+                    onClick={handleContactStaff}
+                    disabled={vehicle.status === 'Sold Out'}
+                    style={{ 
+                      height: '54px', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', 
+                      background: vehicle.status === 'Sold Out' ? 'var(--text-tertiary)' : 'linear-gradient(135deg, #10b981, #059669)', 
+                      color: 'white', border: 'none', borderRadius: '12px', 
+                      boxShadow: vehicle.status === 'Sold Out' ? 'none' : '0 4px 14px rgba(16,185,129,0.35)', 
+                      transition: 'all 0.2s' 
+                    }}
+                  >
+                    <MessageCircle size={20} /> {vehicle.status === 'Sold Out' ? 'Vehicle Unavailable' : 'Contact Sales Team'}
+                  </button>
+                </div>
+              </div>
 
+              <Card className="owner-panel" bordered={false} bodyStyle={{ padding: '1.25rem' }} style={{ marginTop: '1rem', borderRadius: '12px', border: '1px solid var(--border-color-light)' }}>
+                <h3 style={{ marginBottom: '1.25rem', fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Listed By</h3>
+                <div className="owner-profile-preview">
+                  <Badge
+                    count={<CheckCircle size={14} style={{ color: '#10b981', background: '#fff', borderRadius: '50%' }} />}
+                    offset={[-4, 44]}
+                  >
+                    <Avatar
+                      src={'https://ui-avatars.com/api/?name=Rentify+Sales&background=e2e8f0'}
+                      size={54}
+                      style={{ border: '2px solid var(--primary-color)' }}
+                    />
+                  </Badge>
+                  <div className="owner-info-text">
+                    <strong style={{ fontSize: '1rem' }}>Rentify Verified Sales</strong>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Direct from Platform</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </Col>
+        </Row>
+
+        {/* Sentinel for hiding floating bar */}
+        <div ref={sentinelRef} style={{ height: '1px', marginTop: isMobile ? '0.5rem' : '2rem' }}></div>
       </div>
+
+      {/* MOBILE STICKY CONTACT BAR */}
+      {isMobile && (
+        <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`} style={{ padding: '0.75rem 1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="mobile-bar-price" style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
+            <span className="bar-amount" style={{ fontSize: '1.1rem' }}>LKR {vehicle.askingPrice?.toLocaleString()}</span>
+          </div>
+          <div style={{ flex: 1, display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+            <button
+              className="btn btn-full"
+              onClick={handleContactStaff}
+              disabled={vehicle.status === 'Sold Out'}
+              style={{ height: '44px', padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: vehicle.status === 'Sold Out' ? 'var(--text-tertiary)' : 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.9rem', fontWeight: 700 }}
+            >
+              <MessageCircle size={18} />
+              <span>Contact</span>
+            </button>
+            <button
+              onClick={handleShare}
+              style={{ height: '44px', width: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#334155', border: '2px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', flexShrink: 0 }}
+            >
+              <Share2 size={18} />
+            </button>
+          </div>
+        </div>
+      )}
 
       <Modal
         title={
@@ -368,16 +474,16 @@ export default function VehicleSaleDetails() {
         bodyStyle={{ padding: '32px 24px' }}
       >
         <div style={{ textAlign: 'center' }}>
-          <Title level={4} style={{ marginBottom: '8px', fontWeight: 900 }}>Interested in this {vehicle.make}?</Title>
-          <Text type="secondary" style={{ display: 'block', marginBottom: '32px' }}>
+          <Typography.Title level={4} style={{ marginBottom: '8px', fontWeight: 900 }}>Interested in this {vehicle.make}?</Typography.Title>
+          <Typography.Text type="secondary" style={{ display: 'block', marginBottom: '32px' }}>
             Get in touch with our sales representative to learn more or schedule a viewing.
-          </Text>
+          </Typography.Text>
 
           <div style={{ background: 'var(--bg-secondary)', padding: '24px', borderRadius: '16px', marginBottom: '32px', border: '1px solid var(--border-color-light)' }}>
-            <Text type="secondary" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Direct Sales Line</Text>
-            <Text style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '0.5px' }}>
+            <Typography.Text type="secondary" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Direct Sales Line</Typography.Text>
+            <Typography.Text style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '0.5px' }}>
               {vehicle.contactNumber || '+94 112 345 678'}
-            </Text>
+            </Typography.Text>
           </div>
 
           <a href={`tel:${vehicle.contactNumber || '+94112345678'}`} style={{ textDecoration: 'none' }}>
