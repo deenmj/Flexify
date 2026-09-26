@@ -25,6 +25,8 @@ export default function EditVehicle() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  const getDraftKey = (suffix: string) => `editVehicleDraft_${id}_${suffix}`;
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState('');
@@ -62,9 +64,13 @@ export default function EditVehicle() {
     isActive: true
   });
 
-  const [selectedMake, setSelectedMake] = useState('');
+  const [selectedMake, setSelectedMake] = useState(() => {
+    try { return sessionStorage.getItem(getDraftKey('make')) || ''; } catch { return ''; }
+  });
   const [customMake, setCustomMake] = useState('');
-  const [selectedModel, setSelectedModel] = useState('');
+  const [selectedModel, setSelectedModel] = useState(() => {
+    try { return sessionStorage.getItem(getDraftKey('model')) || ''; } catch { return ''; }
+  });
   const [customModel, setCustomModel] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<any[]>([]);
@@ -72,6 +78,23 @@ export default function EditVehicle() {
   // Location modal state
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [locationDisplayName, setLocationDisplayName] = useState('');
+
+  // Auto-save form draft to sessionStorage and beforeunload warning
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(getDraftKey('form'), JSON.stringify(form));
+      sessionStorage.setItem(getDraftKey('make'), selectedMake);
+      sessionStorage.setItem(getDraftKey('model'), selectedModel);
+    } catch {}
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [form, selectedMake, selectedModel, id]);
 
   const [makes, setMakes] = useState<VehicleMake[]>([]);
   const [models, setModels] = useState<VehicleModel[]>([]);
@@ -114,7 +137,7 @@ export default function EditVehicle() {
         originalModelRef.current = vehicle.model || '';
 
         // Fill form with vehicle data (make/model will be set via selectedMake/selectedModel effects)
-        setForm({
+        let vehicleFormState = {
           title: vehicle.title,
           make: vehicle.make || '',
           model: vehicle.model || '',
@@ -144,16 +167,31 @@ export default function EditVehicle() {
           contactMethod: vehicle.contactMethod || 'both',
           weddingHiresSpecial: !!vehicle.weddingHiresSpecial,
           isActive: vehicle.isActive
-        });
+        };
 
-        // Set make and model AFTER form is populated with other data
-        // Check if make is in approved list
+        try {
+          const draft = sessionStorage.getItem(getDraftKey('form'));
+          if (draft) vehicleFormState = { ...vehicleFormState, ...JSON.parse(draft) };
+        } catch {}
+
+        setForm(vehicleFormState);
+
+        const savedMake = sessionStorage.getItem(getDraftKey('make'));
         const makeExists = allMakes.find((m: any) => m.name === vehicle.make);
-        if (makeExists) {
+        if (savedMake) {
+          setSelectedMake(savedMake);
+          if (savedMake === 'Other') setCustomMake(vehicle.make);
+        } else if (makeExists) {
           setSelectedMake(vehicle.make);
         } else if (vehicle.make) {
           setSelectedMake('Other');
           setCustomMake(vehicle.make);
+        }
+
+        const savedModel = sessionStorage.getItem(getDraftKey('model'));
+        if (savedModel) {
+          setSelectedModel(savedModel);
+          if (savedModel === 'Other') setCustomModel(vehicle.model);
         }
 
         setExistingPhotos(vehicle.photos || []);
@@ -367,6 +405,14 @@ export default function EditVehicle() {
       });
 
       await vehicleApi.updateWithPhotos(id, formData);
+      
+      // Clear drafts on save
+      try {
+        sessionStorage.removeItem(getDraftKey('form'));
+        sessionStorage.removeItem(getDraftKey('make'));
+        sessionStorage.removeItem(getDraftKey('model'));
+      } catch {}
+
       message.success('Vehicle details updated successfully');
       navigate(-1);
     } catch (err: any) {

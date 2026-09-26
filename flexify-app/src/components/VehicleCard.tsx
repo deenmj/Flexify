@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { type Vehicle, getOptimizedImageUrl, getVehicleSlug, userApi } from '../api'; // getOptimizedImageUrl kept for potential future use
+import { type Vehicle, getOptimizedImageUrl, getVehicleSlug, userApi } from '../api';
 import { Users, Star, Zap, Gauge, MapPin, Verified, Share2, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { message } from 'antd';

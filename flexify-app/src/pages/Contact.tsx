@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Send, ArrowLeft, Clock, Edit } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, ArrowLeft, Clock, Edit, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Modal, message, Spin } from 'antd';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +10,7 @@ import './StaticPages.css';
 export default function Contact() {
   const { user } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [successMsg, setSuccessMsg] = useState('');
   
   // Dynamic Settings
   const [contactDetails, setContactDetails] = useState({
@@ -46,7 +47,9 @@ export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     message.success('Message sent! We will get back to you soon.');
+    setSuccessMsg('Message sent! We will get back to you soon.');
     setForm({ name: '', email: '', message: '' });
+    setTimeout(() => setSuccessMsg(''), 5000);
   };
 
   const handleAdminSave = async () => {
@@ -159,6 +162,11 @@ export default function Contact() {
           </div>
           
           <form className="contact-form card" onSubmit={handleSubmit}>
+            {successMsg && (
+              <div style={{ padding: '12px', background: '#dcfce7', color: '#166534', borderRadius: '8px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle size={18} /> {successMsg}
+              </div>
+            )}
             <div className="input-group">
               <label>Your Name</label>
               <input type="text" className="input-field" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />

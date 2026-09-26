@@ -12,6 +12,7 @@ import './Home.css';
 export default function Home() {
   const { user } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [userFeaturedCount, setUserFeaturedCount] = useState(0);
   const [owners] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState<PublicStats | null>(null);
@@ -23,13 +24,22 @@ export default function Home() {
   useEffect(() => {
     vehicleApi.getAll({ limit: '12', sort: 'popular' }).then((response) => {
       const data = response.vehicles || [];
-      const filteredVehicles = user 
-        ? data.filter(v => {
-            const ownerId = typeof v.owner === 'object' ? (v.owner as any)._id : v.owner;
-            return ownerId !== user._id;
-          })
-        : data;
-      setVehicles(filteredVehicles);
+      if (user) {
+        let ownCount = 0;
+        const filteredVehicles = data.filter((v: any) => {
+          const ownerId = typeof v.owner === 'object' ? (v.owner as any)._id : v.owner;
+          if (ownerId === user._id) {
+            ownCount++;
+            return false;
+          }
+          return true;
+        });
+        setVehicles(filteredVehicles);
+        setUserFeaturedCount(ownCount);
+      } else {
+        setVehicles(data);
+        setUserFeaturedCount(0);
+      }
     }).catch(console.error);
 
     vehicleApi.getPublicStats().then(setStats).catch(console.error);
@@ -233,6 +243,11 @@ export default function Home() {
             <div>
               <h2 className="section-title">Featured Vehicles</h2>
               <p className="section-subtitle">Handpicked rides for every journey</p>
+              {userFeaturedCount > 0 && (
+                <div style={{ marginTop: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--bg-secondary)', padding: '4px 12px', borderRadius: '100px', fontSize: '0.85rem', color: 'var(--primary-color)', border: '1px solid var(--border-color)' }}>
+                  <Star size={14} fill="currentColor" /> {userFeaturedCount} of your vehicles are featured here!
+                </div>
+              )}
             </div>
             <div className="scroll-controls featured-scroll-controls">
               <button className="scroll-btn" onClick={() => scroll(vehicleScrollRef, 'left')} aria-label="Previous"><ChevronLeft size={20} /></button>

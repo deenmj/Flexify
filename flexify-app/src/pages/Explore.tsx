@@ -102,7 +102,7 @@ function RadiusPicker({ value, onChange }: { value: string; onChange: (val: stri
 }
 
 export default function Explore() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const isAdminRole = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'staff';
@@ -112,14 +112,14 @@ export default function Explore() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [filters, setFilters] = useState<Filters>({
-    transmission: '',
-    minPrice: '',
-    maxPrice: '',
-    seats: '',
+    transmission: searchParams.get('transmission') || '',
+    minPrice: searchParams.get('minPrice') || '',
+    maxPrice: searchParams.get('maxPrice') || '',
+    seats: searchParams.get('seats') || '',
     vehicleType: searchParams.get('type') || searchParams.get('vehicleType') || '',
-    lat: '',
-    lng: '',
-    radius: '10', // default radius 10km
+    lat: searchParams.get('lat') || '',
+    lng: searchParams.get('lng') || '',
+    radius: searchParams.get('radius') || '10', // default radius 10km
     sort: searchParams.get('sort') || 'newest',
     province: searchParams.get('province') || '',
     district: searchParams.get('district') || '',
@@ -127,6 +127,7 @@ export default function Explore() {
     endDate: searchParams.get('endDate') || '',
     driverOption: searchParams.get('driverOption') || '',
     weddingHiresSpecial: searchParams.get('weddingHiresSpecial') || '',
+    locationName: searchParams.get('locationName') || '',
   });
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 12, totalPages: 1 });
   const [isAppending, setIsAppending] = useState(false);
@@ -177,15 +178,20 @@ export default function Explore() {
   };
 
   useEffect(() => {
-    const urlType = searchParams.get('type') || searchParams.get('vehicleType') || '';
-    const urlQuery = searchParams.get('q') || '';
+    // Sync current state to URL to persist on refresh
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+    });
+    setSearchParams(params, { replace: true });
 
-    setQuery(urlQuery);
-    setFilters((prev: Filters) => ({ ...prev, vehicleType: urlType }));
-
-    fetchVehicles(urlQuery, urlType);
+    // Ensure we only fetch if we are not appending pages
+    if (!isAppending) {
+      fetchVehicles();
+    }
     // eslint-disable-next-line
-  }, [searchParams]);
+  }, [filters, query]);
 
   const prevRadiusRef = React.useRef(filters.radius);
   useEffect(() => {

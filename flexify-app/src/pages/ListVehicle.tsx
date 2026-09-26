@@ -97,13 +97,24 @@ export default function ListVehicle() {
     return '';
   });
 
-  // Auto-save form draft to sessionStorage
+  // Auto-save form draft to sessionStorage and beforeunload warning
   useEffect(() => {
     try {
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form));
       sessionStorage.setItem(DRAFT_MAKE_KEY, selectedMake);
       sessionStorage.setItem(DRAFT_MODEL_KEY, selectedModel);
     } catch {}
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Check if form has any data different from default (simple check, if title or make is set)
+      if (form.title || form.make) {
+        e.preventDefault();
+        e.returnValue = ''; // Standard for most browsers
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [form, selectedMake, selectedModel]);
 
   // Dynamic Makes/Models

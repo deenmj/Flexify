@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userApi } from '../api';
 import { Link } from 'react-router-dom';
@@ -19,6 +19,19 @@ export default function Profile() {
     phone: user?.phone || '',
     address: user?.address || '',
   });
+
+
+
+  useEffect(() => {
+    if (user && !editing) {
+      setForm({
+        name: user.name || '',
+        phone: user.phone || '',
+        address: user.address || '',
+      });
+      setDocAddress(user.documents?.address || '');
+    }
+  }, [user, editing]);
 
   const [profilePic, setProfilePic] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);

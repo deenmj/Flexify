@@ -376,7 +376,12 @@ export default function Dashboard() {
 
             {wishlistSubTab === 'buy' ? (
               !user?.saleWishlist || user.saleWishlist.length === 0 ? (
-                <p className="text-gray-500 text-center py-10">You haven't saved any vehicles to buy yet.</p>
+                <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                  <p className="text-gray-500" style={{ marginBottom: '1.5rem' }}>You haven't saved any vehicles to buy yet.</p>
+                  <Button type="primary" onClick={() => navigate('/buy')} style={{ padding: '0 24px', height: '40px', borderRadius: '8px' }}>
+                    Browse Vehicles for Sale
+                  </Button>
+                </div>
               ) : (
                 <div className="dashboard-grid">
                   {user.saleWishlist.filter((v: any) => v && v._id).map((v: any) => (
@@ -412,7 +417,12 @@ export default function Dashboard() {
               )
             ) : (
               !user?.rentWishlist || user.rentWishlist.length === 0 ? (
-                <p className="text-gray-500 text-center py-10">You haven't saved any rental vehicles yet.</p>
+                <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                  <p className="text-gray-500" style={{ marginBottom: '1.5rem' }}>You haven't saved any rental vehicles yet.</p>
+                  <Button type="primary" onClick={() => navigate('/explore')} style={{ padding: '0 24px', height: '40px', borderRadius: '8px' }}>
+                    Explore Rental Vehicles
+                  </Button>
+                </div>
               ) : (
                 <div className="dashboard-grid">
                   {user.rentWishlist.filter((v: any) => v && v._id).map((v: any) => (
