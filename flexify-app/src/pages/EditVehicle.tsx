@@ -88,8 +88,11 @@ export default function EditVehicle() {
     } catch {}
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = '';
+      // Only warn if they've actually loaded the form and potentially made changes
+      if (form.title || form.make) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
