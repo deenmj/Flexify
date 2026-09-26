@@ -388,10 +388,10 @@ export default function VehicleSalesGallery() {
                             <span><Fuel size={12} /> {vehicle.fuelType}</span>
                           </div>
 
-                          {vehicle.location && (
-                            <div className="shared-vehicle-location" title={vehicle.location}>
+                          {(vehicle.city || vehicle.district) && (
+                            <div className="shared-vehicle-location" title={vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}>
                               <MapPin size={12} />
-                              <span>{vehicle.location}</span>
+                              <span>{vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
                             </div>
                           )}
 
