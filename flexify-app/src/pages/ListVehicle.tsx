@@ -11,6 +11,10 @@ import './ListVehicle.css';
 
 const { Option } = AntSelect;
 
+const DRAFT_KEY = 'listVehicleDraft';
+const DRAFT_MAKE_KEY = 'listVehicleDraftMake';
+const DRAFT_MODEL_KEY = 'listVehicleDraftModel';
+
 const VEHICLE_FEATURES = [
   { id: 'ac', label: 'A/C', icon: '❄️' },
   { id: 'bluetooth', label: 'Bluetooth', icon: '📶' },
@@ -29,7 +33,7 @@ export default function ListVehicle() {
   const [searchParams] = useSearchParams();
   const forUserId = searchParams.get('forUser');
 
-  const [form, setForm] = useState({
+  const defaultForm = {
     title: '',
     make: '',
     model: '',
@@ -58,19 +62,49 @@ export default function ListVehicle() {
     mobileNumber: '',
     contactMethod: 'both' as 'call' | 'whatsapp' | 'both',
     weddingHiresSpecial: false
+  };
+
+  const [form, setForm] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(DRAFT_KEY);
+      if (saved) return { ...defaultForm, ...JSON.parse(saved) };
+    } catch {}
+    return defaultForm;
   });
 
   // Derived state for make/model selection
-  const [selectedMake, setSelectedMake] = useState('');
+  const [selectedMake, setSelectedMake] = useState(() => {
+    try { return sessionStorage.getItem(DRAFT_MAKE_KEY) || ''; } catch { return ''; }
+  });
   const [customMake, setCustomMake] = useState('');
-  const [selectedModel, setSelectedModel] = useState('');
+  const [selectedModel, setSelectedModel] = useState(() => {
+    try { return sessionStorage.getItem(DRAFT_MODEL_KEY) || ''; } catch { return ''; }
+  });
   const [customModel, setCustomModel] = useState('');
 
   const [photos, setPhotos] = useState<File[]>([]);
 
   // Location modal state
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [locationDisplayName, setLocationDisplayName] = useState('');
+  const [locationDisplayName, setLocationDisplayName] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.city || parsed.district || '';
+      }
+    } catch {}
+    return '';
+  });
+
+  // Auto-save form draft to sessionStorage
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+      sessionStorage.setItem(DRAFT_MAKE_KEY, selectedMake);
+      sessionStorage.setItem(DRAFT_MODEL_KEY, selectedModel);
+    } catch {}
+  }, [form, selectedMake, selectedModel]);
 
   // Dynamic Makes/Models
   const [makes, setMakes] = useState<VehicleMake[]>([]);
@@ -251,6 +285,13 @@ export default function ListVehicle() {
       } else {
         await vehicleApi.createWithPhotos(formData);
       }
+
+      // Clear the draft on successful submission
+      try {
+        sessionStorage.removeItem(DRAFT_KEY);
+        sessionStorage.removeItem(DRAFT_MAKE_KEY);
+        sessionStorage.removeItem(DRAFT_MODEL_KEY);
+      } catch {}
 
       // Refresh user in background (non-blocking) so UI responds instantly
       refreshUser();
