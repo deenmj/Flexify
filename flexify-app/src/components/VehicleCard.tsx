@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { type Vehicle, getOptimizedImageUrl, getVehicleSlug, userApi } from '../api';
+import { type Vehicle, getOptimizedImageUrl, getVehicleSlug, userApi } from '../api'; // getOptimizedImageUrl kept for potential future use
 import { Users, Star, Zap, Gauge, MapPin, Verified, Share2, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { message } from 'antd';
@@ -39,46 +39,36 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   };
 
   const handleShare = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigating to the vehicle link
+    e.preventDefault();
     e.stopPropagation();
 
-    const shareText = `Check out this ${vehicle.year || ''} ${vehicle.make} ${vehicle.model} on Rentify!`;
     const shareUrl = `${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`;
+    const shareText = `Check out this ${vehicle.year || ''} ${vehicle.make} ${vehicle.model} on Rentify!\n${shareUrl}`;
 
     try {
-      if (vehicle.photos?.[0]) {
-        // 1. Fetch the image and convert to a File object
-        const imageUrl = getOptimizedImageUrl(vehicle.photos[0], 400, 300);
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-        const file = new File([blob], 'vehicle-image.jpg', { type: blob.type });
-
-        // 2. Check if the device supports sharing files
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: vehicle.title,
-            text: shareText,
-            url: shareUrl,
-          });
-          return;
-        }
-      }
-      
-      // Fallback for devices that support share but not files, or if no image
+      // Always try URL-only share first (most reliable, includes link)
       if (navigator.share) {
         await navigator.share({
           title: vehicle.title,
           text: shareText,
           url: shareUrl,
         });
-      } else {
-        // Fallback for desktop
-        navigator.clipboard.writeText(shareUrl);
-        message.success('Link copied to clipboard!');
+        return;
       }
-    } catch (err) {
-      console.error('Error sharing:', err);
+
+      // Fallback for desktop — copy link
+      await navigator.clipboard.writeText(shareUrl);
+      message.success('Link copied to clipboard!');
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        // If share failed, try clipboard as last resort
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          message.success('Link copied to clipboard!');
+        } catch {
+          console.error('Error sharing:', err);
+        }
+      }
     }
   };
 
@@ -157,9 +147,21 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </div>
 
           <div className="shared-vehicle-footer">
-            <div className="shared-vehicle-price">
-              <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
-              <span className="price-unit">/day</span>
+            <div className="shared-vehicle-price-block">
+              <div className="shared-vehicle-price">
+                <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
+                <span className="price-unit">/day</span>
+              </div>
+              {!isBike && vehicle.driverOption === 'with-driver' && vehicle.driverPricePerDay && (
+                <div className="driver-price-note">
+                  👨‍✈️ +LKR {vehicle.driverPricePerDay.toLocaleString()}/day driver
+                </div>
+              )}
+              {!isBike && vehicle.driverOption === 'both' && vehicle.driverPricePerDay && (
+                <div className="driver-price-note driver-price-note--optional">
+                  👨‍✈️ +LKR {vehicle.driverPricePerDay.toLocaleString()}/day w/ driver
+                </div>
+              )}
             </div>
             <button className="share-btn" onClick={handleShare} aria-label="Share">
               <Share2 size={16} />

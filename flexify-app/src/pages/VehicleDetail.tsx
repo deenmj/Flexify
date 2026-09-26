@@ -123,6 +123,33 @@ export default function VehicleDetail() {
     }
   };
 
+  const handleShare = async () => {
+    if (!vehicle) return;
+    const shareUrl = `${window.location.origin}/vehicles/${getVehicleSlug(vehicle)}`;
+    const shareText = `Check out this ${vehicle.year || ''} ${vehicle.make} ${vehicle.model} listed on Rentify!\n${shareUrl}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: vehicle.title,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      }
+      await navigator.clipboard.writeText(shareUrl);
+      message.success('Link copied to clipboard!');
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          message.success('Link copied to clipboard!');
+        } catch {
+          console.error('Share failed', err);
+        }
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="vehicle-detail-page">
@@ -327,6 +354,23 @@ export default function VehicleDetail() {
                     <h1 className="detail-title" style={{ fontSize: isMobile ? '1.4rem' : '2.5rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: 0 }}>
                       {vehicle.title}
                     </h1>
+                    {/* Share Button inline with title */}
+                    <button
+                      onClick={handleShare}
+                      title="Share this listing"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        background: 'var(--bg-secondary, #f8fafc)', border: '1px solid var(--border-color-light, #e2e8f0)',
+                        borderRadius: '10px', padding: '6px 12px', cursor: 'pointer',
+                        fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)',
+                        transition: 'all 0.2s', flexShrink: 0,
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-secondary, #f8fafc)'; e.currentTarget.style.borderColor = 'var(--border-color-light, #e2e8f0)'; }}
+                    >
+                      <Share2 size={14} />
+                      <span className="d-none-mobile">Share</span>
+                    </button>
 
                   </div>
                   <p className="detail-subtitle" style={{ fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
@@ -707,6 +751,14 @@ export default function VehicleDetail() {
             >
               <MessageCircle size={18} />
               <span>Contact</span>
+            </button>
+            {/* Share button in mobile bar */}
+            <button
+              onClick={handleShare}
+              style={{ height: '44px', width: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#334155', border: '2px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', flexShrink: 0 }}
+              aria-label="Share"
+            >
+              <Share2 size={18} />
             </button>
             {user && ((user._id || user.id) === (owner?._id || owner?.id) || (user._id || user.id) === vehicle.owner) && (
               <button

@@ -189,10 +189,29 @@
   border-top: 1px solid var(--border-color-light, #f1f5f9);
 }
 
+.shared-vehicle-price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .shared-vehicle-price {
   display: flex;
   align-items: baseline;
   gap: 2px;
+}
+
+.driver-price-note {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #7c3aed;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.driver-price-note--optional {
+  color: #15803d;
 }
 
 .price-amount {
