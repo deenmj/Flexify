@@ -29,7 +29,6 @@ export default function Profile() {
         phone: user.phone || '',
         address: user.address || '',
       });
-      setDocAddress(user.documents?.address || '');
     }
   }, [user, editing]);
 
@@ -37,16 +36,6 @@ export default function Profile() {
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Document editing state
-  const [editingDocs, setEditingDocs] = useState(false);
-  const [docLoading, setDocLoading] = useState(false);
-  const [docError, setDocError] = useState('');
-  const [docMessage, setDocMessage] = useState('');
-  const [docFiles, setDocFiles] = useState<{ license?: File; selfie?: File }>({});
-  const [docPreviews, setDocPreviews] = useState<{ license?: string; selfie?: string }>({});
-  const [docAddress, setDocAddress] = useState(user?.documents?.address || '');
-
-  const [docType, setDocType] = useState<'rent' | 'sales'>('rent');
 
   if (!user) {
     return (
@@ -105,77 +94,6 @@ export default function Profile() {
     }
   };
 
-  // ---- Document editing handlers ----
-  const handleDocEditClick = () => {
-    setDocAddress(user.documents?.address || '');
-    setDocFiles({});
-    setDocPreviews({});
-    setDocError('');
-    setDocMessage('');
-    setEditingDocs(true);
-  };
-
-  const handleDocCancel = () => {
-    // Clean up preview URLs
-    Object.values(docPreviews).forEach(url => { if (url) URL.revokeObjectURL(url); });
-    setDocFiles({});
-    setDocPreviews({});
-    setEditingDocs(false);
-    setDocError('');
-  };
-
-  const handleDocFileChange = async (field: 'license' | 'selfie', file: File | null) => {
-    if (!file) return;
-    try {
-      const options = { maxSizeMB: 0.5, maxWidthOrHeight: 1200, useWebWorker: true };
-      const compressed = await imageCompression(file, options);
-      setDocFiles(prev => ({ ...prev, [field]: compressed }));
-      if (docPreviews[field]) URL.revokeObjectURL(docPreviews[field]!);
-      setDocPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(compressed) }));
-    } catch {
-      setDocFiles(prev => ({ ...prev, [field]: file }));
-      setDocPreviews(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
-    }
-  };
-
-  const handleDocSave = async () => {
-    // Check at least one file or address change
-    const hasFileChanges = Object.keys(docFiles).length > 0;
-    const hasAddressChange = docAddress.trim() !== (user.documents?.address || '').trim();
-
-    if (!hasFileChanges && !hasAddressChange) {
-      setDocError('Please upload at least one document or update the address.');
-      return;
-    }
-
-    setDocLoading(true);
-    setDocError('');
-    setDocMessage('');
-
-    const formData = new FormData();
-    if (docFiles.license) formData.append('license', docFiles.license);
-    if (docFiles.selfie) formData.append('selfie', docFiles.selfie);
-    if (hasAddressChange) formData.append('address', docAddress.trim());
-    formData.append('type', docType);
-
-    try {
-      await userApi.updateDocuments(formData);
-      await refreshUser();
-      setEditingDocs(false);
-      setDocFiles({});
-      setDocPreviews({});
-      setDocMessage('Documents updated successfully! Our team will review the changes.');
-    } catch (err: any) {
-      setDocError(err.message || 'Failed to update documents');
-    } finally {
-      setDocLoading(false);
-    }
-  };
-
-  const docFields: { key: 'license' | 'selfie'; label: string; icon: string }[] = [
-    { key: 'license', label: 'Driving License', icon: '🚗' },
-    { key: 'selfie', label: 'Profile Photo', icon: '📸' },
-  ];
 
   return (
     <div className="profile-page page-wrapper bg-secondary">
@@ -263,12 +181,11 @@ export default function Profile() {
                 <User size={18} className="profile-info-icon" />
                 <div style={{ flex: 1 }}>
                   <span className="profile-info-label">Full Name</span>
-                  {editing && !user.isKycVerified ? (
+                  {editing ? (
                     <input className="input-field" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
                   ) : (
                     <span className="profile-info-value">{user.name}</span>
                   )}
-                  {editing && user.isKycVerified && <span style={{ fontSize: '10px', color: '#991b1b', marginTop: '2px', display: 'block' }}>Verified names cannot be changed</span>}
                 </div>
               </div>
 

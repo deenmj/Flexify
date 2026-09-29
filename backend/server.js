@@ -35,17 +35,14 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
 import Staff from "./models/Staff.js";
-import Booking from "./models/booking.js";
 
 // Routes
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/userRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
-import bookingRoutes from "./routes/bookingRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import subadminRoutes from "./routes/subadminRoutes.js";
 import salesRoutes from "./routes/salesRoutes.js";
-import blackoutRoutes from "./routes/blackoutRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
@@ -180,11 +177,9 @@ app.use("/api", maintenanceGuard);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", protect, userRoutes);
 app.use("/api/vehicles", vehicleRoutes);
-app.use("/api/bookings", protect, bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/subadmin", subadminRoutes);
 app.use("/api/sales", salesRoutes);
-app.use("/api/blackouts", blackoutRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/settings", settingsRoutes);
@@ -213,33 +208,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ============================================
-// SCHEDULED TASK: Auto-complete past bookings
-// Runs every hour to transition CONFIRMED bookings
-// whose end date has passed to COMPLETED status.
-// ============================================
-
-const autoCompleteBookings = async () => {
-  try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const result = await Booking.updateMany(
-      { status: "CONFIRMED", endDate: { $lt: today } },
-      { $set: { status: "COMPLETED" } }
-    );
-
-    if (result.modifiedCount > 0) {
-      console.log(`✅ Auto-completed ${result.modifiedCount} past booking(s)`);
-    }
-  } catch (err) {
-    console.error("Auto-complete bookings error:", err.message);
-  }
-};
-
-// Run immediately on startup, then every hour
-autoCompleteBookings();
-setInterval(autoCompleteBookings, 60 * 60 * 1000);
 
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT} with Socket.io support`));

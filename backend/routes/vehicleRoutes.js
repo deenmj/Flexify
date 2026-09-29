@@ -10,7 +10,6 @@ import {
   updateVehicle,
   deleteVehicle,
   toggleVehicleStatus,
-  getVehicleAvailability,
   getMakes,
   getModels,
   getPublicStats,
@@ -25,7 +24,6 @@ router.get("/", listVehicles);
 router.get("/makes", getMakes);
 router.get("/models/:makeId", getModels);
 router.get("/my", protect, getMyVehicles);
-router.get("/:id/availability", getVehicleAvailability);
 router.post("/:id/contact-click", trackContactClick);
 router.get("/:id", protectOptional, getVehicleById);
 

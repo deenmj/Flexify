@@ -71,17 +71,7 @@ export interface User {
   isStaff?: boolean;
   ownerType?: 'VERIFIED' | 'UNVERIFIED' | null;
   verified: boolean;
-  isKycVerified: boolean;
-  verificationStatus: 'not_submitted' | 'pending' | 'approved' | 'rejected';
-  rentVerificationStatus: 'not_submitted' | 'pending' | 'approved' | 'rejected';
-  salesVerificationStatus: 'not_submitted' | 'pending' | 'approved' | 'rejected';
-  documents?: {
-    idNumber?: string;
-    license?: string;
-    selfie?: string;
-    address?: string;
-    phone?: string;
-  };
+  verified: boolean;
   profilePic: string;
   notificationEmail?: string;
   isNotificationEmailActive?: boolean;
@@ -435,8 +425,7 @@ export const vehicleApi = {
       method: 'PATCH',
     }),
 
-  getAvailability: (id: string) =>
-    apiFetch<{ bookedRanges: BookedRange[]; blackoutRanges: BlackoutRange[] }>(`/vehicles/${id}/availability`),
+
 
   getMakes: () => apiFetch<VehicleMake[]>('/vehicles/makes'),
 
@@ -449,49 +438,7 @@ export const vehicleApi = {
     }),
 };
 
-// =================== BOOKINGS ===================
-export const bookingApi = {
-  create: (vehicleId: string, startDate: string, endDate: string, withDriver: boolean = false) =>
-    apiFetch<Booking>('/bookings', {
-      method: 'POST',
-      body: JSON.stringify({ vehicleId, startDate, endDate, withDriver }),
-    }),
 
-  getMy: () => apiFetch<Booking[]>('/bookings/my'),
-
-  accept: (id: string) =>
-    apiFetch<Booking>(`/bookings/accept/${id}`, { method: 'PUT' }),
-
-  reject: (id: string, reason: string) =>
-    apiFetch<{ message: string }>(`/bookings/reject/${id}`, { 
-      method: 'PUT',
-      body: JSON.stringify({ reason })
-    }),
-
-  cancel: (id: string, reason: string) =>
-    apiFetch<{ message: string }>(`/bookings/cancel/${id}`, { 
-      method: 'PUT',
-      body: JSON.stringify({ reason })
-    }),
-    
-  getRenterDetails: (bookingId: string) =>
-    apiFetch<User>(`/bookings/renter-details/${bookingId}`),
-};
-
-// =================== BLACKOUTS ===================
-export const blackoutApi = {
-  create: (vehicleId: string, startDate: string, endDate: string, reason?: string) =>
-    apiFetch<Blackout>('/blackouts', {
-      method: 'POST',
-      body: JSON.stringify({ vehicleId, startDate, endDate, reason }),
-    }),
-
-  getForVehicle: (vehicleId: string) =>
-    apiFetch<Blackout[]>(`/blackouts/vehicle/${vehicleId}`),
-
-  delete: (id: string) =>
-    apiFetch<{ message: string }>(`/blackouts/${id}`, { method: 'DELETE' }),
-};
 
 // =================== ADMIN (SUPERADMIN) ===================
 export const adminApi = {
@@ -522,13 +469,7 @@ export const adminApi = {
       body: JSON.stringify({ status }),
     }),
 
-  getUserKyc: (userId: string) => apiFetch<User>(`/admin/users/${userId}/kyc`),
 
-  deleteUserKyc: (userId: string, reason: string) =>
-    apiFetch<{ message: string; user: User }>(`/admin/users/${userId}/kyc`, { 
-      method: 'DELETE',
-      body: JSON.stringify({ reason })
-    }),
 
   deleteUser: (userId: string) =>
     apiFetch<{ message: string }>(`/admin/users/${userId}`, { method: 'DELETE' }),
@@ -538,13 +479,7 @@ export const adminApi = {
   deleteVehicle: (vehicleId: string) =>
     apiFetch<{ message: string }>(`/admin/vehicles/${vehicleId}`, { method: 'DELETE' }),
 
-  getAllBookings: () => apiFetch<Booking[]>('/admin/bookings'),
-  
-  cancelBooking: (bookingId: string, reason?: string) =>
-    apiFetch<{ message: string; booking: Booking }>(`/admin/bookings/${bookingId}/cancel`, { 
-      method: 'PATCH',
-      body: JSON.stringify({ reason })
-    }),
+
 
   getAuditLogs: (page: number = 1, limit: number = 20) =>
     apiFetch<AuditLogResponse>(`/admin/audit-logs?page=${page}&limit=${limit}`),
@@ -620,7 +555,7 @@ export const subadminApi = {
 
   getPendingUsers: () => apiFetch<User[]>('/subadmin/pending-users'),
 
-  getUserKycDetails: (userId: string) => apiFetch<User>(`/subadmin/user/${userId}`),
+
 
   approveUser: (userId: string, type: string = 'rent', grantSalesAccess: boolean = false) =>
     apiFetch<{ message: string; user: User }>(`/subadmin/approve-user/${userId}`, {
@@ -675,11 +610,7 @@ export const subadminApi = {
 
 // =================== REVIEWS ===================
 export const reviewApi = {
-  create: (bookingId: string, rating: number, comment: string) =>
-    apiFetch<Review>('/reviews', {
-      method: 'POST',
-      body: JSON.stringify({ bookingId, rating, comment }),
-    }),
+
 
   getForVehicle: (vehicleId: string) =>
     apiFetch<Review[]>(`/reviews/vehicle/${vehicleId}`),
@@ -694,16 +625,7 @@ export const reviewApi = {
 };
 
 export const userApi = {
-  submitKyc: (formData: FormData) =>
-    fetch(`${API_BASE_URL}/users/verify`, {
-      method: 'POST',
-      headers: authHeadersOnly(),
-      body: formData,
-    }).then(async (res) => {
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'KYC submission failed');
-      return data;
-    }),
+
 
   updateProfile: (formData: FormData) =>
     fetch(`${API_BASE_URL}/users/update-profile`, {
@@ -727,16 +649,7 @@ export const userApi = {
       body: JSON.stringify(data),
     }),
 
-  updateDocuments: (formData: FormData) =>
-    fetch(`${API_BASE_URL}/users/update-documents`, {
-      method: 'PUT',
-      headers: authHeadersOnly(),
-      body: formData,
-    }).then(async (res) => {
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Documents update failed');
-      return data;
-    }),
+
 
   toggleWishlistSale: (saleId: string) =>
     apiFetch<{ message: string; saleWishlist: string[] }>(`/users/wishlist/sale/${saleId}`, {
