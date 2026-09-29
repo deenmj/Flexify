@@ -149,14 +149,12 @@ export default function AdminDashboard() {
       adminApi.getStats({ district, timeRange }).catch(() => null),
       adminApi.getAllUsers().catch(() => []),
       adminApi.getAllVehicles().catch(() => []),
-      adminApi.getAllBookings().catch(() => []),
       adminApi.getAuditLogs(1, 15).catch(() => ({ logs: [] })),
       adminApi.getPendingPayments().catch(() => []),
-    ]).then(([s, u, v, b, logs, p]) => {
+    ]).then(([s, u, v, logs, p]) => {
       if (s) setStats(s);
       setAllUsers(u);
       setAllVehicles(v);
-      setAllBookings(b);
       if (logs?.logs) setAuditLogs(logs.logs);
       setPendingPayments(p);
     }).finally(() => setLoading(false));

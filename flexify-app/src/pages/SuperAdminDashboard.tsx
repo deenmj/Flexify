@@ -105,16 +105,14 @@ export default function SuperAdminDashboard() {
       adminApi.getStats({ district, timeRange }).catch(() => null),
       adminApi.getAllUsers().catch(() => []),
       adminApi.getAllVehicles().catch(() => []),
-      adminApi.getAllBookings().catch(() => []),
       adminApi.getAuditLogs(1, 15).catch(() => ({ logs: [] })),
       adminApi.getPendingPayments().catch(() => []),
       superAdminApi.getFinancials().catch(() => null),
       superAdminApi.getStaff().catch(() => [])
-    ]).then(([s, u, v, b, logs, p, f, st]) => {
+    ]).then(([s, u, v, logs, p, f, st]) => {
       if (s) setStats(s);
       setAllUsers(u);
       setAllVehicles(v);
-      setAllBookings(b);
       if (logs?.logs) setAuditLogs(logs.logs);
       setPendingPayments(p);
       setFinancials(f);
