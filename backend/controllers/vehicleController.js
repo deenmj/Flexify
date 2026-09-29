@@ -9,6 +9,7 @@ import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
 import cloudinary from "../utils/cloudinary.js";
+import { deleteCloudinaryImages, extractPublicIds } from "../utils/cloudinaryHelpers.js";
 
 /**
  * Owner creates a vehicle listing.
@@ -93,6 +94,9 @@ export const createVehicle = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields: Title, Make, Model, Price Per Day, and Mobile Number are compulsory." });
     }
 
+    // ── Step 1: Collect uploaded photos (images are already in Cloudinary at this point) ──
+    // We track their public_ids so we can roll back if vehicle creation fails.
+    const uploadedPublicIds = extractPublicIds(req.files);
     const photos = [];
     if (req.files) {
       req.files.forEach((f) => photos.push({
@@ -157,50 +161,63 @@ export const createVehicle = async (req, res) => {
     const staffRoles = ["superadmin", "admin", "staff", "manager", "supervisor"];
     const isOwnerStaff = staffRoles.includes(owner.role);
 
-    const vehicle = await Vehicle.create({
-      owner: owner._id,
-      ownerModel: isOwnerStaff ? "Staff" : "User",
-      title,
-      make: finalMakeName,
-      model: finalModelName,
-      year: parseInt(year),
-      photos,
-      location: {
-        type: "Point",
-        // Default to Sri Lanka center (7.8731, 80.7718) instead of [0, 0] (Atlantic Ocean)
-        // so vehicles are at least visible in island-wide searches if geocoding fails
-        coordinates: [
-          parseFloat(lng) || 80.7718,
-          parseFloat(lat) || 7.8731
-        ],
-        address: address || "",
-      },
-      pricePerDay: parseFloat(pricePerDay),
-      pricePerWeek: pricePerWeek ? parseFloat(pricePerWeek) : null,
-      pricePerMonth: pricePerMonth ? parseFloat(pricePerMonth) : null,
-      kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null,
-      extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null,
-      transmission,
-      fuelType,
-      seats: parseInt(seats),
-      description,
-      serviceType: serviceType ? (Array.isArray(serviceType) ? serviceType : [serviceType]) : [],
-      status: vehicleStatus,
-      isActive: true,
-      
-      // New fields
-      engineCapacity,
-      fuelConsumption,
-      features: features ? (typeof features === 'string' ? JSON.parse(features) : features) : [],
-      province,
-      district,
-      city,
-      driverOption: driverOption || "self-drive",
-      driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
-      mobileNumber: mobileNumber || null,
-      contactMethod: contactMethod || "both",
-      weddingHiresSpecial: weddingHiresSpecial === "true" || weddingHiresSpecial === true,
-    });
+    // ── Step 2: Attempt to create the vehicle document ──
+    // If this fails for any reason (validation, DB error, crash), clean up the
+    // already-uploaded Cloudinary images to prevent orphaned assets.
+    let vehicle;
+    try {
+      vehicle = await Vehicle.create({
+        owner: owner._id,
+        ownerModel: isOwnerStaff ? "Staff" : "User",
+        title,
+        make: finalMakeName,
+        model: finalModelName,
+        year: parseInt(year),
+        photos,
+        location: {
+          type: "Point",
+          // Default to Sri Lanka center (7.8731, 80.7718) instead of [0, 0] (Atlantic Ocean)
+          // so vehicles are at least visible in island-wide searches if geocoding fails
+          coordinates: [
+            parseFloat(lng) || 80.7718,
+            parseFloat(lat) || 7.8731
+          ],
+          address: address || "",
+        },
+        pricePerDay: parseFloat(pricePerDay),
+        pricePerWeek: pricePerWeek ? parseFloat(pricePerWeek) : null,
+        pricePerMonth: pricePerMonth ? parseFloat(pricePerMonth) : null,
+        kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null,
+        extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null,
+        transmission,
+        fuelType,
+        seats: parseInt(seats),
+        description,
+        serviceType: serviceType ? (Array.isArray(serviceType) ? serviceType : [serviceType]) : [],
+        status: vehicleStatus,
+        isActive: true,
+        
+        // New fields
+        engineCapacity,
+        fuelConsumption,
+        features: features ? (typeof features === 'string' ? JSON.parse(features) : features) : [],
+        province,
+        district,
+        city,
+        driverOption: driverOption || "self-drive",
+        driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
+        mobileNumber: mobileNumber || null,
+        contactMethod: contactMethod || "both",
+        weddingHiresSpecial: weddingHiresSpecial === "true" || weddingHiresSpecial === true,
+      });
+    } catch (dbErr) {
+      // ── Rollback: delete just-uploaded Cloudinary images ──
+      if (uploadedPublicIds.length > 0) {
+        console.warn(`[createVehicle] DB save failed — rolling back ${uploadedPublicIds.length} Cloudinary image(s).`);
+        await deleteCloudinaryImages(uploadedPublicIds);
+      }
+      throw dbErr; // re-throw so the outer catch returns the error to the client
+    }
 
     res.status(201).json(vehicle);
   } catch (err) {
@@ -275,6 +292,9 @@ export const updateVehicle = async (req, res) => {
         finalPhotos = vehicle.photos;
     }
 
+    // ── Track newly uploaded image public_ids for potential rollback ──
+    const newlyUploadedPublicIds = extractPublicIds(req.files);
+
     if (req.files && req.files.length > 0) {
       const newPhotos = req.files.map((f) => ({
         url: f.path,
@@ -283,17 +303,15 @@ export const updateVehicle = async (req, res) => {
       finalPhotos = [...finalPhotos, ...newPhotos];
     }
     
-    // Identify deleted photos to remove them from Cloudinary
+    // Identify user-removed photos and delete them from Cloudinary
     if (req.body.existingPhotos !== undefined) {
-      const existingPublicIds = finalPhotos.map(p => p.public_id);
-      const deletedPhotos = (vehicle.photos || []).filter(op => op.public_id && !existingPublicIds.includes(op.public_id));
+      const retainedPublicIds = finalPhotos.map(p => p.public_id);
+      const removedPhotos = (vehicle.photos || []).filter(
+        op => op.public_id && !retainedPublicIds.includes(op.public_id)
+      );
       
-      for (const dp of deletedPhotos) {
-        try {
-          await cloudinary.uploader.destroy(dp.public_id);
-        } catch (cloudinaryErr) {
-          console.error("Failed to delete photo from Cloudinary:", cloudinaryErr);
-        }
+      if (removedPhotos.length > 0) {
+        await deleteCloudinaryImages(removedPhotos.map(p => p.public_id));
       }
     }
     
@@ -306,7 +324,17 @@ export const updateVehicle = async (req, res) => {
       if (updates[key] !== undefined) vehicle[key] = updates[key];
     });
 
-    await vehicle.save();
+    // ── Attempt DB save; roll back newly uploaded images if it fails ──
+    try {
+      await vehicle.save();
+    } catch (dbErr) {
+      if (newlyUploadedPublicIds.length > 0) {
+        console.warn(`[updateVehicle] DB save failed — rolling back ${newlyUploadedPublicIds.length} newly uploaded Cloudinary image(s).`);
+        await deleteCloudinaryImages(newlyUploadedPublicIds);
+      }
+      throw dbErr; // re-throw so the outer catch returns the error to the client
+    }
+
     res.json(vehicle);
   } catch (err) {
     res.status(500).json({ message: err.message });
