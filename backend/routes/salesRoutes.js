@@ -132,7 +132,7 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
 
     // Moderation Override Logic
     const isOwner = sale.listedBy.toString() === req.user._id.toString();
-    const isMasterAdmin = ["admin", "superadmin"].includes(req.user.role);
+    const isMasterAdmin = ["admin", "superadmin", "staff", "subadmin"].includes(req.user.role);
 
     if (!isOwner && !isMasterAdmin) {
       return res.status(403).json({ message: "Forbidden: You do not have permission to edit this listing. Staff cannot edit other's listings." });
@@ -213,7 +213,7 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
 router.get("/staff/vehicles", protect, async (req, res) => {
   try {
     const isStaff = ['staff', 'admin', 'superadmin', 'subadmin'].includes(req.user.role);
-    const query = isStaff ? {} : { 'seller': req.user._id };
+    const query = isStaff ? {} : { 'listedBy': req.user._id };
     
     const sales = await VehicleSale.find(query)
     .sort("-createdAt");
@@ -327,7 +327,7 @@ router.get("/vehicles/:id", async (req, res) => {
  * @desc    Update vehicle sale status
  * @access  Private (Staff/Admin/Superadmin only)
  */
-router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
+router.put("/vehicles/:id/status", protect, async (req, res) => {
   try {
     const { status, finalNegotiatedPrice } = req.body;
     
@@ -338,6 +338,13 @@ router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
     const sale = await VehicleSale.findById(req.params.id);
     if (!sale) {
       return res.status(404).json({ message: "Sale listing not found" });
+    }
+
+    const isOwner = sale.listedBy.toString() === req.user._id.toString();
+    const isMasterAdmin = ["admin", "superadmin", "staff", "subadmin"].includes(req.user.role);
+
+    if (!isOwner && !isMasterAdmin) {
+      return res.status(403).json({ message: "Forbidden: You do not have permission to update this listing's status." });
     }
 
     sale.status = status;
@@ -362,11 +369,18 @@ router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
  * @desc    Delete a vehicle sale listing
  * @access  Private (Staff/Admin/Superadmin only)
  */
-router.delete("/vehicles/:id", protect, requireStaff, async (req, res) => {
+router.delete("/vehicles/:id", protect, async (req, res) => {
   try {
     const sale = await VehicleSale.findById(req.params.id);
     if (!sale) {
       return res.status(404).json({ message: "Sale listing not found" });
+    }
+
+    const isOwner = sale.listedBy.toString() === req.user._id.toString();
+    const isMasterAdmin = ["admin", "superadmin", "staff", "subadmin"].includes(req.user.role);
+
+    if (!isOwner && !isMasterAdmin) {
+      return res.status(403).json({ message: "Forbidden: You do not have permission to delete this listing." });
     }
 
     await VehicleSale.findByIdAndDelete(req.params.id);

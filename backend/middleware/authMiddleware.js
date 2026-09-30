@@ -113,7 +113,7 @@ export const requireAdmin = (req, res, next) => {
  */
 export const requireStaff = (req, res, next) => {
   if (!req.user) return res.status(401).json({ message: "Not authorized" });
-  if (req.user.role !== "staff" && req.user.role !== "admin" && req.user.role !== "superadmin") {
+  if (req.user.role !== "staff" && req.user.role !== "admin" && req.user.role !== "superadmin" && req.user.role !== "subadmin") {
     return res.status(403).json({ message: "Staff access required" });
   }
   next();
