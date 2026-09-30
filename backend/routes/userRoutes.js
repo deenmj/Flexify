@@ -272,9 +272,14 @@ router.post("/request-sales", protect, async (req, res) => {
 router.get("/pending-sales-requests", protect, requireStaff, async (req, res) => {
   try {
     const users = await User.find({ 
-      $or: [
-        { salesRequestStatus: { $ne: "none" } },
-        { hasSalesAccess: true }
+      $and: [
+        { role: { $nin: ["admin", "superadmin", "staff", "subadmin"] } },
+        {
+          $or: [
+            { salesRequestStatus: { $in: ["pending", "approved", "rejected"] } },
+            { hasSalesAccess: true }
+          ]
+        }
       ]
     })
       .select("-password")

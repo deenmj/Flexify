@@ -34,7 +34,7 @@ router.post("/vehicles", protect, upload.array("images", 10), async (req, res) =
       status,
     } = req.body;
 
-    const isStaff = ["admin", "superadmin", "staff"].includes(req.user.role);
+    const isStaff = ["admin", "superadmin", "staff", "subadmin"].includes(req.user.role);
 
     let originalOwnerDetails;
     if (!isStaff) {

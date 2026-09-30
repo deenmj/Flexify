@@ -80,6 +80,18 @@ const userSchema = new mongoose.Schema(
     notificationEmail: { type: String, default: "" },
     isNotificationEmailActive: { type: Boolean, default: false },
 
+    // Sales Access
+    hasSalesAccess: { type: Boolean, default: false },
+    salesRequestStatus: {
+      type: String,
+      enum: ["none", "pending", "approved", "rejected"],
+      default: "none",
+    },
+    salesVerificationStatus: {
+      type: String,
+      default: "none"
+    },
+
     // Wishlists
     rentWishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Vehicle" }],
     saleWishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "VehicleSale" }],

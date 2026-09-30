@@ -20,7 +20,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [fileList, setFileList] = useState<any[]>([]);
   const { user } = useAuth();
-  const isStaff = ['admin', 'superadmin', 'staff'].includes(user?.role || '');
+  const isStaff = ['admin', 'superadmin', 'staff', 'subadmin'].includes(user?.role || '');
 
   useEffect(() => {
     if (initialData) {
@@ -81,12 +81,14 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
       if (values.contactNumber) formData.append('contactNumber', values.contactNumber);
       if (values.seoTags) formData.append('seoTags', JSON.stringify(values.seoTags));
       
-      const ownerDetails = {
-        name: values.ownerName,
-        phone: values.ownerPhone,
-        email: values.ownerEmail,
-      };
-      formData.append('originalOwnerDetails', JSON.stringify(ownerDetails));
+      if (isStaff) {
+        const ownerDetails = {
+          name: values.ownerName,
+          phone: values.ownerPhone,
+          email: values.ownerEmail,
+        };
+        formData.append('originalOwnerDetails', JSON.stringify(ownerDetails));
+      }
 
       if (initialData) {
         formData.append('existingImages', JSON.stringify(existingImages));
