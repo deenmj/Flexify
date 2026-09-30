@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Row, Col, Button, Spin, Result, Tag, Card, Modal, message, Typography, Badge, Avatar } from 'antd';
-import { MessageCircle, Settings, Activity, FileText, Phone, Heart, Share2, MapPin, Gauge, Zap, CheckCircle, Flag } from 'lucide-react';
+import { MessageCircle, Settings, Activity, FileText, Phone, Heart, Share2, MapPin, Gauge, Zap, CheckCircle, Flag, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { salesApi, userApi, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -25,6 +25,7 @@ export default function VehicleSaleDetails() {
   const [barVisible, setBarVisible] = useState(true);
   
   const [activeImage, setActiveImage] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   useEffect(() => {
     if (!isMobile) return;
@@ -219,7 +220,8 @@ export default function VehicleSaleDetails() {
                     alt={`${vehicle.make} ${vehicle.model} - Image ${idx + 1}`}
                     loading={idx === 0 ? "eager" : "lazy"}
                     className="detail-main-img-item"
-                    onClick={() => setActiveImage(idx)}
+                    onClick={() => { setActiveImage(idx); setShowLightbox(true); }}
+                    style={{ cursor: 'pointer' }}
                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'; }}
                   />
                 ))}
@@ -499,6 +501,48 @@ export default function VehicleSaleDetails() {
           </a>
         </div>
       </Modal>
+
+      {/* LIGHTBOX OVERLAY */}
+      {showLightbox && (
+        <div className="detail-lightbox-overlay" onClick={() => setShowLightbox(false)}>
+          <button className="detail-lightbox-close" onClick={() => setShowLightbox(false)} aria-label="Close">
+            <X size={32} />
+          </button>
+
+          {displayImages.length > 1 && (
+            <button
+              className="detail-lightbox-nav prev"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => prev === 0 ? displayImages.length - 1 : prev - 1);
+              }}
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={36} />
+            </button>
+          )}
+
+          <img
+            src={getImageUrl(displayImages[activeImage])}
+            alt={`${vehicle.make} ${vehicle.model}`}
+            className="detail-lightbox-img"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {displayImages.length > 1 && (
+            <button
+              className="detail-lightbox-nav next"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => prev === displayImages.length - 1 ? 0 : prev + 1);
+              }}
+              aria-label="Next image"
+            >
+              <ChevronRight size={36} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
