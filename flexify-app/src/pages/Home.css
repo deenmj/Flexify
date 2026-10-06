@@ -116,6 +116,95 @@
   padding: 0.75rem 1.5rem !important;
 }
 
+/* ── Hero CTA Buttons ─────────────────────────── */
+.hero-cta-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 auto 2rem;
+  flex-wrap: wrap;
+}
+
+.hero-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-xl);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  min-width: 180px;
+}
+
+.hero-cta-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.hero-cta-btn:hover::before {
+  opacity: 1;
+}
+
+/* Rent button — solid blue primary */
+.hero-cta-btn--rent {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.45);
+}
+
+.hero-cta-btn--rent:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.6);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.hero-cta-btn--rent:active {
+  transform: translateY(-1px) scale(1.00);
+}
+
+/* Buy button — amber/gold accent */
+.hero-cta-btn--buy {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #1a1a1a;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.45);
+}
+
+.hero-cta-btn--buy:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.6);
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.hero-cta-btn--buy:active {
+  transform: translateY(-1px) scale(1.00);
+}
+
+.hero-cta-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.hero-cta-btn:hover svg {
+  transform: scale(1.15);
+}
+/* ────────────────────────────────────────────── */
+
 .hero-stats {
   display: flex;
   align-items: center;
@@ -235,6 +324,23 @@
   .hero-stat-label {
     font-size: 0.65rem;
     text-align: center;
+  }
+
+  /* CTA Buttons mobile — stack or shrink side-by-side */
+  .hero-cta-buttons {
+    gap: 0.625rem;
+    margin-bottom: 1rem;
+  }
+  .hero-cta-btn {
+    flex: 1 1 calc(50% - 0.625rem);
+    min-width: 0;
+    padding: 0.65rem 1rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius-lg);
+  }
+  .hero-cta-btn svg {
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -825,6 +931,16 @@
 
 /* Very small screens */
 @media (max-width: 380px) {
+  .hero-cta-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .hero-cta-btn {
+    flex: unset;
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+  }
   .hero-title {
     font-size: 1.15rem !important;
   }

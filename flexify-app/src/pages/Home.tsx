@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car, Truck, Bike, Bus, Compass, Lock } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car, Truck, Bike, Bus, Compass, Lock, Key, ShoppingCart } from 'lucide-react';
 import { Row, Col } from 'antd';
 import { vehicleApi, type Vehicle, type User, type PublicStats } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -140,6 +140,19 @@ export default function Home() {
               </Link>
             </div>
           </div>
+
+          {/* Primary CTA Buttons */}
+          <div className="hero-cta-buttons animate-fade-in-up">
+            <Link to="/explore" className="hero-cta-btn hero-cta-btn--rent" id="hero-rent-btn">
+              <Key size={20} strokeWidth={2} />
+              <span>Rent a Vehicle</span>
+            </Link>
+            <Link to="/buy" className="hero-cta-btn hero-cta-btn--buy" id="hero-buy-btn">
+              <ShoppingCart size={20} strokeWidth={2} />
+              <span>Buy a Vehicle</span>
+            </Link>
+          </div>
+
           <div className="hero-stats animate-fade-in-up">
             <div className="hero-stat">
               <span className="hero-stat-number">{stats?.totalActiveVehicles || 0}</span>
