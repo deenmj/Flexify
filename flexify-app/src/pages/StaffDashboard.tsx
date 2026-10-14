@@ -8,7 +8,7 @@ import {
   Car, Shield, CheckCircle, XCircle, Search,
   AlertTriangle, FileText, Clock, MessageSquare,
   LogOut, ArrowLeft, Mail, Settings, Menu as MenuIcon,
-  Eye, EyeOff, Trash2, Edit2, DollarSign
+  Eye, EyeOff, Trash2, Edit2, DollarSign, Copy
 } from 'lucide-react';
 import { subadminApi, adminApi, userApi, feedbackApi, salesApi, getImageUrl, type User, type Vehicle, type SubadminStats, type Review, type VehicleMake, type VehicleModel } from '../api';
 import { useSocket } from '../context/SocketContext';
@@ -764,6 +764,19 @@ export default function StaffDashboard() {
                               <Space>
                                 <Button onClick={() => { setEditingVehicleSale(v); setIsAddVehicleModalOpen(true); }} style={{ borderRadius: '6px', fontWeight: 500 }}>
                                   Edit
+                                </Button>
+                                <Button
+                                  icon={<Copy size={14} />}
+                                  title="Copy listing as new"
+                                  onClick={() => {
+                                    // Strip _id so AddVehicleSale treats it as a new listing
+                                    const { _id, __v, createdAt, updatedAt, status, profitEarned, finalNegotiatedPrice, ...copyData } = v;
+                                    setEditingVehicleSale(copyData);
+                                    setIsAddVehicleModalOpen(true);
+                                  }}
+                                  style={{ borderRadius: '6px', fontWeight: 500, color: '#7c3aed', borderColor: '#ddd6fe' }}
+                                >
+                                  Copy
                                 </Button>
                                 <Button type="primary" onClick={() => { setSelectedSaleVehicle(v); setIsFinalizeSaleModalOpen(true); }} style={{ background: '#0f172a', borderRadius: '6px', fontWeight: 500 }}>
                                   View / Sell

@@ -38,6 +38,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         askingPrice: initialData.askingPrice,
         commissionRate: initialData.commissionRate,
         isNegotiable: initialData.isNegotiable,
+        contactPreference: initialData.contactPreference || 'whatsapp',
         title: initialData.title,
         description: initialData.description,
         contactNumber: initialData.contactNumber,
@@ -46,11 +47,15 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         ownerPhone: initialData.originalOwnerDetails?.phone,
         ownerEmail: initialData.originalOwnerDetails?.email,
       });
-      if (initialData.images) {
+      if (initialData.images && initialData._id) {
+        // Only pre-fill images when editing (not copying)
         setExistingImages(initialData.images);
+      } else {
+        setExistingImages([]);
       }
     } else {
       form.resetFields();
+      form.setFieldsValue({ contactPreference: 'whatsapp' });
       setExistingImages([]);
       setFileList([]);
     }
@@ -79,6 +84,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
       formData.append('description', values.description);
       formData.append('status', 'New');
       if (values.contactNumber) formData.append('contactNumber', values.contactNumber);
+      formData.append('contactPreference', values.contactPreference || 'whatsapp');
       if (values.seoTags) formData.append('seoTags', JSON.stringify(values.seoTags));
       
       if (isStaff) {
@@ -90,7 +96,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         formData.append('originalOwnerDetails', JSON.stringify(ownerDetails));
       }
 
-      if (initialData) {
+      if (initialData && initialData._id) {
         formData.append('existingImages', JSON.stringify(existingImages));
       }
 
@@ -116,12 +122,12 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         formData.append('images', file);
       });
 
-      if (initialData) {
+      if (initialData && initialData._id) {
         await salesApi.updateVehicleSale(initialData._id, formData);
         message.success('Vehicle sale listing updated successfully!');
       } else {
         await salesApi.createVehicleSale(formData);
-        message.success('Vehicle successfully listed for sale!');
+        message.success(initialData && !initialData._id ? 'Listing copied and published successfully!' : 'Vehicle successfully listed for sale!');
       }
       
       form.resetFields();
@@ -138,8 +144,10 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
   return (
     <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #e2e8f0', maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <Title level={4} style={{ color: '#0f172a', margin: 0 }}>{initialData ? 'Edit Vehicle Sale Listing' : 'List Vehicle for Sale'}</Title>
-        <Text type="secondary">Internal Staff Tool - {initialData ? 'Update an existing vehicle in the sales division' : 'Add a new vehicle to the sales division'}</Text>
+        <Title level={4} style={{ color: '#0f172a', margin: 0 }}>
+          {initialData?._id ? 'Edit Vehicle Sale Listing' : initialData ? '📋 Copy as New Listing' : 'List Vehicle for Sale'}
+        </Title>
+        <Text type="secondary">Internal Staff Tool - {initialData?._id ? 'Update an existing vehicle in the sales division' : initialData ? 'Pre-filled from existing listing — review and publish as a new entry' : 'Add a new vehicle to the sales division'}</Text>
       </div>
 
       <Form form={form} layout="vertical" onFinish={onFinish}>
@@ -234,16 +242,25 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
               />
             </Form.Item>
           </Col>
-          {isStaff && (
-            <Col span={8} xs={24} md={8}>
-              
-            </Col>
-          )}
-          <Col span={isStaff ? 8 : 16} xs={24} md={isStaff ? 8 : 16}>
+          <Col span={8} xs={24} md={8}>
             <Form.Item name="isNegotiable" label="Negotiable?">
               <Select defaultValue={false}>
                 <Option value={true}>Yes</Option>
                 <Option value={false}>No</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={8} xs={24} md={8}>
+            <Form.Item
+              name="contactPreference"
+              label="Contact Preference"
+              tooltip="How buyers can contact you — shown on the listing page"
+              rules={[{ required: true, message: 'Please select contact preference' }]}
+            >
+              <Select placeholder="Select preference">
+                <Option value="whatsapp">💬 WhatsApp Only</Option>
+                <Option value="call">📞 Call Only</Option>
+                <Option value="both">💬📞 WhatsApp &amp; Call</Option>
               </Select>
             </Form.Item>
           </Col>
