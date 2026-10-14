@@ -46,6 +46,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         ownerName: initialData.originalOwnerDetails?.name,
         ownerPhone: initialData.originalOwnerDetails?.phone,
         ownerEmail: initialData.originalOwnerDetails?.email,
+        sellerDisplayName: initialData.sellerDisplayName,
       });
       if (initialData.images && initialData._id) {
         // Only pre-fill images when editing (not copying)
@@ -86,14 +87,20 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
       if (values.contactNumber) formData.append('contactNumber', values.contactNumber);
       formData.append('contactPreference', values.contactPreference || 'whatsapp');
       if (values.seoTags) formData.append('seoTags', JSON.stringify(values.seoTags));
-      
+
       if (isStaff) {
+        // Staff listing: mark as Rentify-authorised, store owner as internal only
+        formData.append('listingType', 'staff');
         const ownerDetails = {
           name: values.ownerName,
           phone: values.ownerPhone,
           email: values.ownerEmail,
         };
         formData.append('originalOwnerDetails', JSON.stringify(ownerDetails));
+      } else {
+        // User listing: only their display name is shown publicly
+        formData.append('listingType', 'user');
+        if (values.sellerDisplayName) formData.append('sellerDisplayName', values.sellerDisplayName);
       }
 
       if (initialData && initialData._id) {
@@ -266,15 +273,17 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
           </Col>
         </Row>
 
-        {isStaff && (
+        {isStaff ? (
+          // Staff: internal owner/vehicle source details (never shown publicly)
           <>
             <Divider orientation="left">
-              <User size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/> 
-              Seller / Owner Details <Text type="secondary" style={{ fontSize: '0.8rem', marginLeft: '12px' }}>(Internal Use Only - This will be hidden from the public)</Text>
+              <User size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/>
+              Vehicle Source Details
+              <Text type="secondary" style={{ fontSize: '0.8rem', marginLeft: '12px' }}>(Internal Use Only – hidden from public. Listing will appear as "Rentify Authorised Seller")</Text>
             </Divider>
             <Row gutter={16}>
               <Col span={8} xs={24} md={8}>
-                <Form.Item name="ownerName" label="Owner Name" rules={[{ required: isStaff, message: 'Required' }]}>
+                <Form.Item name="ownerName" label="Owner / Seller Name" rules={[{ required: isStaff, message: 'Required' }]}>
                   <Input placeholder="Full Name" />
                 </Form.Item>
               </Col>
@@ -286,6 +295,25 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
               <Col span={8} xs={24} md={8}>
                 <Form.Item name="ownerEmail" label="Owner Email (Optional)">
                   <Input type="email" placeholder="email@example.com" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </>
+        ) : (
+          // Regular user: only their display name shown on listing
+          <>
+            <Divider orientation="left">
+              <User size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/>
+              Your Seller Profile
+            </Divider>
+            <Row gutter={16}>
+              <Col span={12} xs={24} md={12}>
+                <Form.Item
+                  name="sellerDisplayName"
+                  label="Your Name (shown on listing)"
+                  rules={[{ required: true, message: 'Please enter your display name' }]}
+                >
+                  <Input placeholder="e.g. John D." />
                 </Form.Item>
               </Col>
             </Row>
@@ -358,7 +386,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
 
         <Form.Item>
           <Button type="primary" htmlType="submit" size="large" block loading={loading} style={{ marginTop: '1rem', background: '#0f172a' }}>
-            {initialData ? 'Update Sales Listing' : 'Publish Sales Listing'}
+            {initialData?._id ? 'Update Sales Listing' : initialData ? '📋 Publish Copied Listing' : 'Publish Sales Listing'}
           </Button>
         </Form.Item>
       </Form>

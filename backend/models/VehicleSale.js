@@ -16,6 +16,7 @@ const vehicleSaleSchema = new mongoose.Schema(
 
     // Financials
     askingPrice: { type: Number, required: true },
+    commissionRate: { type: Number, default: 0 },
     isNegotiable: { type: Boolean, default: false },
     finalNegotiatedPrice: { type: Number },
 
@@ -25,6 +26,7 @@ const vehicleSaleSchema = new mongoose.Schema(
     images: { type: [String], default: [] }, // Array of URLs
     seoTags: { type: [String], default: [] },
     contactNumber: { type: String },
+    contactPreference: { type: String, enum: ['whatsapp', 'call', 'both'], default: 'whatsapp' },
     
     // Location
     location: {
@@ -33,8 +35,13 @@ const vehicleSaleSchema = new mongoose.Schema(
       address: { type: String }
     },
 
+    // Listing source: 'staff' = listed by Rentify staff, 'user' = listed by approved user
+    listingType: { type: String, enum: ['staff', 'user'], default: 'staff' },
+    // Public display name for user-listed vehicles (replaces 'Rentify Verified Sales')
+    sellerDisplayName: { type: String },
+
     // Internal Tracking
-    listedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Staff", required: true },
+    listedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Staff" },
     dateListed: { type: Date, default: Date.now },
     assignedStaff: {
       id: { type: mongoose.Schema.Types.ObjectId, ref: "Staff" },
@@ -43,8 +50,8 @@ const vehicleSaleSchema = new mongoose.Schema(
       phone: { type: String }
     },
     originalOwnerDetails: {
-      name: { type: String, required: true },
-      phone: { type: String, required: true },
+      name: { type: String },
+      phone: { type: String },
       email: { type: String },
     },
     status: {
