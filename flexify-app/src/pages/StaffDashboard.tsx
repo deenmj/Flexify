@@ -1371,12 +1371,19 @@ export default function StaffDashboard() {
 
       {/* Add / Edit Vehicle Modal */}
       <Modal
-        title={editingVehicleSale ? "Edit Vehicle Listing" : "Add New Vehicle Listing"}
+        title={
+          editingVehicleSale?._id
+            ? "Edit Vehicle Listing"
+            : editingVehicleSale
+            ? "📋 Copy as New Listing"
+            : "Add New Vehicle Listing"
+        }
         open={isAddVehicleModalOpen}
         onCancel={() => { setIsAddVehicleModalOpen(false); setEditingVehicleSale(null); }}
         footer={null}
         width={768}
         destroyOnClose
+        bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', padding: '24px' }}
       >
         <AddVehicleSale 
           initialData={editingVehicleSale} 

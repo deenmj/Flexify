@@ -417,14 +417,27 @@ export default function VehicleSaleDetails() {
                     offset={[-4, 44]}
                   >
                     <Avatar
-                      src={'https://ui-avatars.com/api/?name=Rentify+Sales&background=e2e8f0'}
+                      src={
+                        !vehicle.listingType || vehicle.listingType === 'staff'
+                          ? 'https://ui-avatars.com/api/?name=Rentify+Sales&background=e2e8f0'
+                          : `https://ui-avatars.com/api/?name=${encodeURIComponent(vehicle.sellerDisplayName || 'Seller')}&background=dbeafe&color=1e40af`
+                      }
                       size={54}
                       style={{ border: '2px solid var(--primary-color)' }}
                     />
                   </Badge>
                   <div className="owner-info-text">
-                    <strong style={{ fontSize: '1rem' }}>Rentify Verified Sales</strong>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Direct from Platform</span>
+                    {!vehicle.listingType || vehicle.listingType === 'staff' ? (
+                      <>
+                        <strong style={{ fontSize: '1rem' }}>Rentify Authorised Seller</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Direct from Platform</span>
+                      </>
+                    ) : (
+                      <>
+                        <strong style={{ fontSize: '1rem' }}>{vehicle.sellerDisplayName || 'Private Seller'}</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Independent Seller</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Card>
