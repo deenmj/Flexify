@@ -14,7 +14,7 @@ import {
   Flame,
   ArrowUpRight
 } from 'lucide-react';
-import { adminApi, getImageUrl, type ContactAnalyticsResponse, type VehicleContactStats } from '../api';
+import { adminApi, vehicleApi, getImageUrl, type ContactAnalyticsResponse, type VehicleContactStats } from '../api';
 
 interface ContactAnalyticsOverviewProps {
   district?: string;
@@ -34,6 +34,7 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [highlightPulse, setHighlightPulse] = useState(false);
+  const [testingClickId, setTestingClickId] = useState<string | null>(null);
 
   const fetchAnalytics = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoading(true);
@@ -56,6 +57,19 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
       if (!isSilent) setLoading(false);
     }
   }, [timeframe, selectedVehicleId, district]);
+
+  const handleTestClick = async (vehicleId: string, type: 'call' | 'whatsapp', title: string) => {
+    setTestingClickId(`${vehicleId}-${type}`);
+    try {
+      await vehicleApi.trackContactClick(vehicleId, type);
+      message.success(`Recorded 1 real ${type === 'call' ? '📞 Call' : '💬 WhatsApp'} click for ${title}`);
+      await fetchAnalytics(true);
+    } catch (err: any) {
+      message.error(err.message || 'Failed to record click');
+    } finally {
+      setTestingClickId(null);
+    }
+  };
 
   useEffect(() => {
     fetchAnalytics();
@@ -81,6 +95,10 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
   const peakPoint = useMemo(() => {
     if (!chartPoints.length) return null;
     return [...chartPoints].sort((a, b) => b.total - a.total)[0];
+  }, [chartPoints]);
+
+  const totalInChart = useMemo(() => {
+    return chartPoints.reduce((sum, p) => sum + p.total, 0);
   }, [chartPoints]);
 
   // SVG dimensions
@@ -661,6 +679,44 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
           </div>
         ) : (
           <div style={{ width: '100%', overflowX: 'auto', position: 'relative' }}>
+            {totalInChart === 0 && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 24,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(255, 255, 255, 0.75)',
+                backdropFilter: 'blur(2px)',
+                borderRadius: '8px',
+                zIndex: 4,
+                padding: '16px'
+              }}>
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  background: '#f1f5f9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '8px',
+                  color: '#64748b'
+                }}>
+                  <Activity size={22} />
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '2px' }}>
+                  0 Inquiries Recorded {timeframe === 'today' ? 'Today' : 'in this timeframe'}
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748b', maxWidth: 400, textAlign: 'center' }}>
+                  Real-time calls and WhatsApp message clicks will plot here as visitors click contact buttons on rental vehicles.
+                </div>
+              </div>
+            )}
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
               style={{ width: '100%', height: 'auto', minWidth: 600, display: 'block', overflow: 'visible' }}
@@ -1070,19 +1126,41 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
 
                       {/* Action */}
                       <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                        <Button
-                          size="small"
-                          type={isSelected ? 'primary' : 'default'}
-                          onClick={() => setSelectedVehicleId(isSelected ? 'all' : v._id)}
-                          style={{
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            background: isSelected ? '#2563eb' : undefined
-                          }}
-                        >
-                          {isSelected ? 'Active Filter' : 'View Graph'}
-                        </Button>
+                        <Space size="small">
+                          <Tooltip title="Test: Increment 1 real Call click for this vehicle">
+                            <Button
+                              size="small"
+                              loading={testingClickId === `${v._id}-call`}
+                              onClick={() => handleTestClick(v._id, 'call', v.title)}
+                              style={{ fontSize: '11px', color: '#2563eb', borderColor: '#bfdbfe', borderRadius: '6px' }}
+                            >
+                              +1 Call
+                            </Button>
+                          </Tooltip>
+                          <Tooltip title="Test: Increment 1 real WhatsApp click for this vehicle">
+                            <Button
+                              size="small"
+                              loading={testingClickId === `${v._id}-whatsapp`}
+                              onClick={() => handleTestClick(v._id, 'whatsapp', v.title)}
+                              style={{ fontSize: '11px', color: '#16a34a', borderColor: '#bbf7d0', borderRadius: '6px' }}
+                            >
+                              +1 WA
+                            </Button>
+                          </Tooltip>
+                          <Button
+                            size="small"
+                            type={isSelected ? 'primary' : 'default'}
+                            onClick={() => setSelectedVehicleId(isSelected ? 'all' : v._id)}
+                            style={{
+                              borderRadius: '6px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              background: isSelected ? '#2563eb' : undefined
+                            }}
+                          >
+                            {isSelected ? 'Active Filter' : 'View Graph'}
+                          </Button>
+                        </Space>
                       </td>
                     </tr>
                   );

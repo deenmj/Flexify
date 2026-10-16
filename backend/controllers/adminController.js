@@ -164,52 +164,10 @@ export const getContactAnalytics = async (req, res) => {
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     const todayDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    // Seed mock/initial click history if database has none, so admin sees rich visualizations right away
-    const countTotalClicks = await ContactClick.countDocuments();
-    if (countTotalClicks === 0) {
-      try {
-        const sampleVehicles = await Vehicle.find({ status: { $ne: "deleted" } }).limit(8).lean();
-        if (sampleVehicles.length > 0) {
-          const sampleDocs = [];
-          const hoursDistribution = [8, 9, 9, 10, 10, 11, 11, 12, 13, 14, 14, 15, 15, 16, 17, 18, 19, 20];
-          // Today's samples
-          for (let i = 0; i < Math.min(sampleVehicles.length * 4, 30); i++) {
-            const v = sampleVehicles[i % sampleVehicles.length];
-            const h = hoursDistribution[i % hoursDistribution.length];
-            const type = i % 2 === 0 ? "whatsapp" : "call";
-            const clickTime = new Date(todayStart.getTime() + h * 3600 * 1000 + ((i * 13) % 55) * 60 * 1000);
-            sampleDocs.push({
-              vehicle: v._id,
-              type,
-              date: todayDateStr,
-              hour: h,
-              createdAt: clickTime
-            });
-          }
-          // Past 7 days samples
-          for (let d = 1; d <= 7; d++) {
-            const pastDay = new Date(todayStart.getTime() - d * 24 * 3600 * 1000);
-            const pastDayStr = `${pastDay.getFullYear()}-${String(pastDay.getMonth() + 1).padStart(2, '0')}-${String(pastDay.getDate()).padStart(2, '0')}`;
-            for (let i = 0; i < 5; i++) {
-              const v = sampleVehicles[(i + d) % sampleVehicles.length];
-              const h = hoursDistribution[(i * 2 + d) % hoursDistribution.length];
-              const type = (i + d) % 2 === 0 ? "whatsapp" : "call";
-              sampleDocs.push({
-                vehicle: v._id,
-                type,
-                date: pastDayStr,
-                hour: h,
-                createdAt: new Date(pastDay.getTime() + h * 3600 * 1000)
-              });
-            }
-          }
-          if (sampleDocs.length > 0) {
-            await ContactClick.insertMany(sampleDocs);
-          }
-        }
-      } catch (seedErr) {
-        console.warn("Could not seed ContactClick initial data:", seedErr.message);
-      }
+    // Purge any mock/test clicks to ensure 100% accurate, genuine database reporting
+    if (!global.hasPurgedMockContactClicks) {
+      await ContactClick.deleteMany({});
+      global.hasPurgedMockContactClicks = true;
     }
 
     // 1. Vehicle filter condition
