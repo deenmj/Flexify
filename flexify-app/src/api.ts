@@ -277,6 +277,58 @@ export interface AuditLogResponse {
   currentPage: number;
 }
 
+export interface ContactAnalyticsDataPoint {
+  key: string;
+  label: string;
+  hour?: number;
+  date?: string;
+  calls: number;
+  whatsapp: number;
+  total: number;
+}
+
+export interface VehicleContactStats {
+  _id: string;
+  title: string;
+  make: string;
+  model: string;
+  year?: string | number;
+  registrationNumber?: string;
+  district?: string;
+  city?: string;
+  pricePerDay?: number;
+  image?: string;
+  ownerName?: string;
+  ownerPhone?: string;
+  callsToday: number;
+  whatsappToday: number;
+  totalToday: number;
+  callsLifetime: number;
+  whatsappLifetime: number;
+  totalLifetime: number;
+}
+
+export interface ContactAnalyticsResponse {
+  timeframe: 'today' | '7d' | '30d';
+  selectedVehicleId: string;
+  selectedDistrict: string;
+  today: {
+    calls: number;
+    whatsapp: number;
+    total: number;
+    callsYesterday: number;
+    whatsappYesterday: number;
+    totalYesterday: number;
+  };
+  lifetime: {
+    calls: number;
+    whatsapp: number;
+    total: number;
+  };
+  chartData: ContactAnalyticsDataPoint[];
+  vehicles: VehicleContactStats[];
+}
+
 export interface SubadminStats {
   pendingUsers: number;
   pendingVehicles: number;
@@ -447,6 +499,14 @@ export const adminApi = {
     if (filters?.district) params.append('district', filters.district);
     if (filters?.timeRange) params.append('timeRange', filters.timeRange);
     return apiFetch<AdminStats>(`/admin/stats?${params.toString()}`);
+  },
+
+  getContactAnalytics: (filters?: { timeframe?: string; vehicleId?: string; district?: string }) => {
+    const params = new URLSearchParams();
+    if (filters?.timeframe) params.append('timeframe', filters.timeframe);
+    if (filters?.vehicleId) params.append('vehicleId', filters.vehicleId);
+    if (filters?.district) params.append('district', filters.district);
+    return apiFetch<ContactAnalyticsResponse>(`/admin/contact-analytics?${params.toString()}`);
   },
 
   getAllUsers: () => apiFetch<User[]>('/admin/users'),

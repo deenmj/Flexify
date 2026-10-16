@@ -2,6 +2,7 @@
 import express from "express";
 import {
   getAdminStats,
+  getContactAnalytics,
   getAllUsers,
   updateUserInfo,
   updateUserRole,
@@ -24,6 +25,7 @@ const router = express.Router();
 
 // Superadmin Routes
 router.get("/stats", protect, requireAdmin, getAdminStats);
+router.get("/contact-analytics", protect, requireAdmin, getContactAnalytics);
 router.get("/users", protect, requireAdmin, getAllUsers);
 router.put("/users/:id", protect, requireAdmin, updateUserInfo);
 router.patch("/users/:id/role", protect, requireAdmin, updateUserRole);

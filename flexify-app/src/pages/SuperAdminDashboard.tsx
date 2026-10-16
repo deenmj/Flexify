@@ -6,6 +6,7 @@ import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, 
 import Table from '../components/ResponsiveTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
+import ContactAnalyticsOverview from '../components/ContactAnalyticsOverview';
 import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
@@ -623,6 +624,12 @@ export default function SuperAdminDashboard() {
             <>
               {tab === 'overview' && (
                 <div className="animate-fade-in">
+                  {/* Calls and WhatsApp Inquiries Section with Graph and Specific Vehicle Filter */}
+                  <ContactAnalyticsOverview 
+                    district={district} 
+                    socketConnected={socketConnected} 
+                  />
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
                       <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>Platform Performance</h3>

@@ -10,6 +10,8 @@ import VehicleModel from "../models/VehicleModel.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
 import cloudinary from "../utils/cloudinary.js";
 import { deleteCloudinaryImages, extractPublicIds } from "../utils/cloudinaryHelpers.js";
+import ContactClick from "../models/ContactClick.js";
+
 
 /**
  * Owner creates a vehicle listing.
@@ -697,12 +699,54 @@ export const trackContactClick = async (req, res) => {
 
     const field = type === "call" ? "callClicks" : "whatsappClicks";
     
-    // Atomic increment
-    await Vehicle.findByIdAndUpdate(req.params.id, {
-      $inc: { [field]: 1 }
+    // Atomic increment on vehicle
+    const vehicle = await Vehicle.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { [field]: 1 } },
+      { new: true }
+    );
+
+    if (!vehicle) {
+      return res.status(404).json({ message: "Vehicle not found" });
+    }
+
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const hour = now.getHours();
+
+    // Create timestamped click record
+    const clickDoc = await ContactClick.create({
+      vehicle: vehicle._id,
+      type,
+      user: req.user?._id || null,
+      date: dateStr,
+      hour
     });
 
-    res.json({ message: "Click tracked successfully" });
+    // Notify connected admin dashboards in real time
+    try {
+      const io = req.app.get("io");
+      if (io) {
+        io.to("admin_room").emit("new_contact_click", {
+          vehicleId: vehicle._id,
+          vehicleTitle: `${vehicle.make || ''} ${vehicle.model || ''} ${vehicle.title || ''}`.trim(),
+          type,
+          date: dateStr,
+          hour,
+          callClicks: vehicle.callClicks,
+          whatsappClicks: vehicle.whatsappClicks,
+          createdAt: clickDoc.createdAt
+        });
+      }
+    } catch (sockErr) {
+      console.warn("Socket broadcast error in trackContactClick:", sockErr?.message);
+    }
+
+    res.json({
+      message: "Click tracked successfully",
+      callClicks: vehicle.callClicks,
+      whatsappClicks: vehicle.whatsappClicks
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
