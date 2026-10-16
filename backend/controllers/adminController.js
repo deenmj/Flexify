@@ -74,8 +74,8 @@ export const getAdminStats = async (req, res) => {
     const bookingStats = await Booking.aggregate(bookingAggregation);
     const bookings = bookingStats[0];
 
-    // 3. Aggregate Vehicles
-    const vehicleMatch = { ...timeMatch };
+    // 3. Aggregate Vehicles (filtered by district, not constrained by booking timeRange)
+    const vehicleMatch = { status: { $ne: "deleted" } };
     if (district && district !== "All Sri Lanka") {
       vehicleMatch.district = district;
     }
