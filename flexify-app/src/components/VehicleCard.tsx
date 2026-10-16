@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { type Vehicle, getOptimizedImageUrl, getVehicleSlug, userApi } from '../api';
-import { Users, Star, Zap, Gauge, MapPin, Verified, Share2, Heart } from 'lucide-react';
+import { Users, Star, Zap, Gauge, MapPin, Verified, Share2, Heart, Phone, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { message } from 'antd';
 import { useState, useEffect } from 'react';
@@ -145,6 +145,17 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             <MapPin size={12} />
             <span>{vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
           </div>
+
+          {((vehicle.callClicks || 0) > 0 || (vehicle.whatsappClicks || 0) > 0) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, margin: '4px 0 2px 0' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#eff6ff', color: '#2563eb', padding: '1px 6px', borderRadius: '4px' }}>
+                <Phone size={10} /> {vehicle.callClicks || 0} Calls
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#f0fdf4', color: '#16a34a', padding: '1px 6px', borderRadius: '4px' }}>
+                <MessageSquare size={10} /> {vehicle.whatsappClicks || 0} WhatsApp
+              </span>
+            </div>
+          )}
 
           <div className="shared-vehicle-footer">
             <div className="shared-vehicle-price-block">

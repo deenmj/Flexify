@@ -1034,7 +1034,7 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
                 <th style={{ padding: '10px 12px', textAlign: 'center' }}>Calls Today</th>
                 <th style={{ padding: '10px 12px', textAlign: 'center' }}>WhatsApp Today</th>
                 <th style={{ padding: '10px 12px', textAlign: 'center' }}>Total Today</th>
-                <th style={{ padding: '10px 12px', textAlign: 'center' }}>All-Time Contacts</th>
+                <th style={{ padding: '10px 12px', textAlign: 'center' }}>All-Time (Public Explore)</th>
                 <th style={{ padding: '10px 12px', textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
@@ -1046,7 +1046,7 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
                   </td>
                 </tr>
               ) : (
-                data.vehicles.slice(0, 10).map((v) => {
+                data.vehicles.slice(0, 15).map((v) => {
                   const isSelected = selectedVehicleId === v._id;
                   return (
                     <tr
@@ -1115,13 +1115,16 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
                         </span>
                       </td>
 
-                      {/* All-time Total */}
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: '12px', color: '#64748b' }}>
-                        <Tooltip title={`${v.callsLifetime} calls + ${v.whatsappLifetime} WhatsApp messages`}>
-                          <span style={{ cursor: 'help', fontWeight: 600 }}>
-                            {v.totalLifetime}
+                      {/* All-time Total (Matches Explore Page) */}
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: '12px' }}>
+                        <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, color: '#1e293b' }}>
+                            {v.totalLifetime} Total
                           </span>
-                        </Tooltip>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>
+                            📞 {v.callsLifetime} · 💬 {v.whatsappLifetime}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Action */}

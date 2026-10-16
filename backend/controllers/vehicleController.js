@@ -615,6 +615,9 @@ export const listVehicles = async (req, res) => {
           mobileNumber: 1,
           contactMethod: 1,
           weddingHiresSpecial: 1,
+          callClicks: 1,
+          whatsappClicks: 1,
+          isFeatured: 1,
           createdAt: 1
         }
       }
