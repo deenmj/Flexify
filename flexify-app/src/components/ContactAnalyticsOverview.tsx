@@ -28,7 +28,7 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
 }) => {
   const [data, setData] = useState<ContactAnalyticsResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [timeframe, setTimeframe] = useState<'today' | '7d' | '30d'>('today');
+  const [timeframe, setTimeframe] = useState<'today' | '7d' | '30d' | 'lifetime'>('today');
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('all');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -330,6 +330,23 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
             >
               Last 30 Days
             </button>
+            <button
+              onClick={() => setTimeframe('lifetime')}
+              style={{
+                border: 'none',
+                background: timeframe === 'lifetime' ? '#ffffff' : 'transparent',
+                color: timeframe === 'lifetime' ? '#0f172a' : '#64748b',
+                fontWeight: timeframe === 'lifetime' ? 700 : 500,
+                padding: '6px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                cursor: 'pointer',
+                boxShadow: timeframe === 'lifetime' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 0.15s'
+              }}
+            >
+              Lifetime
+            </button>
           </div>
 
           {/* Refresh Button */}
@@ -573,6 +590,8 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
           <p style={{ margin: '6px 0 0 0', fontSize: '11px', color: '#475569' }}>
             {timeframe === 'today' 
               ? 'Highest customer interaction hour recorded today'
+              : timeframe === 'lifetime'
+              ? 'Month with the highest inquiry volume'
               : 'Day with the highest inquiry volume'}
           </p>
         </div>
@@ -601,6 +620,7 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
                 {timeframe === 'today' && 'Today’s Hourly Inquiry Trend (24 Hours)'}
                 {timeframe === '7d' && 'Inquiry Activity Over Past 7 Days'}
                 {timeframe === '30d' && 'Inquiry Activity Over Past 30 Days'}
+                {timeframe === 'lifetime' && 'Lifetime Inquiry Activity (All-Time History)'}
               </h4>
               {selectedVehicle && (
                 <Tag color="blue" style={{ fontSize: '11px' }}>
@@ -710,7 +730,7 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
                   <Activity size={22} />
                 </div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '2px' }}>
-                  0 Inquiries Recorded {timeframe === 'today' ? 'Today' : 'in this timeframe'}
+                  0 Inquiries Recorded {timeframe === 'today' ? 'Today' : timeframe === 'lifetime' ? 'in Platform History' : 'in this timeframe'}
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748b', maxWidth: 400, textAlign: 'center' }}>
                   Real-time calls and WhatsApp message clicks will plot here as visitors click contact buttons on rental vehicles.
@@ -918,6 +938,8 @@ export const ContactAnalyticsOverview: React.FC<ContactAnalyticsOverviewProps> =
                   ? idx % 3 === 0 || idx === chartPoints.length - 1
                   : timeframe === '30d'
                   ? idx % 4 === 0 || idx === chartPoints.length - 1
+                  : timeframe === 'lifetime'
+                  ? chartPoints.length > 12 ? idx % 2 === 0 || idx === chartPoints.length - 1 : true
                   : true;
 
                 if (!shouldShow) return null;

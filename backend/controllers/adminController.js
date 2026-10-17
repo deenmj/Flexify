@@ -257,6 +257,118 @@ export const getContactAnalytics = async (req, res) => {
           total: c + w,
         });
       }
+    } else if (timeframe === "lifetime") {
+      // Monthly distribution across all recorded history
+      let vehicleLifetimeMatch = { status: { $ne: "deleted" } };
+      if (targetVehicleIds.length > 0) {
+        vehicleLifetimeMatch._id = { $in: targetVehicleIds };
+      }
+      const vehiclesWithClicks = await Vehicle.find({
+        ...vehicleLifetimeMatch,
+        $or: [{ callClicks: { $gt: 0 } }, { whatsappClicks: { $gt: 0 } }]
+      }).select("_id callClicks whatsappClicks createdAt").lean();
+
+      // Aggregate all ContactClicks grouped by YYYY-MM and type
+      const monthlyClicksAgg = await ContactClick.aggregate([
+        { $match: clickFilter },
+        {
+          $group: {
+            _id: {
+              month: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+              type: "$type"
+            },
+            count: { $sum: 1 }
+          }
+        }
+      ]);
+
+      // Determine date range for months (at least last 6 months up to current month)
+      const nowYear = now.getFullYear();
+      const nowMonth = now.getMonth();
+      let earliestDate = new Date(nowYear, nowMonth - 5, 1);
+      vehiclesWithClicks.forEach(v => {
+        if (v.createdAt && new Date(v.createdAt) < earliestDate) {
+          earliestDate = new Date(v.createdAt);
+        }
+      });
+      // Cap at 24 months for clean readability
+      const maxPast = new Date(nowYear, nowMonth - 23, 1);
+      if (earliestDate < maxPast) earliestDate = maxPast;
+
+      let cur = new Date(earliestDate.getFullYear(), earliestDate.getMonth(), 1);
+      const endMonth = new Date(nowYear, nowMonth, 1);
+      const monthlyMap = new Map();
+
+      while (cur <= endMonth) {
+        const mKey = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}`;
+        const displayLabel = cur.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+        monthlyMap.set(mKey, {
+          key: mKey,
+          label: displayLabel,
+          date: mKey,
+          calls: 0,
+          whatsapp: 0,
+          total: 0
+        });
+        cur.setMonth(cur.getMonth() + 1);
+      }
+
+      // Populate from actual ContactClick documents
+      monthlyClicksAgg.forEach(({ _id, count }) => {
+        if (_id.month && monthlyMap.has(_id.month)) {
+          const entry = monthlyMap.get(_id.month);
+          if (_id.type === "call") entry.calls += count;
+          else if (_id.type === "whatsapp") entry.whatsapp += count;
+        }
+      });
+
+      // Attribute unlogged baseline counts from vehicle documents
+      let recordedCalls = 0;
+      let recordedWhatsapp = 0;
+      monthlyMap.forEach(m => {
+        recordedCalls += m.calls;
+        recordedWhatsapp += m.whatsapp;
+      });
+
+      const unloggedCalls = Math.max(0, lifetimeCalls - recordedCalls);
+      const unloggedWhatsapp = Math.max(0, lifetimeWhatsapp - recordedWhatsapp);
+
+      if (unloggedCalls > 0 || unloggedWhatsapp > 0) {
+        vehiclesWithClicks.forEach(v => {
+          const vMonth = v.createdAt ? `${new Date(v.createdAt).getFullYear()}-${String(new Date(v.createdAt).getMonth() + 1).padStart(2, '0')}` : null;
+          const targetKey = vMonth && monthlyMap.has(vMonth) ? vMonth : monthlyMap.keys().next().value;
+          if (targetKey && monthlyMap.has(targetKey)) {
+            const entry = monthlyMap.get(targetKey);
+            entry.calls += v.callClicks || 0;
+            entry.whatsapp += v.whatsappClicks || 0;
+          }
+        });
+
+        // Ensure chart totals exactly match lifetimeCalls and lifetimeWhatsapp
+        let currentTotalCalls = 0;
+        let currentTotalWhatsapp = 0;
+        monthlyMap.forEach(m => {
+          currentTotalCalls += m.calls;
+          currentTotalWhatsapp += m.whatsapp;
+        });
+
+        if (currentTotalCalls !== lifetimeCalls || currentTotalWhatsapp !== lifetimeWhatsapp) {
+          const latestKey = `${nowYear}-${String(nowMonth + 1).padStart(2, '0')}`;
+          const latestEntry = monthlyMap.get(latestKey) || Array.from(monthlyMap.values()).pop();
+          if (latestEntry) {
+            const diffCalls = lifetimeCalls - currentTotalCalls;
+            const diffWa = lifetimeWhatsapp - currentTotalWhatsapp;
+            latestEntry.calls = Math.max(0, latestEntry.calls + diffCalls);
+            latestEntry.whatsapp = Math.max(0, latestEntry.whatsapp + diffWa);
+          }
+        }
+      }
+
+      monthlyMap.forEach(m => {
+        m.total = m.calls + m.whatsapp;
+      });
+
+      chartData = Array.from(monthlyMap.values());
     } else {
       // Daily distribution for 7d or 30d
       const numDays = timeframe === "7d" ? 7 : 30;
