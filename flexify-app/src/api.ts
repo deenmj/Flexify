@@ -350,44 +350,6 @@ export interface ContactAnalyticsResponse {
   vehicles: VehicleContactStats[];
 }
 
-export interface TrafficAnalyticsResponse {
-  summary: {
-    visitorsToday: number;
-    pageViewsToday: number;
-    fbAdsToday: number;
-    visitors7d: number;
-    pageViews7d: number;
-    fbAds7d: number;
-    visitors30d: number;
-    pageViews30d: number;
-    fbAds30d: number;
-    totalAllTime: number;
-    mobilePercent: number;
-  };
-  chartData: Array<{
-    key: string;
-    label: string;
-    pageViews: number;
-    visitors: number;
-    fbAds: number;
-  }>;
-  sources: Array<{
-    name: string;
-    visitors: number;
-    pageViews: number;
-    percent: number;
-  }>;
-  campaigns: Array<{
-    campaign: string;
-    visitors: number;
-    pageViews: number;
-  }>;
-  topPages: Array<{
-    path: string;
-    views: number;
-  }>;
-}
-
 export interface SubadminStats {
   pendingUsers: number;
   pendingVehicles: number;
@@ -567,9 +529,6 @@ export const adminApi = {
     if (filters?.district) params.append('district', filters.district);
     return apiFetch<ContactAnalyticsResponse>(`/admin/contact-analytics?${params.toString()}`);
   },
-
-  getTrafficAnalytics: (timeframe?: string) =>
-    apiFetch<TrafficAnalyticsResponse>(`/admin/traffic-analytics?timeframe=${timeframe || '7d'}`),
 
   getAllUsers: () => apiFetch<User[]>('/admin/users'),
 

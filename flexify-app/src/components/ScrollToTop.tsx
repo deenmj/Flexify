@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { trackPageView } from '../utils/trafficTracker';
 
 /**
- * Global scroll-to-top and visitor traffic tracking on route change.
+ * Global scroll-to-top on route change.
+ * Resets window scroll position to (0,0) whenever the pathname changes,
+ * ensuring new pages always open at the top.
  */
 export default function ScrollToTop() {
   const { pathname } = useLocation();
@@ -17,9 +18,6 @@ export default function ScrollToTop() {
     setTimeout(() => {
       document.documentElement.style.scrollBehavior = '';
     }, 0);
-
-    // Track page view and marketing attribution (Facebook Ads, UTM tags, etc.)
-    trackPageView(pathname);
   }, [pathname]);
 
   return null;
