@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { type Vehicle, getOptimizedImageUrl, getVehicleSlug, userApi } from '../api';
-import { Users, Star, Zap, Gauge, MapPin, Verified, Share2, Heart, Phone, MessageSquare } from 'lucide-react';
+import { Users, Star, Zap, Gauge, MapPin, Verified, Share2, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { message } from 'antd';
 import { useState, useEffect } from 'react';
@@ -71,11 +71,6 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
       }
     }
   };
-
-  const callClicks = vehicle.callClicks || 0;
-  const whatsappClicks = vehicle.whatsappClicks || 0;
-  const hasCalls = callClicks > 0;
-  const hasWhatsapp = whatsappClicks > 0;
 
   return (
     <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="shared-vehicle-card-link">
@@ -150,26 +145,6 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             <MapPin size={12} />
             <span>{vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
           </div>
-
-          {(hasCalls || hasWhatsapp) && (
-            <div className={`shared-vehicle-clicks ${hasCalls && hasWhatsapp ? 'shared-vehicle-clicks--both' : ''}`}>
-              {hasCalls && (
-                <span className="shared-vehicle-click-badge shared-vehicle-click-badge--call" title={`${callClicks} Call inquiries`}>
-                  <Phone size={10} className="shared-vehicle-click-icon" />
-                  <span className="shared-vehicle-click-count">{callClicks}</span>
-                  <span className="shared-vehicle-click-label">{callClicks === 1 ? 'Call' : 'Calls'}</span>
-                </span>
-              )}
-              {hasWhatsapp && (
-                <span className="shared-vehicle-click-badge shared-vehicle-click-badge--whatsapp" title={`${whatsappClicks} WhatsApp inquiries`}>
-                  <MessageSquare size={10} className="shared-vehicle-click-icon" />
-                  <span className="shared-vehicle-click-count">{whatsappClicks}</span>
-                  <span className="shared-vehicle-click-label shared-vehicle-click-label--full">WhatsApp</span>
-                  <span className="shared-vehicle-click-label shared-vehicle-click-label--short">WA</span>
-                </span>
-              )}
-            </div>
-          )}
 
           <div className="shared-vehicle-footer">
             <div className="shared-vehicle-price-block">
