@@ -72,6 +72,11 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
     }
   };
 
+  const callClicks = vehicle.callClicks || 0;
+  const whatsappClicks = vehicle.whatsappClicks || 0;
+  const hasCalls = callClicks > 0;
+  const hasWhatsapp = whatsappClicks > 0;
+
   return (
     <Link to={`/vehicles/${getVehicleSlug(vehicle)}`} className="shared-vehicle-card-link">
       <div className="shared-vehicle-card card rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 relative">
@@ -146,14 +151,23 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             <span>{vehicle.city ? `${vehicle.city}, ${vehicle.district}` : vehicle.district}</span>
           </div>
 
-          {((vehicle.callClicks || 0) > 0 || (vehicle.whatsappClicks || 0) > 0) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, margin: '4px 0 2px 0' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#eff6ff', color: '#2563eb', padding: '1px 6px', borderRadius: '4px' }}>
-                <Phone size={10} /> {vehicle.callClicks || 0} Calls
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#f0fdf4', color: '#16a34a', padding: '1px 6px', borderRadius: '4px' }}>
-                <MessageSquare size={10} /> {vehicle.whatsappClicks || 0} WhatsApp
-              </span>
+          {(hasCalls || hasWhatsapp) && (
+            <div className={`shared-vehicle-clicks ${hasCalls && hasWhatsapp ? 'shared-vehicle-clicks--both' : ''}`}>
+              {hasCalls && (
+                <span className="shared-vehicle-click-badge shared-vehicle-click-badge--call" title={`${callClicks} Call inquiries`}>
+                  <Phone size={10} className="shared-vehicle-click-icon" />
+                  <span className="shared-vehicle-click-count">{callClicks}</span>
+                  <span className="shared-vehicle-click-label">{callClicks === 1 ? 'Call' : 'Calls'}</span>
+                </span>
+              )}
+              {hasWhatsapp && (
+                <span className="shared-vehicle-click-badge shared-vehicle-click-badge--whatsapp" title={`${whatsappClicks} WhatsApp inquiries`}>
+                  <MessageSquare size={10} className="shared-vehicle-click-icon" />
+                  <span className="shared-vehicle-click-count">{whatsappClicks}</span>
+                  <span className="shared-vehicle-click-label shared-vehicle-click-label--full">WhatsApp</span>
+                  <span className="shared-vehicle-click-label shared-vehicle-click-label--short">WA</span>
+                </span>
+              )}
             </div>
           )}
 
