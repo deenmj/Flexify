@@ -49,6 +49,7 @@ import settingsRoutes from "./routes/settingsRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import sitemapRoutes from "./routes/sitemapRoutes.js";
 import superAdminRoutes from "./routes/superAdminRoutes.js";
+import trafficRoutes from "./routes/trafficRoutes.js";
 import { protect } from "./middleware/authMiddleware.js";
 import { maintenanceGuard } from "./middleware/maintenanceGuard.js";
 
@@ -186,6 +187,7 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api", sitemapRoutes);
 app.use("/api/superadmin", superAdminRoutes);
+app.use("/api/traffic", trafficRoutes);
 
 // Google OAuth Fallback: in case Google console is misconfigured without the /api prefix
 app.use("/auth/google/callback", (req, res) => {

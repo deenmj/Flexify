@@ -19,6 +19,7 @@ import {
   createVehicleForUser,
   getInquiryStats,
 } from "../controllers/adminController.js";
+import { getTrafficAnalytics } from "../controllers/trafficController.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/upload.js";
 
@@ -28,6 +29,7 @@ const router = express.Router();
 router.get("/stats", protect, requireAdmin, getAdminStats);
 router.get("/inquiry-stats", protect, requireAdmin, getInquiryStats);
 router.get("/contact-analytics", protect, requireAdmin, getContactAnalytics);
+router.get("/traffic-analytics", protect, requireAdmin, getTrafficAnalytics);
 router.get("/users", protect, requireAdmin, getAllUsers);
 router.put("/users/:id", protect, requireAdmin, updateUserInfo);
 router.patch("/users/:id/role", protect, requireAdmin, updateUserRole);
