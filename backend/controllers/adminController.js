@@ -165,11 +165,6 @@ export const getContactAnalytics = async (req, res) => {
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     const todayDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    // Purge any mock/test clicks to ensure 100% accurate, genuine database reporting
-    if (!global.hasPurgedMockContactClicks) {
-      await ContactClick.deleteMany({});
-      global.hasPurgedMockContactClicks = true;
-    }
 
     // 1. Vehicle filter condition
     let targetVehicleIds = [];
