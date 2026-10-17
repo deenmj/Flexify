@@ -116,6 +116,95 @@
   padding: 0.75rem 1.5rem !important;
 }
 
+/* ── Hero CTA Buttons ─────────────────────────── */
+.hero-cta-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 auto 2rem;
+  flex-wrap: wrap;
+}
+
+.hero-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-xl);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  min-width: 180px;
+}
+
+.hero-cta-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.hero-cta-btn:hover::before {
+  opacity: 1;
+}
+
+/* Rent button — solid blue primary */
+.hero-cta-btn--rent {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.45);
+}
+
+.hero-cta-btn--rent:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.6);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.hero-cta-btn--rent:active {
+  transform: translateY(-1px) scale(1.00);
+}
+
+/* Buy button — amber/gold accent */
+.hero-cta-btn--buy {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #1a1a1a;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.45);
+}
+
+.hero-cta-btn--buy:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.6);
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.hero-cta-btn--buy:active {
+  transform: translateY(-1px) scale(1.00);
+}
+
+.hero-cta-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.hero-cta-btn:hover svg {
+  transform: scale(1.15);
+}
+/* ────────────────────────────────────────────── */
+
 .hero-stats {
   display: flex;
   align-items: center;
@@ -235,6 +324,23 @@
   .hero-stat-label {
     font-size: 0.65rem;
     text-align: center;
+  }
+
+  /* CTA Buttons mobile — stack or shrink side-by-side */
+  .hero-cta-buttons {
+    gap: 0.625rem;
+    margin-bottom: 1rem;
+  }
+  .hero-cta-btn {
+    flex: 1 1 calc(50% - 0.625rem);
+    min-width: 0;
+    padding: 0.65rem 1rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius-lg);
+  }
+  .hero-cta-btn svg {
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -470,8 +576,8 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1.5rem;
-  margin-top: 2.5rem;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 @media (max-width: 480px) {
@@ -481,19 +587,20 @@
 }
 
 .category-card-luxury {
-  width: 130px;
-  height: 130px;
+  width: 110px;
+  height: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   background: white;
-  border: 1px solid #cbd5e1; /* Darker slate border for better visibility */
-  border-radius: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  flex-shrink: 0;
 }
 
 .category-card-luxury:hover {
@@ -797,19 +904,32 @@
     font-size: 0.6rem;
   }
 
-  /* Categories on mobile */
+  /* Categories on mobile — single horizontal scroll row */
+  .categories-grid {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 0.625rem;
+    margin-top: 1rem;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+  }
+  .categories-grid::-webkit-scrollbar {
+    display: none;
+  }
   .category-card-luxury {
-    width: 100px;
-    height: 100px;
-    gap: 0.5rem;
-    border-radius: 16px;
+    width: 72px;
+    height: 72px;
+    gap: 0.3rem;
+    border-radius: 12px;
+    flex-shrink: 0;
   }
   .category-icon-wrap svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
   .category-card-luxury .category-name {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
   }
 
   /* Section footer */
@@ -825,6 +945,16 @@
 
 /* Very small screens */
 @media (max-width: 380px) {
+  .hero-cta-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .hero-cta-btn {
+    flex: unset;
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+  }
   .hero-title {
     font-size: 1.15rem !important;
   }
@@ -884,8 +1014,197 @@
 
 .categories-section {
   background: var(--bg-secondary);
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
+}
+
+@media (max-width: 768px) {
+  .categories-section {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
 }
 
 .features-section {
   background: var(--bg-primary);
 }
+
+.sales-section {
+  background: var(--bg-secondary);
+}
+
+/* ── Sale Card ────────────────────────────────── */
+.sale-card {
+  min-width: 300px;
+  max-width: 300px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  outline: none;
+}
+
+.sale-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.sale-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sale-card-img-wrap {
+  position: relative;
+  height: 200px;
+  min-height: 200px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.sale-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.sale-card:hover .sale-card-img {
+  transform: scale(1.05);
+}
+
+.sale-card-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: 0.03em;
+}
+
+.sale-card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex-grow: 1;
+}
+
+.sale-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.125rem;
+}
+
+.sale-card-title {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.sale-card-sub {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.sale-card-specs {
+  display: flex;
+  gap: 0.75rem;
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  flex-wrap: wrap;
+}
+
+.sale-card-specs span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.sale-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color-light);
+}
+
+.sale-price-amount {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: #d97706;
+}
+
+.sale-price-note {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.sale-tag-icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+/* "View All Sales" button — amber outline style */
+.btn-sale-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  text-decoration: none;
+  border: 2px solid #f59e0b;
+  color: #d97706;
+  background: transparent;
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.btn-sale-view:hover {
+  background: #f59e0b;
+  color: #1a1a1a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+  text-decoration: none;
+}
+
+/* Mobile sale card sizing */
+@media (max-width: 768px) {
+  .sale-card {
+    min-width: 75vw;
+    max-width: 75vw;
+    width: 75vw;
+    scroll-snap-align: center;
+    flex-shrink: 0;
+  }
+  .sale-card-img-wrap {
+    height: 180px;
+    min-height: 180px;
+  }
+  .btn-sale-view {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .sale-card {
+    min-width: 85vw;
+    max-width: 85vw;
+    width: 85vw;
+  }
+}
+/* ────────────────────────────────────────────── */

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, InputNumber, Select, Button, Card, Typography, Row, Col, Divider, message, Upload } from 'antd';
+import { Form, Input, InputNumber, Select, Button, Card, Typography, Row, Col, Divider, message, Upload, Alert } from 'antd';
 import { Car, DollarSign, FileText, User, UploadCloud } from 'lucide-react';
 import { salesApi, getImageUrl } from '../api';
 import imageCompression from 'browser-image-compression';
@@ -19,10 +19,14 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [fileList, setFileList] = useState<any[]>([]);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [imageError, setImageError] = useState(false);
   const { user } = useAuth();
-  const isStaff = ['admin', 'superadmin', 'staff'].includes(user?.role || '');
+  const isStaff = ['admin', 'superadmin', 'staff', 'subadmin'].includes(user?.role || '');
 
   useEffect(() => {
+    setMissingFields([]);
+    setImageError(false);
     if (initialData) {
       form.setFieldsValue({
         make: initialData.make,
@@ -38,6 +42,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         askingPrice: initialData.askingPrice,
         commissionRate: initialData.commissionRate,
         isNegotiable: initialData.isNegotiable,
+        contactPreference: initialData.contactPreference || 'whatsapp',
         title: initialData.title,
         description: initialData.description,
         contactNumber: initialData.contactNumber,
@@ -45,12 +50,17 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         ownerName: initialData.originalOwnerDetails?.name,
         ownerPhone: initialData.originalOwnerDetails?.phone,
         ownerEmail: initialData.originalOwnerDetails?.email,
+        sellerDisplayName: initialData.sellerDisplayName,
       });
-      if (initialData.images) {
+      if (initialData.images && initialData._id) {
+        // Only pre-fill images when editing (not copying)
         setExistingImages(initialData.images);
+      } else {
+        setExistingImages([]);
       }
     } else {
       form.resetFields();
+      form.setFieldsValue({ contactPreference: 'whatsapp' });
       setExistingImages([]);
       setFileList([]);
     }
@@ -58,6 +68,24 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
 
   const onFinish = async (values: any) => {
     if (loading) return;
+
+    // Check if at least one image file is provided
+    const hasImages = existingImages.length > 0 || fileList.length > 0;
+    if (!hasImages) {
+      setImageError(true);
+      setMissingFields(['Vehicle Images (at least 1 photo is required)']);
+      message.error({
+        content: '⚠️ Please upload at least one vehicle image before publishing.',
+        key: 'validation-error',
+        duration: 4
+      });
+      const imgElem = document.getElementById('vehicle-images-form-item');
+      if (imgElem) {
+        imgElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -65,7 +93,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
       formData.append('make', values.make);
       formData.append('model', values.model);
       formData.append('year', values.year);
-      formData.append('registrationNumber', values.registrationNumber);
+      formData.append('registrationNumber', values.registrationNumber || '');
       if (values.vin) formData.append('vin', values.vin);
       formData.append('mileage', values.mileage);
       formData.append('fuelType', values.fuelType);
@@ -79,16 +107,25 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
       formData.append('description', values.description);
       formData.append('status', 'New');
       if (values.contactNumber) formData.append('contactNumber', values.contactNumber);
+      formData.append('contactPreference', values.contactPreference || 'whatsapp');
       if (values.seoTags) formData.append('seoTags', JSON.stringify(values.seoTags));
-      
-      const ownerDetails = {
-        name: values.ownerName,
-        phone: values.ownerPhone,
-        email: values.ownerEmail,
-      };
-      formData.append('originalOwnerDetails', JSON.stringify(ownerDetails));
 
-      if (initialData) {
+      if (isStaff) {
+        // Staff listing: mark as Rentify-authorised, store owner as internal only
+        formData.append('listingType', 'staff');
+        const ownerDetails = {
+          name: values.ownerName,
+          phone: values.ownerPhone,
+          email: values.ownerEmail,
+        };
+        formData.append('originalOwnerDetails', JSON.stringify(ownerDetails));
+      } else {
+        // User listing: only their display name is shown publicly
+        formData.append('listingType', 'user');
+        if (values.sellerDisplayName) formData.append('sellerDisplayName', values.sellerDisplayName);
+      }
+
+      if (initialData && initialData._id) {
         formData.append('existingImages', JSON.stringify(existingImages));
       }
 
@@ -114,20 +151,26 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
         formData.append('images', file);
       });
 
-      if (initialData) {
+      if (initialData && initialData._id) {
         await salesApi.updateVehicleSale(initialData._id, formData);
         message.success('Vehicle sale listing updated successfully!');
       } else {
         await salesApi.createVehicleSale(formData);
-        message.success('Vehicle successfully listed for sale!');
+        message.success(initialData && !initialData._id ? 'Listing copied and published successfully!' : 'Vehicle successfully listed for sale!');
       }
       
       form.resetFields();
       setFileList([]);
       setExistingImages([]);
+      setMissingFields([]);
+      setImageError(false);
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      message.error(error.message || `Failed to ${initialData ? 'update' : 'list'} vehicle`);
+      const errMsg = error.response?.data?.message || error.message || `Failed to ${initialData ? 'update' : 'list'} vehicle`;
+      message.error({ content: `⚠️ ${errMsg}`, duration: 5 });
+      if (error.response?.data?.missingFields) {
+        setMissingFields(error.response.data.missingFields);
+      }
     } finally {
       setLoading(false);
     }
@@ -136,11 +179,84 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
   return (
     <Card bordered={false} style={{ borderRadius: '12px', border: '1px solid #e2e8f0', maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <Title level={4} style={{ color: '#0f172a', margin: 0 }}>{initialData ? 'Edit Vehicle Sale Listing' : 'List Vehicle for Sale'}</Title>
-        <Text type="secondary">Internal Staff Tool - {initialData ? 'Update an existing vehicle in the sales division' : 'Add a new vehicle to the sales division'}</Text>
+        <Title level={4} style={{ color: '#0f172a', margin: 0 }}>
+          {initialData?._id ? 'Edit Vehicle Sale Listing' : initialData ? '📋 Copy as New Listing' : 'List Vehicle for Sale'}
+        </Title>
+        <Text type="secondary">Internal Staff Tool - {initialData?._id ? 'Update an existing vehicle in the sales division' : initialData ? 'Pre-filled from existing listing — review and publish as a new entry' : 'Add a new vehicle to the sales division'}</Text>
       </div>
 
-      <Form form={form} layout="vertical" onFinish={onFinish}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        scrollToFirstError={{ behavior: 'smooth', block: 'center' }}
+        validateTrigger={['onBlur', 'onChange']}
+        onValuesChange={(_, allValues) => {
+          if (missingFields.length > 0) {
+            const fieldLabels: Record<string, string> = {
+              make: 'Make', model: 'Model', year: 'Year', mileage: 'Mileage',
+              fuelType: 'Fuel Type', transmission: 'Transmission', condition: 'Condition',
+              askingPrice: 'Asking Price', contactPreference: 'Contact Preference',
+              title: 'Listing Title', description: 'Description',
+              contactNumber: 'Contact Number',
+              ownerName: 'Owner / Seller Name', ownerPhone: 'Owner Phone',
+              sellerDisplayName: 'Your Display Name',
+            };
+            const stillMissing: string[] = [];
+            if (!allValues.make) stillMissing.push(fieldLabels.make);
+            if (!allValues.model) stillMissing.push(fieldLabels.model);
+            if (!allValues.year) stillMissing.push(fieldLabels.year);
+            if (allValues.mileage === undefined || allValues.mileage === null || allValues.mileage === '') stillMissing.push(fieldLabels.mileage);
+            if (!allValues.fuelType) stillMissing.push(fieldLabels.fuelType);
+            if (!allValues.transmission) stillMissing.push(fieldLabels.transmission);
+            if (!allValues.condition) stillMissing.push(fieldLabels.condition);
+            if (allValues.askingPrice === undefined || allValues.askingPrice === null || allValues.askingPrice === '') stillMissing.push(fieldLabels.askingPrice);
+            if (!allValues.title) stillMissing.push(fieldLabels.title);
+            if (!allValues.description) stillMissing.push(fieldLabels.description);
+            if (!allValues.contactNumber) stillMissing.push(fieldLabels.contactNumber);
+            if (!allValues.contactPreference) stillMissing.push(fieldLabels.contactPreference);
+            if (isStaff) {
+              if (!allValues.ownerName) stillMissing.push(fieldLabels.ownerName);
+              if (!allValues.ownerPhone) stillMissing.push(fieldLabels.ownerPhone);
+            } else {
+              if (!allValues.sellerDisplayName) stillMissing.push(fieldLabels.sellerDisplayName);
+            }
+            if (existingImages.length === 0 && fileList.length === 0) {
+              stillMissing.push('Vehicle Images (at least 1 photo is required)');
+            }
+            setMissingFields(stillMissing);
+          }
+        }}
+        onFinishFailed={({ errorFields }) => {
+          const fieldLabels: Record<string, string> = {
+            make: 'Make', model: 'Model', year: 'Year', mileage: 'Mileage',
+            fuelType: 'Fuel Type', transmission: 'Transmission', condition: 'Condition',
+            askingPrice: 'Asking Price', contactPreference: 'Contact Preference',
+            title: 'Listing Title', description: 'Description',
+            contactNumber: 'Contact Number',
+            ownerName: 'Owner / Seller Name', ownerPhone: 'Owner Phone',
+            sellerDisplayName: 'Your Display Name',
+          };
+          const labels = errorFields.map(f => fieldLabels[String(f.name[0])] || String(f.name[0]));
+          const hasImages = existingImages.length > 0 || fileList.length > 0;
+          if (!hasImages) {
+            labels.push('Vehicle Images (at least 1 photo is required)');
+            setImageError(true);
+          }
+          setMissingFields(labels);
+          message.error({
+            content: `⚠️ Required field(s) missing: ${labels.join(' · ')}`,
+            key: 'validation-error',
+            duration: 5,
+          });
+          if (errorFields.length > 0) {
+            form.scrollToField(errorFields[0].name, { behavior: 'smooth', block: 'center' });
+          } else if (!hasImages) {
+            const imgElem = document.getElementById('vehicle-images-form-item');
+            if (imgElem) imgElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }}
+      >
         
         <Divider orientation="left"><Car size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/> Vehicle Specs</Divider>
         <Row gutter={16}>
@@ -232,12 +348,7 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
               />
             </Form.Item>
           </Col>
-          {isStaff && (
-            <Col span={8} xs={24} md={8}>
-              
-            </Col>
-          )}
-          <Col span={isStaff ? 8 : 16} xs={24} md={isStaff ? 8 : 16}>
+          <Col span={8} xs={24} md={8}>
             <Form.Item name="isNegotiable" label="Negotiable?">
               <Select defaultValue={false}>
                 <Option value={true}>Yes</Option>
@@ -245,17 +356,33 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
               </Select>
             </Form.Item>
           </Col>
+          <Col span={8} xs={24} md={8}>
+            <Form.Item
+              name="contactPreference"
+              label="Contact Preference"
+              tooltip="How buyers can contact you — shown on the listing page"
+              rules={[{ required: true, message: 'Please select contact preference' }]}
+            >
+              <Select placeholder="Select preference">
+                <Option value="whatsapp">💬 WhatsApp Only</Option>
+                <Option value="call">📞 Call Only</Option>
+                <Option value="both">💬📞 WhatsApp &amp; Call</Option>
+              </Select>
+            </Form.Item>
+          </Col>
         </Row>
 
-        {isStaff && (
+        {isStaff ? (
+          // Staff: internal owner/vehicle source details (never shown publicly)
           <>
             <Divider orientation="left">
-              <User size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/> 
-              Seller / Owner Details <Text type="secondary" style={{ fontSize: '0.8rem', marginLeft: '12px' }}>(Internal Use Only - This will be hidden from the public)</Text>
+              <User size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/>
+              Vehicle Source Details
+              <Text type="secondary" style={{ fontSize: '0.8rem', marginLeft: '12px' }}>(Internal Use Only – hidden from public. Listing will appear as "Rentify Authorised Seller")</Text>
             </Divider>
             <Row gutter={16}>
               <Col span={8} xs={24} md={8}>
-                <Form.Item name="ownerName" label="Owner Name" rules={[{ required: isStaff, message: 'Required' }]}>
+                <Form.Item name="ownerName" label="Owner / Seller Name" rules={[{ required: isStaff, message: 'Required' }]}>
                   <Input placeholder="Full Name" />
                 </Form.Item>
               </Col>
@@ -267,6 +394,25 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
               <Col span={8} xs={24} md={8}>
                 <Form.Item name="ownerEmail" label="Owner Email (Optional)">
                   <Input type="email" placeholder="email@example.com" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </>
+        ) : (
+          // Regular user: only their display name shown on listing
+          <>
+            <Divider orientation="left">
+              <User size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }}/>
+              Your Seller Profile
+            </Divider>
+            <Row gutter={16}>
+              <Col span={12} xs={24} md={12}>
+                <Form.Item
+                  name="sellerDisplayName"
+                  label="Your Name (shown on listing)"
+                  rules={[{ required: true, message: 'Please enter your display name' }]}
+                >
+                  <Input placeholder="e.g. John D." />
                 </Form.Item>
               </Col>
             </Row>
@@ -303,43 +449,105 @@ const AddVehicleSale: React.FC<Props> = ({ initialData, onSuccess }) => {
           )}
         </Row>
 
-        <Form.Item label="Vehicle Images">
-          {existingImages.length > 0 && (
-            <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {existingImages.map((img, idx) => (
-                <div key={idx} style={{ position: 'relative' }}>
-                  <img src={getImageUrl(img)} alt="Vehicle" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />
-                  <Button 
-                    size="small" 
-                    danger 
-                    type="primary" 
-                    shape="circle" 
-                    icon={<span>X</span>} 
-                    style={{ position: 'absolute', top: -5, right: -5 }}
-                    onClick={() => setExistingImages(prev => prev.filter((_, i) => i !== idx))}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-          <Upload.Dragger
-            multiple
-            listType="picture"
-            fileList={fileList}
-            onChange={({ fileList }) => setFileList(fileList)}
-            beforeUpload={() => false} // Prevent auto-upload
+        <div id="vehicle-images-form-item">
+          <Form.Item 
+            label={<span>Vehicle Images <span style={{ color: '#ef4444', fontWeight: 'bold' }}>*</span></span>}
+            validateStatus={imageError ? 'error' : ''}
+            help={imageError ? 'At least one vehicle image is required to publish this listing' : undefined}
           >
-            <p className="ant-upload-drag-icon">
-              <UploadCloud size={48} color="#94a3b8" />
-            </p>
-            <p className="ant-upload-text">Click or drag images to this area to upload</p>
-            <p className="ant-upload-hint">Support for a single or bulk upload. Strictly prohibit from uploading company data or other band files</p>
-          </Upload.Dragger>
-        </Form.Item>
+            {existingImages.length > 0 && (
+              <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {existingImages.map((img, idx) => (
+                  <div key={idx} style={{ position: 'relative' }}>
+                    <img src={getImageUrl(img)} alt="Vehicle" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />
+                    <Button 
+                      size="small" 
+                      danger 
+                      type="primary" 
+                      shape="circle" 
+                      icon={<span>X</span>} 
+                      style={{ position: 'absolute', top: -5, right: -5 }}
+                      onClick={() => {
+                        const updated = existingImages.filter((_, i) => i !== idx);
+                        setExistingImages(updated);
+                        if (updated.length === 0 && fileList.length === 0) {
+                          setImageError(true);
+                          setMissingFields(prev => Array.from(new Set([...prev, 'Vehicle Images (at least 1 photo is required)'])));
+                        }
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+            <Upload.Dragger
+              multiple
+              listType="picture"
+              fileList={fileList}
+              onChange={({ fileList: newFiles }) => {
+                setFileList(newFiles);
+                if (newFiles.length > 0 || existingImages.length > 0) {
+                  setImageError(false);
+                  setMissingFields(prev => prev.filter(f => !f.toLowerCase().includes('image')));
+                }
+              }}
+              beforeUpload={() => false} // Prevent auto-upload
+              style={{
+                borderColor: imageError ? '#ef4444' : undefined,
+                backgroundColor: imageError ? '#fef2f2' : undefined
+              }}
+            >
+              <p className="ant-upload-drag-icon">
+                <UploadCloud size={48} color={imageError ? '#ef4444' : '#94a3b8'} />
+              </p>
+              <p className="ant-upload-text" style={{ color: imageError ? '#b91c1c' : undefined }}>
+                Click or drag images to this area to upload
+              </p>
+              <p className="ant-upload-hint">Support for single or bulk upload. Images are automatically compressed to WebP.</p>
+            </Upload.Dragger>
+          </Form.Item>
+        </div>
+
+        {missingFields.length > 0 && (
+          <Alert
+            type="error"
+            showIcon
+            style={{ marginBottom: '1rem', borderRadius: '8px', border: '1px solid #fca5a5', background: '#fef2f2' }}
+            message={<span style={{ fontWeight: 600, color: '#991b1b' }}>⚠️ Required Fields Missing ({missingFields.length})</span>}
+            description={
+              <div style={{ marginTop: '4px' }}>
+                <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#7f1d1d' }}>
+                  Please fill in the following required {missingFields.length > 1 ? 'fields / files' : 'field / file'} before publishing:
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {missingFields.map((field, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        background: '#fee2e2',
+                        color: '#991b1b',
+                        padding: '3px 10px',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        border: '1px solid #fecaca',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      • {field}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            }
+          />
+        )}
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" size="large" block loading={loading} style={{ marginTop: '1rem', background: '#0f172a' }}>
-            {initialData ? 'Update Sales Listing' : 'Publish Sales Listing'}
+          <Button type="primary" htmlType="submit" size="large" block loading={loading} style={{ marginTop: '0.5rem', background: '#0f172a' }}>
+            {initialData?._id ? 'Update Sales Listing' : initialData ? '📋 Publish Copied Listing' : 'Publish Sales Listing'}
           </Button>
         </Form.Item>
       </Form>

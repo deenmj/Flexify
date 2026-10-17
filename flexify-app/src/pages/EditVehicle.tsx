@@ -64,13 +64,9 @@ export default function EditVehicle() {
     isActive: true
   });
 
-  const [selectedMake, setSelectedMake] = useState(() => {
-    try { return sessionStorage.getItem(getDraftKey('make')) || ''; } catch { return ''; }
-  });
+  const [selectedMake, setSelectedMake] = useState('');
   const [customMake, setCustomMake] = useState('');
-  const [selectedModel, setSelectedModel] = useState(() => {
-    try { return sessionStorage.getItem(getDraftKey('model')) || ''; } catch { return ''; }
-  });
+  const [selectedModel, setSelectedModel] = useState('');
   const [customModel, setCustomModel] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<any[]>([]);
@@ -78,9 +74,12 @@ export default function EditVehicle() {
   // Location modal state
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [locationDisplayName, setLocationDisplayName] = useState('');
+  const isInitialLoadedRef = useRef(false);
 
   // Auto-save form draft to sessionStorage and beforeunload warning
   useEffect(() => {
+    if (!isInitialLoadedRef.current) return;
+
     try {
       sessionStorage.setItem(getDraftKey('form'), JSON.stringify(form));
       sessionStorage.setItem(getDraftKey('make'), selectedMake);
@@ -139,17 +138,21 @@ export default function EditVehicle() {
         // Store original model name for use after models are fetched
         originalModelRef.current = vehicle.model || '';
 
+        const ownerPhone = (vehicle.owner && typeof vehicle.owner === 'object' && (vehicle.owner as any).phone) ? (vehicle.owner as any).phone : '';
+        const isStaffOrAdmin = ['admin', 'superadmin', 'subadmin', 'staff'].includes(user?.role || '');
+        const fallbackPhone = isStaffOrAdmin ? ownerPhone : (user?.phone || '');
+
         // Fill form with vehicle data (make/model will be set via selectedMake/selectedModel effects)
         let vehicleFormState = {
-          title: vehicle.title,
+          title: vehicle.title || '',
           make: vehicle.make || '',
           model: vehicle.model || '',
-          year: vehicle.year.toString(),
-          pricePerDay: vehicle.pricePerDay.toString(),
+          year: (vehicle.year ?? '').toString(),
+          pricePerDay: (vehicle.pricePerDay ?? '').toString(),
           transmission: vehicle.transmission || 'Automatic',
           fuelType: vehicle.fuelType || 'Petrol',
           seats: (vehicle.seats || 4).toString(),
-          serviceType: (vehicle.serviceType && vehicle.serviceType[0]) || '',
+          serviceType: (Array.isArray(vehicle.serviceType) && vehicle.serviceType.length > 0 ? vehicle.serviceType[0] : (typeof vehicle.serviceType === 'string' && vehicle.serviceType ? vehicle.serviceType : 'Car')),
           description: vehicle.description || '',
           address: vehicle.location?.address || '',
           lat: (vehicle.location?.coordinates?.[1] || 7.8731).toString(),
@@ -160,30 +163,35 @@ export default function EditVehicle() {
           province: vehicle.province || '',
           district: vehicle.district || '',
           city: vehicle.city || '',
-          pricePerWeek: vehicle.pricePerWeek?.toString() || '',
-          pricePerMonth: vehicle.pricePerMonth?.toString() || '',
-          kmLimitPerDay: vehicle.kmLimitPerDay?.toString() || '',
-          extraKmPrice: vehicle.extraKmPrice?.toString() || '',
+          pricePerWeek: vehicle.pricePerWeek != null ? vehicle.pricePerWeek.toString() : '',
+          pricePerMonth: vehicle.pricePerMonth != null ? vehicle.pricePerMonth.toString() : '',
+          kmLimitPerDay: vehicle.kmLimitPerDay != null ? vehicle.kmLimitPerDay.toString() : '',
+          extraKmPrice: vehicle.extraKmPrice != null ? vehicle.extraKmPrice.toString() : '',
           driverOption: vehicle.driverOption || 'self-drive',
-          driverPricePerDay: vehicle.driverPricePerDay?.toString() || '',
-          mobileNumber: vehicle.mobileNumber || user?.phone || '',
+          driverPricePerDay: vehicle.driverPricePerDay != null ? vehicle.driverPricePerDay.toString() : '',
+          mobileNumber: vehicle.mobileNumber || fallbackPhone,
           contactMethod: vehicle.contactMethod || 'both',
           weddingHiresSpecial: !!vehicle.weddingHiresSpecial,
-          isActive: vehicle.isActive
+          isActive: vehicle.isActive !== false
         };
 
         try {
-          const draft = sessionStorage.getItem(getDraftKey('form'));
-          if (draft) vehicleFormState = { ...vehicleFormState, ...JSON.parse(draft) };
+          const draftStr = sessionStorage.getItem(getDraftKey('form'));
+          if (draftStr) {
+            const draft = JSON.parse(draftStr);
+            if (draft && (draft.title || draft.make)) {
+              vehicleFormState = { ...vehicleFormState, ...draft };
+            }
+          }
         } catch {}
 
         setForm(vehicleFormState);
 
         const savedMake = sessionStorage.getItem(getDraftKey('make'));
         const makeExists = allMakes.find((m: any) => m.name === vehicle.make);
-        if (savedMake) {
+        if (savedMake && savedMake.trim()) {
           setSelectedMake(savedMake);
-          if (savedMake === 'Other') setCustomMake(vehicle.make);
+          if (savedMake === 'Other') setCustomMake(vehicle.make || '');
         } else if (makeExists) {
           setSelectedMake(vehicle.make);
         } else if (vehicle.make) {
@@ -192,9 +200,9 @@ export default function EditVehicle() {
         }
 
         const savedModel = sessionStorage.getItem(getDraftKey('model'));
-        if (savedModel) {
+        if (savedModel && savedModel.trim()) {
           setSelectedModel(savedModel);
-          if (savedModel === 'Other') setCustomModel(vehicle.model);
+          if (savedModel === 'Other') setCustomModel(vehicle.model || '');
         }
 
         setExistingPhotos(vehicle.photos || []);
@@ -205,6 +213,7 @@ export default function EditVehicle() {
           setLocationDisplayName(existingCity || existingDistrict || vehicle.location?.address || '');
         }
 
+        isInitialLoadedRef.current = true;
       } catch (err: any) {
         setError(err.message || 'Failed to load vehicle details');
       } finally {
@@ -357,6 +366,18 @@ export default function EditVehicle() {
     }
   };
 
+  const navigateBackToDashboard = () => {
+    if (user?.role === 'superadmin') {
+      navigate('/ceo-master-portal?tab=vehicles');
+    } else if (user?.role === 'admin') {
+      navigate('/admin?tab=vehicles');
+    } else if (user?.role === 'staff' || user?.role === 'subadmin') {
+      navigate('/staff');
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
   const handleDeleteVehicle = () => {
     if (!id) return;
     Modal.confirm({
@@ -369,7 +390,7 @@ export default function EditVehicle() {
         try {
           await vehicleApi.delete(id);
           message.success('Vehicle deleted successfully');
-          navigate('/dashboard');
+          navigateBackToDashboard();
         } catch (err: any) {
           message.error(err.message || 'Failed to delete vehicle');
         }
@@ -417,7 +438,7 @@ export default function EditVehicle() {
       } catch {}
 
       message.success('Vehicle details updated successfully');
-      navigate(-1);
+      navigateBackToDashboard();
     } catch (err: any) {
       setError(err.message || 'Error updating vehicle');
       message.error(err.message || 'Error updating vehicle');
@@ -427,7 +448,13 @@ export default function EditVehicle() {
     }
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div className="list-vehicle-page">

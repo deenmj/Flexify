@@ -11,6 +11,8 @@ import ContactEvent from "../models/ContactEvent.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
 import cloudinary from "../utils/cloudinary.js";
 import { deleteCloudinaryImages, extractPublicIds } from "../utils/cloudinaryHelpers.js";
+import ContactClick from "../models/ContactClick.js";
+
 
 /**
  * Owner creates a vehicle listing.
@@ -235,8 +237,8 @@ export const updateVehicle = async (req, res) => {
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
 
     // Moderation Override Logic
-    const isOwner = vehicle.owner.toString() === req.user._id.toString();
-    const isMasterAdmin = ["admin", "superadmin"].includes(req.user.role);
+    const isOwner = Boolean(vehicle.owner && req.user?._id && vehicle.owner.toString() === req.user._id.toString());
+    const isMasterAdmin = ["admin", "superadmin", "subadmin"].includes(req.user?.role);
 
     if (!isOwner && !isMasterAdmin) {
       return res.status(403).json({ message: "Forbidden: You do not have permission to edit this listing. Staff cannot edit other's listings." });
@@ -244,37 +246,74 @@ export const updateVehicle = async (req, res) => {
 
     const { 
       title, make, model, year, pricePerDay, transmission, fuelType, seats, description, 
-      lat, lng, address, engineCapacity, fuelConsumption, features, province, district, city,
+      lat, lng, address, serviceType, engineCapacity, fuelConsumption, features, province, district, city,
       pricePerWeek, pricePerMonth, kmLimitPerDay, extraKmPrice,
-      driverOption, driverPricePerDay, mobileNumber, contactMethod, weddingHiresSpecial
+      driverOption, driverPricePerDay, mobileNumber, contactMethod, weddingHiresSpecial, isActive
     } = req.body;
 
-    if (!mobileNumber && isOwner) {
-       return res.status(400).json({ message: "Mobile number is compulsory for vehicle updates." });
-    }
-    
-    const updates = { 
-      title, make, model, year, pricePerDay, transmission, fuelType, seats, description,
-      engineCapacity, fuelConsumption, province, district, city,
-      pricePerWeek, pricePerMonth,
-      kmLimitPerDay: kmLimitPerDay ? parseInt(kmLimitPerDay) : null,
-      extraKmPrice: extraKmPrice ? parseFloat(extraKmPrice) : null,
-      driverOption,
-      driverPricePerDay: driverPricePerDay ? parseFloat(driverPricePerDay) : 0,
-      mobileNumber: mobileNumber !== undefined ? (mobileNumber || null) : undefined,
-      contactMethod: contactMethod !== undefined ? contactMethod : undefined,
-      weddingHiresSpecial: weddingHiresSpecial !== undefined ? (weddingHiresSpecial === "true" || weddingHiresSpecial === true) : undefined
-    };
+    const updates = {};
 
-    if (features) {
-      updates.features = typeof features === 'string' ? JSON.parse(features) : features;
+    if (title !== undefined) updates.title = title;
+    if (make !== undefined) updates.make = make;
+    if (model !== undefined) updates.model = model;
+    if (year !== undefined && year !== "") updates.year = parseInt(year);
+    if (pricePerDay !== undefined && pricePerDay !== "") updates.pricePerDay = parseFloat(pricePerDay);
+    if (transmission !== undefined) updates.transmission = transmission;
+    if (fuelType !== undefined) updates.fuelType = fuelType;
+    if (seats !== undefined && seats !== "") updates.seats = parseInt(seats);
+    if (description !== undefined) updates.description = description;
+
+    if (engineCapacity !== undefined) updates.engineCapacity = engineCapacity || null;
+    if (fuelConsumption !== undefined) updates.fuelConsumption = fuelConsumption || null;
+    if (province !== undefined) updates.province = province || null;
+    if (district !== undefined) updates.district = district || null;
+    if (city !== undefined) updates.city = city || null;
+
+    // Safely parse optional numbers - avoid Mongoose cast errors with empty strings ""
+    updates.pricePerWeek = (pricePerWeek !== undefined && pricePerWeek !== "" && pricePerWeek !== null) ? parseFloat(pricePerWeek) : null;
+    updates.pricePerMonth = (pricePerMonth !== undefined && pricePerMonth !== "" && pricePerMonth !== null) ? parseFloat(pricePerMonth) : null;
+    updates.kmLimitPerDay = (kmLimitPerDay !== undefined && kmLimitPerDay !== "" && kmLimitPerDay !== null) ? parseInt(kmLimitPerDay) : null;
+    updates.extraKmPrice = (extraKmPrice !== undefined && extraKmPrice !== "" && extraKmPrice !== null) ? parseFloat(extraKmPrice) : null;
+
+    if (driverOption !== undefined) updates.driverOption = driverOption;
+    updates.driverPricePerDay = (driverPricePerDay !== undefined && driverPricePerDay !== "" && driverPricePerDay !== null) ? parseFloat(driverPricePerDay) : 0;
+
+    // Mobile number handling: don't wipe out existing number with null if not provided
+    if (mobileNumber !== undefined && mobileNumber !== null && String(mobileNumber).trim() !== "") {
+      updates.mobileNumber = String(mobileNumber).trim();
+    } else if (isOwner && !vehicle.mobileNumber) {
+      return res.status(400).json({ message: "Mobile number is compulsory for vehicle updates." });
     }
 
-    if (lat && lng) {
+    if (contactMethod !== undefined) updates.contactMethod = contactMethod;
+    if (weddingHiresSpecial !== undefined) updates.weddingHiresSpecial = (weddingHiresSpecial === "true" || weddingHiresSpecial === true);
+
+    if (serviceType !== undefined) {
+      updates.serviceType = Array.isArray(serviceType) ? serviceType : (serviceType ? [serviceType] : []);
+    }
+
+    if (isActive !== undefined) {
+      updates.isActive = (isActive === "true" || isActive === true);
+    }
+
+    if (features !== undefined) {
+      try {
+        updates.features = typeof features === 'string' ? JSON.parse(features) : features;
+      } catch (e) {
+        updates.features = Array.isArray(features) ? features : [];
+      }
+    }
+
+    if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
       updates.location = {
         type: "Point",
         coordinates: [parseFloat(lng), parseFloat(lat)],
         address: address || vehicle.location?.address || "",
+      };
+    } else if (address && vehicle.location) {
+      updates.location = {
+        ...vehicle.location,
+        address
       };
     }
 
@@ -306,7 +345,7 @@ export const updateVehicle = async (req, res) => {
     
     // Identify user-removed photos and delete them from Cloudinary
     if (req.body.existingPhotos !== undefined) {
-      const retainedPublicIds = finalPhotos.map(p => p.public_id);
+      const retainedPublicIds = finalPhotos.map(p => p.public_id).filter(Boolean);
       const removedPhotos = (vehicle.photos || []).filter(
         op => op.public_id && !retainedPublicIds.includes(op.public_id)
       );
@@ -350,8 +389,8 @@ export const deleteVehicle = async (req, res) => {
     const vehicle = await Vehicle.findById(req.params.id);
     if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
 
-    const isOwner = vehicle.owner.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === "subadmin" || req.user.role === "superadmin";
+    const isOwner = Boolean(vehicle.owner && req.user?._id && vehicle.owner.toString() === req.user._id.toString());
+    const isAdmin = ["admin", "superadmin", "subadmin"].includes(req.user?.role);
     if (!isOwner && !isAdmin) {
       return res.status(403).json({ message: "Not authorized" });
     }
@@ -577,6 +616,9 @@ export const listVehicles = async (req, res) => {
           mobileNumber: 1,
           contactMethod: 1,
           weddingHiresSpecial: 1,
+          callClicks: 1,
+          whatsappClicks: 1,
+          isFeatured: 1,
           createdAt: 1
         }
       }
@@ -660,26 +702,63 @@ export const trackContactClick = async (req, res) => {
     }
 
     const field = type === "call" ? "callClicks" : "whatsappClicks";
-
-    // Atomic increment on the vehicle document (cumulative total)
+    // Atomic increment on vehicle and create analytics records
     const vehicle = await Vehicle.findByIdAndUpdate(
       req.params.id,
       { $inc: { [field]: 1 } },
-      { new: false } // we only need the owner id
+      { new: true }
     );
 
-    // Log a timestamped event for time-series analytics (fire-and-forget)
-    if (vehicle) {
-      ContactEvent.create({
-        vehicle: vehicle._id,
-        owner: vehicle.owner,
-        type,
-      }).catch((err) =>
-        console.error("[trackContactClick] ContactEvent log failed:", err.message)
-      );
+    if (!vehicle) {
+      return res.status(404).json({ message: "Vehicle not found" });
     }
 
-    res.json({ message: "Click tracked successfully" });
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const hour = now.getHours();
+
+    // Create timestamped click record
+    const clickDoc = await ContactClick.create({
+      vehicle: vehicle._id,
+      type,
+      user: req.user?._id || null,
+      date: dateStr,
+      hour
+    });
+
+    // Log a timestamped event for time-series analytics (fire-and-forget)
+    ContactEvent.create({
+      vehicle: vehicle._id,
+      owner: vehicle.owner,
+      type,
+    }).catch((err) =>
+      console.error("[trackContactClick] ContactEvent log failed:", err.message)
+    );
+
+    // Notify connected admin dashboards in real time
+    try {
+      const io = req.app.get("io");
+      if (io) {
+        io.to("admin_room").emit("new_contact_click", {
+          vehicleId: vehicle._id,
+          vehicleTitle: `${vehicle.make || ''} ${vehicle.model || ''} ${vehicle.title || ''}`.trim(),
+          type,
+          date: dateStr,
+          hour,
+          callClicks: vehicle.callClicks,
+          whatsappClicks: vehicle.whatsappClicks,
+          createdAt: clickDoc.createdAt
+        });
+      }
+    } catch (sockErr) {
+      console.warn("Socket broadcast error in trackContactClick:", sockErr?.message);
+    }
+
+    res.json({
+      message: "Click tracked successfully",
+      callClicks: vehicle.callClicks,
+      whatsappClicks: vehicle.whatsappClicks
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

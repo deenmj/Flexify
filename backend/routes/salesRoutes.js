@@ -24,25 +24,28 @@ router.post("/vehicles", protect, upload.array("images", 10), async (req, res) =
       condition,
       category,
       askingPrice,
-      
+      commissionRate,
       isNegotiable,
       title,
       description,
       seoTags,
       contactNumber,
+      contactPreference,
+      listingType,
+      sellerDisplayName,
       originalOwnerDetails: ownerDetailsStr,
       status,
     } = req.body;
 
-    const isStaff = ["admin", "superadmin", "staff"].includes(req.user.role);
+    const isStaff = ["admin", "superadmin", "staff", "subadmin"].includes(req.user.role);
 
     let originalOwnerDetails;
     if (!isStaff) {
       // Auto-fill for regular verified owners
       originalOwnerDetails = {
-        name: req.user.name,
-        phone: req.user.phone,
-        email: req.user.email,
+        name: sellerDisplayName || req.user.name,
+        phone: contactNumber || req.user.phone || '',
+        email: req.user.email || '',
       };
     } else {
       try {
@@ -55,9 +58,29 @@ router.post("/vehicles", protect, upload.array("images", 10), async (req, res) =
     // Process uploaded images from Cloudinary
     const images = req.files ? req.files.map((file) => file.path) : [];
 
-    // Validate required fields
-    if (!make || !model || !year || !mileage || !fuelType || !transmission || !condition || !askingPrice || !title || !originalOwnerDetails?.name || !originalOwnerDetails?.phone) {
-      return res.status(400).json({ message: "Please provide all required fields." });
+    // Validate required fields and identify specifically which ones are missing
+    const missing = [];
+    if (!make) missing.push("Make");
+    if (!model) missing.push("Model");
+    if (!year) missing.push("Year");
+    if (!mileage && mileage !== 0) missing.push("Mileage");
+    if (!fuelType) missing.push("Fuel Type");
+    if (!transmission) missing.push("Transmission");
+    if (!condition) missing.push("Condition");
+    if (!askingPrice && askingPrice !== 0) missing.push("Asking Price");
+    if (!title) missing.push("Title");
+    if (isStaff) {
+      if (!originalOwnerDetails?.name) missing.push("Owner/Seller Name");
+      if (!originalOwnerDetails?.phone) missing.push("Owner Phone");
+    } else {
+      if (!sellerDisplayName && !req.user.name) missing.push("Seller Display Name");
+    }
+
+    if (missing.length > 0) {
+      return res.status(400).json({ 
+        message: `Please provide all required fields: ${missing.join(", ")}`,
+        missingFields: missing 
+      });
     }
 
     const newSale = new VehicleSale({
@@ -72,11 +95,15 @@ router.post("/vehicles", protect, upload.array("images", 10), async (req, res) =
       condition,
       category: category ? (Array.isArray(category) ? category : JSON.parse(category)) : [],
       askingPrice,
-      isNegotiable: isNegotiable || false,
+      commissionRate: commissionRate ? Number(commissionRate) : 0,
+      isNegotiable: isNegotiable === 'true' || isNegotiable === true,
       title,
       description,
       seoTags: seoTags ? (Array.isArray(seoTags) ? seoTags : JSON.parse(seoTags)) : [],
       contactNumber,
+      contactPreference: contactPreference || 'whatsapp',
+      listingType: listingType || (isStaff ? 'staff' : 'user'),
+      sellerDisplayName: sellerDisplayName || (!isStaff ? req.user.name : undefined),
       images: images || [],
       location: {
         type: "Point",
@@ -132,7 +159,7 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
 
     // Moderation Override Logic
     const isOwner = sale.listedBy.toString() === req.user._id.toString();
-    const isMasterAdmin = ["admin", "superadmin"].includes(req.user.role);
+    const isMasterAdmin = ["admin", "superadmin", "staff", "subadmin"].includes(req.user.role);
 
     if (!isOwner && !isMasterAdmin) {
       return res.status(403).json({ message: "Forbidden: You do not have permission to edit this listing. Staff cannot edit other's listings." });
@@ -140,8 +167,9 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
 
     const {
       make, model, year, registrationNumber, vin, mileage, fuelType, transmission,
-      condition, category, askingPrice,  isNegotiable, title, description,
-      seoTags, contactNumber, originalOwnerDetails: ownerDetailsStr, status,
+      condition, category, askingPrice, commissionRate, isNegotiable, title, description,
+      seoTags, contactNumber, contactPreference, listingType, sellerDisplayName,
+      originalOwnerDetails: ownerDetailsStr, status,
       existingImages: existingImagesStr
     } = req.body;
 
@@ -168,17 +196,21 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
     if (year) sale.year = year;
     if (registrationNumber !== undefined) sale.registrationNumber = registrationNumber;
     if (vin) sale.vin = vin;
-    if (mileage) sale.mileage = mileage;
+    if (mileage !== undefined) sale.mileage = mileage;
     if (fuelType) sale.fuelType = fuelType;
     if (transmission) sale.transmission = transmission;
     if (condition) sale.condition = condition;
     if (category) sale.category = Array.isArray(category) ? category : JSON.parse(category);
-    if (askingPrice) sale.askingPrice = askingPrice;
-    if (isNegotiable !== undefined) sale.isNegotiable = isNegotiable;
+    if (askingPrice !== undefined) sale.askingPrice = askingPrice;
+    if (commissionRate !== undefined) sale.commissionRate = Number(commissionRate);
+    if (isNegotiable !== undefined) sale.isNegotiable = isNegotiable === 'true' || isNegotiable === true;
     if (title) sale.title = title;
     if (description) sale.description = description;
     if (seoTags) sale.seoTags = Array.isArray(seoTags) ? seoTags : JSON.parse(seoTags);
     if (contactNumber) sale.contactNumber = contactNumber;
+    if (contactPreference) sale.contactPreference = contactPreference;
+    if (listingType) sale.listingType = listingType;
+    if (sellerDisplayName !== undefined) sale.sellerDisplayName = sellerDisplayName;
     if (status) sale.status = status;
 
     const savedSale = await sale.save();
@@ -213,7 +245,7 @@ router.put("/vehicles/:id", protect, upload.array("images", 10), async (req, res
 router.get("/staff/vehicles", protect, async (req, res) => {
   try {
     const isStaff = ['staff', 'admin', 'superadmin', 'subadmin'].includes(req.user.role);
-    const query = isStaff ? {} : { 'seller': req.user._id };
+    const query = isStaff ? {} : { 'listedBy': req.user._id };
     
     const sales = await VehicleSale.find(query)
     .sort("-createdAt");
@@ -327,7 +359,7 @@ router.get("/vehicles/:id", async (req, res) => {
  * @desc    Update vehicle sale status
  * @access  Private (Staff/Admin/Superadmin only)
  */
-router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
+router.put("/vehicles/:id/status", protect, async (req, res) => {
   try {
     const { status, finalNegotiatedPrice } = req.body;
     
@@ -338,6 +370,13 @@ router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
     const sale = await VehicleSale.findById(req.params.id);
     if (!sale) {
       return res.status(404).json({ message: "Sale listing not found" });
+    }
+
+    const isOwner = sale.listedBy.toString() === req.user._id.toString();
+    const isMasterAdmin = ["admin", "superadmin", "staff", "subadmin"].includes(req.user.role);
+
+    if (!isOwner && !isMasterAdmin) {
+      return res.status(403).json({ message: "Forbidden: You do not have permission to update this listing's status." });
     }
 
     sale.status = status;
@@ -362,11 +401,18 @@ router.put("/vehicles/:id/status", protect, requireStaff, async (req, res) => {
  * @desc    Delete a vehicle sale listing
  * @access  Private (Staff/Admin/Superadmin only)
  */
-router.delete("/vehicles/:id", protect, requireStaff, async (req, res) => {
+router.delete("/vehicles/:id", protect, async (req, res) => {
   try {
     const sale = await VehicleSale.findById(req.params.id);
     if (!sale) {
       return res.status(404).json({ message: "Sale listing not found" });
+    }
+
+    const isOwner = sale.listedBy.toString() === req.user._id.toString();
+    const isMasterAdmin = ["admin", "superadmin", "staff", "subadmin"].includes(req.user.role);
+
+    if (!isOwner && !isMasterAdmin) {
+      return res.status(403).json({ message: "Forbidden: You do not have permission to delete this listing." });
     }
 
     await VehicleSale.findByIdAndDelete(req.params.id);

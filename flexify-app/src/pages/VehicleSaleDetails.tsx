@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Row, Col, Button, Spin, Result, Tag, Card, Modal, message, Typography, Badge, Avatar } from 'antd';
-import { MessageCircle, Settings, Activity, FileText, Phone, Heart, Share2, MapPin, Gauge, Zap, CheckCircle, Flag } from 'lucide-react';
+import { MessageCircle, Settings, Activity, FileText, Heart, Share2, MapPin, Gauge, Zap, CheckCircle, Flag, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { salesApi, userApi, getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -25,6 +25,7 @@ export default function VehicleSaleDetails() {
   const [barVisible, setBarVisible] = useState(true);
   
   const [activeImage, setActiveImage] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   useEffect(() => {
     if (!isMobile) return;
@@ -219,7 +220,8 @@ export default function VehicleSaleDetails() {
                     alt={`${vehicle.make} ${vehicle.model} - Image ${idx + 1}`}
                     loading={idx === 0 ? "eager" : "lazy"}
                     className="detail-main-img-item"
-                    onClick={() => setActiveImage(idx)}
+                    onClick={() => { setActiveImage(idx); setShowLightbox(true); }}
+                    style={{ cursor: 'pointer' }}
                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542367597-87b9a3b9d8a6?auto=format&fit=crop&w=1200&q=80'; }}
                   />
                 ))}
@@ -415,14 +417,27 @@ export default function VehicleSaleDetails() {
                     offset={[-4, 44]}
                   >
                     <Avatar
-                      src={'https://ui-avatars.com/api/?name=Rentify+Sales&background=e2e8f0'}
+                      src={
+                        !vehicle.listingType || vehicle.listingType === 'staff'
+                          ? 'https://ui-avatars.com/api/?name=Rentify+Sales&background=e2e8f0'
+                          : `https://ui-avatars.com/api/?name=${encodeURIComponent(vehicle.sellerDisplayName || 'Seller')}&background=dbeafe&color=1e40af`
+                      }
                       size={54}
                       style={{ border: '2px solid var(--primary-color)' }}
                     />
                   </Badge>
                   <div className="owner-info-text">
-                    <strong style={{ fontSize: '1rem' }}>Rentify Verified Sales</strong>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Direct from Platform</span>
+                    {!vehicle.listingType || vehicle.listingType === 'staff' ? (
+                      <>
+                        <strong style={{ fontSize: '1rem' }}>Rentify Authorised Seller</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Direct from Platform</span>
+                      </>
+                    ) : (
+                      <>
+                        <strong style={{ fontSize: '1rem' }}>{vehicle.sellerDisplayName || 'Private Seller'}</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Independent Seller</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -486,19 +501,101 @@ export default function VehicleSaleDetails() {
             </Typography.Text>
           </div>
 
-          <a href={`tel:${vehicle.contactNumber || '+94112345678'}`} style={{ textDecoration: 'none' }}>
-            <Button
-              type="primary"
-              size="large"
-              block
-              icon={<Phone size={18} />}
-              style={{ height: '56px', fontSize: '1.1rem', fontWeight: 700, backgroundColor: 'var(--bg-dark)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              Call Now
-            </Button>
-          </a>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* WhatsApp button — shown when preference is 'whatsapp' or 'both' (default) */}
+            {(!vehicle.contactPreference || vehicle.contactPreference === 'whatsapp' || vehicle.contactPreference === 'both') && (
+              <a
+                href={`https://wa.me/${(vehicle.contactNumber || '+94112345678').replace(/[^0-9]/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none' }}
+              >
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  icon={
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 2 }}>
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.552 4.123 1.524 5.855L.057 23.477a.75.75 0 0 0 .92.921l5.713-1.461A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22.5a10.44 10.44 0 0 1-5.338-1.458l-.381-.228-3.955 1.012 1.035-3.874-.249-.399A10.46 10.46 0 0 1 1.5 12C1.5 6.21 6.21 1.5 12 1.5S22.5 6.21 22.5 12 17.79 22.5 12 22.5z"/>
+                    </svg>
+                  }
+                  style={{
+                    height: '56px', fontSize: '1.1rem', fontWeight: 700,
+                    backgroundColor: '#25D366', borderColor: '#25D366',
+                    borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                >
+                  WhatsApp Now
+                </Button>
+              </a>
+            )}
+            {/* Call button — shown when preference is 'call' or 'both' */}
+            {(vehicle.contactPreference === 'call' || vehicle.contactPreference === 'both') && (
+              <a href={`tel:${vehicle.contactNumber || '+94112345678'}`} style={{ textDecoration: 'none' }}>
+                <Button
+                  size="large"
+                  block
+                  icon={
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: 'inline', verticalAlign: 'middle' }}>
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.92a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/>
+                    </svg>
+                  }
+                  style={{
+                    height: '56px', fontSize: '1.1rem', fontWeight: 700,
+                    backgroundColor: 'var(--bg-dark)', color: 'white', borderColor: 'var(--bg-dark)',
+                    borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                >
+                  Call Now
+                </Button>
+              </a>
+            )}
+          </div>
         </div>
       </Modal>
+
+      {/* LIGHTBOX OVERLAY */}
+      {showLightbox && (
+        <div className="detail-lightbox-overlay" onClick={() => setShowLightbox(false)}>
+          <button className="detail-lightbox-close" onClick={() => setShowLightbox(false)} aria-label="Close">
+            <X size={32} />
+          </button>
+
+          {displayImages.length > 1 && (
+            <button
+              className="detail-lightbox-nav prev"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => prev === 0 ? displayImages.length - 1 : prev - 1);
+              }}
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={36} />
+            </button>
+          )}
+
+          <img
+            src={getImageUrl(displayImages[activeImage])}
+            alt={`${vehicle.make} ${vehicle.model}`}
+            className="detail-lightbox-img"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {displayImages.length > 1 && (
+            <button
+              className="detail-lightbox-nav next"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => prev === displayImages.length - 1 ? 0 : prev + 1);
+              }}
+              aria-label="Next image"
+            >
+              <ChevronRight size={36} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

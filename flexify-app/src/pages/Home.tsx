@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, MapPin, Star, ArrowRight, Verified, Car, Truck, Bike, Bus, Compass, Lock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, ChevronLeft, ChevronRight, Shield, Clock, Users, Star, ArrowRight, Car, Truck, Bike, Bus, Compass, Key, ShoppingCart, Activity, MapPin, Tag } from 'lucide-react';
 import { Row, Col } from 'antd';
-import { vehicleApi, type Vehicle, type User, type PublicStats } from '../api';
+import { vehicleApi, salesApi, getImageUrl, type Vehicle, type PublicStats } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SEO from '../components/SEO';
@@ -11,17 +11,19 @@ import './Home.css';
 
 export default function Home() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [userFeaturedCount, setUserFeaturedCount] = useState(0);
-  const [owners] = useState<User[]>([]);
+  const [salesVehicles, setSalesVehicles] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState<PublicStats | null>(null);
-  
+
   const vehicleScrollRef = useRef<HTMLDivElement>(null);
-  const ownerScrollRef = useRef<HTMLDivElement>(null);
+  const salesScrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
+    // Fetch rental vehicles
     vehicleApi.getAll({ limit: '12', sort: 'popular' }).then((response) => {
       const data = response.vehicles || [];
       if (user) {
@@ -42,9 +44,14 @@ export default function Home() {
       }
     }).catch(console.error);
 
+    // Fetch sales vehicles
+    salesApi.getActiveSales({}).then((data) => {
+      setSalesVehicles(Array.isArray(data) ? data.slice(0, 12) : []);
+    }).catch(console.error);
+
     vehicleApi.getPublicStats().then(setStats).catch(console.error);
   }, [user]);
-  
+
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, dir: 'left' | 'right') => {
     if (ref.current) {
       const amount = 340;
@@ -62,7 +69,7 @@ export default function Home() {
 
   return (
     <div className="home-page">
-      <SEO 
+      <SEO
         title="Rent Cars, Bikes & Vans in Sri Lanka | Rentify"
         description="Sri Lanka's trusted vehicle rental marketplace. Rent cars, SUVs, bikes & vans from verified owners in Colombo, Kandy, Galle & 25 districts. Self-drive or with driver — book now!"
         keywords="rent a car Sri Lanka, car rental Colombo, bike rental Sri Lanka, self drive vehicles Sri Lanka, rent van Kandy, vehicle hire Galle, SUV rental island wide, Rentify Sri Lanka, peer to peer car rental, cheap car rent Colombo"
@@ -108,6 +115,7 @@ export default function Home() {
           }
         ]}
       />
+
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-bg">
@@ -140,6 +148,19 @@ export default function Home() {
               </Link>
             </div>
           </div>
+
+          {/* Primary CTA Buttons */}
+          <div className="hero-cta-buttons animate-fade-in-up">
+            <Link to="/explore" className="hero-cta-btn hero-cta-btn--rent" id="hero-rent-btn">
+              <Key size={20} strokeWidth={2} />
+              <span>Rent a Vehicle</span>
+            </Link>
+            <Link to="/buy" className="hero-cta-btn hero-cta-btn--buy" id="hero-buy-btn">
+              <ShoppingCart size={20} strokeWidth={2} />
+              <span>Buy a Vehicle</span>
+            </Link>
+          </div>
+
           <div className="hero-stats animate-fade-in-up">
             <div className="hero-stat">
               <span className="hero-stat-number">{stats?.totalActiveVehicles || 0}</span>
@@ -159,89 +180,30 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Verified Owners */}
-      <section className="owners-section section-padding">
+      {/* Rental Categories — BEFORE Featured Vehicles */}
+      <section className="categories-section section-padding">
         <div className="container">
-          <div className="section-header">
-            <div>
-              <h2 className="section-title">Top Verified Owners</h2>
-              <p className="section-subtitle">Rent from trusted, verified vehicle providers</p>
-            </div>
-            {!isMobile && (
-              <div className="scroll-controls">
-                <button className="scroll-btn" onClick={() => scroll(ownerScrollRef, 'left')}><ChevronLeft size={20} /></button>
-                <button className="scroll-btn" onClick={() => scroll(ownerScrollRef, 'right')}><ChevronRight size={20} /></button>
-              </div>
-            )}
+          <h2 className="section-title text-center">Browse by Category</h2>
+          <p className="section-subtitle text-center">Find the perfect vehicle type for your needs</p>
+          <div className="categories-grid">
+            {categories.map((cat) => (
+              <Link to={cat.link} key={cat.name} className="category-card-luxury">
+                <div className="category-icon-wrap">
+                  {cat.icon}
+                </div>
+                <h3 className="category-name">{cat.name}</h3>
+              </Link>
+            ))}
           </div>
-          {!isMobile ? (
-            <div className="scroll-container" ref={ownerScrollRef}>
-              {owners.map((owner) => (
-                <div key={owner.id || owner._id} className="owner-card card">
-                  <img
-                    src={owner.profilePic ? (owner.profilePic.startsWith('/') ? owner.profilePic : owner.profilePic) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'}
-                    alt={owner.name}
-                    className="owner-avatar"
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'; }}
-                  />
-                  <h3 className="owner-name">
-                    {owner.name}
-                    <Verified size={16} className="verified-icon" />
-                  </h3>
-                  <p className="owner-location">
-                    <MapPin size={14} />
-                    {(owner as any).address || 'Sri Lanka'}
-                  </p>
-                  <Link to={`/explore?owner=${owner.id || owner._id}`} className="btn btn-secondary btn-sm btn-full">
-                    View Vehicles
-                  </Link>
-                </div>
-              ))}
-              {owners.length === 0 && (
-                <div className="empty-state-inline">
-                  <p>Verified owners will appear here</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="mobile-grid">
-              {owners.map((owner) => (
-                <div key={owner.id || owner._id} className="owner-card card">
-                  <img
-                    src={owner.profilePic ? (owner.profilePic.startsWith('/') ? owner.profilePic : owner.profilePic) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'}
-                    alt={owner.name}
-                    className="owner-avatar"
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(owner.name) + '&background=2563eb&color=fff&size=200'; }}
-                  />
-                  <h3 className="owner-name">
-                    {owner.name}
-                    <Verified size={16} className="verified-icon" />
-                  </h3>
-                  <p className="owner-location">
-                    <MapPin size={14} />
-                    {(owner as any).address || 'Sri Lanka'}
-                  </p>
-                  <Link to={`/explore?owner=${owner.id || owner._id}`} className="btn btn-secondary btn-sm btn-full">
-                    View Vehicles
-                  </Link>
-                </div>
-              ))}
-              {owners.length === 0 && (
-                <div className="empty-state-inline">
-                  <p>Verified owners will appear here</p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </section>
 
-      {/* Featured Vehicles */}
+      {/* Featured Rental Vehicles */}
       <section className="vehicles-section section-padding">
         <div className="container">
           <div className="section-header">
             <div>
-              <h2 className="section-title">Featured Vehicles</h2>
+              <h2 className="section-title">Featured Rentals</h2>
               <p className="section-subtitle">Handpicked rides for every journey</p>
               {userFeaturedCount > 0 && (
                 <div style={{ marginTop: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--bg-secondary)', padding: '4px 12px', borderRadius: '100px', fontSize: '0.85rem', color: 'var(--primary-color)', border: '1px solid var(--border-color)' }}>
@@ -268,26 +230,85 @@ export default function Home() {
           </div>
           <div className="section-footer">
             <Link to="/explore" className="btn btn-secondary">
-              View All Vehicles <ArrowRight size={16} />
+              View All Rentals <ArrowRight size={16} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="categories-section section-padding">
+      {/* Vehicles for Sale */}
+      <section className="sales-section section-padding">
         <div className="container">
-          <h2 className="section-title text-center">Browse by Category</h2>
-          <p className="section-subtitle text-center">Find the perfect vehicle type for your needs</p>
-          <div className="categories-grid">
-            {categories.map((cat) => (
-              <Link to={cat.link} key={cat.name} className="category-card-luxury">
-                <div className="category-icon-wrap">
-                  {cat.icon}
+          <div className="section-header">
+            <div>
+              <h2 className="section-title">Vehicles for Sale</h2>
+              <p className="section-subtitle">Browse quality vehicles available to buy</p>
+            </div>
+            <div className="scroll-controls featured-scroll-controls">
+              <button className="scroll-btn" onClick={() => scroll(salesScrollRef, 'left')} aria-label="Previous"><ChevronLeft size={20} /></button>
+              <button className="scroll-btn" onClick={() => scroll(salesScrollRef, 'right')} aria-label="Next"><ChevronRight size={20} /></button>
+            </div>
+          </div>
+          <div className="scroll-container featured-scroll" ref={salesScrollRef}>
+            {salesVehicles.map((vehicle) => {
+              const primaryImage = vehicle.images && vehicle.images.length > 0
+                ? getImageUrl(vehicle.images[0])
+                : getImageUrl();
+              return (
+                <div
+                  key={vehicle._id}
+                  className="sale-card card"
+                  onClick={() => navigate(`/buy/${vehicle._id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/buy/${vehicle._id}`)}
+                >
+                  <div className="sale-card-img-wrap">
+                    <img
+                      src={primaryImage}
+                      alt={`${vehicle.make} ${vehicle.model}`}
+                      loading="lazy"
+                      className="sale-card-img"
+                    />
+                    <span className="sale-card-badge">For Sale</span>
+                  </div>
+                  <div className="sale-card-body">
+                    <div className="sale-card-tags">
+                      {vehicle.condition && <span className="v-card-tag">{vehicle.condition}</span>}
+                      {vehicle.transmission && <span className="v-card-tag">{vehicle.transmission}</span>}
+                    </div>
+                    <h3 className="sale-card-title">{vehicle.make} {vehicle.model}</h3>
+                    <p className="sale-card-sub">{vehicle.year}{vehicle.fuelType ? ` · ${vehicle.fuelType}` : ''}</p>
+                    <div className="sale-card-specs">
+                      {vehicle.mileage != null && (
+                        <span><Activity size={12} /> {vehicle.mileage?.toLocaleString()} km</span>
+                      )}
+                      {(vehicle.city || vehicle.district) && (
+                        <span><MapPin size={12} /> {vehicle.city || vehicle.district}</span>
+                      )}
+                    </div>
+                    <div className="sale-card-footer">
+                      <div>
+                        <span className="sale-price-amount">LKR {vehicle.askingPrice?.toLocaleString()}</span>
+                        <span className="sale-price-note">{vehicle.isNegotiable ? ' · Negotiable' : ' · Fixed'}</span>
+                      </div>
+                      <Tag size={14} className="sale-tag-icon" />
+                    </div>
+                  </div>
                 </div>
-                <h3 className="category-name">{cat.name}</h3>
-              </Link>
-            ))}
+              );
+            })}
+            {salesVehicles.length === 0 && (
+              <div className="empty-state-card" style={{ width: '100%', textAlign: 'center', padding: '3rem', background: 'rgba(255,255,255,0.05)', borderRadius: '1rem', border: '1px dashed var(--border-color)' }}>
+                <ShoppingCart size={40} style={{ color: 'var(--text-tertiary)', marginBottom: '1rem' }} />
+                <p style={{ color: 'var(--text-secondary)', margin: 0 }}>No vehicles for sale yet.</p>
+              </div>
+            )}
+          </div>
+          <div className="section-footer">
+            <Link to="/buy" className="btn btn-sale-view">
+              View All Sales <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </section>
@@ -346,7 +367,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-
-

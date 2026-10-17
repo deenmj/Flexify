@@ -81,14 +81,14 @@ function RootRedirect() {
     </div>
   );
 
-  if (!user) return <Navigate to="/explore" replace />;
+  if (!user) return <Navigate to="/home" replace />;
 
   const role = (user.role || '').toLowerCase();
   if (role === 'superadmin') return <Navigate to="/ceo-master-portal" replace />;
   if (role === 'admin') return <Navigate to="/admin" replace />;
   if (role === 'staff' || role === 'subadmin') return <Navigate to="/staff" replace />;
 
-  return <Navigate to="/explore" replace />;
+  return <Navigate to="/home" replace />;
 }
 
 import { settingsApi, type MaintenanceData } from './api';
