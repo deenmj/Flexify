@@ -8,6 +8,7 @@ import Staff from "../models/Staff.js";
 import AuditLog from "../models/AuditLog.js";
 import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
+import ContactEvent from "../models/ContactEvent.js";
 import cloudinary from "../utils/cloudinary.js";
 import { logAdminAction } from "../utils/auditLogger.js";
 import { sendKycResetEmail } from "../utils/notifier.js";
@@ -655,6 +656,111 @@ export const createVehicleForUser = async (req, res) => {
     });
 
     res.status(201).json(vehicle);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Admin: Get Calls & WhatsApp inquiry analytics
+ * Returns today-counts, all-time totals, 30-day chart data, and per-vehicle breakdown
+ */
+export const getInquiryStats = async (req, res) => {
+  try {
+    const now = new Date();
+
+    // "Today" window: midnight -> now
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+
+    // 30-day window for chart
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // ── 1. Today counts ───────────────────────────────────────────────────
+    const [callsToday, whatsappToday] = await Promise.all([
+      ContactEvent.countDocuments({ type: "call",     createdAt: { $gte: todayStart } }),
+      ContactEvent.countDocuments({ type: "whatsapp", createdAt: { $gte: todayStart } }),
+    ]);
+
+    // ── 2. All-time totals (sum from vehicle documents) ───────────────────
+    const totalsAgg = await Vehicle.aggregate([
+      { $group: { _id: null, totalCalls: { $sum: "$callClicks" }, totalWhatsApp: { $sum: "$whatsappClicks" } } },
+    ]);
+    const totals = totalsAgg[0] || { totalCalls: 0, totalWhatsApp: 0 };
+
+    // ── 3. 30-day daily chart (group by day) ─────────────────────────────
+    const dailyEvents = await ContactEvent.aggregate([
+      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+      {
+        $group: {
+          _id: { date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, type: "$type" },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.date": 1 } },
+    ]);
+
+    const chartMap = {};
+    dailyEvents.forEach(({ _id, count }) => {
+      if (!chartMap[_id.date]) chartMap[_id.date] = { date: _id.date, calls: 0, whatsapp: 0 };
+      chartMap[_id.date][_id.type === "call" ? "calls" : "whatsapp"] = count;
+    });
+
+    // Fill every calendar day in the last 30 days (even zeros)
+    const chartData = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const key = d.toISOString().slice(0, 10);
+      chartData.push(chartMap[key] || { date: key, calls: 0, whatsapp: 0 });
+    }
+
+    // ── 4. Per-vehicle breakdown ──────────────────────────────────────────
+    const vehicleBreakdown = await Vehicle.aggregate([
+      { $match: { $or: [{ callClicks: { $gt: 0 } }, { whatsappClicks: { $gt: 0 } }] } },
+      { $lookup: { from: "users",  localField: "owner", foreignField: "_id", as: "ownerInfo"  } },
+      { $lookup: { from: "staffs", localField: "owner", foreignField: "_id", as: "staffInfo" } },
+      { $addFields: {
+          ownerDoc: { $arrayElemAt: [{ $concatArrays: ["$ownerInfo", "$staffInfo"] }, 0] },
+          totalInquiries: { $add: ["$callClicks", "$whatsappClicks"] },
+      }},
+      { $sort: { totalInquiries: -1 } },
+      { $limit: 50 },
+      { $project: {
+          _id: 1, title: 1, make: 1, model: 1, district: 1,
+          photos: { $slice: ["$photos", 1] },
+          callClicks: 1, whatsappClicks: 1, totalInquiries: 1,
+          "ownerDoc.name": 1, "ownerDoc.email": 1, "ownerDoc.role": 1,
+      }},
+    ]);
+
+    // Attach today's per-vehicle counts
+    const vehicleIds = vehicleBreakdown.map((v) => v._id);
+    const todayPerVehicle = await ContactEvent.aggregate([
+      { $match: { vehicle: { $in: vehicleIds }, createdAt: { $gte: todayStart } } },
+      { $group: { _id: { vehicle: "$vehicle", type: "$type" }, count: { $sum: 1 } } },
+    ]);
+
+    const todayMap = {};
+    todayPerVehicle.forEach(({ _id, count }) => {
+      const key = _id.vehicle.toString();
+      if (!todayMap[key]) todayMap[key] = { callsToday: 0, whatsappToday: 0 };
+      if (_id.type === "call") todayMap[key].callsToday = count;
+      else todayMap[key].whatsappToday = count;
+    });
+
+    const vehicleBreakdownWithToday = vehicleBreakdown.map((v) => ({
+      ...v,
+      callsToday:     todayMap[v._id.toString()]?.callsToday    || 0,
+      whatsappToday:  todayMap[v._id.toString()]?.whatsappToday || 0,
+      inquiriesToday: (todayMap[v._id.toString()]?.callsToday || 0) + (todayMap[v._id.toString()]?.whatsappToday || 0),
+    }));
+
+    res.json({
+      today:    { calls: callsToday, whatsapp: whatsappToday, total: callsToday + whatsappToday },
+      allTime:  { calls: totals.totalCalls, whatsapp: totals.totalWhatsApp, total: totals.totalCalls + totals.totalWhatsApp },
+      chartData,
+      vehicleBreakdown: vehicleBreakdownWithToday,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

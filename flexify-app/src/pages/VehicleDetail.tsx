@@ -82,6 +82,11 @@ export default function VehicleDetail() {
     // Track click asynchronously (no login required)
     try {
       await vehicleApi.trackContactClick(id!, type);
+      setVehicle(prev => prev ? {
+        ...prev,
+        callClicks: type === 'call' ? (prev.callClicks || 0) + 1 : prev.callClicks,
+        whatsappClicks: type === 'whatsapp' ? (prev.whatsappClicks || 0) + 1 : prev.whatsappClicks,
+      } : prev);
     } catch (err) {
       console.error('Failed to track contact click', err);
     }

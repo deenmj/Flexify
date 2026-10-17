@@ -7,6 +7,7 @@ import User from "../models/User.js";
 import Staff from "../models/Staff.js";
 import VehicleMake from "../models/VehicleMake.js";
 import VehicleModel from "../models/VehicleModel.js";
+import ContactEvent from "../models/ContactEvent.js";
 import { sendSubadminAlert } from "../utils/notifier.js";
 import cloudinary from "../utils/cloudinary.js";
 import { deleteCloudinaryImages, extractPublicIds } from "../utils/cloudinaryHelpers.js";
@@ -659,11 +660,24 @@ export const trackContactClick = async (req, res) => {
     }
 
     const field = type === "call" ? "callClicks" : "whatsappClicks";
-    
-    // Atomic increment
-    await Vehicle.findByIdAndUpdate(req.params.id, {
-      $inc: { [field]: 1 }
-    });
+
+    // Atomic increment on the vehicle document (cumulative total)
+    const vehicle = await Vehicle.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { [field]: 1 } },
+      { new: false } // we only need the owner id
+    );
+
+    // Log a timestamped event for time-series analytics (fire-and-forget)
+    if (vehicle) {
+      ContactEvent.create({
+        vehicle: vehicle._id,
+        owner: vehicle.owner,
+        type,
+      }).catch((err) =>
+        console.error("[trackContactClick] ContactEvent log failed:", err.message)
+      );
+    }
 
     res.json({ message: "Click tracked successfully" });
   } catch (err) {

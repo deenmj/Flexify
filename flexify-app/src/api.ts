@@ -251,6 +251,27 @@ export interface AdminStats {
   successRate: number;
 }
 
+export interface InquiryStats {
+  today: { calls: number; whatsapp: number; total: number };
+  allTime: { calls: number; whatsapp: number; total: number };
+  chartData: Array<{ date: string; calls: number; whatsapp: number }>;
+  vehicleBreakdown: Array<{
+    _id: string;
+    title: string;
+    make: string;
+    model: string;
+    district?: string;
+    photos?: Array<{ url: string; public_id: string }>;
+    callClicks: number;
+    whatsappClicks: number;
+    totalInquiries: number;
+    callsToday: number;
+    whatsappToday: number;
+    inquiriesToday: number;
+    ownerDoc?: { name: string; email: string; role: string };
+  }>;
+}
+
 export interface AuditLog {
   _id: string;
   action: string;
@@ -506,6 +527,8 @@ export const adminApi = {
       if (!res.ok) throw new Error(data.message || 'Failed to create vehicle');
       return data as Vehicle;
     }),
+
+  getInquiryStats: () => apiFetch<InquiryStats>('/admin/inquiry-stats'),
 };
 
 

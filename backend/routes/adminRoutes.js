@@ -16,14 +16,16 @@ import {
   cancelBooking,
   getUserVehicles,
   createVehicleForUser,
+  getInquiryStats,
 } from "../controllers/adminController.js";
-import { protect, requireAdmin, requireStaff } from "../middleware/authMiddleware.js";
+import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/upload.js";
 
 const router = express.Router();
 
 // Superadmin Routes
 router.get("/stats", protect, requireAdmin, getAdminStats);
+router.get("/inquiry-stats", protect, requireAdmin, getInquiryStats);
 router.get("/users", protect, requireAdmin, getAllUsers);
 router.put("/users/:id", protect, requireAdmin, updateUserInfo);
 router.patch("/users/:id/role", protect, requireAdmin, updateUserRole);
@@ -43,5 +45,3 @@ router.patch("/bookings/:id/cancel", protect, requireAdmin, cancelBooking);
 router.get("/audit-logs", protect, requireAdmin, getAuditLogs);
 
 export default router;
-
-

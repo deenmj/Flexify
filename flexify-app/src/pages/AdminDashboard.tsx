@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminApi, vehicleApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, subadminApi, type AdminStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder, type VehicleMake, type VehicleModel } from '../api';
+import { adminApi, vehicleApi, bankDetailsApi, feedbackApi, settingsApi, getImageUrl, subadminApi, type AdminStats, type InquiryStats, type Vehicle, type User, type Booking, type AuditLog, type BankDetailsData, type Founder, type VehicleMake, type VehicleModel } from '../api';
 import { Users, Car, Calendar, DollarSign, CheckCircle, Eye, LogOut, ArrowLeft, Edit2, Trash2, History, TrendingUp, MapPin, Landmark, ShieldAlert, Ban, FileText, MessageSquare, Menu as MenuIcon, Star, XCircle, Plus, Upload as UploadIcon, Phone } from 'lucide-react';
 import { Tag, Tooltip, Typography, Select, Card, Statistic, Spin, Layout, Menu, Button, Avatar, Space, Dropdown, Form, Input, message, Modal, Row, Col, Divider, Drawer, Grid, Image, Alert, Switch } from 'antd';
 import Table from '../components/ResponsiveTable';
@@ -48,6 +48,8 @@ export default function AdminDashboard() {
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
   const [district, setDistrict] = useState<string>('All Sri Lanka');
   const [timeRange, setTimeRange] = useState<string>('30d');
+  const [inquiryStats, setInquiryStats] = useState<InquiryStats | null>(null);
+  const [inquiryLoading, setInquiryLoading] = useState(false);
 
   // Modals for admin viewing
   const [selectedAdminVehicle, setSelectedAdminVehicle] = useState<Vehicle | null>(null);
@@ -158,6 +160,13 @@ export default function AdminDashboard() {
       if (logs?.logs) setAuditLogs(logs.logs);
       setPendingPayments(p);
     }).finally(() => setLoading(false));
+
+    // Load inquiry stats separately (non-blocking)
+    setInquiryLoading(true);
+    adminApi.getInquiryStats()
+      .then(setInquiryStats)
+      .catch((err) => console.error('Failed to load inquiry stats', err))
+      .finally(() => setInquiryLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -756,6 +765,244 @@ export default function AdminDashboard() {
                       </div>
                     </>
                   )}
+
+                  {/* ─────────── Calls & WhatsApp Inquiry Analytics ─────────── */}
+                  <div style={{ marginTop: '3rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)', color: '#16a34a', padding: '10px', borderRadius: '10px', display: 'flex' }}>
+                          <Phone size={20} />
+                        </div>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>Calls &amp; WhatsApp Inquiry Analytics</h3>
+                          <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>Monitor how many calls and WhatsApp messages your vehicles receive from potential renters.</p>
+                        </div>
+                      </div>
+                      <Space>
+                        <Tag color="green" style={{ borderRadius: '20px', padding: '2px 10px', fontSize: '12px' }}>All Contacts (Platform-Wide)</Tag>
+                        {inquiryStats && <Tag color="blue" style={{ borderRadius: '20px', padding: '2px 10px', fontSize: '12px' }}>Today: {inquiryStats.today.total}</Tag>}
+                        {inquiryStats && <Tag style={{ borderRadius: '20px', padding: '2px 10px', fontSize: '12px' }}>Last 30 Days</Tag>}
+                        {inquiryStats && <Tag style={{ borderRadius: '20px', padding: '2px 10px', fontSize: '12px' }}>All Time</Tag>}
+                        <Button size="small" icon={<TrendingUp size={14} />} onClick={() => { setInquiryLoading(true); adminApi.getInquiryStats().then(setInquiryStats).catch(() => {}).finally(() => setInquiryLoading(false)); }} loading={inquiryLoading}>Refresh</Button>
+                      </Space>
+                    </div>
+
+                    {inquiryLoading && !inquiryStats ? (
+                      <div style={{ textAlign: 'center', padding: '3rem' }}><Spin tip="Loading inquiry stats..." /></div>
+                    ) : (
+                      <>
+                        {/* Stat Cards Row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                          <Card size="small" bordered={false} style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ background: '#16a34a', color: '#fff', borderRadius: '8px', padding: '8px', display: 'flex' }}><Phone size={16} /></div>
+                              <div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#14532d', lineHeight: 1 }}>{inquiryStats?.today.calls ?? 0}</div>
+                                <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: 600, textTransform: 'uppercase' }}>Phone Calls Today</div>
+                              </div>
+                            </div>
+                            <div style={{ marginTop: '8px', fontSize: '12px', color: '#15803d' }}>All time: <strong>{inquiryStats?.allTime.calls ?? 0}</strong></div>
+                          </Card>
+
+                          <Card size="small" bordered={false} style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ background: '#25D366', color: '#fff', borderRadius: '8px', padding: '8px', display: 'flex' }}><MessageSquare size={16} /></div>
+                              <div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#14532d', lineHeight: 1 }}>{inquiryStats?.today.whatsapp ?? 0}</div>
+                                <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: 600, textTransform: 'uppercase' }}>WhatsApp Messages Today</div>
+                              </div>
+                            </div>
+                            <div style={{ marginTop: '8px', fontSize: '12px', color: '#15803d' }}>All time: <strong>{inquiryStats?.allTime.whatsapp ?? 0}</strong></div>
+                          </Card>
+
+                          <Card size="small" bordered={false} style={{ background: 'linear-gradient(135deg, #fefce8, #fef9c3)', borderRadius: '12px', border: '1px solid #fde68a' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ background: '#ca8a04', color: '#fff', borderRadius: '8px', padding: '8px', display: 'flex' }}><TrendingUp size={16} /></div>
+                              <div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#713f12', lineHeight: 1 }}>{inquiryStats?.today.total ?? 0}</div>
+                                <div style={{ fontSize: '11px', color: '#a16207', fontWeight: 600, textTransform: 'uppercase' }}>New Inquiries Today</div>
+                              </div>
+                            </div>
+                            <div style={{ marginTop: '8px', fontSize: '12px', color: '#a16207' }}>All time: <strong>{inquiryStats?.allTime.total ?? 0}</strong></div>
+                          </Card>
+
+                          <Card size="small" bordered={false} style={{ background: 'linear-gradient(135deg, #fdf4ff, #fae8ff)', borderRadius: '12px', border: '1px solid #e9d5ff' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ background: '#9333ea', color: '#fff', borderRadius: '8px', padding: '8px', display: 'flex' }}><Star size={16} /></div>
+                              <div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#3b0764', lineHeight: 1 }}>
+                                  {inquiryStats?.vehicleBreakdown.length ?? 0}
+                                </div>
+                                <div style={{ fontSize: '11px', color: '#9333ea', fontWeight: 600, textTransform: 'uppercase' }}>Run Activity Tips</div>
+                              </div>
+                            </div>
+                            <div style={{ marginTop: '8px', fontSize: '12px', color: '#7c3aed' }}>
+                              {(inquiryStats?.vehicleBreakdown.length ?? 0) === 0
+                                ? 'No inquiries yet, tap any listing.'
+                                : `Top: ${inquiryStats!.vehicleBreakdown[0]?.title ?? '—'}`}
+                            </div>
+                          </Card>
+                        </div>
+
+                        {/* 30-Day Sparkline Chart */}
+                        {inquiryStats && inquiryStats.chartData.length > 0 && (() => {
+                          const maxVal = Math.max(...inquiryStats.chartData.map(d => d.calls + d.whatsapp), 1);
+                          const totalEvents = inquiryStats.chartData.reduce((s, d) => s + d.calls + d.whatsapp, 0);
+                          return (
+                            <Card
+                              bordered={false}
+                              style={{ border: '1px solid #f1f5f9', borderRadius: '12px', marginBottom: '2rem' }}
+                              title={
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                                  <span style={{ fontWeight: 700, fontSize: '14px' }}>Inquiry Activity Over Past 30 Days</span>
+                                  <Space size={4}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#16a34a' }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} /> By Calls</span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#25D366', marginLeft: '8px' }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#25D366', display: 'inline-block' }} /> WhatsApp</span>
+                                    <Tag style={{ marginLeft: '8px', fontSize: '11px' }}>1d</Tag>
+                                    <Tag style={{ fontSize: '11px' }}>7d</Tag>
+                                  </Space>
+                                </div>
+                              }
+                            >
+                              {totalEvents === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                                  <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📊</div>
+                                  <div style={{ fontWeight: 600, color: '#374151', marginBottom: '6px' }}>0 Inquiries Recorded in this timeframe</div>
+                                  <div style={{ fontSize: '13px', color: '#64748b' }}>Start using the call &amp; WhatsApp buttons on listings to record or<br />manage actions in the future.</div>
+                                </div>
+                              ) : (
+                                <div style={{ overflowX: 'auto' }}>
+                                  <svg width="100%" viewBox={`0 0 ${inquiryStats.chartData.length * 28} 120`} style={{ minWidth: '600px', display: 'block' }} preserveAspectRatio="none">
+                                    {/* Grid lines */}
+                                    {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
+                                      <line key={pct} x1="0" y1={100 - pct * 90} x2={inquiryStats.chartData.length * 28} y2={100 - pct * 90} stroke="#f1f5f9" strokeWidth="1" />
+                                    ))}
+                                    {/* Filled area — calls */}
+                                    <polyline
+                                      fill="rgba(22,163,74,0.12)"
+                                      stroke="none"
+                                      points={[
+                                        ...inquiryStats.chartData.map((d, i) => `${i * 28 + 14},${100 - (d.calls / maxVal) * 90}`),
+                                        `${(inquiryStats.chartData.length - 1) * 28 + 14},100`,
+                                        `14,100`
+                                      ].join(' ')}
+                                    />
+                                    {/* Calls line */}
+                                    <polyline
+                                      fill="none"
+                                      stroke="#16a34a"
+                                      strokeWidth="2"
+                                      strokeLinejoin="round"
+                                      points={inquiryStats.chartData.map((d, i) => `${i * 28 + 14},${100 - (d.calls / maxVal) * 90}`).join(' ')}
+                                    />
+                                    {/* WhatsApp line */}
+                                    <polyline
+                                      fill="none"
+                                      stroke="#25D366"
+                                      strokeWidth="2"
+                                      strokeDasharray="4 2"
+                                      strokeLinejoin="round"
+                                      points={inquiryStats.chartData.map((d, i) => `${i * 28 + 14},${100 - (d.whatsapp / maxVal) * 90}`).join(' ')}
+                                    />
+                                    {/* Date labels every 5 days */}
+                                    {inquiryStats.chartData.map((d, i) => (
+                                      i % 5 === 0 ? (
+                                        <text key={i} x={i * 28 + 14} y="115" textAnchor="middle" fontSize="8" fill="#94a3b8">
+                                          {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                        </text>
+                                      ) : null
+                                    ))}
+                                  </svg>
+                                </div>
+                              )}
+                            </Card>
+                          );
+                        })()}
+
+                        {/* Per-Vehicle Breakdown Table */}
+                        <Card
+                          title={
+                            <Space><Car size={16} /> Rental Vehicle Inquiry Breakdown: Calls &amp; WhatsApp</Space>
+                          }
+                          bordered={false}
+                          style={{ border: '1px solid #f1f5f9', borderRadius: '12px' }}
+                          extra={<Text type="secondary" style={{ fontSize: '12px' }}>Top 50 vehicles by total inquiries. Click to view listing.</Text>}
+                        >
+                          {!inquiryStats || inquiryStats.vehicleBreakdown.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                              <Car size={32} style={{ marginBottom: 8, opacity: 0.3 }} />
+                              <div>No inquiry data yet. Clicks will appear here once renters start contacting owners.</div>
+                            </div>
+                          ) : (
+                            <Table
+                              scroll={{ x: true }}
+                              dataSource={inquiryStats.vehicleBreakdown}
+                              rowKey="_id"
+                              size="small"
+                              pagination={{ pageSize: 10, size: 'small' }}
+                              columns={[
+                                {
+                                  title: 'Vehicle',
+                                  dataIndex: 'title',
+                                  render: (title: string, row: any) => (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                      {row.photos?.[0]?.url && (
+                                        <img src={getImageUrl(row.photos[0])} alt={title} style={{ width: 48, height: 36, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} />
+                                      )}
+                                      <div>
+                                        <div style={{ fontWeight: 600, fontSize: '13px' }}>{title}</div>
+                                        <div style={{ fontSize: '11px', color: '#64748b' }}>{row.make} {row.model}</div>
+                                      </div>
+                                    </div>
+                                  )
+                                },
+                                { title: 'Owner', dataIndex: 'ownerDoc', render: (o: any) => o ? <div style={{ fontSize: '12px' }}><strong>{o.name}</strong><br /><Text type="secondary" style={{ fontSize: '11px' }}>{o.role}</Text></div> : '—' },
+                                {
+                                  title: 'Calls Today',
+                                  dataIndex: 'callsToday',
+                                  sorter: (a: any, b: any) => a.callsToday - b.callsToday,
+                                  render: (v: number) => <Tag color="green" icon={<Phone size={11} style={{ marginRight: 3 }} />}>{v}</Tag>
+                                },
+                                {
+                                  title: 'WhatsApp Today',
+                                  dataIndex: 'whatsappToday',
+                                  sorter: (a: any, b: any) => a.whatsappToday - b.whatsappToday,
+                                  render: (v: number) => <Tag color="green" icon={<MessageSquare size={11} style={{ marginRight: 3 }} />}>{v}</Tag>
+                                },
+                                {
+                                  title: 'Total Today',
+                                  dataIndex: 'inquiriesToday',
+                                  sorter: (a: any, b: any) => a.inquiriesToday - b.inquiriesToday,
+                                  render: (v: number) => <Tag color={v > 0 ? 'gold' : 'default'}>{v} Total</Tag>
+                                },
+                                {
+                                  title: 'All Time (Public Explore)',
+                                  dataIndex: 'totalInquiries',
+                                  defaultSortOrder: 'descend' as const,
+                                  sorter: (a: any, b: any) => a.totalInquiries - b.totalInquiries,
+                                  render: (_: any, row: any) => (
+                                    <Space size={4}>
+                                      <Tag color="green" icon={<Phone size={11} />}>{row.callClicks} Total</Tag>
+                                      <Tag color="green" icon={<MessageSquare size={11} />}>{row.whatsappClicks} Total</Tag>
+                                    </Space>
+                                  )
+                                },
+                                {
+                                  title: 'Action',
+                                  render: (_: any, row: any) => (
+                                    <Space size={4}>
+                                      <Button size="small" onClick={() => window.open(`/vehicles/${row._id}`, '_blank')}>View Graph</Button>
+                                      <Button size="small" onClick={() => window.open(`/vehicles/${row._id}`, '_blank')}>View Dash</Button>
+                                    </Space>
+                                  )
+                                },
+                              ]}
+                            />
+                          )}
+                        </Card>
+                      </>
+                    )}
+                  </div>
 
                   <div style={{ marginTop: '3rem', textAlign: 'left' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
