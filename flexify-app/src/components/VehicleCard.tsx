@@ -184,17 +184,16 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
                 <span className="price-amount">LKR {effectivePricePerDay.toLocaleString()}</span>
                 <span className="price-unit">/day</span>
               </div>
-              {isDriverOnly && vehicle.driverPricePerDay ? (
-                <div className="driver-price-note">
-                  👨‍✈️ Driver included (LKR {vehicle.driverPricePerDay.toLocaleString()}/day)
-                </div>
-              ) : isDriverOnly ? (
-                <div className="driver-price-note">
+              {isDriverOnly ? (
+                <div 
+                  className="driver-price-note"
+                  title={vehicle.driverPricePerDay ? `Full price: Vehicle (LKR ${(vehicle.pricePerDay || 0).toLocaleString()}) + Driver (LKR ${vehicle.driverPricePerDay.toLocaleString()})` : 'Driver included in daily rate'}
+                >
                   👨‍✈️ Driver included
                 </div>
               ) : null}
               {!isBike && vehicle.driverOption === 'both' && vehicle.driverPricePerDay ? (
-                <div className="driver-price-note driver-price-note--optional">
+                <div className="driver-price-note driver-price-note--optional" title={`Optional driver: LKR ${vehicle.driverPricePerDay.toLocaleString()}/day`}>
                   👨‍✈️ +LKR {vehicle.driverPricePerDay.toLocaleString()}/day w/ driver
                 </div>
               ) : null}

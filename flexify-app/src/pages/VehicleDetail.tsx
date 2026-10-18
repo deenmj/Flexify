@@ -409,15 +409,14 @@ export default function VehicleDetail() {
                     <span className="mobile-inline-amount">{effectivePricePerDay.toLocaleString()}</span>
                     <span className="mobile-inline-period">/day</span>
                   </div>
-                  {isDriverOnly && vehicle.driverPricePerDay ? (
-                    <div style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 600, marginTop: '2px' }}>
-                      👨‍✈️ Driver included (LKR {vehicle.driverPricePerDay.toLocaleString()}/day)
-                    </div>
-                  ) : isDriverOnly ? (
-                    <div style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 600, marginTop: '2px' }}>
+                  {isDriverOnly && (
+                    <div 
+                      style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 600, marginTop: '2px' }}
+                      title={vehicle.driverPricePerDay ? `Full price: Vehicle (LKR ${(vehicle.pricePerDay || 0).toLocaleString()}) + Driver (LKR ${vehicle.driverPricePerDay.toLocaleString()})` : 'Driver included in daily rate'}
+                    >
                       👨‍✈️ Driver included
                     </div>
-                  ) : null}
+                  )}
                   {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
                     <div className="mobile-inline-price-tiers">
                       {vehicle.pricePerWeek && (

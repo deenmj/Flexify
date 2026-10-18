@@ -240,18 +240,24 @@
   justify-content: space-between;
   padding-top: 0.5rem;
   border-top: 1px solid var(--border-color-light, #f1f5f9);
+  gap: 8px;
+  min-width: 0;
 }
 
 .shared-vehicle-price-block {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .shared-vehicle-price {
   display: flex;
   align-items: baseline;
   gap: 2px;
+  flex-wrap: wrap;
 }
 
 .driver-price-note {
@@ -261,6 +267,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .driver-price-note--optional {
@@ -271,6 +278,7 @@
   font-size: 1.1rem;
   font-weight: 800;
   color: var(--color-primary, #2563eb);
+  line-height: 1.2;
 }
 
 .price-unit {
@@ -290,7 +298,8 @@
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s ease;
-  margin-right: -0.5rem; /* pull slightly to the right edge */
+  margin-right: -0.25rem;
+  flex-shrink: 0;
 }
 
 .share-btn:hover {
