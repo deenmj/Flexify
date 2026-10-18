@@ -256,8 +256,8 @@
 .shared-vehicle-price {
   display: flex;
   align-items: baseline;
-  gap: 2px;
-  flex-wrap: wrap;
+  gap: 3px;
+  white-space: nowrap;
 }
 
 .driver-price-note {
@@ -275,16 +275,18 @@
 }
 
 .price-amount {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--color-primary, #2563eb);
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .price-unit {
   font-size: 0.7rem;
   color: var(--text-tertiary, #94a3b8);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .share-btn {
