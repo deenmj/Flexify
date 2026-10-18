@@ -235,6 +235,10 @@ export default function VehicleDetail() {
   const displayImages = (validPhotos && validPhotos.length > 0) ? validPhotos : [null];
   const owner = typeof vehicle.owner === 'object' ? vehicle.owner : null;
   const isBike = vehicle.serviceType?.[0]?.toLowerCase() === 'bike' || vehicle.serviceType?.[0]?.toLowerCase() === 'scooter';
+  const isDriverOnly = !isBike && vehicle.driverOption === 'with-driver';
+  const effectivePricePerDay = isDriverOnly
+    ? (vehicle.pricePerDay || 0) + (vehicle.driverPricePerDay || 0)
+    : vehicle.pricePerDay;
 
 
 
@@ -242,11 +246,11 @@ export default function VehicleDetail() {
     <div className="vehicle-detail-page">
       <SEO
         title={`${vehicle.title} for Rent in ${vehicle.city || vehicle.district} | Rentify`}
-        description={`Rent ${vehicle.make} ${vehicle.model}${vehicle.year ? ` (${vehicle.year})` : ''} in ${vehicle.city || ''}, ${vehicle.district} from LKR ${vehicle.pricePerDay.toLocaleString()}/day. ${vehicle.transmission}, ${vehicle.seats} seats${vehicle.driverOption === 'both' ? ', self-drive or with driver' : ''}. Verified owner — book instantly on Rentify.lk!`}
+        description={`Rent ${vehicle.make} ${vehicle.model}${vehicle.year ? ` (${vehicle.year})` : ''} in ${vehicle.city || ''}, ${vehicle.district} from LKR ${effectivePricePerDay.toLocaleString()}/day. ${vehicle.transmission}, ${vehicle.seats} seats${vehicle.driverOption === 'both' ? ', self-drive or with driver' : ''}. Verified owner — book instantly on Rentify.lk!`}
         keywords={`rent ${vehicle.make} ${vehicle.model} Sri Lanka, ${vehicle.make} rental ${vehicle.district}, ${(vehicle as any).vehicleType || 'car'} hire ${vehicle.city || vehicle.district}, self drive ${vehicle.district}`}
         ogImage={getImageUrl(displayImages[0])}
         ogType="product"
-        ogTitle={`Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district} — LKR ${vehicle.pricePerDay.toLocaleString()}/day`}
+        ogTitle={`Rent ${vehicle.make} ${vehicle.model} in ${vehicle.city || vehicle.district} — LKR ${effectivePricePerDay.toLocaleString()}/day`}
         ogDescription={`${vehicle.transmission} · ${vehicle.seats} seats · ${vehicle.driverOption === 'both' ? 'Self-drive & with driver' : vehicle.driverOption === 'with-driver' ? 'With driver' : 'Self drive'}. Verified owner on Rentify.lk`}
         canonical={`/vehicles/${getVehicleSlug(vehicle)}`}
         jsonLd={{
@@ -268,7 +272,7 @@ export default function VehicleDetail() {
           "offers": {
             "@type": "Offer",
             "priceCurrency": "LKR",
-            "price": vehicle.pricePerDay,
+            "price": effectivePricePerDay,
             "priceValidUntil": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             "itemCondition": "https://schema.org/UsedCondition",
             "availability": vehicle.isActive ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
@@ -402,9 +406,18 @@ export default function VehicleDetail() {
                 <div className="mobile-inline-price">
                   <div className="mobile-inline-price-main">
                     <span className="mobile-inline-currency">LKR</span>
-                    <span className="mobile-inline-amount">{vehicle.pricePerDay.toLocaleString()}</span>
+                    <span className="mobile-inline-amount">{effectivePricePerDay.toLocaleString()}</span>
                     <span className="mobile-inline-period">/day</span>
                   </div>
+                  {isDriverOnly && vehicle.driverPricePerDay ? (
+                    <div style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 600, marginTop: '2px' }}>
+                      👨‍✈️ Driver included (LKR {vehicle.driverPricePerDay.toLocaleString()}/day)
+                    </div>
+                  ) : isDriverOnly ? (
+                    <div style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 600, marginTop: '2px' }}>
+                      👨‍✈️ Driver included
+                    </div>
+                  ) : null}
                   {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
                     <div className="mobile-inline-price-tiers">
                       {vehicle.pricePerWeek && (
@@ -614,10 +627,19 @@ export default function VehicleDetail() {
                   <div className="pricing-card-main">
                     <div className="pricing-main-amount">
                       <span className="pricing-currency">LKR</span>
-                      <span className="pricing-value">{vehicle.pricePerDay.toLocaleString()}</span>
+                      <span className="pricing-value">{effectivePricePerDay.toLocaleString()}</span>
                     </div>
                     <span className="pricing-period">per day</span>
                   </div>
+                  {isDriverOnly && vehicle.driverPricePerDay ? (
+                    <div style={{ fontSize: '0.8rem', color: '#6d28d9', fontWeight: 600, marginTop: '8px', background: '#f5f3ff', padding: '6px 10px', borderRadius: '8px', border: '1px solid #ddd6fe' }}>
+                      👨‍✈️ Driver included in daily price (Vehicle: LKR {vehicle.pricePerDay.toLocaleString()} + Driver: LKR {vehicle.driverPricePerDay.toLocaleString()})
+                    </div>
+                  ) : isDriverOnly ? (
+                    <div style={{ fontSize: '0.8rem', color: '#6d28d9', fontWeight: 600, marginTop: '8px', background: '#f5f3ff', padding: '6px 10px', borderRadius: '8px', border: '1px solid #ddd6fe' }}>
+                      👨‍✈️ Driver included in daily price
+                    </div>
+                  ) : null}
                   
                   {(vehicle.pricePerWeek || vehicle.pricePerMonth) && (
                     <div className="pricing-tiers">
@@ -680,7 +702,13 @@ export default function VehicleDetail() {
                         {vehicle.driverOption === 'both' ? 'Driver available as option' : 'Driver included / required'}
                       </div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                        {vehicle.driverPricePerDay ? `LKR ${vehicle.driverPricePerDay.toLocaleString()} per day for driver` : 'Contact owner for driver pricing'}
+                        {isDriverOnly
+                          ? vehicle.driverPricePerDay
+                            ? `Full daily price includes vehicle (LKR ${vehicle.pricePerDay.toLocaleString()}) + driver (LKR ${vehicle.driverPricePerDay.toLocaleString()})`
+                            : 'Driver included in daily rate'
+                          : vehicle.driverPricePerDay
+                            ? `LKR ${vehicle.driverPricePerDay.toLocaleString()} per day for driver`
+                            : 'Contact owner for driver pricing'}
                       </div>
                     </div>
                   </div>
@@ -755,8 +783,8 @@ export default function VehicleDetail() {
       {isMobile && (
         <div className={`mobile-booking-bar animate-slide-up ${!barVisible ? 'mobile-booking-bar-hidden' : ''}`} style={{ padding: '0.75rem 1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <div className="mobile-bar-price" style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
-            <span className="bar-amount" style={{ fontSize: '1.1rem' }}>LKR {vehicle.pricePerDay.toLocaleString()}</span>
-            <span className="bar-unit">/ Day</span>
+            <span className="bar-amount" style={{ fontSize: '1.1rem' }}>LKR {effectivePricePerDay.toLocaleString()}</span>
+            <span className="bar-unit">{isDriverOnly ? '/ Day (incl. driver)' : '/ Day'}</span>
           </div>
           <div style={{ flex: 1, display: 'flex', gap: '0.5rem' }}>
             <button

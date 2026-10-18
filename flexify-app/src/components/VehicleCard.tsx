@@ -9,6 +9,10 @@ import './VehicleCard.css';
 export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const ownerData = typeof vehicle.owner === 'object' ? vehicle.owner : null;
   const isBike = vehicle.serviceType?.[0]?.toLowerCase() === 'bike' || vehicle.serviceType?.[0]?.toLowerCase() === 'scooter';
+  const isDriverOnly = !isBike && vehicle.driverOption === 'with-driver';
+  const effectivePricePerDay = isDriverOnly
+    ? (vehicle.pricePerDay || 0) + (vehicle.driverPricePerDay || 0)
+    : vehicle.pricePerDay;
   const { user, setUser } = useAuth();
 
   const [isSaved, setIsSaved] = useState(false);
@@ -173,20 +177,27 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 
           <div className="shared-vehicle-footer">
             <div className="shared-vehicle-price-block">
-              <div className="shared-vehicle-price">
-                <span className="price-amount">LKR {vehicle.pricePerDay.toLocaleString()}</span>
+              <div 
+                className="shared-vehicle-price"
+                title={isDriverOnly && vehicle.driverPricePerDay ? `Full price: Vehicle (LKR ${(vehicle.pricePerDay || 0).toLocaleString()}) + Driver (LKR ${vehicle.driverPricePerDay.toLocaleString()})` : undefined}
+              >
+                <span className="price-amount">LKR {effectivePricePerDay.toLocaleString()}</span>
                 <span className="price-unit">/day</span>
               </div>
-              {!isBike && vehicle.driverOption === 'with-driver' && vehicle.driverPricePerDay && (
+              {isDriverOnly && vehicle.driverPricePerDay ? (
                 <div className="driver-price-note">
-                  👨‍✈️ +LKR {vehicle.driverPricePerDay.toLocaleString()}/day driver
+                  👨‍✈️ Driver included (LKR {vehicle.driverPricePerDay.toLocaleString()}/day)
                 </div>
-              )}
-              {!isBike && vehicle.driverOption === 'both' && vehicle.driverPricePerDay && (
+              ) : isDriverOnly ? (
+                <div className="driver-price-note">
+                  👨‍✈️ Driver included
+                </div>
+              ) : null}
+              {!isBike && vehicle.driverOption === 'both' && vehicle.driverPricePerDay ? (
                 <div className="driver-price-note driver-price-note--optional">
                   👨‍✈️ +LKR {vehicle.driverPricePerDay.toLocaleString()}/day w/ driver
                 </div>
-              )}
+              ) : null}
             </div>
             <button className="share-btn" onClick={handleShare} aria-label="Share">
               <Share2 size={16} />
